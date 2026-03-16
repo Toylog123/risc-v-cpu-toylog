@@ -25,6 +25,13 @@ module toylog_cpu_id_stage (
     output wire [1:0]  mem_size,
     output wire        mem_unsigned,
     output wire        is_lui,
+    output wire        csr_valid,
+    output wire [1:0]  csr_cmd,
+    output wire        csr_use_imm,
+    output wire [11:0] csr_addr,
+    output wire        ecall,
+    output wire        ebreak,
+    output wire        mret,
     output wire [31:0] rs1_value,
     output wire [31:0] rs2_value
 );
@@ -55,7 +62,14 @@ toylog_cpu_decoder u_decoder (
     .wb_sel        (wb_sel),
     .mem_size      (mem_size),
     .mem_unsigned  (mem_unsigned),
-    .is_lui        (is_lui)
+    .is_lui        (is_lui),
+    .csr_valid     (csr_valid),
+    .csr_cmd       (csr_cmd),
+    .csr_use_imm   (csr_use_imm),
+    .csr_addr      (csr_addr),
+    .ecall         (ecall),
+    .ebreak        (ebreak),
+    .mret          (mret)
 );
 
 endmodule

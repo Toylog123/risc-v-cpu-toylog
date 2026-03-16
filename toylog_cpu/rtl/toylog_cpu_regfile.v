@@ -13,8 +13,16 @@ module toylog_cpu_regfile (
 reg [31:0] regs [0:31];
 integer idx;
 
-assign rs1_rdata = (rs1_addr == 5'd0) ? 32'h0000_0000 : regs[rs1_addr];
-assign rs2_rdata = (rs2_addr == 5'd0) ? 32'h0000_0000 : regs[rs2_addr];
+// 写回旁路保证同周期写回的数据能被译码级直接看到。
+assign rs1_rdata =
+    (rs1_addr == 5'd0) ? 32'h0000_0000 :
+    (rd_wen && (rd_addr == rs1_addr) && (rd_addr != 5'd0)) ? rd_wdata :
+    regs[rs1_addr];
+
+assign rs2_rdata =
+    (rs2_addr == 5'd0) ? 32'h0000_0000 :
+    (rd_wen && (rd_addr == rs2_addr) && (rd_addr != 5'd0)) ? rd_wdata :
+    regs[rs2_addr];
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin

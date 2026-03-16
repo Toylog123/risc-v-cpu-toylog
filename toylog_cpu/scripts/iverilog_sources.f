@@ -1,3 +1,7 @@
+tb/toylog_cpu_soc_tb.v
+tb/toylog_cpu_trap_tb.v
+tb/toylog_cpu_timer_irq_tb.v
+rtl/toylog_cpu_soc.v
 tb/toylog_cpu_tb.v
 rtl/toylog_cpu.v
 rtl/toylog_cpu_if_stage.v

@@ -22,7 +22,14 @@ module toylog_cpu_decoder (
     output reg  [1:0]  wb_sel,
     output reg  [1:0]  mem_size,
     output reg         mem_unsigned,
-    output reg         is_lui
+    output reg         is_lui,
+    output reg         csr_valid,
+    output reg  [1:0]  csr_cmd,
+    output reg         csr_use_imm,
+    output reg  [11:0] csr_addr,
+    output reg         ecall,
+    output reg         ebreak,
+    output reg         mret
 );
 
 wire [6:0] opcode = instruction[6:0];
@@ -58,6 +65,13 @@ always @* begin
     mem_size     = `TOYLOG_CPU_MEM_W;
     mem_unsigned = 1'b0;
     is_lui       = 1'b0;
+    csr_valid    = 1'b0;
+    csr_cmd      = `TOYLOG_CPU_CSR_RW;
+    csr_use_imm  = 1'b0;
+    csr_addr     = instruction[31:20];
+    ecall        = 1'b0;
+    ebreak       = 1'b0;
+    mret         = 1'b0;
 
     case (opcode)
         `TOYLOG_CPU_OPCODE_LUI: begin
@@ -242,6 +256,54 @@ always @* begin
                 end
                 default: illegal = 1'b1;
             endcase
+        end
+
+        `TOYLOG_CPU_OPCODE_SYSTEM: begin
+            csr_addr = instruction[31:20];
+
+            if (funct3 == 3'b000) begin
+                case (instruction[31:20])
+                    12'h000: ecall = 1'b1;
+                    12'h001: ebreak = 1'b1;
+                    12'h302: mret = 1'b1;
+                    default: illegal = 1'b1;
+                endcase
+
+                if ((rs1_addr != 5'd0) || (rd_addr != 5'd0)) begin
+                    illegal = 1'b1;
+                end
+            end else begin
+                csr_valid = 1'b1;
+                rd_en = 1'b1;
+
+                case (funct3)
+                    3'b001: begin
+                        rs1_en = 1'b1;
+                        csr_cmd = `TOYLOG_CPU_CSR_RW;
+                    end
+                    3'b010: begin
+                        rs1_en = 1'b1;
+                        csr_cmd = `TOYLOG_CPU_CSR_RS;
+                    end
+                    3'b011: begin
+                        rs1_en = 1'b1;
+                        csr_cmd = `TOYLOG_CPU_CSR_RC;
+                    end
+                    3'b101: begin
+                        csr_cmd = `TOYLOG_CPU_CSR_RW;
+                        csr_use_imm = 1'b1;
+                    end
+                    3'b110: begin
+                        csr_cmd = `TOYLOG_CPU_CSR_RS;
+                        csr_use_imm = 1'b1;
+                    end
+                    3'b111: begin
+                        csr_cmd = `TOYLOG_CPU_CSR_RC;
+                        csr_use_imm = 1'b1;
+                    end
+                    default: illegal = 1'b1;
+                endcase
+            end
         end
 
         default: begin

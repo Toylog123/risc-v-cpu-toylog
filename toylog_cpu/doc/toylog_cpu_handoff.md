@@ -2,113 +2,103 @@
 
 ## 1. 交接规则
 
-- 每次对 `toylog_cpu` 有实际修改，必须同步更新本文件、`toylog_cpu_change_log.md` 和 `toylog_cpu_todo.md`
-- 交接时优先说明当前可运行状态、当前阻塞、下一步最值得做的事情
-- 所有结论以当前工作区文件和实际脚本结果为准
-- `toylog_cpu` 内源码注释默认使用中文
-- 默认同步范围固定为：`toylog_cpu`、`04-工具链`、`01-项目管理`
-- 其他目录只在目录结构变更、删除大体积资料、或确实影响团队协作时再同步
-- 默认暂存脚本：`scripts/stage_default_sync.bat`
-- Git 仓库默认跟踪 `toylog_cpu`、`04-工具链` 和 `01-项目管理`；`02-官方与规范`、`03-参考实现`、`05-验证测试` 默认只保留本地
+- 只要修改了 `toylog_cpu` 的 RTL、脚本、验证或文档，就同步更新本文件、`toylog_cpu_change_log.md` 和 `toylog_cpu_todo.md`。
+- 结论以当前仓库文件和实际脚本结果为准，不靠口头状态。
+- 源码注释默认使用中文；模块名、脚本名、工具名保留英文。
+- 默认同步范围是 `toylog_cpu`、`04-工具链`、`01-项目管理`。
+- 默认暂存脚本是 `scripts/stage_default_sync.bat`。
 
 ## 2. 当前状态
 
 - 日期：`2026-03-16`
-- 项目名：`toylog_cpu`
-- 当前目录：工作区根目录下 `toylog_cpu/`
-- 赛题方向：七星微 `RISC-V` 高性能 CPU 设计及 FPGA 验证
-- 当前基线：自写 `RV32I` 五级流水第一版
-- 当前结构：`IF / ID / EX / MEM / WB`
+- 赛题：七星微杯 `RISC-V` 高性能 CPU 设计及 FPGA 验证
+- 当前目录：`toylog_cpu/`
+- 目标工程名：`YH_rv_cpu`
+- 当前验证基线：自写 `RV32I` 五级流水
+- 当前架构目标：从 `RV32` 推进到 `RV32 / RV64` 共线支持
+- 当前闭环状态：最小 SoC 已经打通，能跑固件并通过 UART 输出 `toylog_cpu boot`
 
-## 3. 当前已具备能力
+## 3. 已完成能力
 
-- 基础算术逻辑运算
-- 分支与跳转基础控制
-- 访存地址生成与字节写使能
-- 基础 `load-use` 冒险暂停
-- EX/MEM 与 MEM/WB 前递
-- 独立指令/数据存储接口
+- 五级流水基础结构：`IF / ID / EX / MEM / WB`
+- 最小机器态 CSR / trap：
+  - `mstatus`
+  - `mtvec`
+  - `mscratch`
+  - `mepc`
+  - `mcause`
+  - `csrrw/csrrs/csrrc`
+  - `ecall / ebreak / mret`
+- 基础数据前递：`EX/MEM` 和 `MEM/WB`
+- 基础 `load-use` 暂停
+- 分支 / 跳转重定向
+- 最小 SoC 外壳：
+  - `ROM`
+  - `RAM`
+  - `UART`
+  - `DONE`
+  - `timer`
+- 固件构建链路：
+  - `.elf`
+  - `.dump`
+  - `.bin`
+  - `.hex`
+- `xsim` SoC 烟测
+- `xsim` trap 烟测
+- `xsim` timer interrupt 烟测
 
-## 4. 关键文件
+## 4. 本轮关键修复
 
-- 顶层：`rtl/toylog_cpu.v`
-- 流水级模块：
-  - `rtl/toylog_cpu_if_stage.v`
-  - `rtl/toylog_cpu_id_stage.v`
-  - `rtl/toylog_cpu_ex_stage.v`
-  - `rtl/toylog_cpu_mem_stage.v`
-  - `rtl/toylog_cpu_wb_stage.v`
-- 冒险处理：`rtl/toylog_cpu_hazard_unit.v`
-- 基础模块：
-  - `rtl/toylog_cpu_decoder.v`
-  - `rtl/toylog_cpu_alu.v`
-  - `rtl/toylog_cpu_regfile.v`
-- 验证入口：`tb/toylog_cpu_tb.v`
-- 工具脚本：
-  - `scripts/check_toolchain.bat`
-  - `scripts/check_syntax.bat`
-  - `scripts/build_firmware.bat`
+- 修复了跳转重定向未绑定 `id_ex_valid` 的问题，避免 `JAL` 清空后无效指令持续重定向。
+- 给寄存器堆加了写回旁路，解决首次 `lbu` 读取字符串地址时拿不到同周期写回值的问题。
+- SoC 侧补齐了 D 侧读取 `ROM` 的路径，确保字符串常量可被 `lbu` 正常访问。
+- 烟测脚本改为走 `Vivado/xsim`，不再依赖本机存在问题的 `iverilog + vvp` 运行链。
 
-## 5. 当前验证结论
+## 5. 当前验证结果
 
-- `scripts/check_toolchain.bat`：通过
 - `scripts/check_syntax.bat`：通过
 - `scripts/build_firmware.bat`：通过
-- 当前未完成：
-  - `riscv-tests` 未接入
-  - `CoreMark` 未接入
-  - `SoC 封装顶层` 未完成
-  - FPGA 工程未建立
+- `scripts/run_soc_smoke.bat`：通过
+- `scripts/run_trap_smoke.bat`：通过
+- `scripts/run_timer_irq_smoke.bat`：通过
+- `xsim` 结果：`PASS: SoC smoke test completed at PC=00000038 in 108 cycles`
+- `xsim` 结果：`PASS: trap smoke test completed at PC=000000ac in 79 cycles`
+- `xsim` 结果：`PASS: timer irq smoke test completed at PC=000000e4 in 125 cycles`
 
-## 6. 团队协作最低环境
+## 6. 关键文件
 
-这部分以“赛题推荐 + 当前工程路线”为准，不等同于某一台机器的个人安装快照。
+- CPU 顶层：`rtl/toylog_cpu.v`
+- SoC 顶层：`rtl/toylog_cpu_soc.v`
+- 测试平台：`tb/toylog_cpu_soc_tb.v`
+- 语法检查：`scripts/check_syntax.bat`
+- 固件构建：`scripts/build_firmware.bat`
+- SoC 烟测：`scripts/run_soc_smoke.bat`
+- 初步设计：`doc/toylog_cpu_preliminary_design.md`
 
-- `Git`
-- `Vivado 2025.2`
-- `xsim`
-- `iverilog`
-- `riscv-none-elf-gcc`
-- `riscv-none-elf-objdump`
-- `riscv-none-elf-objcopy`
+## 7. 当前缺口
 
-队友安装说明见：
+- 正式工程名还没整体切换为 `YH_rv_cpu`
+- `RV32 / RV64` 共线改造还没开始落 RTL
+- trap / interrupt 目前已具备最小闭环，但还没接 `riscv-tests`
+- `riscv-tests` 还没接
+- `CoreMark` 还没接
+- 还没有正式 `Vivado` 工程、板卡约束和上板记录
+- 两项性能优化还没冻结成最终比赛口径
 
-- `../../04-工具链/toylog_cpu_toolchain/队伍安装清单.md`
+## 8. 下一步顺序
 
-## 7. 当前本机快照
+1. 切换正式工程名到 `YH_rv_cpu`
+2. 启动 `RV32 / RV64` 共线改造
+3. 接 `riscv-tests`
+4. 接 `CoreMark`
+5. 建 `Vivado` 工程并完成上板闭环
 
-- `iverilog`：已安装
-- `rg`：已安装
-- `Vivado 2025.2`：已安装
-- `xsim`：可用
-- `riscv-none-elf-gcc`：已安装
-- `riscv-none-elf-objdump`：可用
-- `riscv-none-elf-objcopy`：可用
-- `vsim`：未安装
-
-## 8. 工作区清理状态
-
-- 已删除 `04-工具链/riscv-gnu-toolchain`
-- 已删除 `03-参考实现/CPU设计/rocket-chip`
-- 当前保留的轻量参考实现：`03-参考实现/CPU设计/picorv32`
-
-## 9. 下一步建议顺序
-
-1. 增加 `CSR / timer / trap`
-2. 建立最小 `SoC 封装顶层`
-3. 接入 `riscv-tests`
-4. 接入 `CoreMark`
-5. 建立 Vivado 工程和板级约束
-
-## 10. 接手时先看什么
+## 9. 接手时先看
 
 1. `../../01-项目管理/03-过程管理/工作交接.md`
 2. `../../01-项目管理/03-过程管理/任务清单.md`
 3. `../../README.md`
 4. `README.md`
 5. `doc/toylog_cpu_preliminary_design.md`
-6. `doc/toylog_cpu_handoff.md`
-7. `doc/toylog_cpu_change_log.md`
-8. `doc/toylog_cpu_todo.md`
-9. `../../04-工具链/toylog_cpu_toolchain/队伍安装清单.md`
+6. `doc/toylog_cpu_change_log.md`
+7. `doc/toylog_cpu_todo.md`

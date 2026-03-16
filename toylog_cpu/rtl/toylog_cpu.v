@@ -5,6 +5,7 @@ module toylog_cpu #(
 ) (
     input  wire        clk,
     input  wire        rst_n,
+    input  wire        timer_irq,
     output wire [31:0] imem_addr,
     input  wire [31:0] imem_rdata,
     output wire [31:0] dmem_addr,
@@ -48,6 +49,13 @@ reg [1:0]  id_ex_wb_sel_r;
 reg [1:0]  id_ex_mem_size_r;
 reg        id_ex_mem_unsigned_r;
 reg        id_ex_is_lui_r;
+reg        id_ex_csr_valid_r;
+reg [1:0]  id_ex_csr_cmd_r;
+reg        id_ex_csr_use_imm_r;
+reg [11:0] id_ex_csr_addr_r;
+reg        id_ex_ecall_r;
+reg        id_ex_ebreak_r;
+reg        id_ex_mret_r;
 
 reg        ex_mem_valid_r;
 reg [31:0] ex_mem_pc4_r;
@@ -95,6 +103,13 @@ wire [1:0]  id_wb_sel;
 wire [1:0]  id_mem_size;
 wire        id_mem_unsigned;
 wire        id_is_lui;
+wire        id_csr_valid;
+wire [1:0]  id_csr_cmd;
+wire        id_csr_use_imm;
+wire [11:0] id_csr_addr;
+wire        id_ecall;
+wire        id_ebreak;
+wire        id_mret;
 wire [31:0] id_rs1_value;
 wire [31:0] id_rs2_value;
 
@@ -115,23 +130,123 @@ wire [31:0] ex_mem_addr;
 wire [31:0] ex_store_data;
 wire [3:0]  ex_store_wstrb;
 wire        ex_redirect_en;
+wire        ex_redirect_valid;
 wire [31:0] ex_redirect_pc;
 wire        ex_exception;
+wire        ex_exception_valid;
+wire [31:0] ex_exec_result_final;
+wire [31:0] csr_rdata_ex;
+wire [31:0] csr_write_operand_ex;
+wire [31:0] csr_write_data_ex;
+wire        csr_write_request_ex;
+wire        csr_write_en_ex;
+wire        csr_read_valid_ex;
+wire        csr_write_allowed_ex;
+wire        csr_access_illegal_ex;
+wire        ex_trap_valid;
+wire [31:0] ex_trap_cause;
+wire        ex_mret_valid;
+wire        ex_interrupt_valid;
+wire        ex_control_redirect_valid;
+wire [31:0] ex_control_redirect_pc;
+wire [31:0] csr_mip_value;
 
 wire [31:0] mem_load_data;
 wire [31:0] wb_data;
 
 wire [31:0] ex_mem_forward_data;
+reg  [31:0] csr_mstatus_r;
+reg  [31:0] csr_mie_r;
+reg  [31:0] csr_mtvec_r;
+reg  [31:0] csr_mscratch_r;
+reg  [31:0] csr_mepc_r;
+reg  [31:0] csr_mcause_r;
 
 assign trap = trap_r;
 assign debug_pc = pc_r;
 assign ex_mem_forward_data =
     (ex_mem_wb_sel_r == `TOYLOG_CPU_WB_PC4) ? ex_mem_pc4_r : ex_mem_exec_result_r;
+assign ex_redirect_valid = id_ex_valid_r && ex_redirect_en;
+assign ex_exception_valid = id_ex_valid_r && ex_exception;
+assign csr_write_operand_ex = id_ex_csr_use_imm_r ? {27'b0, id_ex_rs1_addr_r} : ex_rs1_forwarded;
+assign csr_write_request_ex =
+    id_ex_csr_valid_r &&
+    (
+        (id_ex_csr_cmd_r == `TOYLOG_CPU_CSR_RW) ||
+        (csr_write_operand_ex != 32'h0000_0000)
+    );
+assign csr_write_en_ex = csr_write_request_ex && !csr_access_illegal_ex;
+assign csr_write_data_ex =
+    (id_ex_csr_cmd_r == `TOYLOG_CPU_CSR_RW) ? csr_write_operand_ex :
+    (id_ex_csr_cmd_r == `TOYLOG_CPU_CSR_RS) ? (csr_rdata_ex | csr_write_operand_ex) :
+    (csr_rdata_ex & ~csr_write_operand_ex);
+assign csr_mip_value = timer_irq ? `TOYLOG_CPU_MIP_MTIP : 32'h0000_0000;
+assign ex_trap_cause =
+    ex_interrupt_valid ? `TOYLOG_CPU_TRAP_MTIME_INTERRUPT :
+    (id_ex_ecall_r) ? `TOYLOG_CPU_TRAP_ECALL_MMODE :
+    (id_ex_ebreak_r) ? `TOYLOG_CPU_TRAP_BREAKPOINT :
+    (!csr_read_valid_ex && id_ex_csr_valid_r) ? `TOYLOG_CPU_TRAP_ILLEGAL_INSN :
+    (id_ex_illegal_r) ? `TOYLOG_CPU_TRAP_ILLEGAL_INSN :
+    (id_ex_load_r) ? `TOYLOG_CPU_TRAP_LOAD_MISALIGNED :
+    `TOYLOG_CPU_TRAP_STORE_MISALIGNED;
+assign ex_mret_valid = id_ex_valid_r && id_ex_mret_r;
+assign ex_interrupt_valid =
+    id_ex_valid_r &&
+    !ex_exception &&
+    !id_ex_ecall_r &&
+    !id_ex_ebreak_r &&
+    !id_ex_mret_r &&
+    (csr_mstatus_r & `TOYLOG_CPU_MSTATUS_MIE) != 32'h0000_0000 &&
+    (csr_mie_r & `TOYLOG_CPU_MIE_MTIE) != 32'h0000_0000 &&
+    timer_irq;
+assign ex_trap_valid =
+    id_ex_valid_r &&
+    (ex_interrupt_valid || ex_exception || id_ex_ecall_r || id_ex_ebreak_r || csr_access_illegal_ex);
+assign ex_control_redirect_valid = ex_trap_valid || ex_mret_valid || ex_redirect_valid;
+assign ex_control_redirect_pc =
+    ex_trap_valid ? csr_mtvec_r :
+    ex_mret_valid ? csr_mepc_r :
+    ex_redirect_pc;
+assign ex_exec_result_final = id_ex_csr_valid_r ? csr_rdata_ex : ex_exec_result;
+
+assign csr_rdata_ex =
+    (id_ex_csr_addr_r == `TOYLOG_CPU_CSR_MSTATUS)  ? csr_mstatus_r :
+    (id_ex_csr_addr_r == `TOYLOG_CPU_CSR_MIE)      ? csr_mie_r :
+    (id_ex_csr_addr_r == `TOYLOG_CPU_CSR_MTVEC)    ? csr_mtvec_r :
+    (id_ex_csr_addr_r == `TOYLOG_CPU_CSR_MSCRATCH) ? csr_mscratch_r :
+    (id_ex_csr_addr_r == `TOYLOG_CPU_CSR_MEPC)     ? csr_mepc_r :
+    (id_ex_csr_addr_r == `TOYLOG_CPU_CSR_MCAUSE)   ? csr_mcause_r :
+    (id_ex_csr_addr_r == `TOYLOG_CPU_CSR_MIP)      ? csr_mip_value :
+    32'h0000_0000;
+
+assign csr_read_valid_ex =
+    (id_ex_csr_addr_r == `TOYLOG_CPU_CSR_MSTATUS)  ||
+    (id_ex_csr_addr_r == `TOYLOG_CPU_CSR_MIE)      ||
+    (id_ex_csr_addr_r == `TOYLOG_CPU_CSR_MTVEC)    ||
+    (id_ex_csr_addr_r == `TOYLOG_CPU_CSR_MSCRATCH) ||
+    (id_ex_csr_addr_r == `TOYLOG_CPU_CSR_MEPC)     ||
+    (id_ex_csr_addr_r == `TOYLOG_CPU_CSR_MCAUSE)   ||
+    (id_ex_csr_addr_r == `TOYLOG_CPU_CSR_MIP);
+
+assign csr_write_allowed_ex =
+    (id_ex_csr_addr_r == `TOYLOG_CPU_CSR_MSTATUS)  ||
+    (id_ex_csr_addr_r == `TOYLOG_CPU_CSR_MIE)      ||
+    (id_ex_csr_addr_r == `TOYLOG_CPU_CSR_MTVEC)    ||
+    (id_ex_csr_addr_r == `TOYLOG_CPU_CSR_MSCRATCH) ||
+    (id_ex_csr_addr_r == `TOYLOG_CPU_CSR_MEPC)     ||
+    (id_ex_csr_addr_r == `TOYLOG_CPU_CSR_MCAUSE);
+
+assign csr_access_illegal_ex =
+    id_ex_csr_valid_r &&
+    (
+        !csr_read_valid_ex ||
+        (csr_write_request_ex && !csr_write_allowed_ex)
+    );
 
 toylog_cpu_if_stage u_if_stage (
     .pc_current  (pc_r),
-    .redirect_en (ex_redirect_en),
-    .redirect_pc (ex_redirect_pc),
+    .redirect_en (ex_control_redirect_valid),
+    .redirect_pc (ex_control_redirect_pc),
     .imem_addr   (imem_addr),
     .pc_next     (if_pc_next),
     .pc_plus_4   ()
@@ -176,6 +291,13 @@ toylog_cpu_id_stage u_id_stage (
     .mem_size      (id_mem_size),
     .mem_unsigned  (id_mem_unsigned),
     .is_lui        (id_is_lui),
+    .csr_valid     (id_csr_valid),
+    .csr_cmd       (id_csr_cmd),
+    .csr_use_imm   (id_csr_use_imm),
+    .csr_addr      (id_csr_addr),
+    .ecall         (id_ecall),
+    .ebreak        (id_ebreak),
+    .mret          (id_mret),
     .rs1_value     (id_rs1_value),
     .rs2_value     (id_rs2_value)
 );
@@ -308,6 +430,13 @@ always @(posedge clk or negedge rst_n) begin
         id_ex_mem_size_r <= `TOYLOG_CPU_MEM_W;
         id_ex_mem_unsigned_r <= 1'b0;
         id_ex_is_lui_r <= 1'b0;
+        id_ex_csr_valid_r <= 1'b0;
+        id_ex_csr_cmd_r <= `TOYLOG_CPU_CSR_RW;
+        id_ex_csr_use_imm_r <= 1'b0;
+        id_ex_csr_addr_r <= 12'h000;
+        id_ex_ecall_r <= 1'b0;
+        id_ex_ebreak_r <= 1'b0;
+        id_ex_mret_r <= 1'b0;
 
         ex_mem_valid_r <= 1'b0;
         ex_mem_pc4_r <= 32'h0000_0000;
@@ -330,6 +459,12 @@ always @(posedge clk or negedge rst_n) begin
         mem_wb_wb_sel_r <= `TOYLOG_CPU_WB_ALU;
         mem_wb_exec_result_r <= 32'h0000_0000;
         mem_wb_load_data_r <= 32'h0000_0000;
+        csr_mstatus_r <= 32'h0000_0000;
+        csr_mie_r <= 32'h0000_0000;
+        csr_mtvec_r <= RESET_VECTOR;
+        csr_mscratch_r <= 32'h0000_0000;
+        csr_mepc_r <= 32'h0000_0000;
+        csr_mcause_r <= 32'h0000_0000;
     end else if (!trap_r) begin
         mem_wb_valid_r <= ex_mem_valid_r;
         mem_wb_pc4_r <= ex_mem_pc4_r;
@@ -339,14 +474,51 @@ always @(posedge clk or negedge rst_n) begin
         mem_wb_exec_result_r <= ex_mem_exec_result_r;
         mem_wb_load_data_r <= mem_load_data;
 
-        if (ex_exception && id_ex_valid_r) begin
-            trap_r <= 1'b1;
-            pc_r <= pc_r;
+        if (ex_trap_valid) begin
+            pc_r <= ex_control_redirect_pc;
             if_id_valid_r <= 1'b0;
             id_ex_valid_r <= 1'b0;
             ex_mem_valid_r <= 1'b0;
+            csr_mepc_r <= id_ex_pc_r;
+            csr_mcause_r <= ex_trap_cause;
+            csr_mstatus_r <=
+                (csr_mstatus_r & ~(`TOYLOG_CPU_MSTATUS_MIE | `TOYLOG_CPU_MSTATUS_MPIE)) |
+                ((csr_mstatus_r & `TOYLOG_CPU_MSTATUS_MIE) << 4);
         end else begin
-            if (ex_redirect_en || !stall_fetch) begin
+            if (id_ex_valid_r && id_ex_csr_valid_r && csr_write_en_ex) begin
+                case (id_ex_csr_addr_r)
+                    `TOYLOG_CPU_CSR_MSTATUS: begin
+                        csr_mstatus_r <= csr_write_data_ex &
+                            (`TOYLOG_CPU_MSTATUS_MIE | `TOYLOG_CPU_MSTATUS_MPIE);
+                    end
+                    `TOYLOG_CPU_CSR_MIE: begin
+                        csr_mie_r <= csr_write_data_ex & `TOYLOG_CPU_MIE_MTIE;
+                    end
+                    `TOYLOG_CPU_CSR_MTVEC: begin
+                        csr_mtvec_r <= {csr_write_data_ex[31:2], 2'b00};
+                    end
+                    `TOYLOG_CPU_CSR_MSCRATCH: begin
+                        csr_mscratch_r <= csr_write_data_ex;
+                    end
+                    `TOYLOG_CPU_CSR_MEPC: begin
+                        csr_mepc_r <= {csr_write_data_ex[31:2], 2'b00};
+                    end
+                    `TOYLOG_CPU_CSR_MCAUSE: begin
+                        csr_mcause_r <= csr_write_data_ex;
+                    end
+                    default: begin
+                    end
+                endcase
+            end
+
+            if (ex_mret_valid) begin
+                csr_mstatus_r <=
+                    (csr_mstatus_r & ~(`TOYLOG_CPU_MSTATUS_MIE | `TOYLOG_CPU_MSTATUS_MPIE)) |
+                    ((csr_mstatus_r & `TOYLOG_CPU_MSTATUS_MPIE) >> 4) |
+                    `TOYLOG_CPU_MSTATUS_MPIE;
+            end
+
+            if (ex_control_redirect_valid || !stall_fetch) begin
                 pc_r <= if_pc_next;
             end
 
@@ -359,12 +531,12 @@ always @(posedge clk or negedge rst_n) begin
             ex_mem_store_r <= id_ex_store_r;
             ex_mem_mem_size_r <= id_ex_mem_size_r;
             ex_mem_mem_unsigned_r <= id_ex_mem_unsigned_r;
-            ex_mem_exec_result_r <= ex_exec_result;
+            ex_mem_exec_result_r <= ex_exec_result_final;
             ex_mem_mem_addr_r <= ex_mem_addr;
             ex_mem_store_data_r <= ex_store_data;
             ex_mem_store_wstrb_r <= ex_store_wstrb;
 
-            if (ex_redirect_en) begin
+            if (ex_control_redirect_valid) begin
                 if_id_valid_r <= 1'b0;
                 id_ex_valid_r <= 1'b0;
             end else if (stall_decode) begin
@@ -403,6 +575,13 @@ always @(posedge clk or negedge rst_n) begin
                 id_ex_mem_size_r <= id_mem_size;
                 id_ex_mem_unsigned_r <= id_mem_unsigned;
                 id_ex_is_lui_r <= id_is_lui;
+                id_ex_csr_valid_r <= id_csr_valid;
+                id_ex_csr_cmd_r <= id_csr_cmd;
+                id_ex_csr_use_imm_r <= id_csr_use_imm;
+                id_ex_csr_addr_r <= id_csr_addr;
+                id_ex_ecall_r <= id_ecall;
+                id_ex_ebreak_r <= id_ebreak;
+                id_ex_mret_r <= id_mret;
             end
         end
     end

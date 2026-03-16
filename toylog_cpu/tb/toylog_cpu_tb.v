@@ -23,6 +23,7 @@ assign dmem_rdata = dmem[dmem_addr[31:2]];
 toylog_cpu dut (
     .clk       (clk),
     .rst_n     (rst_n),
+    .timer_irq (1'b0),
     .imem_addr (imem_addr),
     .imem_rdata(imem_rdata),
     .dmem_addr (dmem_addr),

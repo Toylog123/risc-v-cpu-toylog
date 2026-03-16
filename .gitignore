@@ -8,6 +8,10 @@ Thumbs.db
 # Generated outputs.
 **/build/
 toylog_cpu/*.log
+toylog_cpu/*.jou
+toylog_cpu/*.pb
+toylog_cpu/dfx_runtime.txt
+toylog_cpu/xsim.dir/
 
 # Keep these directories locally, but do not track them in the trimmed repo.
 /02-官方与规范/
