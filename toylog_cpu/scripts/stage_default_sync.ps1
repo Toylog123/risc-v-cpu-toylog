@@ -11,15 +11,12 @@ $dryRun = $ForwardArgs -contains '--dry-run'
 Set-Location $repoRoot
 
 $projectMgmtDir = Split-Path -Leaf (Resolve-Path '01-*')
-$projectPlanDir = Split-Path -Leaf (Resolve-Path (Join-Path $projectMgmtDir '02-*'))
-$projectIndexDir = Split-Path -Leaf (Resolve-Path (Join-Path $projectMgmtDir '03-*'))
 $toolchainDir = Split-Path -Leaf (Resolve-Path '04-*')
 
 $syncPaths = @(
     'toylog_cpu',
     $toolchainDir,
-    "$projectMgmtDir/$projectPlanDir",
-    "$projectMgmtDir/$projectIndexDir"
+    $projectMgmtDir
 )
 
 if ($dryRun) {

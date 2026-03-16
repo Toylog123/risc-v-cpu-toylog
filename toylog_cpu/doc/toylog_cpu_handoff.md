@@ -6,10 +6,10 @@
 - 交接时优先说明当前可运行状态、当前阻塞、下一步最值得做的事情
 - 所有结论以当前工作区文件和实际脚本结果为准
 - `toylog_cpu` 内源码注释默认使用中文
-- 默认同步范围固定为：`toylog_cpu`、`04-工具链`、`01-项目管理/02-项目计划`、`01-项目管理/03-资料索引`
+- 默认同步范围固定为：`toylog_cpu`、`04-工具链`、`01-项目管理`
 - 其他目录只在目录结构变更、删除大体积资料、或确实影响团队协作时再同步
 - 默认暂存脚本：`scripts/stage_default_sync.bat`
-- Git 仓库只跟踪默认同步范围；`01-项目管理/01-赛题分析`、`02-官方与规范`、`03-参考实现`、`05-验证测试` 默认只保留本地
+- Git 仓库默认跟踪 `toylog_cpu`、`04-工具链` 和 `01-项目管理`；`02-官方与规范`、`03-参考实现`、`05-验证测试` 默认只保留本地
 
 ## 2. 当前状态
 
@@ -103,9 +103,11 @@
 
 ## 10. 接手时先看什么
 
-1. `README.md`
-2. `doc/toylog_cpu_preliminary_design.md`
-3. `doc/toylog_cpu_handoff.md`
-4. `doc/toylog_cpu_change_log.md`
-5. `doc/toylog_cpu_todo.md`
-6. `../../04-工具链/toylog_cpu_toolchain/队伍安装清单.md`
+1. `../../01-项目管理/03-过程管理/工作交接.md`
+2. `../../01-项目管理/03-过程管理/任务清单.md`
+3. `README.md`
+4. `doc/toylog_cpu_preliminary_design.md`
+5. `doc/toylog_cpu_handoff.md`
+6. `doc/toylog_cpu_change_log.md`
+7. `doc/toylog_cpu_todo.md`
+8. `../../04-工具链/toylog_cpu_toolchain/队伍安装清单.md`
