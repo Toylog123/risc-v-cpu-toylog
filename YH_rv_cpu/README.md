@@ -72,6 +72,8 @@ scripts\run_timer_irq_smoke.bat
 scripts\run_xlen64_smoke.bat
 scripts\run_riscv_tests_subset.bat rv32 add
 scripts\build_vivado_project.bat synth
+scripts\build_vivado_project.bat synth100
+scripts\build_vivado_project.bat synth50
 scripts\clean_vivado_project.bat
 ```
 
@@ -92,7 +94,7 @@ scripts\clean_vivado_project.bat
 - `PASS: SoC smoke test completed at PC=00000038 in 102 cycles`
 - `PASS: trap smoke test completed at PC=000000ac in 79 cycles`
 - `PASS: timer irq smoke test completed at PC=000000e4 in 125 cycles`
-- `PASS: xlen64 smoke test completed at PC=0000000000000010 in 13 cycles`
+- `PASS: xlen64 smoke test completed at PC=0000000000000020 in 17 cycles`
 - `PASS: riscv-tests finished at PC=0000059c in 495 cycles with tohost=1`
 
 当前 FPGA 综合结论：
@@ -124,3 +126,18 @@ scripts\clean_vivado_project.bat
   - `doc/YH_rv_cpu_todo.md`
 - 源码注释默认使用中文。
 - 模块名、脚本名、工具名保留英文。
+
+## 2026-03-17 FPGA 更新
+
+- 这一轮综合口径已经从“单一 100MHz 报告”补成“双档频率报告”：
+  - `project/reports/clk_10p000ns`
+  - `project/reports/clk_20p000ns`
+- 当前资源结果：
+  - `100MHz`：`3450 LUT / 1962 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`
+  - `50MHz`：`3424 LUT / 1962 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`
+- 当前时序结果：
+  - `100MHz`：`WNS = -2.487ns`
+  - `50MHz`：`WNS = 7.525ns`
+- 当前结论：
+  - 赛题要求的 `50MHz` 目标已经被本地综合覆盖
+  - `100MHz` 仍未收敛，后续重点是继续压关键控制链，并把 `ROM/RAM` 往更适合 FPGA 的存储结构迁移

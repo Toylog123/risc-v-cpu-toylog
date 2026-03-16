@@ -47,7 +47,7 @@
 - 补上 `RV64` 下 6 位移位量的立即数译码基础支持
 - 新增 `tb/YH_rv_cpu_xlen64_tb.v`
 - 新增 `scripts/run_xlen64_smoke.bat`
-- 实测通过：`PASS: xlen64 smoke test completed at PC=0000000000000010 in 13 cycles`
+- 实测通过：`PASS: xlen64 smoke test completed at PC=0000000000000020 in 17 cycles`
 
 ### 变更 9：打通 Vivado 本地综合链
 
@@ -76,3 +76,12 @@
 - 新增 `doc/技术文档.md`
 - 把 CPU、SoC、验证、FPGA、改动入口和后续维护规则收成一份长期维护的总文档
 - 已同步接入 `README.md`、`YH_rv_cpu_handoff.md` 和根 `.codex-handoff.json`
+
+### 变更 12：补齐 50MHz / 100MHz 双档综合口径
+
+- `build_vivado_project.bat` 新增 `synth50` 和 `synth100`
+- `build_nexys_a7_100_project.tcl` 改成按时钟周期动态生成临时 XDC，并把报告按频率分目录输出
+- `nexys_a7_100_template.xdc` 现在只保留板级模板占位，不再内嵌固定时钟周期
+- 最新结论：
+  - `100MHz`：`3450 LUT / 1962 FF / 0 BRAM / 0 DSP`，`WNS = -2.487ns`
+  - `50MHz`：`3424 LUT / 1962 FF / 0 BRAM / 0 DSP`，`WNS = 7.525ns`

@@ -13,6 +13,7 @@ set flow_mode synth
 set rom_init_hex ""
 set rom_bytes_override ""
 set ram_bytes_override ""
+set clock_period_ns 10.000
 
 if {[llength $argv] >= 1} {
     set flow_mode [lindex $argv 0]
@@ -27,10 +28,17 @@ if {[info exists ::env(ROM_BYTES_OVERRIDE)] && $::env(ROM_BYTES_OVERRIDE) ne ""}
 if {[info exists ::env(RAM_BYTES_OVERRIDE)] && $::env(RAM_BYTES_OVERRIDE) ne ""} {
     set ram_bytes_override $::env(RAM_BYTES_OVERRIDE)
 }
+if {[info exists ::env(CLOCK_PERIOD_NS_OVERRIDE)] && $::env(CLOCK_PERIOD_NS_OVERRIDE) ne ""} {
+    set clock_period_ns $::env(CLOCK_PERIOD_NS_OVERRIDE)
+}
+
+set clock_tag [string map {. p} $clock_period_ns]
+set report_dir [file join $report_dir clk_${clock_tag}ns]
 
 set rtl_dir [file join $project_root rtl]
 set fpga_src_dir [file join $vivado_dir src]
 set constr_file [file join $vivado_dir constraints nexys_a7_100_template.xdc]
+set clock_constr_file [file join $build_dir clock_${clock_tag}.xdc]
 set rtl_files [lsort [glob -nocomplain [file join $rtl_dir *.v]]]
 set fpga_files [lsort [glob -nocomplain [file join $fpga_src_dir *.v]]]
 
@@ -85,6 +93,10 @@ if {[llength $fpga_files] > 0} {
 if {[file exists $constr_file]} {
     run_checked "read_constraints" [list read_xdc $constr_file]
 }
+set clock_fd [open $clock_constr_file w]
+puts $clock_fd [format {create_clock -name sys_clk -period %s [get_ports CLK100MHZ]} $clock_period_ns]
+close $clock_fd
+run_checked "read_clock_constraints" [list read_xdc $clock_constr_file]
 
 set synth_cmd [list synth_design -top $top_name -part $part_name -flatten_hierarchy rebuilt]
 if {$rom_init_hex ne ""} {
@@ -100,9 +112,10 @@ if {$ram_bytes_override ne ""} {
     lappend synth_cmd -generic "RAM_BYTES=$ram_bytes_override"
 }
 run_checked "synth_design" $synth_cmd
-run_checked "write_checkpoint" [list write_checkpoint -force [file join $build_dir ${project_name}_synth.dcp]]
+run_checked "write_checkpoint" [list write_checkpoint -force [file join $build_dir ${project_name}_${clock_tag}_synth.dcp]]
 run_checked "report_utilization" [list report_utilization -file [file join $report_dir synth_utilization.rpt]]
 run_checked "report_timing_summary" [list report_timing_summary -file [file join $report_dir synth_timing_summary.rpt]]
 
+puts "INFO: Clock period = ${clock_period_ns} ns"
 puts "INFO: Synthesis completed. Reports written to $report_dir"
 exit 0

@@ -1,7 +1,8 @@
 @echo off
 setlocal
 
-set PROJECT_DIR=%~dp0..\..\project
+for %%I in ("%~dp0..\..\project") do set PROJECT_DIR=%%~fI
+for %%I in ("%~dp0..") do set CPU_ROOT=%%~fI\
 
 if not exist "%PROJECT_DIR%" (
     echo Missing local Vivado project directory: %PROJECT_DIR%
@@ -23,6 +24,20 @@ if exist "%PROJECT_DIR%\.vivado_user\Temp" (
     rmdir /s /q "%PROJECT_DIR%\.vivado_user\Temp"
 )
 
-echo Cleaned local Vivado temporary files under %PROJECT_DIR%
-echo Kept reports, checkpoints, vivado.log and vivado.jou for review.
+if exist "%CPU_ROOT%xsim.dir" (
+    rmdir /s /q "%CPU_ROOT%xsim.dir"
+)
+
+del /q "%CPU_ROOT%dfx_runtime.txt" >nul 2>nul
+del /q "%CPU_ROOT%xelab.log" >nul 2>nul
+del /q "%CPU_ROOT%xelab.pb" >nul 2>nul
+del /q "%CPU_ROOT%xsim.jou" >nul 2>nul
+del /q "%CPU_ROOT%xsim.log" >nul 2>nul
+del /q "%CPU_ROOT%xvlog.log" >nul 2>nul
+del /q "%CPU_ROOT%xvlog.pb" >nul 2>nul
+del /q "%CPU_ROOT%xsim_*.backup.jou" >nul 2>nul
+del /q "%CPU_ROOT%xsim_*.backup.log" >nul 2>nul
+
+echo Cleaned local Vivado and simulator temporary files.
+echo Kept project reports, checkpoints, vivado.log and vivado.jou for review.
 exit /b 0

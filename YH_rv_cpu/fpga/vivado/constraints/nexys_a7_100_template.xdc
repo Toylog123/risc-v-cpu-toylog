@@ -14,7 +14,7 @@
 ## - 只保留本工程实际使用到的端口，并把对应 LOC 从官方 XDC 复制到这里。
 ## - 在最终生成 bitstream 前，不要依赖这个模板中的占位注释。
 
-create_clock -name sys_clk -period 10.000 [get_ports CLK100MHZ]
+## sys_clk 鏃堕挓鍛ㄦ湡鐢?build_nexys_a7_100_project.tcl 鏍规嵁妯″紡缁熶竴鐢熸垚銆?##
 
 ## TODO: 从 Digilent 官方 Master XDC 复制并启用这些端口的 LOC / IOSTANDARD。
 ##

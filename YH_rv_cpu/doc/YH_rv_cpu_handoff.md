@@ -58,7 +58,7 @@
 - `PASS: SoC smoke test completed at PC=00000038 in 102 cycles`
 - `PASS: trap smoke test completed at PC=000000ac in 79 cycles`
 - `PASS: timer irq smoke test completed at PC=000000e4 in 125 cycles`
-- `PASS: xlen64 smoke test completed at PC=0000000000000010 in 13 cycles`
+- `PASS: xlen64 smoke test completed at PC=0000000000000020 in 17 cycles`
 - `PASS: riscv-tests finished at PC=0000059c in 495 cycles with tohost=1`
 - Vivado 综合结果：`Slice LUTs = 3445`，`Slice Registers = 1962`，`LUT as Memory = 1024`
 - Vivado 时序结果：`sys_clk = 100MHz` 时 `WNS = -2.405ns`
@@ -99,3 +99,15 @@
 6. `doc/YH_rv_cpu_preliminary_design.md`
 7. `doc/YH_rv_cpu_change_log.md`
 8. `doc/YH_rv_cpu_todo.md`
+
+## 2026-03-17 最新补充
+
+- Vivado 综合现在按双档口径输出：
+  - `100MHz`：`project/reports/clk_10p000ns`
+  - `50MHz`：`project/reports/clk_20p000ns`
+- 最新结果覆盖此前那版单一 100MHz 结论：
+  - `100MHz`：`3450 LUT / 1962 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = -2.487ns`
+  - `50MHz`：`3424 LUT / 1962 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = 7.525ns`
+- 当前最重要的判断：
+  - 比赛要求的 `50MHz` 已经有综合余量
+  - 后续 FPGA 主任务变成“继续收敛 100MHz + 推进 BRAM 化 + 等板卡到位后冻结正式 XDC”

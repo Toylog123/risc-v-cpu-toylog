@@ -18,9 +18,7 @@ module YH_rv_cpu_hazard_unit (
     input  wire        mem_wb_valid,
     input  wire        mem_wb_rd_en,
     input  wire [4:0]  mem_wb_rd_addr,
-    output wire        stall_fetch,
     output wire        stall_decode,
-    output wire        bubble_execute,
     output reg  [1:0]  forward_a_sel,
     output reg  [1:0]  forward_b_sel
 );
@@ -34,9 +32,7 @@ assign load_use_hazard =
         (if_id_rs2_en && (if_id_rs2_addr == id_ex_rd_addr))
     );
 
-assign stall_fetch = load_use_hazard;
 assign stall_decode = load_use_hazard;
-assign bubble_execute = load_use_hazard;
 
 always @* begin
     forward_a_sel = 2'b00;

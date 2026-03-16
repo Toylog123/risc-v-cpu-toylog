@@ -12,6 +12,7 @@ YH_rv_cpu/*.jou
 YH_rv_cpu/*.pb
 YH_rv_cpu/dfx_runtime.txt
 YH_rv_cpu/xsim.dir/
+YH_rv_cpu/xsim_*.backup.log
 /project/
 /.Xil/
 /tclapp/

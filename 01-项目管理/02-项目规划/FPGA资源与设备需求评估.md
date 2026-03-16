@@ -176,3 +176,21 @@
   - 正式板卡 `XDC` 冻结后的报告
 - 一旦老师确认板卡，立刻把“建议板卡”改成“已确定板卡”
 - 一旦拿到板卡，把正式 XDC 来源、bitstream 结果和串口演示日志补进来
+
+## 2026-03-17 最新综合更新
+
+- 当前报告入口改成双档目录：
+  - `project/reports/clk_10p000ns/synth_utilization.rpt`
+  - `project/reports/clk_10p000ns/synth_timing_summary.rpt`
+  - `project/reports/clk_20p000ns/synth_utilization.rpt`
+  - `project/reports/clk_20p000ns/synth_timing_summary.rpt`
+- 当前检查点：
+  - `project/YH_rv_cpu_nexys_a7_100_10p000_synth.dcp`
+  - `project/YH_rv_cpu_nexys_a7_100_20p000_synth.dcp`
+- 最新综合结论：
+  - `100MHz`：`3450 LUT / 1962 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = -2.487ns`
+  - `50MHz`：`3424 LUT / 1962 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = 7.525ns`
+- 这意味着：
+  - 资源仍然不是当前主风险
+  - 比赛要求的 `50MHz` 已经有明确综合余量
+  - 后续设备申请口径可以更明确地说成“需要板卡推进上板与正式约束”，而不是“先证明能不能综合”

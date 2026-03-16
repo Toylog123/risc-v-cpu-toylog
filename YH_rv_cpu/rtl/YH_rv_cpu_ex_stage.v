@@ -19,14 +19,13 @@ module YH_rv_cpu_ex_stage #(
     input  wire [1:0]      mem_size,
     input  wire            word_op,
     input  wire            is_lui,
-    input  wire            illegal,
     output wire [XLEN-1:0] exec_result,
     output wire [XLEN-1:0] mem_addr,
     output reg  [XLEN-1:0] store_data,
     output reg  [XLEN/8-1:0] store_wstrb,
     output wire            redirect_en,
     output wire [XLEN-1:0] redirect_pc,
-    output wire            exception
+    output wire            mem_misaligned
 );
 
 localparam integer STRB_W = XLEN / 8;
@@ -83,7 +82,7 @@ assign misaligned_mem =
         ((mem_size == `YH_rv_cpu_MEM_D) && (mem_addr[2:0] != 3'b000))
     );
 
-assign exception = illegal || misaligned_mem;
+assign mem_misaligned = misaligned_mem;
 
 always @* begin
     case (alu_op)

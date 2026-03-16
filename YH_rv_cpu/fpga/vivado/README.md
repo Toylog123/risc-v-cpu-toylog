@@ -75,3 +75,19 @@ YH_rv_cpu\scripts\clean_vivado_project.bat
 - 确认串口和复位引脚
 - 跑一次完整 bitstream 流程
 - 固化板级演示脚本和日志
+
+## 2026-03-17 双档综合口径
+
+- 当前脚本新增：
+  - `build_vivado_project.bat synth100`
+  - `build_vivado_project.bat synth50`
+- 当前报告目录：
+  - `project/reports/clk_10p000ns`
+  - `project/reports/clk_20p000ns`
+- 当前结果以这两组目录为准：
+  - `100MHz`：`3450 LUT / 1962 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = -2.487ns`
+  - `50MHz`：`3424 LUT / 1962 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = 7.525ns`
+- 当前判断：
+  - 50MHz 已经满足比赛目标频率
+  - 100MHz 仍需要继续收敛
+  - 模板 `XDC` 现在只负责板级端口占位，具体时钟周期由 Tcl 按模式动态生成

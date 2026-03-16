@@ -3,6 +3,17 @@ setlocal
 
 set MODE=%~1
 if "%MODE%"=="" set MODE=synth
+set CLOCK_PERIOD_NS_OVERRIDE=%~2
+
+if /I "%MODE%"=="synth50" (
+    set MODE=synth
+    if not defined CLOCK_PERIOD_NS_OVERRIDE set CLOCK_PERIOD_NS_OVERRIDE=20.000
+)
+
+if /I "%MODE%"=="synth100" (
+    set MODE=synth
+    if not defined CLOCK_PERIOD_NS_OVERRIDE set CLOCK_PERIOD_NS_OVERRIDE=10.000
+)
 
 set VIVADO_CMD=
 set PHYSICAL_SCRIPT_DIR=%~dp0
