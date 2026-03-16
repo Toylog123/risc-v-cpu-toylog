@@ -61,6 +61,25 @@
 - 软件侧和构建链路已有起步版本
 - 目前还不是最终比赛提交版 SoC，也不是最终 FPGA 镜像
 
+## 当前完成情况
+
+### 已完成
+
+- `RV32I` 五级流水第一版
+- `ALU / regfile / decoder / IF / ID / EX / MEM / WB / hazard unit`
+- 基础语法检查脚本
+- 固件构建脚本
+- 工具链说明、交接说明、修改记录、任务清单
+
+### 当前缺口
+
+- `CSR / timer / trap`
+- 最小 SoC 封装顶层
+- `riscv-tests`
+- `CoreMark`
+- Vivado 工程与板级约束
+- FPGA 上板稳定性验证
+
 ## 快速开始
 
 可以直接在资源管理器或终端里运行这些脚本：
@@ -75,6 +94,18 @@
 - `doc\toylog_cpu_change_log.md`
 - `doc\toylog_cpu_todo.md`
 
+队友第一次接手时，建议按下面顺序操作：
+
+1. 先看工作区根 `README.md`
+2. 再看 `01-项目管理/03-过程管理/工作交接.md`
+3. 然后运行：
+
+```bat
+scripts\check_toolchain.bat
+scripts\check_syntax.bat
+scripts\build_firmware.bat
+```
+
 ## 下一步
 
 1. 增加 `CSR`、异常陷入和 `timer` 支持
@@ -83,3 +114,13 @@
 4. 加入第一个比赛优化项：更强的分支处理
 5. 加入第二个比赛优化项：预取或轻量级预测
 6. 建立 Vivado 工程并推进板级上板与时序收敛
+
+## 协作约定
+
+- 不直接在仓库里维护无关参考工程
+- 修改 `toylog_cpu` 后，同步更新交接、记录和任务清单
+- 提交前优先使用：
+
+```bat
+scripts\stage_default_sync.bat
+```

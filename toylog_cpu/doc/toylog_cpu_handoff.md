@@ -105,9 +105,10 @@
 
 1. `../../01-项目管理/03-过程管理/工作交接.md`
 2. `../../01-项目管理/03-过程管理/任务清单.md`
-3. `README.md`
-4. `doc/toylog_cpu_preliminary_design.md`
-5. `doc/toylog_cpu_handoff.md`
-6. `doc/toylog_cpu_change_log.md`
-7. `doc/toylog_cpu_todo.md`
-8. `../../04-工具链/toylog_cpu_toolchain/队伍安装清单.md`
+3. `../../README.md`
+4. `README.md`
+5. `doc/toylog_cpu_preliminary_design.md`
+6. `doc/toylog_cpu_handoff.md`
+7. `doc/toylog_cpu_change_log.md`
+8. `doc/toylog_cpu_todo.md`
+9. `../../04-工具链/toylog_cpu_toolchain/队伍安装清单.md`

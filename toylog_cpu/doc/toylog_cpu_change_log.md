@@ -233,3 +233,19 @@
   - 默认同步范围改为 `toylog_cpu`、`04-工具链`、`01-项目管理`
 - 验证：
   - `stage_default_sync.bat --dry-run` 应只输出新的 3 个同步路径
+
+### 变更 14：补充仓库与工程 README 的项目状态说明
+
+- 范围：
+  - 工作区根 `README.md`
+  - `toylog_cpu/README.md`
+  - `toylog_cpu/doc/toylog_cpu_handoff.md`
+  - `toylog_cpu/doc/toylog_cpu_todo.md`
+- 目的：
+  - 让队友通过仓库首页和工程首页就能看懂当前做到哪一步、怎么接手、怎么协作
+- 结果：
+  - 根 `README` 补充项目概况、当前进度、协作方式
+  - 工程 `README` 补充已完成项、当前缺口、接手步骤和协作约定
+  - 交接文档的阅读顺序补入工作区根 `README`
+- 验证：
+  - 直接打开两个 `README` 即可看到当前项目状态与协作入口
