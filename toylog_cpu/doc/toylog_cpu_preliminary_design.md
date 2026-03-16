@@ -1,61 +1,61 @@
-# toylog_cpu Preliminary Design
+# toylog_cpu 初步设计
 
-## 1. Project Position
+## 1. 项目定位
 
-`toylog_cpu` is the formal implementation name for the Qixingwei competition topic:
-`RISC-V high-performance CPU design and FPGA verification`.
+`toylog_cpu` 是七星微赛题
+`RISC-V 高性能 CPU 设计及 FPGA 验证`
+的正式实现名。
 
-The current objective is to build an original competition-oriented CPU baseline that can
-grow into the final submission without depending on copied open-source core RTL.
+当前目标是先做出一个面向比赛的自研 CPU 基线版本，并在这个基线之上继续长成最终提交版本，而不是依赖复制来的开源 CPU 核心 RTL。
 
-## 2. Phase-1 Objective
+## 2. 第一阶段目标
 
-Phase-1 is the engineering baseline phase, not the final submission.
+第一阶段是工程基线阶段，不是最终提交阶段。
 
-Current phase targets:
+当前阶段的主要目标是：
 
-- self-written `RV32I` integer core baseline
-- 5-stage in-order single-issue pipeline baseline
-- clean decoder / ALU / register file / branch / load-store path
-- smoke-test-oriented verification path
-- firmware build path for later SoC integration
+- 形成自写的 `RV32I` 整数核基线
+- 形成五级流水、顺序执行、单发射的基本结构
+- 打通译码、ALU、寄存器堆、分支与访存主路径
+- 建立面向冒烟测试的基础验证链
+- 建立后续 SoC 集成可用的固件构建链路
 
-## 3. Architecture Choice
+## 3. 架构选择
 
-### 3.1 ISA
+### 3.1 指令集
 
-- baseline: `RV32I`
-- planned next extension: `RV32M`
-- reason: reduce bring-up risk before optimization and FPGA closure
+- 当前基线：`RV32I`
+- 下一步计划扩展：`RV32M`
+- 这样安排的原因：先降低初期拉起风险，再做优化和 FPGA 收敛
 
-### 3.2 Pipeline
+### 3.2 流水线
 
-The baseline microarchitecture is a 5-stage pipeline:
+当前基线采用五级流水：
 
-1. IF: instruction fetch and next-PC selection
-2. ID: decode and register file read
-3. EX: ALU, branch decision, jump target, address generation
-4. MEM: load extraction and store write-enable generation
-5. WB: final register write-back selection
+1. `IF`：取指与下一条 `PC` 选择
+2. `ID`：译码与寄存器读取
+3. `EX`：ALU 运算、分支判断、跳转目标和地址生成
+4. `MEM`：读数据抽取与写使能生成
+5. `WB`：最终写回选择
 
-### 3.3 Hazard Strategy
+### 3.3 冒险处理策略
 
-The current baseline already includes:
+当前基线已经具备：
 
-- one-cycle bubble insertion for load-use hazards
-- EX/MEM forwarding for ALU-producing instructions
-- MEM/WB forwarding for later results
-- redirect flush for taken branch and jump
+- 面向 `load-use` 冒险的一拍气泡插入
+- `EX/MEM` 级前递
+- `MEM/WB` 级前递
+- 对已命中的分支和跳转执行重定向冲刷
 
-### 3.4 Memory Interface
+### 3.4 存储器接口
 
-- instruction memory: separate read interface
-- data memory: separate read/write interface
-- reason: matches the topic recommendation to avoid structural conflicts
+- 指令存储器：独立读接口
+- 数据存储器：独立读写接口
+- 这样设计的原因：符合题目建议，也能避免结构冒险
 
-## 4. Current Module Set
+## 4. 当前模块集合
 
-- `toylog_cpu`: 5-stage top-level core with pipeline registers
+- `toylog_cpu`：带流水级寄存器的五级流水顶层
 - `toylog_cpu_if_stage`
 - `toylog_cpu_id_stage`
 - `toylog_cpu_ex_stage`
@@ -66,57 +66,56 @@ The current baseline already includes:
 - `toylog_cpu_alu`
 - `toylog_cpu_regfile`
 
-## 5. Planned Competition Optimizations
+## 5. 计划中的比赛优化项
 
-The topic requires at least two optimization items. The initial plan is:
+题目要求至少完成两项优化，当前初步规划是：
 
-1. forwarding / bypass network strengthening
-2. branch handling optimization, starting from static policy and leaving room for a small predictor
+1. 强化前递 / 旁路网络
+2. 优化分支处理，先从静态策略起步，再为小型预测器预留空间
 
-These two directions are aligned with the topic suggestions and are realistic for the
-first competition-ready version.
+这两个方向和题目建议一致，也更适合第一版比赛可交付工程落地。
 
-## 6. Toolchain Plan
+## 6. 工具链规划
 
-### 6.1 Current Phase
+### 6.1 当前阶段
 
-- `iverilog` for fast syntax validation
-- `xsim`, `ModelSim`, or `Questa` for more stable functional simulation on Windows
-- `riscv32-unknown-elf-gcc` or `riscv64-unknown-elf-gcc` for bare-metal firmware build
-- matching `objdump` and `objcopy`
+- 使用 `iverilog` 做快速语法检查
+- 使用 `xsim`、`ModelSim` 或 `Questa` 做更稳定的 Windows 功能仿真
+- 使用 `riscv32-unknown-elf-gcc` 或 `riscv64-unknown-elf-gcc` 构建裸机固件
+- 配套使用 `objdump` 与 `objcopy`
 
-### 6.2 FPGA Phase
+### 6.2 FPGA 阶段
 
-- `Vivado` for synthesis, implementation, bitstream generation, and timing closure
-- UART / JTAG tools for board debug
+- 使用 `Vivado` 完成综合、实现、比特流生成和时序收敛
+- 使用串口 / JTAG 工具完成板级调试
 
-### 6.3 Later Validation
+### 6.3 后续验证
 
 - `riscv-tests`
 - `CoreMark`
 
-## 7. Software Bring-Up Baseline
+## 7. 软件拉起基线
 
-The reserved early memory map is:
+当前预留的早期内存映射为：
 
-- ROM: `0x0000_0000`
-- RAM: `0x0000_4000`
-- UART TX register: `0x1000_0000`
-- DONE register: `0x1000_0004`
+- `ROM`：`0x0000_0000`
+- `RAM`：`0x0000_4000`
+- `UART` 发送寄存器：`0x1000_0000`
+- 完成标志寄存器：`0x1000_0004`
 
-This is only the early planning baseline and can be refined when the SoC wrapper is added.
+这只是早期规划基线，后续在 SoC 封装顶层成型后可以继续细化。
 
-## 8. Current Risks
+## 8. 当前风险
 
-- the current pipeline is only the first baseline and has not yet been run through `riscv-tests`
-- CSR, interrupt, and timer support are not present yet
-- FPGA top-level integration is not ready until a SoC wrapper is added
-- performance data cannot be collected before firmware and FPGA bring-up
+- 当前流水线还只是第一版基线，尚未跑通 `riscv-tests`
+- 还没有 `CSR`、中断和 `timer` 支持
+- 还没有 SoC 封装顶层，因此 FPGA 顶层集成尚未到位
+- 在固件和 FPGA 拉起打通前，还拿不到真正可比较的性能数据
 
-## 9. Immediate Next Tasks
+## 9. 当前紧接着要做的事
 
-1. add CSR, timer, and trap plumbing
-2. add a small SoC wrapper with ROM, RAM, UART, and timer
-3. run a firmware image from the SoC wrapper
-4. connect the core to `riscv-tests`
-5. integrate CoreMark and resource / frequency measurement
+1. 补齐 `CSR`、`timer` 和异常陷入链路
+2. 建立包含 `ROM / RAM / UART / timer` 的最小 SoC 封装顶层
+3. 让固件镜像从 SoC 封装顶层跑起来
+4. 接入 `riscv-tests`
+5. 接入 `CoreMark` 并建立资源 / 频率统计

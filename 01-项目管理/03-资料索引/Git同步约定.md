@@ -36,7 +36,7 @@
 toylog_cpu\scripts\stage_default_sync.bat
 ```
 
-只看这三个范围里有哪些改动，可以用：
+只看这些范围里有哪些改动，可以用：
 
 ```bat
 toylog_cpu\scripts\stage_default_sync.bat --dry-run

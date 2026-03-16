@@ -1,86 +1,85 @@
 # toylog_cpu
 
-`toylog_cpu` is the formal project name for the Qixingwei competition implementation.
+`toylog_cpu` 是七星微赛题正式工程的项目名。
 
-Current location: workspace root `toylog_cpu/`.
+当前目录：工作区根目录 `toylog_cpu/`。
 
-## Goal
+## 项目目标
 
-- Original RISC-V CPU implementation for the Qixingwei topic
-- English project structure and source names
-- Starter RTL + toolchain scripts + preliminary design
-- Direct path to a 5-stage RV32I competition core
+- 面向七星微赛题的自研 RISC-V CPU 实现
+- 保持统一的英文工程名和源码名，便于脚本、工具链和队友协作
+- 建立可持续扩展的 RTL、工具脚本和设计文档基础
+- 直接收敛到五级流水 `RV32I` 比赛基线
 
-## Competition Alignment
+## 与赛题要求的对应关系
 
-The current project layout is aligned with the topic requirements:
+当前工程结构已经按题目要求预留好了主干路线：
 
-- RV32I first, then optional RV32M expansion
-- 5-stage pipeline as the target microarchitecture
-- Verilog modeling, testbench-based verification, and FPGA bring-up path
-- Space reserved for two required optimization items
-- Space reserved for test programs, build scripts, and documentation
+- 先完成 `RV32I`，后续再按需要扩展到 `RV32M`
+- 以五级流水作为目标微架构
+- 采用 Verilog 建模、测试平台验证和 FPGA 上板的完整路径
+- 为两项必做优化预留了扩展空间
+- 为测试程序、构建脚本和比赛文档预留了目录
 
-## Important Note
+## 重要说明
 
-This project is self-written and is not copied from `picorv32`, `rocket-chip`, or any other
-open-source CPU RTL. Existing external repositories in the workspace are now treated only as
-plain reference material, not as upstream-synced sub-repositories.
+本工程为自写实现，不直接复用 `picorv32`、`rocket-chip` 或其他开源 CPU RTL。
+工作区里的外部仓库与资料现在只作为参考材料存在，不再作为上游同步仓库参与正式开发。
 
-## Layout
+## 目录结构
 
-- `rtl/toylog_cpu_defs.vh`: local constants
-- `rtl/toylog_cpu_alu.v`: ALU
-- `rtl/toylog_cpu_regfile.v`: 32 x 32 register file
-- `rtl/toylog_cpu_decoder.v`: RV32I decoder
-- `rtl/toylog_cpu_if_stage.v`: fetch stage
-- `rtl/toylog_cpu_id_stage.v`: decode stage
-- `rtl/toylog_cpu_ex_stage.v`: execute stage
-- `rtl/toylog_cpu_mem_stage.v`: memory stage
-- `rtl/toylog_cpu_wb_stage.v`: write-back stage
-- `rtl/toylog_cpu_hazard_unit.v`: stall and forwarding control
-- `rtl/toylog_cpu.v`: 5-stage top-level core
-- `tb/toylog_cpu_tb.v`: smoke testbench
-- `sw/src`: bare-metal demo sources
-- `sw/linker`: linker script
-- `doc/toylog_cpu_preliminary_design.md`: preliminary architecture
-- `doc/toylog_cpu_handoff.md`: current handoff status
-- `doc/toylog_cpu_change_log.md`: change record
-- `doc/toylog_cpu_todo.md`: execution todo list
-- `scripts/check_toolchain.bat`: toolchain probe
-- `scripts/check_syntax.bat`: RTL syntax check
-- `scripts/iverilog_sources.f`: syntax-check file list
-- `scripts/build_firmware.bat`: firmware build starter
-- `fpga/vivado/README.md`: FPGA-stage notes
+- `rtl/toylog_cpu_defs.vh`：本地常量定义
+- `rtl/toylog_cpu_alu.v`：算术逻辑单元
+- `rtl/toylog_cpu_regfile.v`：`32 x 32` 通用寄存器堆
+- `rtl/toylog_cpu_decoder.v`：`RV32I` 译码器
+- `rtl/toylog_cpu_if_stage.v`：取指阶段
+- `rtl/toylog_cpu_id_stage.v`：译码阶段
+- `rtl/toylog_cpu_ex_stage.v`：执行阶段
+- `rtl/toylog_cpu_mem_stage.v`：访存阶段
+- `rtl/toylog_cpu_wb_stage.v`：写回阶段
+- `rtl/toylog_cpu_hazard_unit.v`：暂停与前递控制
+- `rtl/toylog_cpu.v`：五级流水顶层核心
+- `tb/toylog_cpu_tb.v`：基础冒烟测试平台
+- `sw/src`：裸机演示程序源码
+- `sw/linker`：链接脚本
+- `doc/toylog_cpu_preliminary_design.md`：初步架构设计
+- `doc/toylog_cpu_handoff.md`：当前交接状态
+- `doc/toylog_cpu_change_log.md`：修改记录
+- `doc/toylog_cpu_todo.md`：任务清单
+- `scripts/check_toolchain.bat`：工具链检查
+- `scripts/check_syntax.bat`：RTL 语法检查
+- `scripts/iverilog_sources.f`：语法检查文件列表
+- `scripts/build_firmware.bat`：固件构建入口
+- `fpga/vivado/README.md`：FPGA 阶段说明
 
-## Current Status
+## 当前状态
 
-- Working RV32I 5-stage baseline with separate IF / ID / EX / MEM / WB stage files
-- Basic load-use stalling and EX/MEM, MEM/WB forwarding are present
-- Separate instruction and data memory interfaces
-- Path-independent scripts for Windows workspace roots
-- Preliminary software and build flow in place
-- Not yet the final competition-ready SoC or FPGA image
+- 已形成可工作的 `RV32I` 五级流水基线，`IF / ID / EX / MEM / WB` 阶段已拆分
+- 已具备基础 `load-use` 暂停和 `EX/MEM`、`MEM/WB` 前递
+- 已具备分离的指令存储器和数据存储器接口
+- Windows 下的脚本已经尽量做到与工作区根路径无关
+- 软件侧和构建链路已有起步版本
+- 目前还不是最终比赛提交版 SoC，也不是最终 FPGA 镜像
 
-## Quick Start
+## 快速开始
 
-Run these scripts from Windows Explorer or a terminal:
+可以直接在资源管理器或终端里运行这些脚本：
 
 - `scripts\check_toolchain.bat`
 - `scripts\check_syntax.bat`
 - `scripts\build_firmware.bat`
 
-Read these docs before handoff or new work:
+开始新工作或交接前，优先阅读这些文档：
 
 - `doc\toylog_cpu_handoff.md`
 - `doc\toylog_cpu_change_log.md`
 - `doc\toylog_cpu_todo.md`
 
-## Next Steps
+## 下一步
 
-1. Add CSR, trap, and timer support
-2. Build a SoC wrapper with ROM, RAM, UART, and timer
-3. Create a stable regression flow with `riscv-tests`
-4. Add the first competition optimization item: stronger branch handling
-5. Add the second competition optimization item: prefetch or lightweight prediction
-6. Create a Vivado project for board bring-up and timing closure
+1. 增加 `CSR`、异常陷入和 `timer` 支持
+2. 建立包含 `ROM / RAM / UART / timer` 的最小 SoC 封装顶层
+3. 建立稳定的 `riscv-tests` 回归流程
+4. 加入第一个比赛优化项：更强的分支处理
+5. 加入第二个比赛优化项：预取或轻量级预测
+6. 建立 Vivado 工程并推进板级上板与时序收敛

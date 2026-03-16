@@ -1,27 +1,27 @@
-# FPGA Bring-Up Notes
+# FPGA 上板说明
 
-This folder is reserved for the Vivado project of `toylog_cpu`.
+这个目录预留给 `toylog_cpu` 的 Vivado 工程。
 
-## Current Status
+## 当前状态
 
-- No final FPGA top-level wrapper yet
-- No board-specific XDC yet
-- No block design yet
+- 还没有最终 FPGA 顶层封装
+- 还没有板级专用 `XDC`
+- 还没有图形化模块连线设计
 
-## Planned Contents
+## 计划纳入的内容
 
-- board-specific top wrapper
-- XDC constraints
-- memory initialization flow
-- UART bring-up
-- timer interrupt bring-up
-- performance measurement counters
+- 板级专用顶层封装
+- `XDC` 约束
+- 存储器初始化流程
+- `UART` 拉起
+- `timer` 中断拉起
+- 性能测量计数器
 
-## Expected Target
+## 目标形态
 
-The first FPGA target should follow the Qixingwei recommendation:
+第一阶段的 FPGA 目标建议遵循七星微题面方向：
 
-- Xilinx Zynq-7000 or Artix-7 class board
-- stable board frequency at or above `50MHz`
-- UART-based demonstration path
-- later CoreMark measurement path
+- 采用 `Xilinx Zynq-7000` 或 `Artix-7` 级别开发板
+- 板级稳定频率达到或超过 `50MHz`
+- 先打通基于 `UART` 的演示路径
+- 后续再接入 `CoreMark` 测试路径

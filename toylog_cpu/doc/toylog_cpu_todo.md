@@ -1,62 +1,63 @@
-# toylog_cpu TODO
+# toylog_cpu 任务清单
 
 ## 使用规则
 
-- 状态只用：`TODO`、`DOING`、`DONE`、`BLOCKED`
+- 状态只用：`待办`、`进行中`、`已完成`、`阻塞`
 - 每次进入新任务前先看本文件
 - 每次完成任务后同步更新状态和备注
 
 ## 已完成
 
-- `DONE` 建立 `toylog_cpu` 正式工程目录
-- `DONE` 完成 `RV32I` 五级流水第一版
-- `DONE` 建立交接、修改记录、TODO 机制
-- `DONE` 将 `toylog_cpu` 移到工作区根目录
-- `DONE` 安装 `rg`（`ripgrep`）
-- `DONE` 记录本机 `Vivado 2025.2`
-- `DONE` 安装 `xPack` RISC-V GCC
-- `DONE` 补充队伍安装清单
-- `DONE` 删除 `03-参考实现/CPU设计/rocket-chip`
-- `DONE` 删除 `04-工具链/riscv-gnu-toolchain`
-- `DONE` 将队伍安装清单改成按赛题推荐维护
-- `DONE` 将 `toylog_cpu` 现有源码注释统一为中文
-- `DONE` 固化默认同步范围并新增暂存脚本
-- `DONE` 将 Git 仓库收口到正式工程、工具链、项目计划和资料索引
+- `已完成` 建立 `toylog_cpu` 正式工程目录
+- `已完成` 完成 `RV32I` 五级流水第一版
+- `已完成` 建立交接、修改记录、任务清单机制
+- `已完成` 将 `toylog_cpu` 移到工作区根目录
+- `已完成` 安装 `rg`（`ripgrep`）
+- `已完成` 记录本机 `Vivado 2025.2`
+- `已完成` 安装 `xPack` RISC-V GCC
+- `已完成` 补充队伍安装清单
+- `已完成` 删除 `03-参考实现/CPU设计/rocket-chip`
+- `已完成` 删除 `04-工具链/riscv-gnu-toolchain`
+- `已完成` 将队伍安装清单改成按赛题推荐维护
+- `已完成` 将 `toylog_cpu` 现有源码注释统一为中文
+- `已完成` 固化默认同步范围并新增暂存脚本
+- `已完成` 将 Git 仓库收口到正式工程、工具链、项目计划和资料索引
+- `已完成` 当前说明文档统一为中文
 
 ## P0 当前最优先
 
-- `TODO` 增加 `CSR / timer / trap`
-- `TODO` 建立最小 `SoC wrapper`
+- `待办` 增加 `CSR / timer / trap`
+- `待办` 建立最小 `SoC 封装顶层`
   - 备注：至少接入 `ROM / RAM / UART / timer`
-- `TODO` 接入 `riscv-tests`
+- `待办` 接入 `riscv-tests`
 
 ## P1 紧随其后
 
-- `TODO` 打通 bare-metal 固件编译闭环
-- `TODO` 接入 `CoreMark`
-- `TODO` 建立 Vivado 工程
-- `TODO` 明确开发板、串口、JTAG、约束文件来源
+- `待办` 打通裸机固件编译闭环
+- `待办` 接入 `CoreMark`
+- `待办` 建立 Vivado 工程
+- `待办` 明确开发板、串口、JTAG、约束文件来源
 
 ## P2 性能优化与比赛交付
 
-- `TODO` 确定第 1 个性能优化项
-  - 建议：更完整的 forwarding / branch handling
-- `TODO` 确定第 2 个性能优化项
-  - 建议：轻量级 branch prediction 或 prefetch
-- `TODO` 建立资源与频率统计表
-- `TODO` 建立比赛文档与演示材料目录
+- `待办` 确定第 1 个性能优化项
+  - 建议：更完整的前递与分支处理
+- `待办` 确定第 2 个性能优化项
+  - 建议：轻量级分支预测或预取
+- `待办` 建立资源与频率统计表
+- `待办` 建立比赛文档与演示材料目录
 
 ## 当前协作基线
 
-- `DONE` `Git`
-- `DONE` `iverilog`
-- `DONE` `Vivado 2025.2`
-- `DONE` `xsim`
-- `DONE` `riscv-none-elf-gcc`
-- `DONE` `riscv-none-elf-objdump`
-- `DONE` `riscv-none-elf-objcopy`
-- `DONE` `rg`
-- `TODO` `vsim`（可选）
+- `已完成` `Git`
+- `已完成` `iverilog`
+- `已完成` `Vivado 2025.2`
+- `已完成` `xsim`
+- `已完成` `riscv-none-elf-gcc`
+- `已完成` `riscv-none-elf-objdump`
+- `已完成` `riscv-none-elf-objcopy`
+- `已完成` `rg`
+- `待办` `vsim`（可选）
 
 ## 当前备注
 

@@ -1,17 +1,17 @@
-# toylog_cpu Toolchain Guide
+# toylog_cpu 工具链说明
 
-## Purpose
+## 作用
 
-This folder documents the competition-oriented toolchain baseline for `toylog_cpu`.
+这个目录用于记录 `toylog_cpu` 当前采用的比赛工程工具链基线。
 
-It serves two goals:
+它主要承担两个作用：
 
-- keep the team on a consistent minimum environment
-- map the competition recommendations to the actual project workflow
+- 让队伍成员保持一致的最低开发环境
+- 把赛题推荐工具映射到当前工程的实际开发流程
 
-## Team Baseline
+## 队伍基线
 
-The current team baseline is:
+当前队伍基线是：
 
 - `Git`
 - `Vivado 2025.2`
@@ -21,57 +21,57 @@ The current team baseline is:
 - `riscv-none-elf-objdump`
 - `riscv-none-elf-objcopy`
 
-The detailed team-facing install note is:
+面向队友的详细安装说明见：
 
 - `04-工具链/toylog_cpu_toolchain/队伍安装清单.md`
 
-## Competition Mapping
+## 与赛题建议的对应关系
 
-The competition topic recommends:
+赛题建议的能力包括：
 
-- RTL design with Verilog/VHDL
-- TestBench-based simulation
-- module and system verification
-- `riscv-tests`
-- FPGA implementation
-- optional formal verification
+- 使用 Verilog / VHDL 完成 RTL 设计
+- 使用测试平台做仿真
+- 完成模块级与系统级验证
+- 接入 `riscv-tests`
+- 完成 FPGA 实现
+- 按需要补充形式验证
 
-This project maps that recommendation to:
+当前工程把这些建议映射为：
 
-- quick syntax check: `iverilog`
-- main simulation path: `xsim`
-- firmware build: `riscv-none-elf-*`
-- FPGA flow: `Vivado`
-- follow-up verification: `riscv-tests` and `CoreMark`
+- 快速语法检查：`iverilog`
+- 主仿真路径：`xsim`
+- 固件构建：`riscv-none-elf-*`
+- FPGA 流程：`Vivado`
+- 后续验证：`riscv-tests` 与 `CoreMark`
 
-## Project Scripts
+## 工程脚本
 
-Use the scripts under:
+优先使用这些脚本：
 
 - `toylog_cpu/scripts/check_toolchain.bat`
 - `toylog_cpu/scripts/check_syntax.bat`
 - `toylog_cpu/scripts/build_firmware.bat`
 
-## Engineering Rules
+## 工程规则
 
-- The project must not depend on a device-specific absolute path.
-- Local scripts should resolve the project root from the script location.
-- Tools should be taken from `PATH` first, then from known local installs when needed.
-- Source code comments in `toylog_cpu` should default to Chinese.
+- 工程不能依赖某台设备的绝对路径
+- 本地脚本要能从脚本目录自动定位工程根目录
+- 工具优先从 `PATH` 里查找，必要时再回退到已知本地安装路径
+- `toylog_cpu` 中源码注释默认使用中文
 
-## Workspace Policy
+## 工作区约定
 
-- Do not keep an unbuilt `riscv-gnu-toolchain` source tree in this workspace.
-- Do not keep unrelated large reference repositories as part of the active flow.
-- Keep this folder focused on toolchain notes and project-facing scripts only.
+- 不再在当前工作区保留未安装完成的 `riscv-gnu-toolchain` 源码树
+- 不再把无关的大型参考仓库放进当前活跃开发流程
+- 这个目录只保留工具链说明和面向项目的脚本说明
 
-## 2026-03-16 Local Snapshot
+## 2026-03-16 本机快照
 
-- `iverilog`: installed
-- `rg` (`ripgrep`): installed
-- `Vivado 2025.2`: installed
-- `xsim`: available
-- `riscv-none-elf-gcc`: installed via `xPack`
-- `riscv-none-elf-objdump`: available
-- `riscv-none-elf-objcopy`: available
-- `vsim`: not installed
+- `iverilog`：已安装
+- `rg`（`ripgrep`）：已安装
+- `Vivado 2025.2`：已安装
+- `xsim`：可用
+- `riscv-none-elf-gcc`：已通过 `xPack` 安装
+- `riscv-none-elf-objdump`：可用
+- `riscv-none-elf-objcopy`：可用
+- `vsim`：未安装

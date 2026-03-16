@@ -1,4 +1,4 @@
-# toylog_cpu Change Log
+# toylog_cpu 修改记录
 
 ## 记录规则
 
@@ -33,17 +33,17 @@
 - 目的：
   - 按七星微题目要求，把核心推进到显式五级流水结构
 - 结果：
-  - 增加 pipeline register
-  - 增加基础 load-use stall
+  - 增加流水级寄存器
+  - 增加基础 `load-use` 暂停
   - 增加 EX/MEM、MEM/WB 前递
-  - 增加 branch/jump redirect flush
+  - 增加分支/跳转重定向冲刷
 - 验证：
   - `scripts/check_syntax.bat` 通过
 - 未完成：
   - 长回归未跑
   - `riscv-tests` 未接入
 
-### 变更 3：建立交接、记录与 TODO 机制
+### 变更 3：建立交接、记录与任务清单机制
 
 - 范围：
   - `scripts/check_syntax.bat`
@@ -54,10 +54,10 @@
   - `doc/toylog_cpu_handoff.md`
   - `doc/toylog_cpu_todo.md`
 - 目的：
-  - 让不同设备路径下的脚本更稳定，并建立持续交接、修改记录、TODO 管理机制
+  - 让不同设备路径下的脚本更稳定，并建立持续交接、修改记录、任务清单管理机制
 - 结果：
   - `check_syntax.bat` 改为调用 `PowerShell` 脚本
-  - 补齐 handoff / change log / todo 文档
+  - 补齐交接说明 / 修改记录 / 任务清单文档
 - 验证：
   - `scripts/check_syntax.bat` 返回 `0`
 
@@ -171,7 +171,7 @@
 - 结果：
   - 新增默认暂存脚本
   - 新增同步约定文档
-  - handoff 文档补充同步范围规则
+  - 交接文档补充同步范围规则
 - 验证：
   - `scripts/stage_default_sync.bat --dry-run` 通过
 
@@ -193,3 +193,24 @@
   - 本地资料目录加入忽略规则
 - 验证：
   - `scripts/stage_default_sync.bat --dry-run` 应输出新的 4 个同步路径
+
+### 变更 12：当前说明文档统一为中文
+
+- 范围：
+  - `toylog_cpu/README.md`
+  - `toylog_cpu/doc/toylog_cpu_preliminary_design.md`
+  - `toylog_cpu/fpga/vivado/README.md`
+  - `04-工具链/toylog_cpu_toolchain/README.md`
+  - `04-工具链/toylog_cpu_toolchain/队伍安装清单.md`
+  - `01-项目管理/03-资料索引/Git同步约定.md`
+  - `toylog_cpu/doc/toylog_cpu_handoff.md`
+  - `toylog_cpu/doc/toylog_cpu_change_log.md`
+  - `toylog_cpu/doc/toylog_cpu_todo.md`
+- 目的：
+  - 统一当前仓库说明文档的语言，方便中文环境下的团队协作与交接
+- 结果：
+  - 说明文档的标题、段落和解释性文字统一改成中文
+  - 状态词和协作文档中的说明性英文术语一并改成中文
+  - 仅保留工程名、脚本名和必要术语的英文标识
+- 验证：
+  - 文档检索不再出现成段英文说明

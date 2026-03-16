@@ -1,4 +1,4 @@
-# toylog_cpu Handoff
+# toylog_cpu 交接说明
 
 ## 1. 交接规则
 
@@ -24,15 +24,15 @@
 
 - 基础算术逻辑运算
 - 分支与跳转基础控制
-- Load/Store 地址生成与字节写使能
-- 基础 load-use stall
+- 访存地址生成与字节写使能
+- 基础 `load-use` 冒险暂停
 - EX/MEM 与 MEM/WB 前递
 - 独立指令/数据存储接口
 
 ## 4. 关键文件
 
 - 顶层：`rtl/toylog_cpu.v`
-- stage 模块：
+- 流水级模块：
   - `rtl/toylog_cpu_if_stage.v`
   - `rtl/toylog_cpu_id_stage.v`
   - `rtl/toylog_cpu_ex_stage.v`
@@ -57,7 +57,7 @@
 - 当前未完成：
   - `riscv-tests` 未接入
   - `CoreMark` 未接入
-  - `SoC wrapper` 未完成
+  - `SoC 封装顶层` 未完成
   - FPGA 工程未建立
 
 ## 6. 团队协作最低环境
@@ -96,7 +96,7 @@
 ## 9. 下一步建议顺序
 
 1. 增加 `CSR / timer / trap`
-2. 建立最小 `SoC wrapper`
+2. 建立最小 `SoC 封装顶层`
 3. 接入 `riscv-tests`
 4. 接入 `CoreMark`
 5. 建立 Vivado 工程和板级约束
