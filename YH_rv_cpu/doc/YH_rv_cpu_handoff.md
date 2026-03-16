@@ -17,6 +17,7 @@
 ## 已完成能力
 
 - 五级流水结构：`IF / ID / EX / MEM / WB`
+- 关键数据通路 `XLEN` 参数化骨架
 - 基础前递：`EX/MEM`、`MEM/WB`
 - 基础 `load-use` 暂停
 - 分支和跳转重定向
@@ -31,6 +32,7 @@
   - `csrrw/csrrs/csrrc`
   - `ecall / ebreak / mret`
 - machine timer interrupt 最小闭环
+- `XLEN=64` 基础烟测
 - 最小 SoC
   - `ROM`
   - `RAM`
@@ -45,16 +47,18 @@
 - `scripts/run_soc_smoke.bat`：通过
 - `scripts/run_trap_smoke.bat`：通过
 - `scripts/run_timer_irq_smoke.bat`：通过
+- `scripts/run_xlen64_smoke.bat`：通过
 
 关键结果：
 
 - `PASS: SoC smoke test completed at PC=00000038 in 108 cycles`
 - `PASS: trap smoke test completed at PC=000000ac in 79 cycles`
 - `PASS: timer irq smoke test completed at PC=000000e4 in 125 cycles`
+- `PASS: xlen64 smoke test completed at PC=0000000000000010 in 13 cycles`
 
 ## 当前缺口
 
-- `RV32 / RV64` 共线 RTL 还没真正落地
+- `RV64` 指令级扩展和专门验证还没落地
 - `riscv-tests` 还没接
 - `CoreMark` 还没接
 - 正式 `Vivado` 工程和板卡约束还没建
@@ -62,7 +66,7 @@
 
 ## 现在最值得继续做的事
 
-1. 抽出 `XLEN` 参数，先让关键数据通路具备 `RV32 / RV64` 共线基础。
+1. 在 `XLEN` 骨架和 `xlen64` 烟测基础上继续补 `RV64` 译码、访存和相关语义。
 2. 接 `riscv-tests`，形成第一版回归。
 3. 接 `CoreMark`，形成可复现跑分链路。
 4. 建正式 `Vivado` 工程，推进 FPGA 闭环。

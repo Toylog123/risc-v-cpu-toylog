@@ -1,11 +1,13 @@
 `include "YH_rv_cpu_defs.vh"
 
-module YH_rv_cpu_wb_stage (
-    input  wire [1:0]  wb_sel,
-    input  wire [31:0] exec_result,
-    input  wire [31:0] load_data,
-    input  wire [31:0] pc4,
-    output wire [31:0] wb_data
+module YH_rv_cpu_wb_stage #(
+    parameter integer XLEN = 32
+) (
+    input  wire [1:0]      wb_sel,
+    input  wire [XLEN-1:0] exec_result,
+    input  wire [XLEN-1:0] load_data,
+    input  wire [XLEN-1:0] pc4,
+    output wire [XLEN-1:0] wb_data
 );
 
 assign wb_data =

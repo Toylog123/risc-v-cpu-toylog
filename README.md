@@ -15,6 +15,7 @@
 - 锁定七星微为唯一主赛题
 - 正式工程整体切换为 `YH_rv_cpu`
 - 五级流水 `RV32I` 基线打通
+- 关键数据通路 `XLEN` 参数化骨架
 - 最小 SoC 打通
   - `ROM`
   - `RAM`
@@ -36,10 +37,11 @@
   - `SoC smoke`
   - `trap smoke`
   - `timer irq smoke`
+- `xsim` 下通过 `xlen64 smoke`
 
 当前还没完成：
 
-- `RV32 / RV64` 共线架构改造
+- `RV64` 指令级扩展和更完整验证
 - `riscv-tests`
 - `CoreMark`
 - 正式 `Vivado` 工程和 FPGA 上板闭环
@@ -95,7 +97,7 @@ YH_rv_cpu\scripts\stage_default_sync.bat --dry-run
 
 ## 当前最值得继续做的事
 
-1. 启动 `RV32 / RV64` 共线改造，先抽出 `XLEN` 基础骨架。
+1. 在 `XLEN` 骨架和 `xlen64` 烟测基础上继续补 `RV64` 译码、访存和相关语义。
 2. 接入 `riscv-tests`，建立第一版可回归验证。
 3. 接入 `CoreMark`，形成可复现跑分链路。
 4. 建正式 `Vivado` 工程，准备 FPGA 上板闭环。

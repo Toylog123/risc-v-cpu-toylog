@@ -11,6 +11,7 @@
 已经完成：
 
 - 五级流水第一版
+- 关键数据通路 `XLEN` 参数化骨架
 - 最小 SoC
   - `ROM`
   - `RAM`
@@ -21,10 +22,11 @@
 - machine timer interrupt 最小闭环
 - 固件构建链路
 - `xsim` SoC / trap / timer irq 烟测
+- `xsim` `XLEN=64` 基础烟测
 
 当前缺口：
 
-- `RV32 / RV64` 共线改造
+- `RV64` 指令级扩展和专门验证
 - `riscv-tests`
 - `CoreMark`
 - 正式 `Vivado` 工程
@@ -54,6 +56,7 @@ scripts\build_firmware.bat
 scripts\run_soc_smoke.bat
 scripts\run_trap_smoke.bat
 scripts\run_timer_irq_smoke.bat
+scripts\run_xlen64_smoke.bat
 ```
 
 ## 当前验证结果
@@ -63,16 +66,18 @@ scripts\run_timer_irq_smoke.bat
 - `run_soc_smoke.bat` 通过
 - `run_trap_smoke.bat` 通过
 - `run_timer_irq_smoke.bat` 通过
+- `run_xlen64_smoke.bat` 通过
 
 已知烟测结论：
 
 - `PASS: SoC smoke test completed at PC=00000038 in 108 cycles`
 - `PASS: trap smoke test completed at PC=000000ac in 79 cycles`
 - `PASS: timer irq smoke test completed at PC=000000e4 in 125 cycles`
+- `PASS: xlen64 smoke test completed at PC=0000000000000010 in 13 cycles`
 
 ## 当前优先级
 
-1. 抽出 `XLEN` 基础参数，启动 `RV32 / RV64` 共线改造。
+1. 在 `XLEN` 骨架和 `xlen64` 烟测基础上继续补 `RV64` 译码、访存和相关语义。
 2. 接入 `riscv-tests`。
 3. 接入 `CoreMark`。
 4. 建立正式 `Vivado` 工程并准备上板。

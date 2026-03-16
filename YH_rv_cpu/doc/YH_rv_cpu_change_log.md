@@ -35,3 +35,16 @@
 - 根目录工程切换为 `YH_rv_cpu`
 - 工具链目录切换为 `04-工具链/YH_rv_cpu_toolchain`
 - 路径、脚本和文档入口统一切换
+
+### 变更 7：抽出 `XLEN` 参数化骨架
+
+- 给 CPU 顶层、SoC 顶层、关键流水级、ALU 和寄存器堆增加 `XLEN`
+- 当前保持 `XLEN=32`，验证链路继续通过
+- 为后续 `RV32 / RV64` 共线改造预留统一数据通路
+
+### 变更 8：建立 `XLEN=64` 基础烟测
+
+- 补上 `RV64` 下 6 位移位量的立即数译码基础支持
+- 新增 `tb/YH_rv_cpu_xlen64_tb.v`
+- 新增 `scripts/run_xlen64_smoke.bat`
+- 实测通过：`PASS: xlen64 smoke test completed at PC=0000000000000010 in 13 cycles`

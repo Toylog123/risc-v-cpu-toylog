@@ -1,77 +1,79 @@
 `include "YH_rv_cpu_defs.vh"
 
-module YH_rv_cpu_decoder (
-    input  wire [31:0] instruction,
-    output wire [4:0]  rs1_addr,
-    output wire [4:0]  rs2_addr,
-    output wire [4:0]  rd_addr,
-    output reg         rs1_en,
-    output reg         rs2_en,
-    output reg         rd_en,
-    output reg         illegal,
-    output reg  [31:0] imm,
-    output reg  [3:0]  alu_op,
-    output reg         alu_src1_pc,
-    output reg         alu_src2_imm,
-    output reg         branch,
-    output reg  [2:0]  branch_funct3,
-    output reg         jump,
-    output reg         jalr,
-    output reg         load,
-    output reg         store,
-    output reg  [1:0]  wb_sel,
-    output reg  [1:0]  mem_size,
-    output reg         mem_unsigned,
-    output reg         is_lui,
-    output reg         csr_valid,
-    output reg  [1:0]  csr_cmd,
-    output reg         csr_use_imm,
-    output reg  [11:0] csr_addr,
-    output reg         ecall,
-    output reg         ebreak,
-    output reg         mret
+module YH_rv_cpu_decoder #(
+    parameter integer XLEN = 32
+) (
+    input  wire [31:0]     instruction,
+    output wire [4:0]      rs1_addr,
+    output wire [4:0]      rs2_addr,
+    output wire [4:0]      rd_addr,
+    output reg             rs1_en,
+    output reg             rs2_en,
+    output reg             rd_en,
+    output reg             illegal,
+    output reg  [XLEN-1:0] imm,
+    output reg  [3:0]      alu_op,
+    output reg             alu_src1_pc,
+    output reg             alu_src2_imm,
+    output reg             branch,
+    output reg  [2:0]      branch_funct3,
+    output reg             jump,
+    output reg             jalr,
+    output reg             load,
+    output reg             store,
+    output reg  [1:0]      wb_sel,
+    output reg  [1:0]      mem_size,
+    output reg             mem_unsigned,
+    output reg             is_lui,
+    output reg             csr_valid,
+    output reg  [1:0]      csr_cmd,
+    output reg             csr_use_imm,
+    output reg  [11:0]     csr_addr,
+    output reg             ecall,
+    output reg             ebreak,
+    output reg             mret
 );
 
 wire [6:0] opcode = instruction[6:0];
 wire [2:0] funct3 = instruction[14:12];
 wire [6:0] funct7 = instruction[31:25];
 
-wire [31:0] imm_i = {{20{instruction[31]}}, instruction[31:20]};
-wire [31:0] imm_s = {{20{instruction[31]}}, instruction[31:25], instruction[11:7]};
-wire [31:0] imm_b = {{19{instruction[31]}}, instruction[31], instruction[7], instruction[30:25], instruction[11:8], 1'b0};
-wire [31:0] imm_u = {instruction[31:12], 12'b0};
-wire [31:0] imm_j = {{11{instruction[31]}}, instruction[31], instruction[19:12], instruction[20], instruction[30:21], 1'b0};
+wire [XLEN-1:0] imm_i = {{(XLEN-12){instruction[31]}}, instruction[31:20]};
+wire [XLEN-1:0] imm_s = {{(XLEN-12){instruction[31]}}, instruction[31:25], instruction[11:7]};
+wire [XLEN-1:0] imm_b = {{(XLEN-13){instruction[31]}}, instruction[31], instruction[7], instruction[30:25], instruction[11:8], 1'b0};
+wire [XLEN-1:0] imm_u = {{(XLEN-32){instruction[31]}}, instruction[31:12], 12'b0};
+wire [XLEN-1:0] imm_j = {{(XLEN-21){instruction[31]}}, instruction[31], instruction[19:12], instruction[20], instruction[30:21], 1'b0};
 
 assign rd_addr  = instruction[11:7];
 assign rs1_addr = instruction[19:15];
 assign rs2_addr = instruction[24:20];
 
 always @* begin
-    rs1_en       = 1'b0;
-    rs2_en       = 1'b0;
-    rd_en        = 1'b0;
-    illegal      = 1'b0;
-    imm          = 32'h0000_0000;
-    alu_op       = `YH_rv_cpu_ALU_ADD;
-    alu_src1_pc  = 1'b0;
-    alu_src2_imm = 1'b0;
-    branch       = 1'b0;
+    rs1_en        = 1'b0;
+    rs2_en        = 1'b0;
+    rd_en         = 1'b0;
+    illegal       = 1'b0;
+    imm           = {XLEN{1'b0}};
+    alu_op        = `YH_rv_cpu_ALU_ADD;
+    alu_src1_pc   = 1'b0;
+    alu_src2_imm  = 1'b0;
+    branch        = 1'b0;
     branch_funct3 = 3'b000;
-    jump         = 1'b0;
-    jalr         = 1'b0;
-    load         = 1'b0;
-    store        = 1'b0;
-    wb_sel       = `YH_rv_cpu_WB_ALU;
-    mem_size     = `YH_rv_cpu_MEM_W;
-    mem_unsigned = 1'b0;
-    is_lui       = 1'b0;
-    csr_valid    = 1'b0;
-    csr_cmd      = `YH_rv_cpu_CSR_RW;
-    csr_use_imm  = 1'b0;
-    csr_addr     = instruction[31:20];
-    ecall        = 1'b0;
-    ebreak       = 1'b0;
-    mret         = 1'b0;
+    jump          = 1'b0;
+    jalr          = 1'b0;
+    load          = 1'b0;
+    store         = 1'b0;
+    wb_sel        = `YH_rv_cpu_WB_ALU;
+    mem_size      = `YH_rv_cpu_MEM_W;
+    mem_unsigned  = 1'b0;
+    is_lui        = 1'b0;
+    csr_valid     = 1'b0;
+    csr_cmd       = `YH_rv_cpu_CSR_RW;
+    csr_use_imm   = 1'b0;
+    csr_addr      = instruction[31:20];
+    ecall         = 1'b0;
+    ebreak        = 1'b0;
+    mret          = 1'b0;
 
     case (opcode)
         `YH_rv_cpu_OPCODE_LUI: begin
@@ -178,12 +180,24 @@ always @* begin
                 3'b111: alu_op = `YH_rv_cpu_ALU_AND;
                 3'b001: begin
                     alu_op = `YH_rv_cpu_ALU_SLL;
-                    if (funct7 != 7'b0000000) begin
+                    if (XLEN == 64) begin
+                        if (instruction[31:26] != 6'b000000) begin
+                            illegal = 1'b1;
+                        end
+                    end else if (funct7 != 7'b0000000) begin
                         illegal = 1'b1;
                     end
                 end
                 3'b101: begin
-                    if (funct7 == 7'b0000000) begin
+                    if (XLEN == 64) begin
+                        if (instruction[31:26] == 6'b000000) begin
+                            alu_op = `YH_rv_cpu_ALU_SRL;
+                        end else if (instruction[31:26] == 6'b010000) begin
+                            alu_op = `YH_rv_cpu_ALU_SRA;
+                        end else begin
+                            illegal = 1'b1;
+                        end
+                    end else if (funct7 == 7'b0000000) begin
                         alu_op = `YH_rv_cpu_ALU_SRL;
                     end else if (funct7 == 7'b0100000) begin
                         alu_op = `YH_rv_cpu_ALU_SRA;

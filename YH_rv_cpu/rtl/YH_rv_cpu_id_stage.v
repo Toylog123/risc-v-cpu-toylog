@@ -1,46 +1,52 @@
-module YH_rv_cpu_id_stage (
-    input  wire [31:0] pc,
-    input  wire [31:0] instruction,
-    input  wire [31:0] rs1_rdata,
-    input  wire [31:0] rs2_rdata,
-    output wire [31:0] pc4,
-    output wire [4:0]  rs1_addr,
-    output wire [4:0]  rs2_addr,
-    output wire [4:0]  rd_addr,
-    output wire        rs1_en,
-    output wire        rs2_en,
-    output wire        rd_en,
-    output wire        illegal,
-    output wire [31:0] imm,
-    output wire [3:0]  alu_op,
-    output wire        alu_src1_pc,
-    output wire        alu_src2_imm,
-    output wire        branch,
-    output wire [2:0]  branch_funct3,
-    output wire        jump,
-    output wire        jalr,
-    output wire        load,
-    output wire        store,
-    output wire [1:0]  wb_sel,
-    output wire [1:0]  mem_size,
-    output wire        mem_unsigned,
-    output wire        is_lui,
-    output wire        csr_valid,
-    output wire [1:0]  csr_cmd,
-    output wire        csr_use_imm,
-    output wire [11:0] csr_addr,
-    output wire        ecall,
-    output wire        ebreak,
-    output wire        mret,
-    output wire [31:0] rs1_value,
-    output wire [31:0] rs2_value
+module YH_rv_cpu_id_stage #(
+    parameter integer XLEN = 32
+) (
+    input  wire [XLEN-1:0] pc,
+    input  wire [31:0]     instruction,
+    input  wire [XLEN-1:0] rs1_rdata,
+    input  wire [XLEN-1:0] rs2_rdata,
+    output wire [XLEN-1:0] pc4,
+    output wire [4:0]      rs1_addr,
+    output wire [4:0]      rs2_addr,
+    output wire [4:0]      rd_addr,
+    output wire            rs1_en,
+    output wire            rs2_en,
+    output wire            rd_en,
+    output wire            illegal,
+    output wire [XLEN-1:0] imm,
+    output wire [3:0]      alu_op,
+    output wire            alu_src1_pc,
+    output wire            alu_src2_imm,
+    output wire            branch,
+    output wire [2:0]      branch_funct3,
+    output wire            jump,
+    output wire            jalr,
+    output wire            load,
+    output wire            store,
+    output wire [1:0]      wb_sel,
+    output wire [1:0]      mem_size,
+    output wire            mem_unsigned,
+    output wire            is_lui,
+    output wire            csr_valid,
+    output wire [1:0]      csr_cmd,
+    output wire            csr_use_imm,
+    output wire [11:0]     csr_addr,
+    output wire            ecall,
+    output wire            ebreak,
+    output wire            mret,
+    output wire [XLEN-1:0] rs1_value,
+    output wire [XLEN-1:0] rs2_value
 );
 
-assign pc4 = pc + 32'd4;
+localparam [XLEN-1:0] PC_STEP = {{(XLEN-3){1'b0}}, 3'd4};
+
+assign pc4 = pc + PC_STEP;
 assign rs1_value = rs1_rdata;
 assign rs2_value = rs2_rdata;
 
-YH_rv_cpu_decoder u_decoder (
+YH_rv_cpu_decoder #(
+    .XLEN(XLEN)
+) u_decoder (
     .instruction   (instruction),
     .rs1_addr      (rs1_addr),
     .rs2_addr      (rs2_addr),

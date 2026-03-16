@@ -1,6 +1,7 @@
 tb/YH_rv_cpu_soc_tb.v
 tb/YH_rv_cpu_trap_tb.v
 tb/YH_rv_cpu_timer_irq_tb.v
+tb/YH_rv_cpu_xlen64_tb.v
 rtl/YH_rv_cpu_soc.v
 tb/YH_rv_cpu_tb.v
 rtl/YH_rv_cpu.v
