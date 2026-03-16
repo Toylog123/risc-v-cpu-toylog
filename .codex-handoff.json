@@ -6,23 +6,22 @@
   ],
   "handoff_files": [
     "01-项目管理/03-过程管理/工作交接.md",
-    "toylog_cpu/doc/toylog_cpu_handoff.md"
+    "YH_rv_cpu/doc/YH_rv_cpu_handoff.md"
   ],
   "task_files": [
     "01-项目管理/03-过程管理/任务清单.md",
-    "toylog_cpu/doc/toylog_cpu_todo.md"
+    "YH_rv_cpu/doc/YH_rv_cpu_todo.md"
   ],
   "planning_files": [
-    "01-项目管理/02-项目规划/项目总体规划.md",
-    "01-项目管理/02-项目规划/分工与阶段安排.md"
+    "01-项目管理/02-项目规划/项目总体规划.md"
   ],
   "log_files": [
     "01-项目管理/03-过程管理/工作记录.md",
-    "toylog_cpu/doc/toylog_cpu_change_log.md"
+    "YH_rv_cpu/doc/YH_rv_cpu_change_log.md"
   ],
   "toolchain_files": [
-    "04-工具链/toylog_cpu_toolchain/README.md",
-    "04-工具链/toylog_cpu_toolchain/队伍安装清单.md"
+    "04-工具链/YH_rv_cpu_toolchain/README.md",
+    "04-工具链/YH_rv_cpu_toolchain/队伍安装清单.md"
   ],
   "read_order": [
     "README.md",
@@ -31,9 +30,9 @@
     "01-项目管理/02-项目规划/项目总体规划.md",
     "01-项目管理/01-赛题要求/七星微赛题要求.md",
     "01-项目管理/01-赛题要求/七星微赛方答疑整理.md",
-    "04-工具链/toylog_cpu_toolchain/队伍安装清单.md",
-    "toylog_cpu/doc/toylog_cpu_handoff.md",
-    "toylog_cpu/doc/toylog_cpu_todo.md"
+    "04-工具链/YH_rv_cpu_toolchain/队伍安装清单.md",
+    "YH_rv_cpu/doc/YH_rv_cpu_handoff.md",
+    "YH_rv_cpu/doc/YH_rv_cpu_todo.md"
   ],
   "ignore_patterns": [
     "02-官方与规范/**",

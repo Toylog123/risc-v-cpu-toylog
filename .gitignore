@@ -1,19 +1,19 @@
-# Ignore nested git metadata when this workspace is tracked as one root repo.
+# 忽略嵌套仓库的 Git 元数据备份。
 **/.git_backup_codex/
 
-# Common local noise.
+# 常见本地噪音。
 Thumbs.db
 .DS_Store
 
-# Generated outputs.
+# 生成物。
 **/build/
-toylog_cpu/*.log
-toylog_cpu/*.jou
-toylog_cpu/*.pb
-toylog_cpu/dfx_runtime.txt
-toylog_cpu/xsim.dir/
+YH_rv_cpu/*.log
+YH_rv_cpu/*.jou
+YH_rv_cpu/*.pb
+YH_rv_cpu/dfx_runtime.txt
+YH_rv_cpu/xsim.dir/
 
-# Keep these directories locally, but do not track them in the trimmed repo.
+# 这些目录只在本地保留，不进入当前 Git 仓库。
 /02-官方与规范/
 /03-参考实现/
 /05-验证测试/

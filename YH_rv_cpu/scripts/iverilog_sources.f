@@ -1,0 +1,15 @@
+tb/YH_rv_cpu_soc_tb.v
+tb/YH_rv_cpu_trap_tb.v
+tb/YH_rv_cpu_timer_irq_tb.v
+rtl/YH_rv_cpu_soc.v
+tb/YH_rv_cpu_tb.v
+rtl/YH_rv_cpu.v
+rtl/YH_rv_cpu_if_stage.v
+rtl/YH_rv_cpu_id_stage.v
+rtl/YH_rv_cpu_ex_stage.v
+rtl/YH_rv_cpu_mem_stage.v
+rtl/YH_rv_cpu_wb_stage.v
+rtl/YH_rv_cpu_hazard_unit.v
+rtl/YH_rv_cpu_decoder.v
+rtl/YH_rv_cpu_regfile.v
+rtl/YH_rv_cpu_alu.v

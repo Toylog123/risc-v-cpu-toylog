@@ -1,0 +1,86 @@
+# YH_rv_cpu 交接说明
+
+## 交接规则
+
+- 只要修改了 `YH_rv_cpu` 的 RTL、脚本、验证或文档，就同步更新本文件、`YH_rv_cpu_change_log.md` 和 `YH_rv_cpu_todo.md`。
+- 结论以当前仓库文件和脚本实测结果为准，不靠口头状态。
+- 默认同步范围是 `YH_rv_cpu`、`04-工具链`、`01-项目管理`。
+
+## 当前状态
+
+- 日期：`2026-03-16`
+- 正式工程名：`YH_rv_cpu`
+- 当前验证基线：自写 `RV32I + Zicsr` 五级流水
+- 当前目标架构：向 `RV32 / RV64` 共线推进
+- 当前 SoC 状态：最小 SoC 已打通，可通过 UART 输出 `YH_rv_cpu boot`
+
+## 已完成能力
+
+- 五级流水结构：`IF / ID / EX / MEM / WB`
+- 基础前递：`EX/MEM`、`MEM/WB`
+- 基础 `load-use` 暂停
+- 分支和跳转重定向
+- 最小机器态 `CSR / trap`
+  - `mstatus`
+  - `mie`
+  - `mip`
+  - `mtvec`
+  - `mscratch`
+  - `mepc`
+  - `mcause`
+  - `csrrw/csrrs/csrrc`
+  - `ecall / ebreak / mret`
+- machine timer interrupt 最小闭环
+- 最小 SoC
+  - `ROM`
+  - `RAM`
+  - `UART`
+  - `DONE`
+  - `timer`
+
+## 当前验证结果
+
+- `scripts/check_syntax.bat`：通过
+- `scripts/build_firmware.bat`：通过
+- `scripts/run_soc_smoke.bat`：通过
+- `scripts/run_trap_smoke.bat`：通过
+- `scripts/run_timer_irq_smoke.bat`：通过
+
+关键结果：
+
+- `PASS: SoC smoke test completed at PC=00000038 in 108 cycles`
+- `PASS: trap smoke test completed at PC=000000ac in 79 cycles`
+- `PASS: timer irq smoke test completed at PC=000000e4 in 125 cycles`
+
+## 当前缺口
+
+- `RV32 / RV64` 共线 RTL 还没真正落地
+- `riscv-tests` 还没接
+- `CoreMark` 还没接
+- 正式 `Vivado` 工程和板卡约束还没建
+- FPGA 上板记录还没有形成
+
+## 现在最值得继续做的事
+
+1. 抽出 `XLEN` 参数，先让关键数据通路具备 `RV32 / RV64` 共线基础。
+2. 接 `riscv-tests`，形成第一版回归。
+3. 接 `CoreMark`，形成可复现跑分链路。
+4. 建正式 `Vivado` 工程，推进 FPGA 闭环。
+
+## 关键文件
+
+- CPU 顶层：`rtl/YH_rv_cpu.v`
+- SoC 顶层：`rtl/YH_rv_cpu_soc.v`
+- 初步设计：`doc/YH_rv_cpu_preliminary_design.md`
+- 修改记录：`doc/YH_rv_cpu_change_log.md`
+- 任务清单：`doc/YH_rv_cpu_todo.md`
+
+## 接手顺序
+
+1. `../../01-项目管理/03-过程管理/工作交接.md`
+2. `../../01-项目管理/03-过程管理/任务清单.md`
+3. `../../README.md`
+4. `README.md`
+5. `doc/YH_rv_cpu_preliminary_design.md`
+6. `doc/YH_rv_cpu_change_log.md`
+7. `doc/YH_rv_cpu_todo.md`
