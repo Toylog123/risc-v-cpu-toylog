@@ -8,6 +8,8 @@
 `define YH_rv_cpu_OPCODE_JAL     7'b1101111
 `define YH_rv_cpu_OPCODE_OP_IMM  7'b0010011
 `define YH_rv_cpu_OPCODE_OP      7'b0110011
+`define YH_rv_cpu_OPCODE_OP_IMM_32 7'b0011011
+`define YH_rv_cpu_OPCODE_OP_32   7'b0111011
 `define YH_rv_cpu_OPCODE_AUIPC   7'b0010111
 `define YH_rv_cpu_OPCODE_LUI     7'b0110111
 `define YH_rv_cpu_OPCODE_SYSTEM  7'b1110011
@@ -30,6 +32,7 @@
 `define YH_rv_cpu_MEM_B     2'd0
 `define YH_rv_cpu_MEM_H     2'd1
 `define YH_rv_cpu_MEM_W     2'd2
+`define YH_rv_cpu_MEM_D     2'd3
 
 `define YH_rv_cpu_CSR_RW    2'd0
 `define YH_rv_cpu_CSR_RS    2'd1

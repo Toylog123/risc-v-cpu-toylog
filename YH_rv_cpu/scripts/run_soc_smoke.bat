@@ -56,7 +56,7 @@ if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
 pushd "%PROJECT_DIR%"
 
-%XVLOG% --sv -i rtl ^
+call %XVLOG% --sv -i rtl ^
     tb\YH_rv_cpu_soc_tb.v ^
     rtl\YH_rv_cpu_soc.v ^
     rtl\YH_rv_cpu.v ^
@@ -71,10 +71,10 @@ pushd "%PROJECT_DIR%"
     rtl\YH_rv_cpu_alu.v
 if errorlevel 1 goto :fail
 
-%XELAB% YH_rv_cpu_soc_tb -s YH_rv_cpu_soc_tb_snapshot
+call %XELAB% YH_rv_cpu_soc_tb -s YH_rv_cpu_soc_tb_snapshot
 if errorlevel 1 goto :fail
 
-%XSIM% YH_rv_cpu_soc_tb_snapshot -runall
+call %XSIM% YH_rv_cpu_soc_tb_snapshot -runall
 set RUN_STATUS=%ERRORLEVEL%
 goto :done
 

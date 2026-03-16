@@ -12,6 +12,18 @@ YH_rv_cpu/*.jou
 YH_rv_cpu/*.pb
 YH_rv_cpu/dfx_runtime.txt
 YH_rv_cpu/xsim.dir/
+/project/
+/.Xil/
+/tclapp/
+/2025.2/
+/reportstrategies/
+/strategies/
+/-p/
+/dfx_runtime.txt
+/vivado*.jou
+/vivado*.log
+/vivado_*.backup.jou
+/vivado_*.backup.log
 
 # 这些目录只在本地保留，不进入当前 Git 仓库。
 /02-官方与规范/

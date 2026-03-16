@@ -24,6 +24,7 @@ module YH_rv_cpu_decoder #(
     output reg  [1:0]      wb_sel,
     output reg  [1:0]      mem_size,
     output reg             mem_unsigned,
+    output reg             word_op,
     output reg             is_lui,
     output reg             csr_valid,
     output reg  [1:0]      csr_cmd,
@@ -66,6 +67,7 @@ always @* begin
     wb_sel        = `YH_rv_cpu_WB_ALU;
     mem_size      = `YH_rv_cpu_MEM_W;
     mem_unsigned  = 1'b0;
+    word_op       = 1'b0;
     is_lui        = 1'b0;
     csr_valid     = 1'b0;
     csr_cmd       = `YH_rv_cpu_CSR_RW;
@@ -140,6 +142,14 @@ always @* begin
                     mem_size     = `YH_rv_cpu_MEM_W;
                     mem_unsigned = 1'b0;
                 end
+                3'b011: begin
+                    if (XLEN == 64) begin
+                        mem_size     = `YH_rv_cpu_MEM_D;
+                        mem_unsigned = 1'b0;
+                    end else begin
+                        illegal = 1'b1;
+                    end
+                end
                 3'b100: begin
                     mem_size     = `YH_rv_cpu_MEM_B;
                     mem_unsigned = 1'b1;
@@ -147,6 +157,14 @@ always @* begin
                 3'b101: begin
                     mem_size     = `YH_rv_cpu_MEM_H;
                     mem_unsigned = 1'b1;
+                end
+                3'b110: begin
+                    if (XLEN == 64) begin
+                        mem_size     = `YH_rv_cpu_MEM_W;
+                        mem_unsigned = 1'b1;
+                    end else begin
+                        illegal = 1'b1;
+                    end
                 end
                 default: illegal = 1'b1;
             endcase
@@ -162,6 +180,13 @@ always @* begin
                 3'b000: mem_size = `YH_rv_cpu_MEM_B;
                 3'b001: mem_size = `YH_rv_cpu_MEM_H;
                 3'b010: mem_size = `YH_rv_cpu_MEM_W;
+                3'b011: begin
+                    if (XLEN == 64) begin
+                        mem_size = `YH_rv_cpu_MEM_D;
+                    end else begin
+                        illegal = 1'b1;
+                    end
+                end
                 default: illegal = 1'b1;
             endcase
         end
@@ -270,6 +295,75 @@ always @* begin
                 end
                 default: illegal = 1'b1;
             endcase
+        end
+
+        `YH_rv_cpu_OPCODE_OP_IMM_32: begin
+            if (XLEN != 64) begin
+                illegal = 1'b1;
+            end else begin
+                rd_en        = 1'b1;
+                rs1_en       = 1'b1;
+                alu_src2_imm = 1'b1;
+                imm          = imm_i;
+                word_op      = 1'b1;
+                case (funct3)
+                    3'b000: alu_op = `YH_rv_cpu_ALU_ADD;
+                    3'b001: begin
+                        alu_op = `YH_rv_cpu_ALU_SLL;
+                        if (funct7 != 7'b0000000) begin
+                            illegal = 1'b1;
+                        end
+                    end
+                    3'b101: begin
+                        if (funct7 == 7'b0000000) begin
+                            alu_op = `YH_rv_cpu_ALU_SRL;
+                        end else if (funct7 == 7'b0100000) begin
+                            alu_op = `YH_rv_cpu_ALU_SRA;
+                        end else begin
+                            illegal = 1'b1;
+                        end
+                    end
+                    default: illegal = 1'b1;
+                endcase
+            end
+        end
+
+        `YH_rv_cpu_OPCODE_OP_32: begin
+            if (XLEN != 64) begin
+                illegal = 1'b1;
+            end else begin
+                rd_en   = 1'b1;
+                rs1_en  = 1'b1;
+                rs2_en  = 1'b1;
+                word_op = 1'b1;
+                case (funct3)
+                    3'b000: begin
+                        if (funct7 == 7'b0000000) begin
+                            alu_op = `YH_rv_cpu_ALU_ADD;
+                        end else if (funct7 == 7'b0100000) begin
+                            alu_op = `YH_rv_cpu_ALU_SUB;
+                        end else begin
+                            illegal = 1'b1;
+                        end
+                    end
+                    3'b001: begin
+                        alu_op = `YH_rv_cpu_ALU_SLL;
+                        if (funct7 != 7'b0000000) begin
+                            illegal = 1'b1;
+                        end
+                    end
+                    3'b101: begin
+                        if (funct7 == 7'b0000000) begin
+                            alu_op = `YH_rv_cpu_ALU_SRL;
+                        end else if (funct7 == 7'b0100000) begin
+                            alu_op = `YH_rv_cpu_ALU_SRA;
+                        end else begin
+                            illegal = 1'b1;
+                        end
+                    end
+                    default: illegal = 1'b1;
+                endcase
+            end
         end
 
         `YH_rv_cpu_OPCODE_SYSTEM: begin

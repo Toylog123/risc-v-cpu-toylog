@@ -3,7 +3,7 @@
 module YH_rv_cpu_soc_tb;
 
 localparam string ROM_HEX = "build/sw/YH_rv_cpu_demo.hex";
-localparam integer EXPECTED_LEN = 16;
+localparam integer EXPECTED_LEN = 15;
 localparam integer DEBUG_TRACE = 0;
 
 reg         clk;
@@ -121,22 +121,21 @@ initial begin
     cycle = 0;
     uart_count = 0;
 
-    expected_uart[0]  = "t";
-    expected_uart[1]  = "o";
-    expected_uart[2]  = "y";
-    expected_uart[3]  = "l";
-    expected_uart[4]  = "o";
-    expected_uart[5]  = "g";
-    expected_uart[6]  = "_";
-    expected_uart[7]  = "c";
-    expected_uart[8]  = "p";
-    expected_uart[9]  = "u";
-    expected_uart[10] = " ";
-    expected_uart[11] = "b";
+    expected_uart[0]  = "Y";
+    expected_uart[1]  = "H";
+    expected_uart[2]  = "_";
+    expected_uart[3]  = "r";
+    expected_uart[4]  = "v";
+    expected_uart[5]  = "_";
+    expected_uart[6]  = "c";
+    expected_uart[7]  = "p";
+    expected_uart[8]  = "u";
+    expected_uart[9]  = " ";
+    expected_uart[10] = "b";
+    expected_uart[11] = "o";
     expected_uart[12] = "o";
-    expected_uart[13] = "o";
-    expected_uart[14] = "t";
-    expected_uart[15] = "\n";
+    expected_uart[13] = "t";
+    expected_uart[14] = "\n";
 
     #20;
     rst_n = 1'b1;

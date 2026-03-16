@@ -12,7 +12,7 @@ module YH_rv_cpu #(
     output wire [XLEN-1:0] dmem_addr,
     input  wire [XLEN-1:0] dmem_rdata,
     output wire [XLEN-1:0] dmem_wdata,
-    output wire [3:0]      dmem_wstrb,
+    output wire [XLEN/8-1:0] dmem_wstrb,
     output wire            trap,
     output wire [XLEN-1:0] debug_pc
 );
@@ -49,6 +49,7 @@ reg            id_ex_store_r;
 reg [1:0]      id_ex_wb_sel_r;
 reg [1:0]      id_ex_mem_size_r;
 reg            id_ex_mem_unsigned_r;
+reg            id_ex_word_op_r;
 reg            id_ex_is_lui_r;
 reg            id_ex_csr_valid_r;
 reg [1:0]      id_ex_csr_cmd_r;
@@ -70,7 +71,7 @@ reg            ex_mem_mem_unsigned_r;
 reg [XLEN-1:0] ex_mem_exec_result_r;
 reg [XLEN-1:0] ex_mem_mem_addr_r;
 reg [XLEN-1:0] ex_mem_store_data_r;
-reg [3:0]      ex_mem_store_wstrb_r;
+reg [XLEN/8-1:0] ex_mem_store_wstrb_r;
 
 reg            mem_wb_valid_r;
 reg [XLEN-1:0] mem_wb_pc4_r;
@@ -103,6 +104,7 @@ wire            id_store;
 wire [1:0]      id_wb_sel;
 wire [1:0]      id_mem_size;
 wire            id_mem_unsigned;
+wire            id_word_op;
 wire            id_is_lui;
 wire            id_csr_valid;
 wire [1:0]      id_csr_cmd;
@@ -129,7 +131,7 @@ reg [XLEN-1:0] ex_rs2_forwarded;
 wire [XLEN-1:0] ex_exec_result;
 wire [XLEN-1:0] ex_mem_addr;
 wire [XLEN-1:0] ex_store_data;
-wire [3:0]      ex_store_wstrb;
+wire [XLEN/8-1:0] ex_store_wstrb;
 wire            ex_redirect_en;
 wire            ex_redirect_valid;
 wire [XLEN-1:0] ex_redirect_pc;
@@ -299,6 +301,7 @@ YH_rv_cpu_id_stage #(
     .wb_sel        (id_wb_sel),
     .mem_size      (id_mem_size),
     .mem_unsigned  (id_mem_unsigned),
+    .word_op       (id_word_op),
     .is_lui        (id_is_lui),
     .csr_valid     (id_csr_valid),
     .csr_cmd       (id_csr_cmd),
@@ -372,6 +375,7 @@ YH_rv_cpu_ex_stage #(
     .load          (id_ex_load_r),
     .store         (id_ex_store_r),
     .mem_size      (id_ex_mem_size_r),
+    .word_op       (id_ex_word_op_r),
     .is_lui        (id_ex_is_lui_r),
     .illegal       (id_ex_illegal_r),
     .exec_result   (ex_exec_result),
@@ -444,6 +448,7 @@ always @(posedge clk or negedge rst_n) begin
         id_ex_wb_sel_r <= `YH_rv_cpu_WB_ALU;
         id_ex_mem_size_r <= `YH_rv_cpu_MEM_W;
         id_ex_mem_unsigned_r <= 1'b0;
+        id_ex_word_op_r <= 1'b0;
         id_ex_is_lui_r <= 1'b0;
         id_ex_csr_valid_r <= 1'b0;
         id_ex_csr_cmd_r <= `YH_rv_cpu_CSR_RW;
@@ -465,7 +470,7 @@ always @(posedge clk or negedge rst_n) begin
         ex_mem_exec_result_r <= ZERO_XLEN;
         ex_mem_mem_addr_r <= ZERO_XLEN;
         ex_mem_store_data_r <= ZERO_XLEN;
-        ex_mem_store_wstrb_r <= 4'b0000;
+        ex_mem_store_wstrb_r <= {(XLEN/8){1'b0}};
 
         mem_wb_valid_r <= 1'b0;
         mem_wb_pc4_r <= ZERO_XLEN;
@@ -589,6 +594,7 @@ always @(posedge clk or negedge rst_n) begin
                 id_ex_wb_sel_r <= id_wb_sel;
                 id_ex_mem_size_r <= id_mem_size;
                 id_ex_mem_unsigned_r <= id_mem_unsigned;
+                id_ex_word_op_r <= id_word_op;
                 id_ex_is_lui_r <= id_is_lui;
                 id_ex_csr_valid_r <= id_csr_valid;
                 id_ex_csr_cmd_r <= id_csr_cmd;
