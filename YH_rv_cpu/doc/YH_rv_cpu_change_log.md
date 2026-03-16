@@ -70,3 +70,9 @@
   - `DSP = 0`
 - 当前 100MHz 约束下 `WNS = -2.405ns`
 - 当前模板 `XDC` 仍存在 `no_input_delay(1)` 和 `no_output_delay(4)`，正式板卡到位后要补齐
+
+### 变更 11：新增整体设计总文档
+
+- 新增 `doc/技术文档.md`
+- 把 CPU、SoC、验证、FPGA、改动入口和后续维护规则收成一份长期维护的总文档
+- 已同步接入 `README.md`、`YH_rv_cpu_handoff.md` 和根 `.codex-handoff.json`

@@ -14,6 +14,7 @@
 - 当前目标架构：向 `RV32 / RV64` 共线推进
 - 当前 SoC 状态：最小 SoC 已打通，可通过 UART 输出 `YH_rv_cpu boot`
 - 当前 Vivado 状态：本地综合链已打通，资源/时序报告可导出到根目录 `project/reports/`
+- 当前整体设计总入口：`doc/技术文档.md`
 
 ## 已完成能力
 
@@ -82,6 +83,7 @@
 
 - CPU 顶层：`rtl/YH_rv_cpu.v`
 - SoC 顶层：`rtl/YH_rv_cpu_soc.v`
+- 总技术文档：`doc/技术文档.md`
 - 初步设计：`doc/YH_rv_cpu_preliminary_design.md`
 - 修改记录：`doc/YH_rv_cpu_change_log.md`
 - 任务清单：`doc/YH_rv_cpu_todo.md`
@@ -93,6 +95,7 @@
 2. `../../01-项目管理/03-过程管理/任务清单.md`
 3. `../../README.md`
 4. `README.md`
-5. `doc/YH_rv_cpu_preliminary_design.md`
-6. `doc/YH_rv_cpu_change_log.md`
-7. `doc/YH_rv_cpu_todo.md`
+5. `doc/技术文档.md`
+6. `doc/YH_rv_cpu_preliminary_design.md`
+7. `doc/YH_rv_cpu_change_log.md`
+8. `doc/YH_rv_cpu_todo.md`
