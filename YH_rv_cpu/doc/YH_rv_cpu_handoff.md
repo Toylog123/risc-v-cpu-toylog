@@ -13,6 +13,7 @@
 - 当前验证基线：自写 `RV32I + Zicsr` 五级流水
 - 当前目标架构：向 `RV32 / RV64` 共线推进
 - 当前 SoC 状态：最小 SoC 已打通，可通过 UART 输出 `YH_rv_cpu boot`
+- 当前 Vivado 状态：本地综合链已打通，资源/时序报告可导出到根目录 `project/reports/`
 
 ## 已完成能力
 
@@ -48,28 +49,34 @@
 - `scripts/run_trap_smoke.bat`：通过
 - `scripts/run_timer_irq_smoke.bat`：通过
 - `scripts/run_xlen64_smoke.bat`：通过
+- `scripts/run_riscv_tests_subset.bat rv32 add`：通过
+- `scripts/build_vivado_project.bat synth`：通过
 
 关键结果：
 
-- `PASS: SoC smoke test completed at PC=00000038 in 108 cycles`
+- `PASS: SoC smoke test completed at PC=00000038 in 102 cycles`
 - `PASS: trap smoke test completed at PC=000000ac in 79 cycles`
 - `PASS: timer irq smoke test completed at PC=000000e4 in 125 cycles`
 - `PASS: xlen64 smoke test completed at PC=0000000000000010 in 13 cycles`
+- `PASS: riscv-tests finished at PC=0000059c in 495 cycles with tohost=1`
+- Vivado 综合结果：`Slice LUTs = 3445`，`Slice Registers = 1962`，`LUT as Memory = 1024`
+- Vivado 时序结果：`sys_clk = 100MHz` 时 `WNS = -2.405ns`
 
 ## 当前缺口
 
 - `RV64` 指令级扩展和专门验证还没落地
-- `riscv-tests` 还没接
-- `CoreMark` 还没接
-- 正式 `Vivado` 工程和板卡约束还没建
+- `riscv-tests` 还没扩大到更高覆盖率
+- `CoreMark` 还没接稳
+- 正式板卡约束还没建
 - FPGA 上板记录还没有形成
+- 100MHz 时序还没收敛，当前需要继续做时序优化
 
 ## 现在最值得继续做的事
 
 1. 在 `XLEN` 骨架和 `xlen64` 烟测基础上继续补 `RV64` 译码、访存和相关语义。
 2. 接 `riscv-tests`，形成第一版回归。
 3. 接 `CoreMark`，形成可复现跑分链路。
-4. 建正式 `Vivado` 工程，推进 FPGA 闭环。
+4. 继续做时序收敛，并准备正式板卡 `XDC`。
 
 ## 关键文件
 
@@ -78,6 +85,7 @@
 - 初步设计：`doc/YH_rv_cpu_preliminary_design.md`
 - 修改记录：`doc/YH_rv_cpu_change_log.md`
 - 任务清单：`doc/YH_rv_cpu_todo.md`
+- FPGA 说明：`fpga/vivado/README.md`
 
 ## 接手顺序
 

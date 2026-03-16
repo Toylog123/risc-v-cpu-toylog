@@ -10,9 +10,22 @@ set project_name YH_rv_cpu_nexys_a7_100
 set top_name YH_rv_cpu_fpga_top
 set part_name xc7a100tcsg324-1
 set flow_mode synth
+set rom_init_hex ""
+set rom_bytes_override ""
+set ram_bytes_override ""
 
 if {[llength $argv] >= 1} {
     set flow_mode [lindex $argv 0]
+}
+
+if {[info exists ::env(ROM_INIT_HEX_OVERRIDE)] && $::env(ROM_INIT_HEX_OVERRIDE) ne ""} {
+    set rom_init_hex [file normalize $::env(ROM_INIT_HEX_OVERRIDE)]
+}
+if {[info exists ::env(ROM_BYTES_OVERRIDE)] && $::env(ROM_BYTES_OVERRIDE) ne ""} {
+    set rom_bytes_override $::env(ROM_BYTES_OVERRIDE)
+}
+if {[info exists ::env(RAM_BYTES_OVERRIDE)] && $::env(RAM_BYTES_OVERRIDE) ne ""} {
+    set ram_bytes_override $::env(RAM_BYTES_OVERRIDE)
 }
 
 set rtl_dir [file join $project_root rtl]
@@ -40,38 +53,56 @@ proc add_project_files {rtl_files fpga_files constr_file rtl_dir} {
     update_compile_order -fileset sources_1
 }
 
+proc run_checked {label command_body} {
+    puts "STEP: $label BEGIN"
+    if {[catch {uplevel 1 $command_body} result options]} {
+        puts stderr "ERROR: $label FAILED"
+        puts stderr $result
+        if {[dict exists $options -errorinfo]} {
+            puts stderr [dict get $options -errorinfo]
+        }
+        exit 1
+    }
+    puts "STEP: $label DONE"
+}
+
 if {$flow_mode eq "project"} {
-    create_project $project_name $build_dir -force -part $part_name
+    run_checked "create_project" [list create_project $project_name $build_dir -force -part $part_name]
     set_property target_language Verilog [current_project]
     set_property default_lib xil_defaultlib [current_project]
     add_project_files $rtl_files $fpga_files $constr_file $rtl_dir
-    puts "INFO: 已生成 Vivado 工程骨架，目录为 $build_dir"
+    puts "INFO: Vivado project skeleton generated at $build_dir"
     close_project
     exit 0
 }
 
-if {[catch {
-    read_verilog -sv $rtl_files
+run_checked "read_rtl" [list read_verilog -sv $rtl_files]
 
-    if {[llength $fpga_files] > 0} {
-        read_verilog -sv $fpga_files
-    }
-
-    if {[file exists $constr_file]} {
-        read_xdc $constr_file
-    }
-
-    synth_design -top $top_name -part $part_name -flatten_hierarchy rebuilt
-
-    write_checkpoint -force [file join $build_dir ${project_name}_synth.dcp]
-    report_utilization -file [file join $report_dir synth_utilization.rpt]
-    report_timing_summary -file [file join $report_dir synth_timing_summary.rpt]
-} result]} {
-    puts stderr "ERROR: 综合流程失败"
-    puts stderr $result
-    puts stderr $::errorInfo
-    exit 1
+if {[llength $fpga_files] > 0} {
+    run_checked "read_fpga_sources" [list read_verilog -sv $fpga_files]
 }
 
-puts "INFO: 综合完成，报告已输出到 $report_dir"
+if {[file exists $constr_file]} {
+    run_checked "read_constraints" [list read_xdc $constr_file]
+}
+
+set synth_cmd [list synth_design -top $top_name -part $part_name -flatten_hierarchy rebuilt]
+if {$rom_init_hex ne ""} {
+    puts "INFO: ROM_INIT_HEX override = $rom_init_hex"
+    lappend synth_cmd -generic "ROM_INIT_HEX=$rom_init_hex"
+}
+if {$rom_bytes_override ne ""} {
+    puts "INFO: ROM_BYTES override = $rom_bytes_override"
+    lappend synth_cmd -generic "ROM_BYTES=$rom_bytes_override"
+}
+if {$ram_bytes_override ne ""} {
+    puts "INFO: RAM_BYTES override = $ram_bytes_override"
+    lappend synth_cmd -generic "RAM_BYTES=$ram_bytes_override"
+}
+run_checked "synth_design" $synth_cmd
+run_checked "write_checkpoint" [list write_checkpoint -force [file join $build_dir ${project_name}_synth.dcp]]
+run_checked "report_utilization" [list report_utilization -file [file join $report_dir synth_utilization.rpt]]
+run_checked "report_timing_summary" [list report_timing_summary -file [file join $report_dir synth_timing_summary.rpt]]
+
+puts "INFO: Synthesis completed. Reports written to $report_dir"
 exit 0

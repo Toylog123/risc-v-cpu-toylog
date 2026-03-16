@@ -26,13 +26,15 @@
 - `riscv-tests` 子集回归脚本和测试平台
 - Vivado 本地工程脚手架
 - 工具链脚本的本地路径回退
+- Vivado 本地综合自动 ASCII 盘符映射
+- 本地综合资源/时序报告与检查点导出
 
 当前缺口：
 
 - `RV64` 指令级扩展和专门验证
 - `riscv-tests` 全量回归
 - `CoreMark`
-- 正式资源报告和时序报告
+- 时序优化和正式板级约束
 - FPGA 上板闭环
 
 ## 目录结构
@@ -62,6 +64,7 @@ scripts\run_timer_irq_smoke.bat
 scripts\run_xlen64_smoke.bat
 scripts\run_riscv_tests_subset.bat rv32 add
 scripts\build_vivado_project.bat synth
+scripts\clean_vivado_project.bat
 ```
 
 ## 当前验证结果
@@ -74,6 +77,7 @@ scripts\build_vivado_project.bat synth
 - `run_xlen64_smoke.bat` 通过
 - `run_riscv_tests_subset.bat rv32 add` 通过
 - `check_toolchain.bat` 能识别本机 `xPack` RISC-V 工具链和 `scoop` 安装的 `iverilog`
+- `build_vivado_project.bat synth` 通过，并能导出 `project/reports/` 下的综合报告
 
 已知烟测结论：
 
@@ -83,12 +87,25 @@ scripts\build_vivado_project.bat synth
 - `PASS: xlen64 smoke test completed at PC=0000000000000010 in 13 cycles`
 - `PASS: riscv-tests finished at PC=0000059c in 495 cycles with tohost=1`
 
+当前 FPGA 综合结论：
+
+- 当前本地综合默认会临时映射到 `V:`，避开中文路径导致的 Vivado 退出问题
+- 当前本地综合默认会挂接 `build/tests/riscv-tests/rv32/simple.hex`，并把 `ROM/RAM` 提升到 `8KB/8KB` 做资源估算
+- `xc7a100tcsg324-1` 综合结果：
+  - `Slice LUTs = 3445`
+  - `Slice Registers = 1962`
+  - `LUT as Memory = 1024`
+  - `BRAM = 0`
+  - `DSP = 0`
+- 100MHz 约束下当前 `WNS = -2.405ns`，说明直接跑 `100MHz` 还不稳，但按赛题要求的 `50MHz` 目标仍有较大把握
+- 当前 `XDC` 还是模板，报告里仍有 `no_input_delay(1)` 和 `no_output_delay(4)`，正式板卡到位后要补齐
+
 ## 当前优先级
 
 1. 在 `XLEN` 骨架和 `xlen64` 烟测基础上继续补 `RV64` 译码、访存和相关语义。
 2. 扩大 `riscv-tests` 回归覆盖，并把结果沉淀到文档。
 3. 接入并调通 `CoreMark`。
-4. 继续收口 Vivado 资源报告与时序报告。
+4. 继续做时序收敛，把当前综合从“能出报告”推进到“满足目标频率”。
 5. 在拿到板卡后冻结正式 `XDC` 并推进上板。
 
 ## 协作要求

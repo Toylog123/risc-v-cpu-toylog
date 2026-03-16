@@ -48,3 +48,25 @@
 - 新增 `tb/YH_rv_cpu_xlen64_tb.v`
 - 新增 `scripts/run_xlen64_smoke.bat`
 - 实测通过：`PASS: xlen64 smoke test completed at PC=0000000000000010 in 13 cycles`
+
+### 变更 9：打通 Vivado 本地综合链
+
+- `build_vivado_project.bat` 现在会自动临时映射 ASCII 盘符，规避中文路径导致的 Vivado 退出问题
+- `build_nexys_a7_100_project.tcl` 增加分步日志，能稳定导出检查点、资源报告和时序报告
+- 本地综合会优先挂接 `build/tests/riscv-tests/rv32/simple.hex`，并用 `ROM/RAM = 8KB/8KB` 做资源估算
+- 新增 `scripts/clean_vivado_project.bat`，用于清理 `project/` 下的 Vivado 中间产物
+- 实测导出：
+  - `project/reports/synth_utilization.rpt`
+  - `project/reports/synth_timing_summary.rpt`
+  - `project/YH_rv_cpu_nexys_a7_100_synth.dcp`
+
+### 变更 10：补入第一版 FPGA 资源与时序结论
+
+- `xc7a100tcsg324-1` 综合结果：
+  - `Slice LUTs = 3445`
+  - `Slice Registers = 1962`
+  - `LUT as Memory = 1024`
+  - `BRAM = 0`
+  - `DSP = 0`
+- 当前 100MHz 约束下 `WNS = -2.405ns`
+- 当前模板 `XDC` 仍存在 `no_input_delay(1)` 和 `no_output_delay(4)`，正式板卡到位后要补齐

@@ -14,6 +14,8 @@
 - Vivado 生成工程统一落到仓库根目录 `project/`
 - `project/` 是本地目录，不进入 Git 同步范围
 - 当前目标是先拿到综合和资源估算，再为后续实物上板做准备。
+- `scripts/build_vivado_project.bat` 现在会自动临时映射 ASCII 盘符，规避中文路径导致的 Vivado 退出问题。
+- 如果本地已存在 `build/tests/riscv-tests/rv32/simple.hex`，综合脚本会自动把它挂到 `ROM_INIT_HEX`，并用 `8KB/8KB` 的 `ROM/RAM` 做本地资源估算。
 
 ## 为什么优先用 `Nexys A7-100T`
 
@@ -37,13 +39,34 @@
 ```bat
 YH_rv_cpu\scripts\build_vivado_project.bat project
 YH_rv_cpu\scripts\build_vivado_project.bat synth
+YH_rv_cpu\scripts\clean_vivado_project.bat
 ```
 
 说明：
 
 - `project`：在根目录 `project/` 生成工程骨架，方便后续在 GUI 中继续操作
 - `synth`：先跑综合，拿资源和时序估算
+- `clean_vivado_project.bat`：清掉 `project/` 下的 Vivado 临时目录和历史备份，只保留报告、检查点和最新日志
 - 现在没有实物板卡，所以还不建议把“生成最终 bitstream”当成本阶段目标
+
+## 当前综合结果
+
+- 当前本地综合目标器件：`xc7a100tcsg324-1`
+- 当前资源估算口径：`ROM=8KB`、`RAM=8KB`、`ROM_INIT_HEX=simple.hex`
+- 当前综合结果：
+  - `Slice LUTs = 3445`
+  - `Slice Registers = 1962`
+  - `LUT as Memory = 1024`
+  - `BRAM = 0`
+  - `DSP = 0`
+- 当前时序结果：
+  - `sys_clk = 100MHz`
+  - `WNS = -2.405ns`
+  - 当前 100MHz 还未收敛，但赛题要求的 `50MHz` 目标仍有较大空间
+- 当前还存在的板级约束问题：
+  - `no_input_delay(1)`
+  - `no_output_delay(4)`
+  - 正式板卡到位后要用正式 `XDC` 补齐
 
 ## 正式上板前还缺什么
 
