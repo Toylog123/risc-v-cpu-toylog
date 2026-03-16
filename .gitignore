@@ -1,0 +1,16 @@
+# Ignore nested git metadata when this workspace is tracked as one root repo.
+**/.git_backup_codex/
+
+# Common local noise.
+Thumbs.db
+.DS_Store
+
+# Generated outputs.
+**/build/
+toylog_cpu/*.log
+
+# Keep these directories locally, but do not track them in the trimmed repo.
+/01-项目管理/01-赛题分析/
+/02-官方与规范/
+/03-参考实现/
+/05-验证测试/
