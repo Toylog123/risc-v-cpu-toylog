@@ -38,3 +38,16 @@ YH_rv_cpu\scripts\stage_default_sync.bat
 ```bat
 YH_rv_cpu\scripts\stage_default_sync.bat --dry-run
 ```
+
+## 默认交接流程
+
+以后默认按下面这套执行，除非明确说明“只留本地、不推远端”：
+
+1. 整理代码和文档，确认交接入口已更新。
+2. 本地提交。
+3. 推送 `origin/main`。
+
+也就是说：
+
+- 默认交接 = `整理交接 + commit + push`
+- 只有在明确说明“本地保留”“暂不推送”“先别同步远端”时，才停在本地提交
