@@ -123,3 +123,23 @@
   - 是全部通过还是中途失败
   - 当前通过数量
 - 这次确认通过后，当前项目的功能基线已经从“单个 add 用例”提升为“一组默认 rv32 子集”
+## 变更 16：同步 dmem 语义接入主线
+
+- `rtl/YH_rv_cpu.v`
+  - 新增 `DMEM_SYNC`
+  - 新增 `dmem_read_req` / `dmem_rvalid`
+  - 新增 MEM 阶段等待逻辑，保证同步数据返回时流水线不会错误推进
+- `rtl/YH_rv_cpu_mem_stage.v`
+  - 导出 `dmem_read_req`
+- `rtl/YH_rv_cpu_soc.v`
+  - 新增 `SYNC_DMEM`
+  - 在 SoC 中加入同步数据返回寄存器
+- `tb/*.v`
+  - SoC smoke、trap、timer irq、coremark 路线切换到 `SYNC_DMEM=1`
+  - 核心 testbench 同步补齐新接口
+- `fpga/vivado/src/YH_rv_cpu_fpga_top.v`
+  - FPGA 顶层改为使用同步 `dmem`
+- 验证结论
+  - `rv32` 默认回归子集仍然全通过
+  - `xlen64 smoke` 仍然通过
+  - `50MHz / 100MHz` 综合链仍然可跑通

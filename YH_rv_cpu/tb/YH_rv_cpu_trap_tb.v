@@ -21,6 +21,7 @@ integer uart_count;
 integer idx;
 
 YH_rv_cpu_soc #(
+    .SYNC_DMEM(1),
     .ROM_INIT_HEX(ROM_HEX)
 ) dut (
     .clk         (clk),

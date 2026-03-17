@@ -12,6 +12,7 @@ module YH_rv_cpu_mem_stage #(
     input  wire            mem_unsigned,
     input  wire [XLEN-1:0] dmem_rdata,
     output wire [XLEN-1:0] dmem_addr,
+    output wire            dmem_read_req,
     output wire [XLEN-1:0] dmem_wdata,
     output wire [XLEN/8-1:0] dmem_wstrb,
     output reg  [XLEN-1:0] load_data
@@ -24,6 +25,7 @@ wire [BYTE_OFFSET_W-1:0] byte_offset;
 wire [XLEN-1:0] shifted_rdata;
 
 assign dmem_addr = mem_addr;
+assign dmem_read_req = load;
 assign dmem_wdata = store ? store_data_in : {XLEN{1'b0}};
 assign dmem_wstrb = store ? store_wstrb_in : {STRB_W{1'b0}};
 assign byte_offset = mem_addr[BYTE_OFFSET_W-1:0];

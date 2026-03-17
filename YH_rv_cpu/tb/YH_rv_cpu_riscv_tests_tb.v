@@ -17,6 +17,8 @@ wire [31:0]          imem_rdata;
 wire                 imem_rvalid;
 wire [XLEN-1:0]      dmem_addr;
 wire [XLEN-1:0]      dmem_rdata;
+wire                 dmem_rvalid;
+wire                 dmem_read_req;
 wire [XLEN-1:0]      dmem_wdata;
 wire [STRB_W-1:0]    dmem_wstrb;
 wire                 trap;
@@ -68,6 +70,7 @@ assign imem_rdata = {
     mem[imem_addr32 + 32'd0]
 };
 assign imem_rvalid = 1'b1;
+assign dmem_rvalid = 1'b1;
 
 YH_rv_cpu #(
     .XLEN(XLEN),
@@ -81,6 +84,8 @@ YH_rv_cpu #(
     .imem_rvalid(imem_rvalid),
     .dmem_addr (dmem_addr),
     .dmem_rdata(dmem_rdata),
+    .dmem_rvalid(dmem_rvalid),
+    .dmem_read_req(dmem_read_req),
     .dmem_wdata(dmem_wdata),
     .dmem_wstrb(dmem_wstrb),
     .trap      (trap),

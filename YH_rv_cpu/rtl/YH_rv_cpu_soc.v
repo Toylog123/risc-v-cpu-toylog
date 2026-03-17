@@ -1,6 +1,7 @@
 module YH_rv_cpu_soc #(
     parameter integer XLEN = 32,
     parameter integer SYNC_IMEM = 0,
+    parameter integer SYNC_DMEM = 0,
     parameter [XLEN-1:0] RESET_VECTOR = {XLEN{1'b0}},
     parameter [31:0] ROM_BASE = 32'h0000_0000,
     parameter [31:0] RAM_BASE = 32'h0000_4000,
@@ -32,6 +33,8 @@ wire [31:0]     imem_rdata;
 wire            imem_rvalid;
 wire [XLEN-1:0] dmem_addr;
 wire [XLEN-1:0] dmem_rdata;
+wire            dmem_rvalid;
+wire            dmem_read_req;
 wire [XLEN-1:0] dmem_wdata;
 wire [XLEN/8-1:0] dmem_wstrb;
 
@@ -68,8 +71,11 @@ wire [XLEN-1:0] rom_read_data;
 wire [XLEN-1:0] ram_read_data;
 wire [31:0] sync_imem_rdata;
 wire        sync_imem_rvalid;
+wire [XLEN-1:0] dmem_rdata_comb;
 reg  [31:0] mmio_read_word;
 reg  [63:0] mmio_read_data_ext;
+reg  [XLEN-1:0] dmem_rdata_sync_r;
+reg             dmem_rvalid_sync_r;
 wire [31:0] timer_ctrl_next;
 
 integer idx;
@@ -194,11 +200,13 @@ always @* begin
     end
 end
 
-assign dmem_rdata =
+assign dmem_rdata_comb =
     rom_read_hit  ? rom_read_data :
     ram_read_hit  ? ram_read_data :
     mmio_word_hit ? mmio_read_data_ext[XLEN-1:0] :
     {XLEN{1'b0}};
+assign dmem_rdata = (SYNC_DMEM != 0) ? dmem_rdata_sync_r : dmem_rdata_comb;
+assign dmem_rvalid = (SYNC_DMEM != 0) ? dmem_rvalid_sync_r : 1'b1;
 
 assign done = done_value_r[0];
 assign timer_irq = timer_irq_en_r && (timer_value_r >= timer_cmp_r);
@@ -206,6 +214,7 @@ assign timer_irq = timer_irq_en_r && (timer_value_r >= timer_cmp_r);
 YH_rv_cpu #(
     .XLEN(XLEN),
     .IMEM_SYNC(SYNC_IMEM),
+    .DMEM_SYNC(SYNC_DMEM),
     .RESET_VECTOR(RESET_VECTOR)
 ) u_cpu (
     .clk       (clk),
@@ -216,6 +225,8 @@ YH_rv_cpu #(
     .imem_rvalid(imem_rvalid),
     .dmem_addr (dmem_addr),
     .dmem_rdata(dmem_rdata),
+    .dmem_rvalid(dmem_rvalid),
+    .dmem_read_req(dmem_read_req),
     .dmem_wdata(dmem_wdata),
     .dmem_wstrb(dmem_wstrb),
     .trap      (trap),
@@ -245,6 +256,16 @@ always @(posedge clk) begin
         if ((XLEN == 64) && (ram_write_word_index1 < RAM_WORDS) && (|dmem_wstrb_ext[7:4])) begin
             ram_mem32[ram_write_word_index1] <= apply_wstrb(ram_mem32[ram_write_word_index1], dmem_wdata_ext[63:32], dmem_wstrb_ext[7:4]);
         end
+    end
+end
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        dmem_rdata_sync_r <= {XLEN{1'b0}};
+        dmem_rvalid_sync_r <= 1'b0;
+    end else begin
+        dmem_rdata_sync_r <= dmem_rdata_comb;
+        dmem_rvalid_sync_r <= dmem_read_req;
     end
 end
 

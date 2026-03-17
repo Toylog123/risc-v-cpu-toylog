@@ -61,3 +61,11 @@
 - `待办` 评估是否需要独立双口 `ROM` 或单独的只读数据路径，以兼顾取指和只读数据访问
 - `已完成` 把默认 `rv32` 回归子集收成当前功能基线
 - `待办` 下一步扩到 `rv64` 子集和更完整的 `riscv-tests`
+## 2026-03-17 追加状态：同步数据路径
+
+- `已完成` 把同步 `dmem` 返回语义接入 CPU / SoC 主线
+- `已完成` 把 SoC smoke、trap、timer irq、FPGA top 切到 `SYNC_DMEM=1`
+- `已完成` 确认 `run_riscv_tests_subset.bat rv32` 在新语义下仍然整组通过
+- `待办` 把 `YH_rv_cpu_soc.v` 里的存储逻辑拆成独立包装层
+- `待办` 把数据 RAM 从当前 distributed RAM 方案推进到真正适合 BRAM 推断的实现
+- `待办` 在新的同步数据路径基础上继续收敛 `100MHz`

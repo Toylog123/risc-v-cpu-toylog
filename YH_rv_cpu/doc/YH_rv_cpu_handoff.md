@@ -191,3 +191,27 @@
 - 不要把“`100MHz` 还没过”误判成“FPGA 路线卡死”。
 - 不要把“`BRAM = 0`”误判成“同步取指没有意义”。
 - 不要再回到只做小范围 `flush/stall/CE` 试探的路线，那条线已经验证过收益有限。
+## 2026-03-17 同步 dmem 已接入主线
+
+- 这轮的核心变化不是新功能堆叠，而是把数据访存语义往 FPGA 友好的方向推进了一步。
+- 当前已经落地：
+  - `YH_rv_cpu` 支持 `DMEM_SYNC`
+  - `YH_rv_cpu_mem_stage` 会显式给出 `dmem_read_req`
+  - `YH_rv_cpu_soc` 在 `SYNC_DMEM=1` 时提供一拍延迟的读返回
+  - SoC smoke、trap、timer irq、FPGA top 都已经切到同步数据路径
+- 当前通过的验证：
+  - `run_soc_smoke.bat`
+  - `run_trap_smoke.bat`
+  - `run_timer_irq_smoke.bat`
+  - `run_xlen64_smoke.bat`
+  - `run_riscv_tests_subset.bat rv32`
+- 当前最重要的判断：
+  - 这说明 CPU 主线已经能承受同步 `dmem` 负载，不再依赖纯组合读返回
+  - 但底层 `RAM/ROM` 还没有真正改成块 RAM 推断风格，所以综合结果仍然是 `0 BRAM`
+- 最新 FPGA 口径：
+  - `50MHz`：`3692 LUT / 2069 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = 7.553ns`
+  - `100MHz`：`3713 LUT / 2066 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = -2.475ns`
+- 下一步最值得继续做的事：
+  1. 把 `YH_rv_cpu_soc.v` 里的 RAM/ROM 访问拆成独立包装层
+  2. 把数据 RAM 改成真正的同步存储实现，推动 BRAM 推断
+  3. 在此基础上再继续压 `100MHz` 时序

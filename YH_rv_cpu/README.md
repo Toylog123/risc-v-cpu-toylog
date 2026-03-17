@@ -165,3 +165,28 @@ scripts\clean_vivado_project.bat
 - 当前最重要的判断：
   - “同步取指接口已经接上”这件事已经成立
   - 但 `BRAM = 0` 依然成立，说明下一步不能只改属性，还要继续推进真正的同步存储结构
+## 2026-03-17 同步数据存储推进
+
+- 当前主线已经补上同步数据访存握手：
+  - `rtl/YH_rv_cpu.v` 新增 `DMEM_SYNC`、`dmem_read_req`、`dmem_rvalid`
+  - `rtl/YH_rv_cpu_mem_stage.v` 负责把 `load` 请求显式导出为 `dmem_read_req`
+  - `rtl/YH_rv_cpu_soc.v` 在 `SYNC_DMEM=1` 时提供一拍延迟的数据返回语义
+- 当前 SoC / FPGA 路线已经切到同步数据路径：
+  - `tb/YH_rv_cpu_soc_tb.v`
+  - `tb/YH_rv_cpu_trap_tb.v`
+  - `tb/YH_rv_cpu_timer_irq_tb.v`
+  - `tb/YH_rv_cpu_coremark_tb.v`
+  - `fpga/vivado/src/YH_rv_cpu_fpga_top.v`
+- 本轮实测通过：
+  - `scripts/check_syntax.bat`
+  - `scripts/run_soc_smoke.bat`
+  - `scripts/run_trap_smoke.bat`
+  - `scripts/run_timer_irq_smoke.bat`
+  - `scripts/run_xlen64_smoke.bat`
+  - `scripts/run_riscv_tests_subset.bat rv32`
+- 最新综合口径：
+  - `50MHz`：`3692 LUT / 2069 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = 7.553ns`
+  - `100MHz`：`3713 LUT / 2066 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = -2.475ns`
+- 当前结论：
+  - 同步数据返回语义已经落地，后面可以继续把底层 RAM/ROM 包装层往真正适合 BRAM 的结构收
+  - 当前 `BRAM = 0` 说明底层存储实现还没有改成真正的同步块 RAM 推断写法，不代表同步 `dmem` 路线无效

@@ -47,6 +47,7 @@ end
 YH_rv_cpu_soc #(
     .XLEN             (XLEN),
     .SYNC_IMEM        (1),
+    .SYNC_DMEM        (1),
     .RESET_VECTOR     ({XLEN{1'b0}}),
     .ROM_BYTES        (ROM_BYTES),
     .RAM_BYTES        (RAM_BYTES),
