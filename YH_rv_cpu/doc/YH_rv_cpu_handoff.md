@@ -215,3 +215,32 @@
   1. 把 `YH_rv_cpu_soc.v` 里的 RAM/ROM 访问拆成独立包装层
   2. 把数据 RAM 改成真正的同步存储实现，推动 BRAM 推断
   3. 在此基础上再继续压 `100MHz` 时序
+
+## 2026-03-17 dmem BRAM 已推断成功
+
+- 这一轮已经把“同步 `dmem` 语义”继续推进成“`dmem` 底层包装层 + Vivado BRAM 推断成功”。
+- 关键变更：
+  - 新增 `rtl/YH_rv_dmem_ram.v`
+  - `rtl/YH_rv_cpu_soc.v` 改成通过 `u_dmem_ram` 统一承接数据 RAM 访问
+  - 同步分支去掉异步复位，改成更符合 Vivado 块 RAM 推断模板的写法
+- 本轮确认通过：
+  - `check_syntax.bat`
+  - `run_soc_smoke.bat`
+  - `run_trap_smoke.bat`
+  - `run_timer_irq_smoke.bat`
+  - `run_riscv_tests_subset.bat rv32`
+  - `build_vivado_project.bat synth50`
+  - `build_vivado_project.bat synth100`
+- 最新 FPGA 口径：
+  - `50MHz`：`2590 LUT / 2033 FF / 2 BRAM / 0 DSP`，`WNS = 7.556ns`
+  - `100MHz`：`2611 LUT / 2030 FF / 2 BRAM / 0 DSP`，`WNS = -2.470ns`
+- 这次最关键的结论：
+  - `dmem` BRAM 已经不是“计划项”，而是“已验证成功的主线实现”。
+  - 资源压力进一步下降，当前比赛频率口径继续以 `50MHz` 为主是稳的。
+  - `100MHz` 还没过，但后续该盯的点已经缩小到：
+    1. `ROM/imem` 的存储结构
+    2. `dmem` BRAM 输出寄存器与时序
+- 接手后优先继续：
+  1. 推进 `imem/ROM` 包装层
+  2. 评估 `dmem` BRAM 输出寄存器
+  3. 再继续压 `100MHz`

@@ -75,6 +75,7 @@ call %XVLOG% --sv -i rtl ^
     tb\YH_rv_cpu_coremark_rv32_tb.v ^
     tb\YH_rv_cpu_coremark_rv64_tb.v ^
     rtl\YH_rv_cpu_soc.v ^
+    rtl\YH_rv_dmem_ram.v ^
     rtl\YH_rv_cpu.v ^
     rtl\YH_rv_cpu_if_stage.v ^
     rtl\YH_rv_cpu_id_stage.v ^

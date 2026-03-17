@@ -69,3 +69,14 @@
 - `待办` 把 `YH_rv_cpu_soc.v` 里的存储逻辑拆成独立包装层
 - `待办` 把数据 RAM 从当前 distributed RAM 方案推进到真正适合 BRAM 推断的实现
 - `待办` 在新的同步数据路径基础上继续收敛 `100MHz`
+
+## 2026-03-17 追加状态：dmem BRAM
+
+- `已完成` 新增独立数据 RAM 包装层 `rtl/YH_rv_dmem_ram.v`
+- `已完成` 把 `YH_rv_cpu_soc.v` 中的数据 RAM 访问改成包装层调用
+- `已完成` 把 `dmem` 推成 `2 BRAM`，不再是 `0 BRAM`
+- `已完成` 在新口径下重新跑通 `synth50` / `synth100`
+- `进行中` 继续收敛 `100MHz`
+- `待办` 推进 `imem/ROM` 包装层，减少 LUT ROM 占用
+- `待办` 评估给 `dmem` BRAM 增加可选输出寄存器，继续改善时序
+- `待办` 在新资源口径下补一轮 `CoreMark` 和更完整 `rv64` 回归

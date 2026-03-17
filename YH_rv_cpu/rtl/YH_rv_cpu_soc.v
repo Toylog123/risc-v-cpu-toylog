@@ -49,7 +49,6 @@ wire [31:0] dmem_mmio_wdata32;
 wire [3:0]  dmem_mmio_wstrb4;
 
 (* rom_style = "distributed" *) reg [7:0] rom_mem [0:ROM_BYTES-1];
-(* ram_style = "distributed" *) reg [31:0] ram_mem32 [0:((RAM_BYTES/4)-1)];
 reg  [31:0] done_value_r;
 reg  [63:0] timer_value_r;
 reg  [63:0] timer_cmp_r;
@@ -63,26 +62,29 @@ wire        ram_write_hit;
 wire        mmio_word_hit;
 wire [31:0] rom_read_offset;
 wire [31:0] ram_read_offset;
-wire [31:0] ram_read_word_index0;
-wire [31:0] ram_read_word_index1;
-wire [31:0] ram_write_word_index0;
-wire [31:0] ram_write_word_index1;
+wire [31:0] ram_bus_offset;
+wire        ram_read_issue;
 wire [XLEN-1:0] rom_read_data;
 wire [XLEN-1:0] ram_read_data;
 wire [31:0] sync_imem_rdata;
 wire        sync_imem_rvalid;
 wire [XLEN-1:0] dmem_rdata_comb;
+wire [XLEN-1:0] nonram_read_data_comb;
 reg  [31:0] mmio_read_word;
 reg  [63:0] mmio_read_data_ext;
-reg  [XLEN-1:0] dmem_rdata_sync_r;
+reg  [1:0]      dmem_read_src_r;
+reg  [XLEN-1:0] dmem_nonram_rdata_r;
 reg             dmem_rvalid_sync_r;
 wire [31:0] timer_ctrl_next;
 
 integer idx;
 localparam integer STRB_W = XLEN / 8;
 localparam integer ROM_WORDS = ROM_BYTES / 4;
-localparam integer RAM_WORDS = RAM_BYTES / 4;
 localparam integer BUS_ALIGN_LSB = (XLEN == 64) ? 3 : 2;
+localparam [1:0] DMEM_SRC_NONE = 2'b00;
+localparam [1:0] DMEM_SRC_RAM  = 2'b01;
+localparam [1:0] DMEM_SRC_ROM  = 2'b10;
+localparam [1:0] DMEM_SRC_MMIO = 2'b11;
 
 function automatic [31:0] apply_wstrb;
     input [31:0] current_value;
@@ -119,10 +121,8 @@ assign mmio_word_hit = (dmem_mmio_addr32 == UART_TX_ADDR) || (dmem_mmio_addr32 =
     (dmem_mmio_addr32 == TIMER_CTRL_ADDR);
 assign rom_read_offset = dmem_bus_base32 - ROM_BASE;
 assign ram_read_offset = dmem_bus_base32 - RAM_BASE;
-assign ram_read_word_index0 = ram_read_offset[31:2];
-assign ram_read_word_index1 = ram_read_word_index0 + 32'd1;
-assign ram_write_word_index0 = (dmem_bus_base32 - RAM_BASE) >> 2;
-assign ram_write_word_index1 = ram_write_word_index0 + 32'd1;
+assign ram_bus_offset = dmem_bus_base32 - RAM_BASE;
+assign ram_read_issue = ram_read_hit && ((SYNC_DMEM != 0) ? dmem_read_req : 1'b1);
 
 generate
     if (XLEN == 64) begin : g_bus64
@@ -136,10 +136,6 @@ generate
             rom_mem[rom_read_offset + 32'd1],
             rom_mem[rom_read_offset + 32'd0]
         };
-        assign ram_read_data = {
-            ram_mem32[ram_read_word_index1],
-            ram_mem32[ram_read_word_index0]
-        };
     end else begin : g_bus32
         assign rom_read_data = {
             rom_mem[rom_read_offset + 32'd3],
@@ -147,11 +143,23 @@ generate
             rom_mem[rom_read_offset + 32'd1],
             rom_mem[rom_read_offset + 32'd0]
         };
-        assign ram_read_data = {
-            ram_mem32[ram_read_word_index0]
-        };
     end
 endgenerate
+
+YH_rv_dmem_ram #(
+    .XLEN      (XLEN),
+    .RAM_BYTES (RAM_BYTES),
+    .SYNC_READ (SYNC_DMEM)
+) u_dmem_ram (
+    .clk        (clk),
+    .read_req   (ram_read_issue),
+    .read_offset(ram_read_offset),
+    .read_data  (ram_read_data),
+    .write_en   (ram_write_hit && dmem_write_en),
+    .write_offset(ram_bus_offset),
+    .write_data (dmem_wdata),
+    .write_wstrb(dmem_wstrb)
+);
 
 generate
     if (SYNC_IMEM != 0) begin : g_sync_imem
@@ -200,12 +208,15 @@ always @* begin
     end
 end
 
-assign dmem_rdata_comb =
+assign nonram_read_data_comb =
     rom_read_hit  ? rom_read_data :
-    ram_read_hit  ? ram_read_data :
     mmio_word_hit ? mmio_read_data_ext[XLEN-1:0] :
     {XLEN{1'b0}};
-assign dmem_rdata = (SYNC_DMEM != 0) ? dmem_rdata_sync_r : dmem_rdata_comb;
+assign dmem_rdata_comb =
+    ram_read_hit ? ram_read_data : nonram_read_data_comb;
+assign dmem_rdata = (SYNC_DMEM != 0) ?
+    ((dmem_read_src_r == DMEM_SRC_RAM) ? ram_read_data : dmem_nonram_rdata_r) :
+    dmem_rdata_comb;
 assign dmem_rvalid = (SYNC_DMEM != 0) ? dmem_rvalid_sync_r : 1'b1;
 
 assign done = done_value_r[0];
@@ -237,35 +248,35 @@ initial begin
     for (idx = 0; idx < ROM_BYTES; idx = idx + 1) begin
         rom_mem[idx] = 8'h13;
     end
-`ifndef SYNTHESIS
-    for (idx = 0; idx < (RAM_BYTES / 4); idx = idx + 1) begin
-        ram_mem32[idx] = 32'h0000_0000;
-    end
-`endif
     if (ROM_INIT_HEX != "") begin
         $readmemh(ROM_INIT_HEX, rom_mem);
     end
 end
 
-always @(posedge clk) begin
-    if (ram_write_hit && dmem_write_en) begin
-        if ((ram_write_word_index0 < RAM_WORDS) && (|dmem_wstrb_ext[3:0])) begin
-            ram_mem32[ram_write_word_index0] <= apply_wstrb(ram_mem32[ram_write_word_index0], dmem_wdata_ext[31:0], dmem_wstrb_ext[3:0]);
-        end
-
-        if ((XLEN == 64) && (ram_write_word_index1 < RAM_WORDS) && (|dmem_wstrb_ext[7:4])) begin
-            ram_mem32[ram_write_word_index1] <= apply_wstrb(ram_mem32[ram_write_word_index1], dmem_wdata_ext[63:32], dmem_wstrb_ext[7:4]);
-        end
-    end
-end
-
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        dmem_rdata_sync_r <= {XLEN{1'b0}};
+        dmem_read_src_r <= DMEM_SRC_NONE;
+        dmem_nonram_rdata_r <= {XLEN{1'b0}};
         dmem_rvalid_sync_r <= 1'b0;
     end else begin
-        dmem_rdata_sync_r <= dmem_rdata_comb;
         dmem_rvalid_sync_r <= dmem_read_req;
+        if (dmem_read_req) begin
+            if (ram_read_hit) begin
+                dmem_read_src_r <= DMEM_SRC_RAM;
+                dmem_nonram_rdata_r <= {XLEN{1'b0}};
+            end else if (rom_read_hit) begin
+                dmem_read_src_r <= DMEM_SRC_ROM;
+                dmem_nonram_rdata_r <= rom_read_data;
+            end else if (mmio_word_hit) begin
+                dmem_read_src_r <= DMEM_SRC_MMIO;
+                dmem_nonram_rdata_r <= mmio_read_data_ext[XLEN-1:0];
+            end else begin
+                dmem_read_src_r <= DMEM_SRC_NONE;
+                dmem_nonram_rdata_r <= {XLEN{1'b0}};
+            end
+        end else begin
+            dmem_read_src_r <= DMEM_SRC_NONE;
+        end
     end
 end
 

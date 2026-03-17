@@ -190,3 +190,33 @@ scripts\clean_vivado_project.bat
 - 当前结论：
   - 同步数据返回语义已经落地，后面可以继续把底层 RAM/ROM 包装层往真正适合 BRAM 的结构收
   - 当前 `BRAM = 0` 说明底层存储实现还没有改成真正的同步块 RAM 推断写法，不代表同步 `dmem` 路线无效
+
+## 2026-03-17 dmem BRAM 推断成功
+
+- 这一轮已经把 `dmem` 从“同步语义已接入”继续推进到“Vivado 已实际推成块 RAM”。
+- 新增底层存储包装模块：
+  - `rtl/YH_rv_dmem_ram.v`
+- `rtl/YH_rv_cpu_soc.v` 现在不再直接内嵌数据 RAM 数组，而是通过包装层统一接管：
+  - 同步读返回
+  - 字节写使能
+  - 后续 BRAM 化入口
+- 本轮重新验证通过：
+  - `scripts/check_syntax.bat`
+  - `scripts/run_soc_smoke.bat`
+  - `scripts/run_trap_smoke.bat`
+  - `scripts/run_timer_irq_smoke.bat`
+  - `scripts/run_riscv_tests_subset.bat rv32`
+  - `scripts/build_vivado_project.bat synth50`
+  - `scripts/build_vivado_project.bat synth100`
+- 最新综合结果已经更新为：
+  - `50MHz`：`2590 LUT / 2033 FF / 2 BRAM / 0 DSP`，`WNS = 7.556ns`
+  - `100MHz`：`2611 LUT / 2030 FF / 2 BRAM / 0 DSP`，`WNS = -2.470ns`
+- 当前最重要的判断：
+  - `dmem` 的 BRAM 路线已经验证成功，资源明显下降，比赛要求的 `50MHz` 口径更稳了。
+  - `100MHz` 仍未收敛，但主问题已经更聚焦：
+    - `ROM/imem` 仍主要在 LUT
+    - `dmem` BRAM 还没有吃到可选输出寄存器
+- 下一步最值得继续做的事：
+  1. 把 `imem/ROM` 也收成更适合 BRAM 的结构
+  2. 评估给 `dmem` BRAM 增加额外输出寄存器，继续压 `100MHz`
+  3. 在新资源口径上继续推进 `rv64` 和 `CoreMark`

@@ -60,6 +60,7 @@ call %XVLOG% --sv -i rtl ^
     tb\YH_rv_cpu_soc_tb.v ^
     rtl\YH_rv_cpu_soc.v ^
     rtl\YH_rv_sync_imem_rom.v ^
+    rtl\YH_rv_dmem_ram.v ^
     rtl\YH_rv_cpu.v ^
     rtl\YH_rv_cpu_if_stage.v ^
     rtl\YH_rv_cpu_id_stage.v ^

@@ -143,3 +143,27 @@
   - `rv32` 默认回归子集仍然全通过
   - `xlen64 smoke` 仍然通过
   - `50MHz / 100MHz` 综合链仍然可跑通
+
+## 变更 17：dmem BRAM 推断成功
+
+- 新增 `rtl/YH_rv_dmem_ram.v`
+  - 把数据 RAM 从 SoC 内联数组抽成独立包装层
+  - 同时保留同步读和异步读两种路径
+- `rtl/YH_rv_cpu_soc.v`
+  - 改为通过 `u_dmem_ram` 承接数据 RAM
+  - 保持现有 `SYNC_DMEM` 返回语义不变
+- 本轮关键修正
+  - 去掉同步 RAM 分支里的异步复位
+  - 改成按 byte lane 直接写入的块 RAM 友好模板
+- 验证结论
+  - `run_soc_smoke.bat` 通过
+  - `run_trap_smoke.bat` 通过
+  - `run_timer_irq_smoke.bat` 通过
+  - `run_riscv_tests_subset.bat rv32` 默认子集全通过
+  - `synth50` / `synth100` 全部通过
+- 最新资源与时序
+  - `50MHz`：`2590 LUT / 2033 FF / 2 BRAM / 0 DSP`，`WNS = 7.556ns`
+  - `100MHz`：`2611 LUT / 2030 FF / 2 BRAM / 0 DSP`，`WNS = -2.470ns`
+- 当前结论
+  - `dmem` BRAM 路线已验证成功
+  - 下一步重点转向 `imem/ROM` 和 `100MHz` 时序收敛
