@@ -198,3 +198,19 @@
   - 当前 `BRAM = 0` 不是单纯因为约束或属性没写对
   - 更根本的原因是当前 `ROM/RAM` 仍采用零等待、组合读出的 SoC 接口
   - 所以后续如果要把存储改成更像正式 FPGA 方案，必须先接受同步读和一拍返回带来的接口变化
+## 2026-03-17 同步取指更新
+
+- 这轮 FPGA 口径已经进一步推进到“同步取指已接入”：
+  - `rtl/YH_rv_cpu.v`
+  - `rtl/YH_rv_cpu_soc.v`
+  - `rtl/YH_rv_sync_imem_rom.v`
+- 脚本链路现在会额外生成 `mem32` 镜像，Vivado 可直接挂接：
+  - `build/tests/riscv-tests/current.hex`
+  - `build/tests/riscv-tests/current.mem32.hex`
+- 最新综合结果：
+  - `100MHz`：`4086 LUT / 2040 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = -2.468ns`
+  - `50MHz`：`4061 LUT / 2040 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = 7.548ns`
+- 这说明：
+  - 比赛要求的 `50MHz` 口径依然稳定
+  - 同步取指本身没有破坏工程闭环
+  - 但 `BRAM` 依旧没有出来，后续设备申请和会前汇报里仍应把“存储结构继续优化”作为明确工作项

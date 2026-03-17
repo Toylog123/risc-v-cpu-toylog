@@ -4,7 +4,8 @@ module YH_rv_cpu_fpga_top #(
     parameter integer UART_BAUD = 115200,
     parameter integer ROM_BYTES = 4096,
     parameter integer RAM_BYTES = 4096,
-    parameter string  ROM_INIT_HEX = ""
+    parameter string  ROM_INIT_HEX = "",
+    parameter string  ROM_INIT_MEM32_HEX = ""
 ) (
     input  wire       CLK100MHZ,
     input  wire       cpu_resetn,
@@ -44,11 +45,13 @@ always @(posedge CLK100MHZ or negedge cpu_resetn) begin
 end
 
 YH_rv_cpu_soc #(
-    .XLEN        (XLEN),
-    .RESET_VECTOR({XLEN{1'b0}}),
-    .ROM_BYTES   (ROM_BYTES),
-    .RAM_BYTES   (RAM_BYTES),
-    .ROM_INIT_HEX(ROM_INIT_HEX)
+    .XLEN             (XLEN),
+    .SYNC_IMEM        (1),
+    .RESET_VECTOR     ({XLEN{1'b0}}),
+    .ROM_BYTES        (ROM_BYTES),
+    .RAM_BYTES        (RAM_BYTES),
+    .ROM_INIT_HEX     (ROM_INIT_HEX),
+    .ROM_INIT_MEM32_HEX(ROM_INIT_MEM32_HEX)
 ) u_soc (
     .clk          (CLK100MHZ),
     .rst_n        (soc_rst_n),

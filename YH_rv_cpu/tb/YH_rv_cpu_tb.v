@@ -6,6 +6,7 @@ reg         clk;
 reg         rst_n;
 wire [31:0] imem_addr;
 wire [31:0] imem_rdata;
+wire        imem_rvalid;
 wire [31:0] dmem_addr;
 wire [31:0] dmem_rdata;
 wire [31:0] dmem_wdata;
@@ -18,6 +19,7 @@ reg [31:0] dmem [0:63];
 integer cycle;
 
 assign imem_rdata = imem[imem_addr[31:2]];
+assign imem_rvalid = 1'b1;
 assign dmem_rdata = dmem[dmem_addr[31:2]];
 
 YH_rv_cpu dut (
@@ -26,6 +28,7 @@ YH_rv_cpu dut (
     .timer_irq (1'b0),
     .imem_addr (imem_addr),
     .imem_rdata(imem_rdata),
+    .imem_rvalid(imem_rvalid),
     .dmem_addr (dmem_addr),
     .dmem_rdata(dmem_rdata),
     .dmem_wdata(dmem_wdata),

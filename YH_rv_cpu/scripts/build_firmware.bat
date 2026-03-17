@@ -6,6 +6,7 @@ set BUILD_DIR=%PROJECT_DIR%\build\sw
 set TARGET=%~1
 set OUTPUT_NAME=YH_rv_cpu_demo
 set SOURCES="%PROJECT_DIR%\sw\src\crt0.S" "%PROJECT_DIR%\sw\src\main.c"
+set WORD_HEX_PY=%PROJECT_DIR%\scripts\make_word_hex.py
 set GCC=
 set OBJDUMP=
 set OBJCOPY=
@@ -108,9 +109,13 @@ if errorlevel 1 exit /b 1
 %OBJCOPY% -O verilog "%BUILD_DIR%\%OUTPUT_NAME%.elf" "%BUILD_DIR%\%OUTPUT_NAME%.hex"
 if errorlevel 1 exit /b 1
 
+python "%WORD_HEX_PY%" "%BUILD_DIR%\%OUTPUT_NAME%.bin" "%BUILD_DIR%\%OUTPUT_NAME%.mem32.hex"
+if errorlevel 1 exit /b 1
+
 echo Built:
 echo   %BUILD_DIR%\%OUTPUT_NAME%.elf
 echo   %BUILD_DIR%\%OUTPUT_NAME%.dump
 echo   %BUILD_DIR%\%OUTPUT_NAME%.bin
 echo   %BUILD_DIR%\%OUTPUT_NAME%.hex
+echo   %BUILD_DIR%\%OUTPUT_NAME%.mem32.hex
 exit /b 0

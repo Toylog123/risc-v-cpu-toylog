@@ -2,6 +2,7 @@
 
 module YH_rv_cpu #(
     parameter integer XLEN = 32,
+    parameter integer IMEM_SYNC = 0,
     parameter [XLEN-1:0] RESET_VECTOR = {XLEN{1'b0}}
 ) (
     input  wire            clk,
@@ -9,6 +10,7 @@ module YH_rv_cpu #(
     input  wire            timer_irq,
     output wire [XLEN-1:0] imem_addr,
     input  wire [31:0]     imem_rdata,
+    input  wire            imem_rvalid,
     output wire [XLEN-1:0] dmem_addr,
     input  wire [XLEN-1:0] dmem_rdata,
     output wire [XLEN-1:0] dmem_wdata,
@@ -19,6 +21,9 @@ module YH_rv_cpu #(
 
 reg [XLEN-1:0] pc_r;
 reg            trap_r;
+reg [XLEN-1:0] fetch_pc_r;
+reg            fetch_valid_r;
+reg            fetch_drop_response_r;
 
 reg            if_id_valid_r;
 reg [XLEN-1:0] if_id_pc_r;
@@ -419,6 +424,9 @@ always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         pc_r <= RESET_VECTOR;
         trap_r <= 1'b0;
+        fetch_pc_r <= ZERO_XLEN;
+        fetch_valid_r <= 1'b0;
+        fetch_drop_response_r <= 1'b0;
 
         if_id_valid_r <= 1'b0;
         if_id_pc_r <= ZERO_XLEN;
@@ -487,6 +495,16 @@ always @(posedge clk or negedge rst_n) begin
         csr_mepc_r <= ZERO_XLEN;
         csr_mcause_r <= ZERO_XLEN;
     end else if (!trap_r) begin
+        if (IMEM_SYNC != 0) begin
+            fetch_pc_r <= pc_r;
+            fetch_valid_r <= 1'b1;
+            fetch_drop_response_r <= fetch_drop_response_r && !imem_rvalid;
+        end else begin
+            fetch_pc_r <= ZERO_XLEN;
+            fetch_valid_r <= 1'b0;
+            fetch_drop_response_r <= 1'b0;
+        end
+
         mem_wb_valid_r <= ex_mem_valid_r;
         mem_wb_pc4_r <= ex_mem_pc4_r;
         mem_wb_rd_addr_r <= ex_mem_rd_addr_r;
@@ -500,6 +518,9 @@ always @(posedge clk or negedge rst_n) begin
             if_id_valid_r <= 1'b0;
             id_ex_valid_r <= 1'b0;
             ex_mem_valid_r <= 1'b0;
+            if (IMEM_SYNC != 0) begin
+                fetch_drop_response_r <= 1'b1;
+            end
             csr_mepc_r <= id_ex_pc_r;
             csr_mcause_r <= ex_trap_cause;
             csr_mstatus_r <=
@@ -560,15 +581,30 @@ always @(posedge clk or negedge rst_n) begin
             if (ex_decode_flush_valid) begin
                 if_id_valid_r <= 1'b0;
                 id_ex_valid_r <= 1'b0;
+                if (IMEM_SYNC != 0) begin
+                    fetch_drop_response_r <= 1'b1;
+                end
             end else if (stall_decode) begin
                 if_id_valid_r <= if_id_valid_r;
                 if_id_pc_r <= if_id_pc_r;
                 if_id_instruction_r <= if_id_instruction_r;
                 id_ex_valid_r <= 1'b0;
             end else begin
-                if_id_valid_r <= 1'b1;
-                if_id_pc_r <= pc_r;
-                if_id_instruction_r <= imem_rdata;
+                if (IMEM_SYNC != 0) begin
+                    if (fetch_valid_r && imem_rvalid && !fetch_drop_response_r) begin
+                        if_id_valid_r <= 1'b1;
+                        if_id_pc_r <= fetch_pc_r;
+                        if_id_instruction_r <= imem_rdata;
+                    end else begin
+                        if_id_valid_r <= 1'b0;
+                        if_id_pc_r <= ZERO_XLEN;
+                        if_id_instruction_r <= 32'h0000_0013;
+                    end
+                end else begin
+                    if_id_valid_r <= 1'b1;
+                    if_id_pc_r <= pc_r;
+                    if_id_instruction_r <= imem_rdata;
+                end
 
                 id_ex_valid_r <= if_id_valid_r;
                 id_ex_pc_r <= if_id_pc_r;

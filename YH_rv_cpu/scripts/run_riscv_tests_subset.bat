@@ -20,6 +20,7 @@ set XELAB=
 set XSIM=
 set USER_HOME=%USERPROFILE%
 set RISCV_XPACK_ROOT=%USER_HOME%\AppData\Roaming\xPacks\@xpack-dev-tools\riscv-none-elf-gcc
+set WORD_HEX_PY=%PROJECT_DIR%\scripts\make_word_hex.py
 
 for %%T in (riscv-none-elf-gcc riscv32-unknown-elf-gcc riscv64-unknown-elf-gcc) do (
     where %%T >nul 2>nul
@@ -152,7 +153,9 @@ if errorlevel 1 goto :fail
 for %%N in (%TEST_LIST%) do (
     set TEST_SRC=%EXTERNAL_DIR%\isa\%TARGET%ui\%%N.S
     set TEST_ELF=%BUILD_DIR%\%TARGET%\%%N.elf
+    set TEST_BIN=%BUILD_DIR%\%TARGET%\%%N.bin
     set TEST_HEX=%BUILD_DIR%\%TARGET%\%%N.hex
+    set TEST_MEM32_HEX=%BUILD_DIR%\%TARGET%\%%N.mem32.hex
     set TEST_LOG=%BUILD_DIR%\%TARGET%\%%N.log
 
     echo Running %TARGET%ui/%%N ...
@@ -168,7 +171,16 @@ for %%N in (%TEST_LIST%) do (
     %OBJCOPY% -O verilog "!TEST_ELF!" "!TEST_HEX!"
     if errorlevel 1 goto :fail
 
+    %OBJCOPY% -O binary "!TEST_ELF!" "!TEST_BIN!"
+    if errorlevel 1 goto :fail
+
+    python "%WORD_HEX_PY%" "!TEST_BIN!" "!TEST_MEM32_HEX!"
+    if errorlevel 1 goto :fail
+
     copy /y "!TEST_HEX!" "%BUILD_DIR%\current.hex" >nul
+    if errorlevel 1 goto :fail
+
+    copy /y "!TEST_MEM32_HEX!" "%BUILD_DIR%\current.mem32.hex" >nul
     if errorlevel 1 goto :fail
 
     if not "%DEBUG_CYCLES%"=="" (

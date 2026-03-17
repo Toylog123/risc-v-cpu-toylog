@@ -6,6 +6,7 @@ reg         clk;
 reg         rst_n;
 wire [63:0] imem_addr;
 wire [31:0] imem_rdata;
+wire        imem_rvalid;
 wire [63:0] dmem_addr;
 wire [63:0] dmem_rdata;
 wire [63:0] dmem_wdata;
@@ -32,6 +33,7 @@ assign dmem_rdata_bus = {
 };
 
 assign imem_rdata = imem[imem_addr[31:2]];
+assign imem_rvalid = 1'b1;
 assign dmem_rdata = dmem_rdata_bus;
 
 YH_rv_cpu #(
@@ -43,6 +45,7 @@ YH_rv_cpu #(
     .timer_irq (1'b0),
     .imem_addr (imem_addr),
     .imem_rdata(imem_rdata),
+    .imem_rvalid(imem_rvalid),
     .dmem_addr (dmem_addr),
     .dmem_rdata(dmem_rdata),
     .dmem_wdata(dmem_wdata),

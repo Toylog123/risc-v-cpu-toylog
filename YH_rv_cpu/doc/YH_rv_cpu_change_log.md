@@ -95,3 +95,20 @@
   为准
 - 明确结论：当前 `ROM/RAM` 还没进 BRAM，不是单纯属性问题，而是因为 SoC 还采用零等待、组合读出的异步存储接口
 - 后续 BRAM 化必须先改同步返回语义，再改底层存储实现
+### 变更 14：接入同步取指路径并固化 mem32 镜像流程
+
+- `YH_rv_cpu.v` 增加 `IMEM_SYNC` 和 `imem_rvalid`，CPU 可以接受同步取指返回
+- `YH_rv_cpu_soc.v` 接入同步取指路径，并保留现有 SoC 骨架
+- 新增 `rtl/YH_rv_sync_imem_rom.v`
+- 新增 `scripts/make_word_hex.py`
+- `build_firmware.bat`、`build_coremark.bat`、`run_riscv_tests_subset.bat` 现在都会生成 `*.mem32.hex`
+- `build_vivado_project.bat` 现在优先挂接：
+  - `build/tests/riscv-tests/current.hex`
+  - `build/tests/riscv-tests/current.mem32.hex`
+- Vivado 临时盘符映射逻辑加固为 `V:/W:/X:/Y:/Z:` 轮询，不再在映射失败时悄悄退回中文路径
+- 最新综合结果：
+  - `100MHz`：`4086 LUT / 2040 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = -2.468ns`
+  - `50MHz`：`4061 LUT / 2040 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = 7.548ns`
+- 当前结论：
+  - 同步取指已经正式进入主线
+  - 但 `BRAM` 仍未被推断，说明后续仍需继续推进同步存储结构，而不是只靠属性优化

@@ -1,11 +1,13 @@
 module YH_rv_cpu_soc #(
     parameter integer XLEN = 32,
+    parameter integer SYNC_IMEM = 0,
     parameter [XLEN-1:0] RESET_VECTOR = {XLEN{1'b0}},
     parameter [31:0] ROM_BASE = 32'h0000_0000,
     parameter [31:0] RAM_BASE = 32'h0000_4000,
     parameter integer ROM_BYTES = 16384,
     parameter integer RAM_BYTES = 16384,
-    parameter string ROM_INIT_HEX = ""
+    parameter string ROM_INIT_HEX = "",
+    parameter string ROM_INIT_MEM32_HEX = ""
 ) (
     input  wire            clk,
     input  wire            rst_n,
@@ -27,12 +29,14 @@ localparam [31:0] TIMER_CTRL_ADDR = 32'h1000_0018;
 
 wire [XLEN-1:0] imem_addr;
 wire [31:0]     imem_rdata;
+wire            imem_rvalid;
 wire [XLEN-1:0] dmem_addr;
 wire [XLEN-1:0] dmem_rdata;
 wire [XLEN-1:0] dmem_wdata;
 wire [XLEN/8-1:0] dmem_wstrb;
 
 wire [31:0] imem_addr32;
+wire [31:0] imem_word_index;
 wire [31:0] dmem_addr32;
 wire [31:0] dmem_bus_base32;
 wire [63:0] dmem_wdata_ext;
@@ -62,12 +66,15 @@ wire [31:0] ram_write_word_index0;
 wire [31:0] ram_write_word_index1;
 wire [XLEN-1:0] rom_read_data;
 wire [XLEN-1:0] ram_read_data;
+wire [31:0] sync_imem_rdata;
+wire        sync_imem_rvalid;
 reg  [31:0] mmio_read_word;
 reg  [63:0] mmio_read_data_ext;
 wire [31:0] timer_ctrl_next;
 
 integer idx;
 localparam integer STRB_W = XLEN / 8;
+localparam integer ROM_WORDS = ROM_BYTES / 4;
 localparam integer RAM_WORDS = RAM_BYTES / 4;
 localparam integer BUS_ALIGN_LSB = (XLEN == 64) ? 3 : 2;
 
@@ -85,6 +92,7 @@ function automatic [31:0] apply_wstrb;
 endfunction
 
 assign imem_addr32 = imem_addr[31:0];
+assign imem_word_index = (imem_addr32 - ROM_BASE) >> 2;
 assign dmem_addr32 = dmem_addr[31:0];
 assign dmem_wdata_ext = {{(64-XLEN){1'b0}}, dmem_wdata};
 assign dmem_wstrb_ext = {{(8-STRB_W){1'b0}}, dmem_wstrb};
@@ -139,12 +147,32 @@ generate
     end
 endgenerate
 
-assign imem_rdata = imem_hit ? {
-    rom_mem[imem_addr32 + 32'd3],
-    rom_mem[imem_addr32 + 32'd2],
-    rom_mem[imem_addr32 + 32'd1],
-    rom_mem[imem_addr32 + 32'd0]
-} : 32'h0000_0013;
+generate
+    if (SYNC_IMEM != 0) begin : g_sync_imem
+        YH_rv_sync_imem_rom #(
+            .ROM_WORDS(ROM_WORDS),
+            .ROM_INIT_HEX(ROM_INIT_MEM32_HEX)
+        ) u_sync_imem_rom (
+            .clk       (clk),
+            .rst_n     (rst_n),
+            .req_hit   (imem_hit),
+            .word_index(imem_word_index),
+            .rdata     (sync_imem_rdata),
+            .rvalid    (sync_imem_rvalid)
+        );
+
+        assign imem_rdata = sync_imem_rdata;
+        assign imem_rvalid = sync_imem_rvalid;
+    end else begin : g_async_imem
+        assign imem_rdata = imem_hit ? {
+            rom_mem[imem_addr32 + 32'd3],
+            rom_mem[imem_addr32 + 32'd2],
+            rom_mem[imem_addr32 + 32'd1],
+            rom_mem[imem_addr32 + 32'd0]
+        } : 32'h0000_0013;
+        assign imem_rvalid = 1'b1;
+    end
+endgenerate
 
 always @* begin
     case (dmem_mmio_addr32)
@@ -177,6 +205,7 @@ assign timer_irq = timer_irq_en_r && (timer_value_r >= timer_cmp_r);
 
 YH_rv_cpu #(
     .XLEN(XLEN),
+    .IMEM_SYNC(SYNC_IMEM),
     .RESET_VECTOR(RESET_VECTOR)
 ) u_cpu (
     .clk       (clk),
@@ -184,6 +213,7 @@ YH_rv_cpu #(
     .timer_irq (timer_irq),
     .imem_addr (imem_addr),
     .imem_rdata(imem_rdata),
+    .imem_rvalid(imem_rvalid),
     .dmem_addr (dmem_addr),
     .dmem_rdata(dmem_rdata),
     .dmem_wdata(dmem_wdata),

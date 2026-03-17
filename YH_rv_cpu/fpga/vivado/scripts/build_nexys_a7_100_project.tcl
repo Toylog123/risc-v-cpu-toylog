@@ -11,6 +11,7 @@ set top_name YH_rv_cpu_fpga_top
 set part_name xc7a100tcsg324-1
 set flow_mode synth
 set rom_init_hex ""
+set rom_init_mem32_hex ""
 set rom_bytes_override ""
 set ram_bytes_override ""
 set clock_period_ns 10.000
@@ -21,6 +22,9 @@ if {[llength $argv] >= 1} {
 
 if {[info exists ::env(ROM_INIT_HEX_OVERRIDE)] && $::env(ROM_INIT_HEX_OVERRIDE) ne ""} {
     set rom_init_hex [file normalize $::env(ROM_INIT_HEX_OVERRIDE)]
+}
+if {[info exists ::env(ROM_INIT_MEM32_HEX_OVERRIDE)] && $::env(ROM_INIT_MEM32_HEX_OVERRIDE) ne ""} {
+    set rom_init_mem32_hex [file normalize $::env(ROM_INIT_MEM32_HEX_OVERRIDE)]
 }
 if {[info exists ::env(ROM_BYTES_OVERRIDE)] && $::env(ROM_BYTES_OVERRIDE) ne ""} {
     set rom_bytes_override $::env(ROM_BYTES_OVERRIDE)
@@ -102,6 +106,10 @@ set synth_cmd [list synth_design -top $top_name -part $part_name -flatten_hierar
 if {$rom_init_hex ne ""} {
     puts "INFO: ROM_INIT_HEX override = $rom_init_hex"
     lappend synth_cmd -generic "ROM_INIT_HEX=$rom_init_hex"
+}
+if {$rom_init_mem32_hex ne ""} {
+    puts "INFO: ROM_INIT_MEM32_HEX override = $rom_init_mem32_hex"
+    lappend synth_cmd -generic "ROM_INIT_MEM32_HEX=$rom_init_mem32_hex"
 }
 if {$rom_bytes_override ne ""} {
     puts "INFO: ROM_BYTES override = $rom_bytes_override"

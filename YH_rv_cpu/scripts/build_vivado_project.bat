@@ -19,19 +19,28 @@ set VIVADO_CMD=
 set PHYSICAL_SCRIPT_DIR=%~dp0
 set SCRIPT_DIR=%PHYSICAL_SCRIPT_DIR%
 for %%I in ("%PHYSICAL_SCRIPT_DIR%..\..") do set REPO_ROOT=%%~fI
-set MAP_DRIVE=V:
+set MAP_DRIVE=
 set MAPPED_ROOT=
 set CREATED_MAP=
+set MAP_DRIVES=V: W: X: Y: Z:
 
-subst %MAP_DRIVE% "%REPO_ROOT%" >nul 2>nul
-if not errorlevel 1 (
-    set CREATED_MAP=1
-    set MAPPED_ROOT=%MAP_DRIVE%\
+for %%D in (%MAP_DRIVES%) do (
+    subst %%D "%REPO_ROOT%" >nul 2>nul
+    if not errorlevel 1 (
+        set CREATED_MAP=1
+        set MAP_DRIVE=%%D
+        set MAPPED_ROOT=%%D\
+        goto :map_ready
+    )
 )
 
-if defined MAPPED_ROOT (
-    set SCRIPT_DIR=%MAPPED_ROOT%YH_rv_cpu\scripts\
+:map_ready
+if not defined MAPPED_ROOT (
+    echo Failed to map an ASCII drive for Vivado. Please free one of V:/W:/X:/Y:/Z: and retry.
+    exit /b 1
 )
+
+set SCRIPT_DIR=%MAPPED_ROOT%YH_rv_cpu\scripts\
 
 set PROJECT_DIR=%SCRIPT_DIR%..\..\project
 set USERDATA_ROOT=%PROJECT_DIR%\.vivado_user
@@ -83,13 +92,29 @@ if not exist "%TCL_PATH%" (
 )
 
 set ROM_INIT_HEX_OVERRIDE=
+set ROM_INIT_MEM32_HEX_OVERRIDE=
 set ROM_BYTES_OVERRIDE=
 set RAM_BYTES_OVERRIDE=
-if exist "%SCRIPT_DIR%..\build\tests\riscv-tests\rv32\simple.hex" (
+if exist "%SCRIPT_DIR%..\build\tests\riscv-tests\current.hex" (
+    set ROM_INIT_HEX_OVERRIDE=%SCRIPT_DIR%..\build\tests\riscv-tests\current.hex
+    set ROM_BYTES_OVERRIDE=8192
+    set RAM_BYTES_OVERRIDE=8192
+)
+if not defined ROM_INIT_HEX_OVERRIDE if exist "%SCRIPT_DIR%..\build\tests\riscv-tests\rv32\simple.hex" (
     set ROM_INIT_HEX_OVERRIDE=%SCRIPT_DIR%..\build\tests\riscv-tests\rv32\simple.hex
     set ROM_BYTES_OVERRIDE=8192
     set RAM_BYTES_OVERRIDE=8192
 )
+if exist "%SCRIPT_DIR%..\build\tests\riscv-tests\current.mem32.hex" (
+    set ROM_INIT_MEM32_HEX_OVERRIDE=%SCRIPT_DIR%..\build\tests\riscv-tests\current.mem32.hex
+)
+if not defined ROM_INIT_MEM32_HEX_OVERRIDE if exist "%SCRIPT_DIR%..\build\tests\riscv-tests\rv32\simple.mem32.hex" (
+    set ROM_INIT_MEM32_HEX_OVERRIDE=%SCRIPT_DIR%..\build\tests\riscv-tests\rv32\simple.mem32.hex
+)
+
+echo Using mapped repo root: %MAPPED_ROOT%
+if defined ROM_INIT_HEX_OVERRIDE echo Using ROM_INIT_HEX_OVERRIDE=%ROM_INIT_HEX_OVERRIDE%
+if defined ROM_INIT_MEM32_HEX_OVERRIDE echo Using ROM_INIT_MEM32_HEX_OVERRIDE=%ROM_INIT_MEM32_HEX_OVERRIDE%
 
 pushd "%PROJECT_DIR%"
 call "%VIVADO_CMD%" -mode batch -notrace -source "%TCL_PATH%" -tclargs %MODE%

@@ -116,3 +116,68 @@
   - 现在的 `ROM/RAM` 之所以还是 LUT / distributed RAM，不是单纯属性没写对
   - 根因是当前 SoC 还采用零等待、组合读出的存储接口
   - 后续要上 BRAM，先改 `imem/dmem` 的同步返回语义，再改底层存储实现
+## 2026-03-17 继续推进：同步取指已接入主线
+
+- 这轮已经把同步指令存储接口接入主线：
+  - `rtl/YH_rv_cpu.v` 增加了 `IMEM_SYNC` 和 `imem_rvalid`
+  - `rtl/YH_rv_cpu_soc.v` 增加了同步取指路径
+  - 新增 `rtl/YH_rv_sync_imem_rom.v`
+- 当前仿真回归仍然通过：
+  - `run_soc_smoke.bat`
+  - `run_trap_smoke.bat`
+  - `run_timer_irq_smoke.bat`
+  - `run_xlen64_smoke.bat`
+  - `run_riscv_tests_subset.bat rv32 add`
+- Vivado 现在已经能正确绑定 `current.mem32.hex`，不再是空参数。
+- 最新综合结果覆盖此前那版口径：
+  - `100MHz`：`4086 LUT / 2040 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = -2.468ns`
+  - `50MHz`：`4061 LUT / 2040 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = 7.548ns`
+- 当前新的真实结论：
+  - 同步取指已经不是待设计事项，而是已落地事项
+  - 但数据侧和只读数据访问仍沿用原 SoC 存储语义，所以 `BRAM` 还没有被真正推出来
+  - 下一步最值的是推进 `dmem` 同步返回语义和独立存储包装层
+## 2026-03-17 当前解读
+
+### 一句话结论
+
+`YH_rv_cpu` 现在已经不是“只有五级流水 CPU 骨架”的阶段，而是已经进入“同步取指开始落地、验证链稳定、FPGA 综合口径清楚，但存储结构还需要继续收口”的阶段。
+
+### 当前真实状态
+
+- CPU/SoC 主线是稳定的。
+- `SoC smoke`、`trap smoke`、`timer irq smoke`、`xlen64 smoke`、`riscv-tests rv32 add` 这几条基础回归都通过。
+- FPGA 综合链已经稳定，Vivado 可以直接吃当前测试镜像：
+  - `current.hex`
+  - `current.mem32.hex`
+- 同步取指已经接入主线，不再只是文档上的后续计划。
+
+### 现在应该怎么理解综合结果
+
+- `50MHz` 口径已经稳，当前可以作为比赛阶段的可交付频率口径。
+- `100MHz` 仍未收敛，但没有继续恶化到不可控状态，仍然是“优化目标”，不是“当前必须马上达成的门槛”。
+- 最新综合结果以当前测试镜像口径为准：
+  - `100MHz`：`4086 LUT / 2040 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = -2.468ns`
+  - `50MHz`：`4061 LUT / 2040 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = 7.548ns`
+
+### 对 BRAM 结果的正确解读
+
+- 现在 `BRAM = 0`，不能解读成“同步取指没接上”。
+- 更准确的解读是：
+  - `imem` 的同步返回已经接上了
+  - 但 SoC 里旧的 ROM 数据访问语义还在
+  - `dmem` 侧仍是零等待、组合读返回
+  - 因此工具仍然更倾向把相关存储实现成 LUT / distributed RAM
+- 也就是说，当前问题已经从“能不能接同步取指”变成了“怎么把整套存储语义继续推进到真正适合 BRAM 的结构”。
+
+### 现在最值得继续做的事
+
+1. 先推进 `dmem` 的同步返回语义。
+2. 把 `imem/dmem` 拆成独立的存储包装层。
+3. 再评估双口 `ROM` 或单独的只读数据访问路径。
+4. 在此基础上继续推进 `BRAM` 推断和 `100MHz` 时序收敛。
+
+### 不要误判的地方
+
+- 不要把“`100MHz` 还没过”误判成“FPGA 路线卡死”。
+- 不要把“`BRAM = 0`”误判成“同步取指没有意义”。
+- 不要再回到只做小范围 `flush/stall/CE` 试探的路线，那条线已经验证过收益有限。

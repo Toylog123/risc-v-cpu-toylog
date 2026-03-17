@@ -141,3 +141,25 @@ scripts\clean_vivado_project.bat
 - 当前结论：
   - 赛题要求的 `50MHz` 目标已经被本地综合覆盖
   - `100MHz` 仍未收敛，后续重点是继续压关键控制链，并把 `ROM/RAM` 往更适合 FPGA 的存储结构迁移
+## 2026-03-17 同步取指补充
+
+- 当前 FPGA 顶层已经切到“同步指令存储”口径：
+  - `fpga/vivado/src/YH_rv_cpu_fpga_top.v`
+  - `rtl/YH_rv_cpu_soc.v`
+  - `rtl/YH_rv_sync_imem_rom.v`
+- 固件和测试脚本现在会额外生成 `*.mem32.hex`，用于同步取指 ROM 初始化：
+  - `scripts/build_firmware.bat`
+  - `scripts/build_coremark.bat`
+  - `scripts/run_riscv_tests_subset.bat`
+- Vivado 综合脚本现在会优先选择：
+  - `build/tests/riscv-tests/current.hex`
+  - `build/tests/riscv-tests/current.mem32.hex`
+- 映射盘符逻辑也加固了：
+  - 会在 `V:/W:/X:/Y:/Z:` 中选择可用 ASCII 盘符
+  - 找不到可用盘符时直接失败，不再回退到中文路径
+- 最新同步取指综合结果：
+  - `100MHz`：`4086 LUT / 2040 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = -2.468ns`
+  - `50MHz`：`4061 LUT / 2040 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = 7.548ns`
+- 当前最重要的判断：
+  - “同步取指接口已经接上”这件事已经成立
+  - 但 `BRAM = 0` 依然成立，说明下一步不能只改属性，还要继续推进真正的同步存储结构

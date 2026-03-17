@@ -14,6 +14,7 @@ reg                  clk;
 reg                  rst_n;
 wire [XLEN-1:0]      imem_addr;
 wire [31:0]          imem_rdata;
+wire                 imem_rvalid;
 wire [XLEN-1:0]      dmem_addr;
 wire [XLEN-1:0]      dmem_rdata;
 wire [XLEN-1:0]      dmem_wdata;
@@ -66,6 +67,7 @@ assign imem_rdata = {
     mem[imem_addr32 + 32'd1],
     mem[imem_addr32 + 32'd0]
 };
+assign imem_rvalid = 1'b1;
 
 YH_rv_cpu #(
     .XLEN(XLEN),
@@ -76,6 +78,7 @@ YH_rv_cpu #(
     .timer_irq (1'b0),
     .imem_addr (imem_addr),
     .imem_rdata(imem_rdata),
+    .imem_rvalid(imem_rvalid),
     .dmem_addr (dmem_addr),
     .dmem_rdata(dmem_rdata),
     .dmem_wdata(dmem_wdata),
