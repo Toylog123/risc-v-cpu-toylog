@@ -128,6 +128,7 @@
   - `run_timer_irq_smoke.bat`
   - `run_xlen64_smoke.bat`
   - `run_riscv_tests_subset.bat rv32 add`
+  - `run_riscv_tests_subset.bat rv32`
 - Vivado 现在已经能正确绑定 `current.mem32.hex`，不再是空参数。
 - 最新综合结果覆盖此前那版口径：
   - `100MHz`：`4086 LUT / 2040 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = -2.468ns`
@@ -136,6 +137,15 @@
   - 同步取指已经不是待设计事项，而是已落地事项
   - 但数据侧和只读数据访问仍沿用原 SoC 存储语义，所以 `BRAM` 还没有被真正推出来
   - 下一步最值的是推进 `dmem` 同步返回语义和独立存储包装层
+  - 当前默认 `rv32` 回归子集已经整组通过，可以作为新的功能基线
+
+## 2026-03-17 回归基线补充
+
+- 当前 `run_riscv_tests_subset.bat rv32` 默认子集已经整组通过。
+- 这意味着当前 `RV32I + Zicsr` 的主线不再只是“单个 add 用例通过”，而是已经有一组更完整的整数指令回归基线。
+- 脚本现在会在每次运行后生成摘要文件：
+  - `build/tests/riscv-tests/rv32/summary.txt`
+- 后续交接时，如果要先确认功能基线，优先看这个摘要文件和对应日志目录。
 ## 2026-03-17 当前解读
 
 ### 一句话结论

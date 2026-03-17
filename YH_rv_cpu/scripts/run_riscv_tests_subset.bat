@@ -7,6 +7,12 @@ set EXTERNAL_DIR=%PROJECT_DIR%\build\external\riscv-tests
 set TARGET=%~1
 set TEST_OVERRIDE=%~2
 set DEBUG_CYCLES=%~3
+set SUMMARY_FILE=
+set CURRENT_TEST=
+set TOTAL_TESTS=0
+set PASSED_TESTS=0
+set START_TS=
+set END_TS=
 
 if "%TARGET%"=="" set TARGET=rv32
 
@@ -129,6 +135,11 @@ if not "%TEST_OVERRIDE%"=="" (
 )
 
 if not exist "%BUILD_DIR%\%TARGET%" mkdir "%BUILD_DIR%\%TARGET%"
+set SUMMARY_FILE=%BUILD_DIR%\%TARGET%\summary.txt
+call :timestamp START_TS
+> "%SUMMARY_FILE%" echo target=%TARGET%
+>> "%SUMMARY_FILE%" echo tests=%TEST_LIST%
+>> "%SUMMARY_FILE%" echo started=%START_TS%
 
 pushd "%PROJECT_DIR%"
 
@@ -151,6 +162,8 @@ call %XELAB% %TEST_TOP% -s %TEST_TOP%_snapshot
 if errorlevel 1 goto :fail
 
 for %%N in (%TEST_LIST%) do (
+    set /a TOTAL_TESTS+=1
+    set CURRENT_TEST=%%N
     set TEST_SRC=%EXTERNAL_DIR%\isa\%TARGET%ui\%%N.S
     set TEST_ELF=%BUILD_DIR%\%TARGET%\%%N.elf
     set TEST_BIN=%BUILD_DIR%\%TARGET%\%%N.bin
@@ -191,15 +204,39 @@ for %%N in (%TEST_LIST%) do (
     type "!TEST_LOG!"
     findstr /c:"PASS: riscv-tests finished" "!TEST_LOG!" >nul
     if errorlevel 1 goto :fail
+    set /a PASSED_TESTS+=1
+    >> "%SUMMARY_FILE%" echo PASS %%N
 )
 
 echo PASS: all %TARGET% subset tests completed.
+>> "%SUMMARY_FILE%" echo result=PASS
+>> "%SUMMARY_FILE%" echo passed=!PASSED_TESTS!/!TOTAL_TESTS!
+call :timestamp END_TS
+>> "%SUMMARY_FILE%" echo finished=%END_TS%
+echo Summary:
+echo   %SUMMARY_FILE%
 set RUN_STATUS=0
 goto :done
 
 :fail
 set RUN_STATUS=%ERRORLEVEL%
+if defined CURRENT_TEST (
+    >> "%SUMMARY_FILE%" echo FAIL !CURRENT_TEST!
+)
+>> "%SUMMARY_FILE%" echo result=FAIL
+>> "%SUMMARY_FILE%" echo passed=!PASSED_TESTS!/!TOTAL_TESTS!
+call :timestamp END_TS
+>> "%SUMMARY_FILE%" echo finished=%END_TS%
+echo Summary:
+echo   %SUMMARY_FILE%
 
 :done
 popd
 exit /b %RUN_STATUS%
+
+:timestamp
+setlocal
+set TS_VALUE=
+for /f "usebackq delims=" %%T in (`powershell -NoProfile -Command "(Get-Date).ToString('yyyy-MM-ddTHH:mm:ssK')"`) do set TS_VALUE=%%T
+endlocal & set "%~1=%TS_VALUE%"
+exit /b 0

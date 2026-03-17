@@ -86,6 +86,7 @@ scripts\clean_vivado_project.bat
 - `run_timer_irq_smoke.bat` 通过
 - `run_xlen64_smoke.bat` 通过
 - `run_riscv_tests_subset.bat rv32 add` 通过
+- `run_riscv_tests_subset.bat rv32` 当前默认子集整组通过
 - `check_toolchain.bat` 能识别本机 `xPack` RISC-V 工具链和 `scoop` 安装的 `iverilog`
 - `build_vivado_project.bat synth` 通过，并能导出 `project/reports/` 下的综合报告
 
@@ -96,6 +97,7 @@ scripts\clean_vivado_project.bat
 - `PASS: timer irq smoke test completed at PC=000000e4 in 125 cycles`
 - `PASS: xlen64 smoke test completed at PC=0000000000000020 in 17 cycles`
 - `PASS: riscv-tests finished at PC=0000059c in 495 cycles with tohost=1`
+- `riscv-tests rv32` 默认子集当前已整组通过，脚本会把最近一次摘要写到 `build/tests/riscv-tests/rv32/summary.txt`
 
 当前 FPGA 综合结论：
 
