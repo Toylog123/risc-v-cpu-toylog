@@ -244,3 +244,65 @@
   1. 推进 `imem/ROM` 包装层
   2. 评估 `dmem` BRAM 输出寄存器
   3. 再继续压 `100MHz`
+
+## 2026-03-17 当前交接摘要（直接接手版）
+
+### 1. 项目是什么
+
+- 当前正式比赛工程是 `YH_rv_cpu`
+- 对应七星微赛题，主线目标是做出可提交、可验证、可综合、可上板推进的 RISC-V CPU 作品
+
+### 2. 当前做到哪一步
+
+- `RV32I + Zicsr` 五级流水主线稳定
+- 最小 `SoC`、`trap`、`timer irq`、`xlen64 smoke` 都已经打通
+- `riscv-tests rv32` 默认子集已经整组通过
+- `dmem` 已经完成独立包装层，并被 Vivado 实际推成 `2 BRAM`
+- 当前 FPGA 口径已经稳定到：
+  - `50MHz`：`2590 LUT / 2033 FF / 2 BRAM / 0 DSP`，`WNS = 7.556ns`
+  - `100MHz`：`2611 LUT / 2030 FF / 2 BRAM / 0 DSP`，`WNS = -2.470ns`
+
+### 3. 已完成的关键工作
+
+- 同步 `imem` 已接入主线
+- 同步 `dmem` 已接入主线
+- `dmem` BRAM 推断成功
+- Vivado `synth50 / synth100` 报告已固化
+- 技术文档、修改记录、任务清单、项目管理交接文档都已同步更新
+
+### 4. 当前阻塞与风险
+
+- `100MHz` 仍未收敛，但不影响当前 `50MHz` 比赛口径
+- `imem/ROM` 仍主要占用 LUT，存储结构还可以继续优化
+- `CoreMark` 还没形成稳定跑分链
+- `RV64` 还没扩成稳定回归集
+- 正式板卡和正式 `XDC` 还没冻结
+
+### 5. 下一步最值得做的 3 到 5 项
+
+1. 推进 `imem/ROM` 包装层，继续压 LUT 占用
+2. 评估 `dmem` BRAM 输出寄存器，继续改善 `100MHz`
+3. 在新资源口径下补 `CoreMark`
+4. 扩大 `RV64` / 更完整 `riscv-tests` 回归
+5. 板卡到位后冻结正式 `XDC` 并推进上板
+
+### 6. 关键文档与命令
+
+- 总体设计先看：`doc/技术文档.md`
+- 当前交接先看：`doc/YH_rv_cpu_handoff.md`
+- 当前任务先看：`doc/YH_rv_cpu_todo.md`
+- 修改历史先看：`doc/YH_rv_cpu_change_log.md`
+- 常用命令：
+  - `scripts\\check_syntax.bat`
+  - `scripts\\run_soc_smoke.bat`
+  - `scripts\\run_trap_smoke.bat`
+  - `scripts\\run_timer_irq_smoke.bat`
+  - `scripts\\run_riscv_tests_subset.bat rv32`
+  - `scripts\\build_vivado_project.bat synth50`
+  - `scripts\\build_vivado_project.bat synth100`
+
+### 7. 文档缺口与建议补齐项
+
+- 还缺一版板卡到位后的正式 `XDC` 记录
+- 还缺 `CoreMark` 稳定跑分记录
+- 还缺 `RV64` 扩展后的系统回归摘要
