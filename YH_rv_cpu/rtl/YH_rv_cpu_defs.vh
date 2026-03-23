@@ -38,6 +38,15 @@
 `define YH_rv_cpu_CSR_RS    2'd1
 `define YH_rv_cpu_CSR_RC    2'd2
 
+`define YH_rv_cpu_CSR_SEL_NONE      3'd0
+`define YH_rv_cpu_CSR_SEL_MSTATUS   3'd1
+`define YH_rv_cpu_CSR_SEL_MIE       3'd2
+`define YH_rv_cpu_CSR_SEL_MTVEC     3'd3
+`define YH_rv_cpu_CSR_SEL_MSCRATCH  3'd4
+`define YH_rv_cpu_CSR_SEL_MEPC      3'd5
+`define YH_rv_cpu_CSR_SEL_MCAUSE    3'd6
+`define YH_rv_cpu_CSR_SEL_MIP       3'd7
+
 `define YH_rv_cpu_CSR_MSTATUS   12'h300
 `define YH_rv_cpu_CSR_MIE       12'h304
 `define YH_rv_cpu_CSR_MTVEC     12'h305

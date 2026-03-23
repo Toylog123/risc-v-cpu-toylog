@@ -1,14 +1,20 @@
+// 文件说明：YH_rv_cpu 内核顶层。
+// 作用：组织五级流水寄存器、CSR、异常/中断和访存控制。
+// 备注：通过参数切换 XLEN、指令存储器和数据存储器的时序包装方式。
+
 `include "YH_rv_cpu_defs.vh"
 
 module YH_rv_cpu #(
     parameter integer XLEN = 32,
     parameter integer IMEM_SYNC = 0,
+    parameter integer IMEM_OUTPUT_REG = 0,
     parameter integer DMEM_SYNC = 0,
     parameter [XLEN-1:0] RESET_VECTOR = {XLEN{1'b0}}
 ) (
     input  wire            clk,
     input  wire            rst_n,
     input  wire            timer_irq,
+    output wire            imem_req,
     output wire [XLEN-1:0] imem_addr,
     input  wire [31:0]     imem_rdata,
     input  wire            imem_rvalid,
@@ -25,10 +31,18 @@ module YH_rv_cpu #(
 reg [XLEN-1:0] pc_r;
 reg            trap_r;
 reg [XLEN-1:0] fetch_pc_r;
+reg [XLEN-1:0] fetch_pc_d1_r;
 reg            fetch_valid_r;
-reg            fetch_drop_response_r;
+reg            fetch_valid_d1_r;
+reg [1:0]      fetch_drop_count_r;
+reg            fetch_buf0_valid_r;
+reg [XLEN-1:0] fetch_buf0_pc_r;
+reg [31:0]     fetch_buf0_instruction_r;
+reg            fetch_buf1_valid_r;
+reg [XLEN-1:0] fetch_buf1_pc_r;
+reg [31:0]     fetch_buf1_instruction_r;
 
-reg            if_id_valid_r;
+(* max_fanout = 16 *) reg            if_id_valid_r;
 reg [XLEN-1:0] if_id_pc_r;
 reg [31:0]     if_id_instruction_r;
 
@@ -45,7 +59,7 @@ reg            id_ex_illegal_r;
 reg [XLEN-1:0] id_ex_rs1_value_r;
 reg [XLEN-1:0] id_ex_rs2_value_r;
 reg [XLEN-1:0] id_ex_imm_r;
-reg [3:0]      id_ex_alu_op_r;
+(* max_fanout = 16 *) reg [3:0]      id_ex_alu_op_r;
 reg            id_ex_alu_src1_pc_r;
 reg            id_ex_alu_src2_imm_r;
 reg            id_ex_branch_r;
@@ -62,7 +76,9 @@ reg            id_ex_is_lui_r;
 reg            id_ex_csr_valid_r;
 reg [1:0]      id_ex_csr_cmd_r;
 reg            id_ex_csr_use_imm_r;
-reg [11:0]     id_ex_csr_addr_r;
+reg [2:0]      id_ex_csr_sel_r;
+reg            id_ex_csr_read_valid_r;
+reg            id_ex_csr_write_allowed_r;
 reg            id_ex_ecall_r;
 reg            id_ex_ebreak_r;
 reg            id_ex_mret_r;
@@ -70,7 +86,7 @@ reg            id_ex_mret_r;
 reg            ex_mem_valid_r;
 reg [XLEN-1:0] ex_mem_pc4_r;
 reg [4:0]      ex_mem_rd_addr_r;
-reg            ex_mem_rd_en_r;
+(* max_fanout = 8 *) reg            ex_mem_rd_en_r;
 reg [1:0]      ex_mem_wb_sel_r;
 reg            ex_mem_load_r;
 reg            ex_mem_store_r;
@@ -83,7 +99,7 @@ reg [XLEN/8-1:0] ex_mem_store_wstrb_r;
 
 reg            mem_wb_valid_r;
 reg [XLEN-1:0] mem_wb_pc4_r;
-reg [4:0]      mem_wb_rd_addr_r;
+(* max_fanout = 8 *) reg [4:0]      mem_wb_rd_addr_r;
 reg            mem_wb_rd_en_r;
 reg [1:0]      mem_wb_wb_sel_r;
 reg [XLEN-1:0] mem_wb_exec_result_r;
@@ -117,7 +133,9 @@ wire            id_is_lui;
 wire            id_csr_valid;
 wire [1:0]      id_csr_cmd;
 wire            id_csr_use_imm;
-wire [11:0]     id_csr_addr;
+wire [2:0]      id_csr_sel;
+wire            id_csr_read_valid;
+wire            id_csr_write_allowed;
 wire            id_ecall;
 wire            id_ebreak;
 wire            id_mret;
@@ -158,7 +176,7 @@ wire            ex_mret_valid;
 wire            ex_interrupt_valid;
 wire            ex_control_redirect_valid;
 (* max_fanout = 16 *) wire ex_fetch_redirect_valid;
-(* max_fanout = 16 *) wire ex_decode_flush_valid;
+(* max_fanout = 8 *) wire ex_decode_flush_valid;
 wire [XLEN-1:0] ex_control_redirect_pc;
 wire [XLEN-1:0] csr_mip_value;
 
@@ -173,11 +191,84 @@ reg  [XLEN-1:0] csr_mtvec_r;
 reg  [XLEN-1:0] csr_mscratch_r;
 reg  [XLEN-1:0] csr_mepc_r;
 reg  [XLEN-1:0] csr_mcause_r;
+wire            pipeline_run;
+wire            csr_write_fire;
+wire            csr_mstatus_trap_write;
+wire            csr_mstatus_mret_write;
+wire            csr_mstatus_csr_write;
+wire            csr_mie_csr_write;
+wire            csr_mtvec_csr_write;
+wire            csr_mscratch_csr_write;
+wire            csr_mepc_trap_write;
+wire            csr_mepc_csr_write;
+wire            csr_mcause_trap_write;
+wire            csr_mcause_csr_write;
+wire [XLEN-1:0] fetch_rsp_pc;
+wire            fetch_rsp_valid;
+wire            fetch_drop_response;
+wire            fetch_pipe_valid;
+wire [XLEN-1:0] fetch_queue_pc;
+wire [31:0]     fetch_queue_instruction;
+wire            fetch_queue_valid;
+wire            fetch_buffer_valid;
+wire            fetch_live_to_ifid;
+wire            fetch_queue_consume;
+wire            fetch_queue_enqueue;
+wire            fetch_data_issue;
+wire            fetch_live_to_ifid_data;
+wire            fetch_queue_enqueue_data;
+wire            fetch_buf0_shift_data;
+wire            fetch_buf0_valid_after_shift;
+wire            fetch_buf1_valid_after_shift;
+wire            fetch_buf0_load_rsp_data;
+wire            fetch_buf1_load_rsp_data;
+wire            fetch_buf0_load_data;
+wire            fetch_buf1_load_data;
+wire            if_id_fetch_valid;
+(* max_fanout = 8 *) wire if_id_write_en;
+wire            if_id_load_bubble;
+wire            if_id_next_valid;
+wire            if_id_data_write_en;
+(* keep = "true", max_fanout = 4 *) wire id_ex_flush_valid_local;
+(* keep = "true", max_fanout = 4 *) wire id_ex_stall_bubble_local;
+wire [XLEN-1:0] if_id_next_pc;
+wire [31:0]     if_id_next_instruction;
+reg  [XLEN-1:0] if_id_pc_next_data;
+reg  [31:0]     if_id_instruction_next_data;
+reg             fetch_buf0_valid_next;
+reg             fetch_buf1_valid_next;
 
 localparam [XLEN-1:0] ZERO_XLEN = {XLEN{1'b0}};
+localparam [1:0] IMEM_DROP_COUNT = (IMEM_OUTPUT_REG != 0) ? 2'd1 : 2'd0;
+
+always @* begin
+    fetch_buf0_valid_next = fetch_buf0_valid_r;
+    fetch_buf1_valid_next = fetch_buf1_valid_r;
+
+    if (fetch_queue_consume) begin
+        if (fetch_buf1_valid_r) begin
+            fetch_buf0_valid_next = 1'b1;
+            fetch_buf1_valid_next = 1'b0;
+        end else begin
+            fetch_buf0_valid_next = 1'b0;
+        end
+    end else if (!fetch_buf0_valid_r && fetch_buf1_valid_r) begin
+        fetch_buf0_valid_next = 1'b1;
+        fetch_buf1_valid_next = 1'b0;
+    end
+
+    if (fetch_queue_enqueue) begin
+        if (!fetch_buf0_valid_next) begin
+            fetch_buf0_valid_next = 1'b1;
+        end else if (!fetch_buf1_valid_next) begin
+            fetch_buf1_valid_next = 1'b1;
+        end
+    end
+end
 
 assign trap = trap_r;
 assign debug_pc = pc_r;
+assign imem_req = (IMEM_SYNC != 0) && !trap_r && !mem_wait && !stall_decode && !ex_fetch_redirect_valid;
 assign ex_mem_forward_data =
     (ex_mem_wb_sel_r == `YH_rv_cpu_WB_PC4) ? ex_mem_pc4_r : ex_mem_exec_result_r;
 assign ex_redirect_valid = id_ex_valid_r && ex_redirect_en;
@@ -222,38 +313,79 @@ assign ex_control_redirect_valid = ex_trap_valid || ex_mret_valid || ex_redirect
 assign ex_fetch_redirect_valid = ex_control_redirect_valid;
 assign ex_decode_flush_valid = ex_control_redirect_valid;
 assign mem_wait = (DMEM_SYNC != 0) && ex_mem_valid_r && ex_mem_load_r && !dmem_rvalid;
+assign fetch_rsp_pc = (IMEM_OUTPUT_REG != 0) ? fetch_pc_d1_r : fetch_pc_r;
+assign fetch_rsp_valid = (IMEM_OUTPUT_REG != 0) ? fetch_valid_d1_r : fetch_valid_r;
+assign fetch_drop_response = (fetch_drop_count_r != 2'd0);
+assign fetch_pipe_valid = (IMEM_SYNC != 0) ? (fetch_rsp_valid && imem_rvalid && !fetch_drop_response) : 1'b0;
+assign fetch_buffer_valid = fetch_buf0_valid_r || fetch_buf1_valid_r;
+assign fetch_queue_valid = fetch_buffer_valid || fetch_pipe_valid;
+assign fetch_queue_pc = fetch_buf0_valid_r ?
+    fetch_buf0_pc_r :
+    fetch_buf1_valid_r ?
+    fetch_buf1_pc_r :
+    fetch_rsp_pc;
+assign fetch_queue_instruction = fetch_buf0_valid_r ?
+    fetch_buf0_instruction_r :
+    fetch_buf1_valid_r ?
+    fetch_buf1_instruction_r :
+    imem_rdata;
+assign fetch_live_to_ifid = (IMEM_SYNC != 0) && if_id_write_en && !fetch_buffer_valid && fetch_pipe_valid;
+assign fetch_queue_consume = (IMEM_SYNC != 0) && if_id_write_en && fetch_buffer_valid;
+assign fetch_queue_enqueue = (IMEM_SYNC != 0) && fetch_pipe_valid && !fetch_live_to_ifid;
+assign fetch_data_issue = (IMEM_SYNC != 0) && pipeline_run && !stall_decode;
+assign fetch_live_to_ifid_data = fetch_data_issue && !fetch_buffer_valid && fetch_pipe_valid;
+assign fetch_queue_enqueue_data = (IMEM_SYNC != 0) && fetch_pipe_valid && !fetch_live_to_ifid_data;
+assign fetch_buf0_shift_data = fetch_buf1_valid_r && (fetch_data_issue || !fetch_buf0_valid_r);
+assign fetch_buf0_valid_after_shift = fetch_buf0_shift_data || (fetch_buf0_valid_r && !fetch_data_issue);
+assign fetch_buf1_valid_after_shift = fetch_buf1_valid_r && !fetch_buf0_shift_data;
+assign fetch_buf0_load_rsp_data = fetch_queue_enqueue_data && !fetch_buf0_valid_after_shift;
+assign fetch_buf1_load_rsp_data =
+    fetch_queue_enqueue_data && fetch_buf0_valid_after_shift && !fetch_buf1_valid_after_shift;
+assign fetch_buf0_load_data = fetch_buf0_shift_data || fetch_buf0_load_rsp_data;
+assign fetch_buf1_load_data = fetch_buf1_load_rsp_data;
+assign if_id_fetch_valid = (IMEM_SYNC != 0) ? fetch_queue_valid : 1'b1;
+assign if_id_write_en = pipeline_run && (!stall_decode || ex_decode_flush_valid);
+assign if_id_load_bubble = ex_decode_flush_valid || !if_id_fetch_valid;
+assign if_id_next_valid = if_id_load_bubble ? 1'b0 : 1'b1;
+assign if_id_data_write_en = pipeline_run && !stall_decode;
+assign id_ex_flush_valid_local = ex_decode_flush_valid;
+assign id_ex_stall_bubble_local = stall_decode;
+assign if_id_next_pc = if_id_load_bubble ? ZERO_XLEN : ((IMEM_SYNC != 0) ? fetch_queue_pc : pc_r);
+assign if_id_next_instruction = if_id_load_bubble ? 32'h0000_0013 : ((IMEM_SYNC != 0) ? fetch_queue_instruction : imem_rdata);
 assign ex_control_redirect_pc =
     ex_trap_valid ? csr_mtvec_r :
     ex_mret_valid ? csr_mepc_r :
     ex_redirect_pc;
 assign ex_exec_result_final = id_ex_csr_valid_r ? csr_rdata_ex : ex_exec_result;
+assign pipeline_run = !trap_r && !mem_wait;
+assign csr_write_fire =
+    pipeline_run &&
+    !ex_trap_valid &&
+    id_ex_valid_r &&
+    id_ex_csr_valid_r &&
+    csr_write_en_ex;
+assign csr_mstatus_trap_write = pipeline_run && ex_trap_valid;
+assign csr_mstatus_mret_write = pipeline_run && !ex_trap_valid && ex_mret_valid;
+assign csr_read_valid_ex = id_ex_csr_read_valid_r;
+assign csr_write_allowed_ex = id_ex_csr_write_allowed_r;
+assign csr_mstatus_csr_write = csr_write_fire && (id_ex_csr_sel_r == `YH_rv_cpu_CSR_SEL_MSTATUS);
+assign csr_mie_csr_write = csr_write_fire && (id_ex_csr_sel_r == `YH_rv_cpu_CSR_SEL_MIE);
+assign csr_mtvec_csr_write = csr_write_fire && (id_ex_csr_sel_r == `YH_rv_cpu_CSR_SEL_MTVEC);
+assign csr_mscratch_csr_write = csr_write_fire && (id_ex_csr_sel_r == `YH_rv_cpu_CSR_SEL_MSCRATCH);
+assign csr_mepc_trap_write = pipeline_run && ex_trap_valid;
+assign csr_mepc_csr_write = csr_write_fire && (id_ex_csr_sel_r == `YH_rv_cpu_CSR_SEL_MEPC);
+assign csr_mcause_trap_write = pipeline_run && ex_trap_valid;
+assign csr_mcause_csr_write = csr_write_fire && (id_ex_csr_sel_r == `YH_rv_cpu_CSR_SEL_MCAUSE);
 
 assign csr_rdata_ex =
-    (id_ex_csr_addr_r == `YH_rv_cpu_CSR_MSTATUS)  ? csr_mstatus_r :
-    (id_ex_csr_addr_r == `YH_rv_cpu_CSR_MIE)      ? csr_mie_r :
-    (id_ex_csr_addr_r == `YH_rv_cpu_CSR_MTVEC)    ? csr_mtvec_r :
-    (id_ex_csr_addr_r == `YH_rv_cpu_CSR_MSCRATCH) ? csr_mscratch_r :
-    (id_ex_csr_addr_r == `YH_rv_cpu_CSR_MEPC)     ? csr_mepc_r :
-    (id_ex_csr_addr_r == `YH_rv_cpu_CSR_MCAUSE)   ? csr_mcause_r :
-    (id_ex_csr_addr_r == `YH_rv_cpu_CSR_MIP)      ? csr_mip_value :
+    (id_ex_csr_sel_r == `YH_rv_cpu_CSR_SEL_MSTATUS)  ? csr_mstatus_r :
+    (id_ex_csr_sel_r == `YH_rv_cpu_CSR_SEL_MIE)      ? csr_mie_r :
+    (id_ex_csr_sel_r == `YH_rv_cpu_CSR_SEL_MTVEC)    ? csr_mtvec_r :
+    (id_ex_csr_sel_r == `YH_rv_cpu_CSR_SEL_MSCRATCH) ? csr_mscratch_r :
+    (id_ex_csr_sel_r == `YH_rv_cpu_CSR_SEL_MEPC)     ? csr_mepc_r :
+    (id_ex_csr_sel_r == `YH_rv_cpu_CSR_SEL_MCAUSE)   ? csr_mcause_r :
+    (id_ex_csr_sel_r == `YH_rv_cpu_CSR_SEL_MIP)      ? csr_mip_value :
     ZERO_XLEN;
-
-assign csr_read_valid_ex =
-    (id_ex_csr_addr_r == `YH_rv_cpu_CSR_MSTATUS)  ||
-    (id_ex_csr_addr_r == `YH_rv_cpu_CSR_MIE)      ||
-    (id_ex_csr_addr_r == `YH_rv_cpu_CSR_MTVEC)    ||
-    (id_ex_csr_addr_r == `YH_rv_cpu_CSR_MSCRATCH) ||
-    (id_ex_csr_addr_r == `YH_rv_cpu_CSR_MEPC)     ||
-    (id_ex_csr_addr_r == `YH_rv_cpu_CSR_MCAUSE)   ||
-    (id_ex_csr_addr_r == `YH_rv_cpu_CSR_MIP);
-
-assign csr_write_allowed_ex =
-    (id_ex_csr_addr_r == `YH_rv_cpu_CSR_MSTATUS)  ||
-    (id_ex_csr_addr_r == `YH_rv_cpu_CSR_MIE)      ||
-    (id_ex_csr_addr_r == `YH_rv_cpu_CSR_MTVEC)    ||
-    (id_ex_csr_addr_r == `YH_rv_cpu_CSR_MSCRATCH) ||
-    (id_ex_csr_addr_r == `YH_rv_cpu_CSR_MEPC)     ||
-    (id_ex_csr_addr_r == `YH_rv_cpu_CSR_MCAUSE);
 
 assign csr_access_illegal_ex =
     id_ex_csr_valid_r &&
@@ -261,6 +393,16 @@ assign csr_access_illegal_ex =
         !csr_read_valid_ex ||
         (csr_write_request_ex && !csr_write_allowed_ex)
     );
+
+always @* begin
+    if_id_pc_next_data = if_id_pc_r;
+    if_id_instruction_next_data = if_id_instruction_r;
+
+    if (if_id_data_write_en) begin
+        if_id_pc_next_data = (IMEM_SYNC != 0) ? fetch_queue_pc : pc_r;
+        if_id_instruction_next_data = (IMEM_SYNC != 0) ? fetch_queue_instruction : imem_rdata;
+    end
+end
 
 YH_rv_cpu_if_stage #(
     .XLEN(XLEN)
@@ -320,7 +462,9 @@ YH_rv_cpu_id_stage #(
     .csr_valid     (id_csr_valid),
     .csr_cmd       (id_csr_cmd),
     .csr_use_imm   (id_csr_use_imm),
-    .csr_addr      (id_csr_addr),
+    .csr_sel       (id_csr_sel),
+    .csr_read_valid(id_csr_read_valid),
+    .csr_write_allowed(id_csr_write_allowed),
     .ecall         (id_ecall),
     .ebreak        (id_ebreak),
     .mret          (id_mret),
@@ -431,12 +575,16 @@ always @(posedge clk or negedge rst_n) begin
         pc_r <= RESET_VECTOR;
         trap_r <= 1'b0;
         fetch_pc_r <= ZERO_XLEN;
+        fetch_pc_d1_r <= ZERO_XLEN;
         fetch_valid_r <= 1'b0;
-        fetch_drop_response_r <= 1'b0;
-
-        if_id_valid_r <= 1'b0;
-        if_id_pc_r <= ZERO_XLEN;
-        if_id_instruction_r <= 32'h0000_0013;
+        fetch_valid_d1_r <= 1'b0;
+        fetch_drop_count_r <= 2'd0;
+        fetch_buf0_valid_r <= 1'b0;
+        fetch_buf0_pc_r <= ZERO_XLEN;
+        fetch_buf0_instruction_r <= 32'h0000_0013;
+        fetch_buf1_valid_r <= 1'b0;
+        fetch_buf1_pc_r <= ZERO_XLEN;
+        fetch_buf1_instruction_r <= 32'h0000_0013;
 
         id_ex_valid_r <= 1'b0;
         id_ex_pc_r <= ZERO_XLEN;
@@ -468,7 +616,9 @@ always @(posedge clk or negedge rst_n) begin
         id_ex_csr_valid_r <= 1'b0;
         id_ex_csr_cmd_r <= `YH_rv_cpu_CSR_RW;
         id_ex_csr_use_imm_r <= 1'b0;
-        id_ex_csr_addr_r <= 12'h000;
+        id_ex_csr_sel_r <= `YH_rv_cpu_CSR_SEL_NONE;
+        id_ex_csr_read_valid_r <= 1'b0;
+        id_ex_csr_write_allowed_r <= 1'b0;
         id_ex_ecall_r <= 1'b0;
         id_ex_ebreak_r <= 1'b0;
         id_ex_mret_r <= 1'b0;
@@ -494,26 +644,43 @@ always @(posedge clk or negedge rst_n) begin
         mem_wb_wb_sel_r <= `YH_rv_cpu_WB_ALU;
         mem_wb_exec_result_r <= ZERO_XLEN;
         mem_wb_load_data_r <= ZERO_XLEN;
-        csr_mstatus_r <= ZERO_XLEN;
-        csr_mie_r <= ZERO_XLEN;
-        csr_mtvec_r <= RESET_VECTOR;
-        csr_mscratch_r <= ZERO_XLEN;
-        csr_mepc_r <= ZERO_XLEN;
-        csr_mcause_r <= ZERO_XLEN;
     end else if (!trap_r) begin
+        if (IMEM_SYNC != 0) begin
+            fetch_pc_d1_r <= fetch_pc_r;
+            fetch_valid_d1_r <= fetch_valid_r;
+            fetch_pc_r <= imem_req ? pc_r : ZERO_XLEN;
+            fetch_valid_r <= imem_req;
+            fetch_buf0_valid_r <= fetch_buf0_valid_next;
+            fetch_buf1_valid_r <= fetch_buf1_valid_next;
+            if (fetch_buf0_load_data) begin
+                if (fetch_buf0_load_rsp_data) begin
+                    fetch_buf0_pc_r <= fetch_rsp_pc;
+                    fetch_buf0_instruction_r <= imem_rdata;
+                end else begin
+                    fetch_buf0_pc_r <= fetch_buf1_pc_r;
+                    fetch_buf0_instruction_r <= fetch_buf1_instruction_r;
+                end
+            end
+            if (fetch_buf1_load_data) begin
+                fetch_buf1_pc_r <= fetch_rsp_pc;
+                fetch_buf1_instruction_r <= imem_rdata;
+            end
+            if (imem_rvalid && (fetch_drop_count_r != 2'd0)) begin
+                fetch_drop_count_r <= fetch_drop_count_r - 2'd1;
+            end
+        end else begin
+            fetch_pc_r <= ZERO_XLEN;
+            fetch_pc_d1_r <= ZERO_XLEN;
+            fetch_valid_r <= 1'b0;
+            fetch_valid_d1_r <= 1'b0;
+            fetch_drop_count_r <= 2'd0;
+            fetch_buf0_valid_r <= 1'b0;
+            fetch_buf1_valid_r <= 1'b0;
+        end
+
         if (mem_wait) begin
             mem_wb_valid_r <= 1'b0;
         end else begin
-            if (IMEM_SYNC != 0) begin
-                fetch_pc_r <= pc_r;
-                fetch_valid_r <= 1'b1;
-                fetch_drop_response_r <= fetch_drop_response_r && !imem_rvalid;
-            end else begin
-                fetch_pc_r <= ZERO_XLEN;
-                fetch_valid_r <= 1'b0;
-                fetch_drop_response_r <= 1'b0;
-            end
-
             mem_wb_valid_r <= ex_mem_valid_r;
             mem_wb_pc4_r <= ex_mem_pc4_r;
             mem_wb_rd_addr_r <= ex_mem_rd_addr_r;
@@ -524,51 +691,49 @@ always @(posedge clk or negedge rst_n) begin
 
             if (ex_trap_valid) begin
                 pc_r <= ex_control_redirect_pc;
-                if_id_valid_r <= 1'b0;
                 id_ex_valid_r <= 1'b0;
+                id_ex_pc_r <= ZERO_XLEN;
+                id_ex_pc4_r <= ZERO_XLEN;
+                id_ex_rs1_addr_r <= 5'd0;
+                id_ex_rs2_addr_r <= 5'd0;
+                id_ex_rd_addr_r <= 5'd0;
+                id_ex_rs1_en_r <= 1'b0;
+                id_ex_rs2_en_r <= 1'b0;
+                id_ex_rd_en_r <= 1'b0;
+                id_ex_illegal_r <= 1'b0;
+                id_ex_rs1_value_r <= ZERO_XLEN;
+                id_ex_rs2_value_r <= ZERO_XLEN;
+                id_ex_imm_r <= ZERO_XLEN;
+                id_ex_alu_op_r <= `YH_rv_cpu_ALU_ADD;
+                id_ex_alu_src1_pc_r <= 1'b0;
+                id_ex_alu_src2_imm_r <= 1'b0;
+                id_ex_branch_r <= 1'b0;
+                id_ex_branch_funct3_r <= 3'b000;
+                id_ex_jump_r <= 1'b0;
+                id_ex_jalr_r <= 1'b0;
+                id_ex_load_r <= 1'b0;
+                id_ex_store_r <= 1'b0;
+                id_ex_wb_sel_r <= `YH_rv_cpu_WB_ALU;
+                id_ex_mem_size_r <= `YH_rv_cpu_MEM_W;
+                id_ex_mem_unsigned_r <= 1'b0;
+                id_ex_word_op_r <= 1'b0;
+                id_ex_is_lui_r <= 1'b0;
+                id_ex_csr_valid_r <= 1'b0;
+                id_ex_csr_cmd_r <= `YH_rv_cpu_CSR_RW;
+                id_ex_csr_use_imm_r <= 1'b0;
+                id_ex_csr_sel_r <= `YH_rv_cpu_CSR_SEL_NONE;
+                id_ex_csr_read_valid_r <= 1'b0;
+                id_ex_csr_write_allowed_r <= 1'b0;
+                id_ex_ecall_r <= 1'b0;
+                id_ex_ebreak_r <= 1'b0;
+                id_ex_mret_r <= 1'b0;
                 ex_mem_valid_r <= 1'b0;
                 if (IMEM_SYNC != 0) begin
-                    fetch_drop_response_r <= 1'b1;
+                    fetch_drop_count_r <= IMEM_DROP_COUNT;
+                    fetch_buf0_valid_r <= 1'b0;
+                    fetch_buf1_valid_r <= 1'b0;
                 end
-                csr_mepc_r <= id_ex_pc_r;
-                csr_mcause_r <= ex_trap_cause;
-                csr_mstatus_r <=
-                    (csr_mstatus_r & ~(`YH_rv_cpu_MSTATUS_MIE | `YH_rv_cpu_MSTATUS_MPIE)) |
-                    ((csr_mstatus_r & `YH_rv_cpu_MSTATUS_MIE) << 4);
             end else begin
-                if (id_ex_valid_r && id_ex_csr_valid_r && csr_write_en_ex) begin
-                    case (id_ex_csr_addr_r)
-                        `YH_rv_cpu_CSR_MSTATUS: begin
-                            csr_mstatus_r <= csr_write_data_ex &
-                                (`YH_rv_cpu_MSTATUS_MIE | `YH_rv_cpu_MSTATUS_MPIE);
-                        end
-                        `YH_rv_cpu_CSR_MIE: begin
-                            csr_mie_r <= csr_write_data_ex & `YH_rv_cpu_MIE_MTIE;
-                        end
-                        `YH_rv_cpu_CSR_MTVEC: begin
-                            csr_mtvec_r <= {csr_write_data_ex[XLEN-1:2], 2'b00};
-                        end
-                        `YH_rv_cpu_CSR_MSCRATCH: begin
-                            csr_mscratch_r <= csr_write_data_ex;
-                        end
-                        `YH_rv_cpu_CSR_MEPC: begin
-                            csr_mepc_r <= {csr_write_data_ex[XLEN-1:2], 2'b00};
-                        end
-                        `YH_rv_cpu_CSR_MCAUSE: begin
-                            csr_mcause_r <= csr_write_data_ex;
-                        end
-                        default: begin
-                        end
-                    endcase
-                end
-
-                if (ex_mret_valid) begin
-                    csr_mstatus_r <=
-                        (csr_mstatus_r & ~(`YH_rv_cpu_MSTATUS_MIE | `YH_rv_cpu_MSTATUS_MPIE)) |
-                        ((csr_mstatus_r & `YH_rv_cpu_MSTATUS_MPIE) >> 4) |
-                        `YH_rv_cpu_MSTATUS_MPIE;
-                end
-
                 if (ex_fetch_redirect_valid || !stall_decode) begin
                     pc_r <= if_pc_next;
                 end
@@ -587,34 +752,86 @@ always @(posedge clk or negedge rst_n) begin
                 ex_mem_store_data_r <= ex_store_data;
                 ex_mem_store_wstrb_r <= ex_store_wstrb;
 
-                if (ex_decode_flush_valid) begin
-                    if_id_valid_r <= 1'b0;
+                if (id_ex_flush_valid_local) begin
                     id_ex_valid_r <= 1'b0;
+                    id_ex_pc_r <= ZERO_XLEN;
+                    id_ex_pc4_r <= ZERO_XLEN;
+                    id_ex_rs1_addr_r <= 5'd0;
+                    id_ex_rs2_addr_r <= 5'd0;
+                    id_ex_rd_addr_r <= 5'd0;
+                    id_ex_rs1_en_r <= 1'b0;
+                    id_ex_rs2_en_r <= 1'b0;
+                    id_ex_rd_en_r <= 1'b0;
+                    id_ex_illegal_r <= 1'b0;
+                    id_ex_rs1_value_r <= ZERO_XLEN;
+                    id_ex_rs2_value_r <= ZERO_XLEN;
+                    id_ex_imm_r <= ZERO_XLEN;
+                    id_ex_alu_op_r <= id_alu_op;
+                    id_ex_alu_src1_pc_r <= 1'b0;
+                    id_ex_alu_src2_imm_r <= 1'b0;
+                    id_ex_branch_r <= 1'b0;
+                    id_ex_branch_funct3_r <= 3'b000;
+                    id_ex_jump_r <= 1'b0;
+                    id_ex_jalr_r <= 1'b0;
+                    id_ex_load_r <= 1'b0;
+                    id_ex_store_r <= 1'b0;
+                    id_ex_wb_sel_r <= `YH_rv_cpu_WB_ALU;
+                    id_ex_mem_size_r <= `YH_rv_cpu_MEM_W;
+                    id_ex_mem_unsigned_r <= 1'b0;
+                    id_ex_word_op_r <= 1'b0;
+                    id_ex_is_lui_r <= 1'b0;
+                    id_ex_csr_valid_r <= 1'b0;
+                    id_ex_csr_cmd_r <= `YH_rv_cpu_CSR_RW;
+                    id_ex_csr_use_imm_r <= 1'b0;
+                    id_ex_csr_sel_r <= `YH_rv_cpu_CSR_SEL_NONE;
+                    id_ex_csr_read_valid_r <= 1'b0;
+                    id_ex_csr_write_allowed_r <= 1'b0;
+                    id_ex_ecall_r <= 1'b0;
+                    id_ex_ebreak_r <= 1'b0;
+                    id_ex_mret_r <= 1'b0;
                     if (IMEM_SYNC != 0) begin
-                        fetch_drop_response_r <= 1'b1;
+                        fetch_drop_count_r <= IMEM_DROP_COUNT;
+                        fetch_buf0_valid_r <= 1'b0;
+                        fetch_buf1_valid_r <= 1'b0;
                     end
-                end else if (stall_decode) begin
-                    if_id_valid_r <= if_id_valid_r;
-                    if_id_pc_r <= if_id_pc_r;
-                    if_id_instruction_r <= if_id_instruction_r;
+                end else if (id_ex_stall_bubble_local) begin
                     id_ex_valid_r <= 1'b0;
+                    id_ex_pc_r <= ZERO_XLEN;
+                    id_ex_pc4_r <= ZERO_XLEN;
+                    id_ex_rs1_addr_r <= 5'd0;
+                    id_ex_rs2_addr_r <= 5'd0;
+                    id_ex_rd_addr_r <= 5'd0;
+                    id_ex_rs1_en_r <= 1'b0;
+                    id_ex_rs2_en_r <= 1'b0;
+                    id_ex_rd_en_r <= 1'b0;
+                    id_ex_illegal_r <= 1'b0;
+                    id_ex_rs1_value_r <= ZERO_XLEN;
+                    id_ex_rs2_value_r <= ZERO_XLEN;
+                    id_ex_imm_r <= ZERO_XLEN;
+                    id_ex_alu_op_r <= id_alu_op;
+                    id_ex_alu_src1_pc_r <= 1'b0;
+                    id_ex_alu_src2_imm_r <= 1'b0;
+                    id_ex_branch_r <= 1'b0;
+                    id_ex_branch_funct3_r <= 3'b000;
+                    id_ex_jump_r <= 1'b0;
+                    id_ex_jalr_r <= 1'b0;
+                    id_ex_load_r <= 1'b0;
+                    id_ex_store_r <= 1'b0;
+                    id_ex_wb_sel_r <= `YH_rv_cpu_WB_ALU;
+                    id_ex_mem_size_r <= `YH_rv_cpu_MEM_W;
+                    id_ex_mem_unsigned_r <= 1'b0;
+                    id_ex_word_op_r <= 1'b0;
+                    id_ex_is_lui_r <= 1'b0;
+                    id_ex_csr_valid_r <= 1'b0;
+                    id_ex_csr_cmd_r <= `YH_rv_cpu_CSR_RW;
+                    id_ex_csr_use_imm_r <= 1'b0;
+                    id_ex_csr_sel_r <= `YH_rv_cpu_CSR_SEL_NONE;
+                    id_ex_csr_read_valid_r <= 1'b0;
+                    id_ex_csr_write_allowed_r <= 1'b0;
+                    id_ex_ecall_r <= 1'b0;
+                    id_ex_ebreak_r <= 1'b0;
+                    id_ex_mret_r <= 1'b0;
                 end else begin
-                    if (IMEM_SYNC != 0) begin
-                        if (fetch_valid_r && imem_rvalid && !fetch_drop_response_r) begin
-                            if_id_valid_r <= 1'b1;
-                            if_id_pc_r <= fetch_pc_r;
-                            if_id_instruction_r <= imem_rdata;
-                        end else begin
-                            if_id_valid_r <= 1'b0;
-                            if_id_pc_r <= ZERO_XLEN;
-                            if_id_instruction_r <= 32'h0000_0013;
-                        end
-                    end else begin
-                        if_id_valid_r <= 1'b1;
-                        if_id_pc_r <= pc_r;
-                        if_id_instruction_r <= imem_rdata;
-                    end
-
                     id_ex_valid_r <= if_id_valid_r;
                     id_ex_pc_r <= if_id_pc_r;
                     id_ex_pc4_r <= id_pc4;
@@ -645,13 +862,95 @@ always @(posedge clk or negedge rst_n) begin
                     id_ex_csr_valid_r <= id_csr_valid;
                     id_ex_csr_cmd_r <= id_csr_cmd;
                     id_ex_csr_use_imm_r <= id_csr_use_imm;
-                    id_ex_csr_addr_r <= id_csr_addr;
+                    id_ex_csr_sel_r <= id_csr_sel;
+                    id_ex_csr_read_valid_r <= id_csr_read_valid;
+                    id_ex_csr_write_allowed_r <= id_csr_write_allowed;
                     id_ex_ecall_r <= id_ecall;
                     id_ex_ebreak_r <= id_ebreak;
                     id_ex_mret_r <= id_mret;
                 end
             end
         end
+    end
+end
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        if_id_valid_r <= 1'b0;
+    end else if (if_id_write_en) begin
+        if_id_valid_r <= if_id_next_valid;
+    end
+end
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        if_id_pc_r <= ZERO_XLEN;
+        if_id_instruction_r <= 32'h0000_0013;
+    end else if (pipeline_run) begin
+        if_id_pc_r <= if_id_pc_next_data;
+        if_id_instruction_r <= if_id_instruction_next_data;
+    end
+end
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        csr_mstatus_r <= ZERO_XLEN;
+    end else if (csr_mstatus_trap_write) begin
+        csr_mstatus_r <=
+            (csr_mstatus_r & ~(`YH_rv_cpu_MSTATUS_MIE | `YH_rv_cpu_MSTATUS_MPIE)) |
+            ((csr_mstatus_r & `YH_rv_cpu_MSTATUS_MIE) << 4);
+    end else if (csr_mstatus_mret_write) begin
+        csr_mstatus_r <=
+            (csr_mstatus_r & ~(`YH_rv_cpu_MSTATUS_MIE | `YH_rv_cpu_MSTATUS_MPIE)) |
+            ((csr_mstatus_r & `YH_rv_cpu_MSTATUS_MPIE) >> 4) |
+            `YH_rv_cpu_MSTATUS_MPIE;
+    end else if (csr_mstatus_csr_write) begin
+        csr_mstatus_r <= csr_write_data_ex &
+            (`YH_rv_cpu_MSTATUS_MIE | `YH_rv_cpu_MSTATUS_MPIE);
+    end
+end
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        csr_mie_r <= ZERO_XLEN;
+    end else if (csr_mie_csr_write) begin
+        csr_mie_r <= csr_write_data_ex & `YH_rv_cpu_MIE_MTIE;
+    end
+end
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        csr_mtvec_r <= RESET_VECTOR;
+    end else if (csr_mtvec_csr_write) begin
+        csr_mtvec_r <= {csr_write_data_ex[XLEN-1:2], 2'b00};
+    end
+end
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        csr_mscratch_r <= ZERO_XLEN;
+    end else if (csr_mscratch_csr_write) begin
+        csr_mscratch_r <= csr_write_data_ex;
+    end
+end
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        csr_mepc_r <= ZERO_XLEN;
+    end else if (csr_mepc_trap_write) begin
+        csr_mepc_r <= id_ex_pc_r;
+    end else if (csr_mepc_csr_write) begin
+        csr_mepc_r <= {csr_write_data_ex[XLEN-1:2], 2'b00};
+    end
+end
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        csr_mcause_r <= ZERO_XLEN;
+    end else if (csr_mcause_trap_write) begin
+        csr_mcause_r <= ex_trap_cause;
+    end else if (csr_mcause_csr_write) begin
+        csr_mcause_r <= csr_write_data_ex;
     end
 end
 

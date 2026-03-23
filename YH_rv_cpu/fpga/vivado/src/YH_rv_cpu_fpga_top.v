@@ -2,6 +2,8 @@ module YH_rv_cpu_fpga_top #(
     parameter integer XLEN = 32,
     parameter integer CLK_FREQ_HZ = 100_000_000,
     parameter integer UART_BAUD = 115200,
+    parameter integer IMEM_OUTPUT_REG = 1,
+    parameter integer DMEM_OUTPUT_REG = 1,
     parameter integer ROM_BYTES = 4096,
     parameter integer RAM_BYTES = 4096,
     parameter string  ROM_INIT_HEX = "",
@@ -47,7 +49,9 @@ end
 YH_rv_cpu_soc #(
     .XLEN             (XLEN),
     .SYNC_IMEM        (1),
+    .IMEM_OUTPUT_REG  (IMEM_OUTPUT_REG),
     .SYNC_DMEM        (1),
+    .DMEM_OUTPUT_REG  (DMEM_OUTPUT_REG),
     .RESET_VECTOR     ({XLEN{1'b0}}),
     .ROM_BYTES        (ROM_BYTES),
     .RAM_BYTES        (RAM_BYTES),

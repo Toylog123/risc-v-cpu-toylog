@@ -125,5 +125,23 @@ run_checked "report_utilization" [list report_utilization -file [file join $repo
 run_checked "report_timing_summary" [list report_timing_summary -file [file join $report_dir synth_timing_summary.rpt]]
 
 puts "INFO: Clock period = ${clock_period_ns} ns"
-puts "INFO: Synthesis completed. Reports written to $report_dir"
+if {$flow_mode eq "synth"} {
+    puts "INFO: Synthesis completed. Reports written to $report_dir"
+    exit 0
+}
+
+if {$flow_mode ne "impl"} {
+    error "Unsupported flow mode: $flow_mode"
+}
+
+run_checked "opt_design" [list opt_design -directive Explore]
+run_checked "place_design" [list place_design -directive Explore]
+run_checked "phys_opt_design_pre_route" [list phys_opt_design -directive AggressiveExplore]
+run_checked "route_design" [list route_design -directive Explore]
+run_checked "phys_opt_design_post_route" [list phys_opt_design -directive AggressiveExplore]
+run_checked "report_impl_utilization" [list report_utilization -file [file join $report_dir impl_utilization.rpt]]
+run_checked "report_impl_timing_summary" [list report_timing_summary -file [file join $report_dir impl_timing_summary.rpt]]
+run_checked "write_impl_checkpoint" [list write_checkpoint -force [file join $build_dir ${project_name}_${clock_tag}_impl.dcp]]
+
+puts "INFO: Implementation completed. Reports written to $report_dir"
 exit 0

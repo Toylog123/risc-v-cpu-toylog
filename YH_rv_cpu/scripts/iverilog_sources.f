@@ -4,6 +4,7 @@ tb/YH_rv_cpu_timer_irq_tb.v
 tb/YH_rv_cpu_xlen64_tb.v
 rtl/YH_rv_cpu_soc.v
 rtl/YH_rv_sync_imem_rom.v
+rtl/YH_rv_sync_rom32.v
 rtl/YH_rv_dmem_ram.v
 tb/YH_rv_cpu_tb.v
 rtl/YH_rv_cpu.v

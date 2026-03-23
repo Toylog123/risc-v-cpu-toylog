@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 setlocal
 
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
@@ -10,6 +10,7 @@ set WORD_HEX_PY=%PROJECT_DIR%\scripts\make_word_hex.py
 set GCC=
 set OBJDUMP=
 set OBJCOPY=
+set PYTHON_CMD=
 set USER_HOME=%USERPROFILE%
 set RISCV_XPACK_ROOT=%USER_HOME%\AppData\Roaming\xPacks\@xpack-dev-tools\riscv-none-elf-gcc
 
@@ -92,6 +93,12 @@ if not defined OBJCOPY (
     exit /b 1
 )
 
+call "%~dp0resolve_python.bat" PYTHON_CMD
+if not defined PYTHON_CMD (
+    echo Missing Python.
+    exit /b 1
+)
+
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
 %GCC% -march=rv32i_zicsr -mabi=ilp32 -nostdlib -ffreestanding -Os ^
@@ -109,7 +116,7 @@ if errorlevel 1 exit /b 1
 %OBJCOPY% -O verilog "%BUILD_DIR%\%OUTPUT_NAME%.elf" "%BUILD_DIR%\%OUTPUT_NAME%.hex"
 if errorlevel 1 exit /b 1
 
-python "%WORD_HEX_PY%" "%BUILD_DIR%\%OUTPUT_NAME%.bin" "%BUILD_DIR%\%OUTPUT_NAME%.mem32.hex"
+%PYTHON_CMD% "%WORD_HEX_PY%" "%BUILD_DIR%\%OUTPUT_NAME%.bin" "%BUILD_DIR%\%OUTPUT_NAME%.mem32.hex"
 if errorlevel 1 exit /b 1
 
 echo Built:
@@ -119,3 +126,4 @@ echo   %BUILD_DIR%\%OUTPUT_NAME%.bin
 echo   %BUILD_DIR%\%OUTPUT_NAME%.hex
 echo   %BUILD_DIR%\%OUTPUT_NAME%.mem32.hex
 exit /b 0
+

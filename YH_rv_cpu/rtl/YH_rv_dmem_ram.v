@@ -1,7 +1,8 @@
 module YH_rv_dmem_ram #(
     parameter integer XLEN = 32,
     parameter integer RAM_BYTES = 16384,
-    parameter integer SYNC_READ = 0
+    parameter integer SYNC_READ = 0,
+    parameter integer OUTPUT_REG = 0
 ) (
     input  wire            clk,
     input  wire            read_req,
@@ -27,10 +28,11 @@ generate
     if (SYNC_READ != 0) begin : g_sync_ram
         (* ram_style = "block" *) reg [XLEN-1:0] ram_mem [0:RAM_DEPTH-1];
         reg [XLEN-1:0] read_data_r;
+        reg [XLEN-1:0] read_data_pipe_r;
         integer idx;
         integer byte_idx;
 
-        assign read_data = read_data_r;
+        assign read_data = (OUTPUT_REG != 0) ? read_data_pipe_r : read_data_r;
 
         initial begin
 `ifndef SYNTHESIS
@@ -51,6 +53,10 @@ generate
 
             if (read_req && (read_index < RAM_DEPTH)) begin
                 read_data_r <= ram_mem[read_index];
+            end
+
+            if (OUTPUT_REG != 0) begin
+                read_data_pipe_r <= read_data_r;
             end
         end
     end else begin : g_async_ram

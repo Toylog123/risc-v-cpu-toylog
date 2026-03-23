@@ -80,3 +80,23 @@
 - `待办` 推进 `imem/ROM` 包装层，减少 LUT ROM 占用
 - `待办` 评估给 `dmem` BRAM 增加可选输出寄存器，继续改善时序
 - `待办` 在新资源口径下补一轮 `CoreMark` 和更完整 `rv64` 回归
+
+## 2026-03-23 追加状态：工作区统一与日志归档
+
+- `已完成` 正式工作区统一到 `当前仓库根目录（icdc_workspace）`
+- `已完成` 新增 Vivado GUI 统一入口 `scripts/open_vivado_project.bat`
+- `已完成` 新增日志整理脚本 `scripts/organize_tool_logs.bat`
+- `已完成` 新增仿真运行时收纳脚本 `scripts/stage_runtime_to_tmp.bat`
+- `待办` 基于当前工作区重跑一轮最新 `soc smoke` 与 Vivado 工程入口验证
+- `待办` 回到主技术线，继续推进 `100MHz` / `imem/ROM` / `CoreMark`
+
+## 2026-03-23 追加状态：正式交接前校对
+
+- `已完成` 当前唯一正式工作区固定为当前仓库根目录 `icdc_workspace`
+- `已完成` 把 `vivado.log/.jou`、`xsim` 运行目录和 `clockInfo.txt` 统一收纳到仓库根 `_tmp/`
+- `已完成` 重新跑通 `check_syntax`、`build_firmware`、`soc smoke`、`trap smoke`、`timer irq smoke`
+- `已完成` 当前最新可用 `impl100` 已经达到 `WNS = +0.103ns`
+- `待办` 接上 `CoreMark` 并形成稳定跑分记录
+- `待办` 扩大 `RV64` 和更完整 `riscv-tests` 回归
+- `待办` 板卡到位后冻结正式 `XDC` 并推进上板
+- `待办` 如需统一双频率对外口径，基于当前 RTL 补跑 `synth50`

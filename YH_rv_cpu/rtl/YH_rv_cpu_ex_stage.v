@@ -34,6 +34,9 @@ localparam integer BYTE_OFFSET_W = $clog2(STRB_W);
 wire [XLEN-1:0] alu_lhs;
 wire [XLEN-1:0] alu_rhs;
 wire [XLEN-1:0] alu_result;
+wire [XLEN-1:0] rs1_plus_imm;
+wire [XLEN-1:0] pc_plus_imm;
+wire [XLEN-1:0] jalr_target;
 reg  [31:0]     word_result;
 wire            alu_eq;
 wire            alu_lt;
@@ -45,6 +48,9 @@ wire [XLEN-1:0] word_result_sext;
 
 assign alu_lhs = is_lui ? {XLEN{1'b0}} : (alu_src1_pc ? pc : rs1_value);
 assign alu_rhs = alu_src2_imm ? imm : rs2_value;
+assign rs1_plus_imm = rs1_value + imm;
+assign pc_plus_imm = pc + imm;
+assign jalr_target = {rs1_plus_imm[XLEN-1:1], 1'b0};
 assign byte_offset = mem_addr[BYTE_OFFSET_W-1:0];
 assign word_result_sext = {{(XLEN-32){word_result[31]}}, word_result};
 
@@ -70,10 +76,10 @@ assign branch_taken =
         ((branch_funct3 == 3'b111) && !alu_ltu)
     );
 
-assign mem_addr = alu_result;
+assign mem_addr = rs1_plus_imm;
 assign exec_result = is_lui ? imm : ((word_op && (XLEN == 64)) ? word_result_sext : alu_result);
 assign redirect_en = jump || branch_taken;
-assign redirect_pc = jump ? (jalr ? {alu_result[XLEN-1:1], 1'b0} : (pc + imm)) : (pc + imm);
+assign redirect_pc = jump ? (jalr ? jalr_target : pc_plus_imm) : pc_plus_imm;
 
 assign misaligned_mem =
     (load || store) && (

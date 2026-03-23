@@ -1,9 +1,14 @@
+// 文件说明：YH_rv_cpu 内核基础自检测试平台。
+// 作用：在简化的指令存储器和数据存储器模型上验证基础算术、访存和分支流程。
+// 备注：用于快速检查核心单元在最小系统环境下的基本功能是否正确。
+
 `timescale 1ns / 1ps
 
 module YH_rv_cpu_tb;
 
 reg         clk;
 reg         rst_n;
+wire        imem_req;
 wire [31:0] imem_addr;
 wire [31:0] imem_rdata;
 wire        imem_rvalid;
@@ -29,6 +34,7 @@ YH_rv_cpu dut (
     .clk       (clk),
     .rst_n     (rst_n),
     .timer_irq (1'b0),
+    .imem_req  (imem_req),
     .imem_addr (imem_addr),
     .imem_rdata(imem_rdata),
     .imem_rvalid(imem_rvalid),

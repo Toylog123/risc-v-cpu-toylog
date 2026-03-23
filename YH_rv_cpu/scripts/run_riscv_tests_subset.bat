@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 setlocal EnableDelayedExpansion
 
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
@@ -24,6 +24,7 @@ set OBJCOPY=
 set XVLOG=
 set XELAB=
 set XSIM=
+set PYTHON_CMD=
 set USER_HOME=%USERPROFILE%
 set RISCV_XPACK_ROOT=%USER_HOME%\AppData\Roaming\xPacks\@xpack-dev-tools\riscv-none-elf-gcc
 set WORD_HEX_PY=%PROJECT_DIR%\scripts\make_word_hex.py
@@ -98,6 +99,12 @@ if not defined GCC (
 
 if not defined OBJCOPY (
     echo Missing RISC-V objcopy.
+    exit /b 1
+)
+
+call "%~dp0resolve_python.bat" PYTHON_CMD
+if not defined PYTHON_CMD (
+    echo Missing Python.
     exit /b 1
 )
 
@@ -187,7 +194,7 @@ for %%N in (%TEST_LIST%) do (
     %OBJCOPY% -O binary "!TEST_ELF!" "!TEST_BIN!"
     if errorlevel 1 goto :fail
 
-    python "%WORD_HEX_PY%" "!TEST_BIN!" "!TEST_MEM32_HEX!"
+    %PYTHON_CMD% "%WORD_HEX_PY%" "!TEST_BIN!" "!TEST_MEM32_HEX!"
     if errorlevel 1 goto :fail
 
     copy /y "!TEST_HEX!" "%BUILD_DIR%\current.hex" >nul
@@ -232,6 +239,7 @@ echo   %SUMMARY_FILE%
 
 :done
 popd
+call "%~dp0stage_runtime_to_tmp.bat" riscv_tests_%TARGET%
 exit /b %RUN_STATUS%
 
 :timestamp
@@ -240,3 +248,4 @@ set TS_VALUE=
 for /f "usebackq delims=" %%T in (`powershell -NoProfile -Command "(Get-Date).ToString('yyyy-MM-ddTHH:mm:ssK')"`) do set TS_VALUE=%%T
 endlocal & set "%~1=%TS_VALUE%"
 exit /b 0
+

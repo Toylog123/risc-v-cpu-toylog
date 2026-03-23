@@ -1,4 +1,4 @@
-# YH_rv_cpu
+﻿# YH_rv_cpu
 
 ## 项目定位
 
@@ -74,7 +74,8 @@ scripts\run_riscv_tests_subset.bat rv32 add
 scripts\build_vivado_project.bat synth
 scripts\build_vivado_project.bat synth100
 scripts\build_vivado_project.bat synth50
-scripts\clean_vivado_project.bat
+scripts\\clean_vivado_project.bat
+scripts\\open_vivado_project.bat
 ```
 
 ## 当前验证结果
@@ -220,3 +221,4 @@ scripts\clean_vivado_project.bat
   1. 把 `imem/ROM` 也收成更适合 BRAM 的结构
   2. 评估给 `dmem` BRAM 增加额外输出寄存器，继续压 `100MHz`
   3. 在新资源口径上继续推进 `rv64` 和 `CoreMark`
+

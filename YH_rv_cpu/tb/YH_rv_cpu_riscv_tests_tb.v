@@ -1,3 +1,7 @@
+// 文件说明：riscv-tests 通用回归测试平台。
+// 作用：按参数加载不同测试镜像，监控 tohost 写回结果并判定通过或失败。
+// 备注：是 rv32/rv64 子集回归脚本复用的主测试平台。
+
 `timescale 1ns / 1ps
 
 module YH_rv_cpu_riscv_tests_tb #(
@@ -12,6 +16,7 @@ localparam integer BUS_ALIGN_LSB = (XLEN == 64) ? 3 : 2;
 
 reg                  clk;
 reg                  rst_n;
+wire                 imem_req;
 wire [XLEN-1:0]      imem_addr;
 wire [31:0]          imem_rdata;
 wire                 imem_rvalid;
@@ -79,6 +84,7 @@ YH_rv_cpu #(
     .clk       (clk),
     .rst_n     (rst_n),
     .timer_irq (1'b0),
+    .imem_req  (imem_req),
     .imem_addr (imem_addr),
     .imem_rdata(imem_rdata),
     .imem_rvalid(imem_rvalid),

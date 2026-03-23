@@ -15,6 +15,16 @@ if /I "%MODE%"=="synth100" (
     if not defined CLOCK_PERIOD_NS_OVERRIDE set CLOCK_PERIOD_NS_OVERRIDE=10.000
 )
 
+if /I "%MODE%"=="impl50" (
+    set MODE=impl
+    if not defined CLOCK_PERIOD_NS_OVERRIDE set CLOCK_PERIOD_NS_OVERRIDE=20.000
+)
+
+if /I "%MODE%"=="impl100" (
+    set MODE=impl
+    if not defined CLOCK_PERIOD_NS_OVERRIDE set CLOCK_PERIOD_NS_OVERRIDE=10.000
+)
+
 set VIVADO_CMD=
 set PHYSICAL_SCRIPT_DIR=%~dp0
 set SCRIPT_DIR=%PHYSICAL_SCRIPT_DIR%
@@ -41,9 +51,12 @@ if not defined MAPPED_ROOT (
 )
 
 set SCRIPT_DIR=%MAPPED_ROOT%YH_rv_cpu\scripts\
-
-set PROJECT_DIR=%SCRIPT_DIR%..\..\project
-set USERDATA_ROOT=%PROJECT_DIR%\.vivado_user
+set PROJECT_DIR=%MAPPED_ROOT%project
+set TMP_ROOT=%MAPPED_ROOT%_tmp
+set USERDATA_ROOT=%TMP_ROOT%\vivado_user
+set VIVADO_LOG_ROOT=%TMP_ROOT%\tool_logs\vivado
+set VIVADO_LOG_FILE=%VIVADO_LOG_ROOT%\vivado_%MODE%.log
+set VIVADO_JOU_FILE=%VIVADO_LOG_ROOT%\vivado_%MODE%.jou
 set USERPROFILE=%USERDATA_ROOT%\profile
 set HOME=%USERPROFILE%
 set APPDATA=%USERDATA_ROOT%\AppData\Roaming
@@ -52,6 +65,8 @@ set TEMP=%USERDATA_ROOT%\Temp
 set TMP=%USERDATA_ROOT%\Temp
 
 if not exist "%PROJECT_DIR%" mkdir "%PROJECT_DIR%"
+if not exist "%TMP_ROOT%" mkdir "%TMP_ROOT%"
+if not exist "%VIVADO_LOG_ROOT%" mkdir "%VIVADO_LOG_ROOT%"
 if not exist "%USERPROFILE%" mkdir "%USERPROFILE%"
 if not exist "%APPDATA%" mkdir "%APPDATA%"
 if not exist "%LOCALAPPDATA%" mkdir "%LOCALAPPDATA%"
@@ -116,8 +131,10 @@ echo Using mapped repo root: %MAPPED_ROOT%
 if defined ROM_INIT_HEX_OVERRIDE echo Using ROM_INIT_HEX_OVERRIDE=%ROM_INIT_HEX_OVERRIDE%
 if defined ROM_INIT_MEM32_HEX_OVERRIDE echo Using ROM_INIT_MEM32_HEX_OVERRIDE=%ROM_INIT_MEM32_HEX_OVERRIDE%
 
+if exist "%SCRIPT_DIR%organize_tool_logs.bat" call "%SCRIPT_DIR%organize_tool_logs.bat"
+
 pushd "%PROJECT_DIR%"
-call "%VIVADO_CMD%" -mode batch -notrace -source "%TCL_PATH%" -tclargs %MODE%
+call "%VIVADO_CMD%" -mode batch -notrace -log "%VIVADO_LOG_FILE%" -journal "%VIVADO_JOU_FILE%" -source "%TCL_PATH%" -tclargs %MODE%
 set EC=%ERRORLEVEL%
 popd
 if defined CREATED_MAP subst %MAP_DRIVE% /d >nul 2>nul

@@ -1,13 +1,18 @@
+// 文件说明：YH_rv_cpu SoC 冒烟测试平台。
+// 作用：加载演示程序并检查 UART 输出、done 信号和无异常退出路径。
+// 备注：适合作为系统级连通性和基础启动链路的回归入口。
+
 `timescale 1ns / 1ps
 
 module YH_rv_cpu_soc_tb;
 
 localparam string ROM_HEX = "build/sw/YH_rv_cpu_demo.hex";
+localparam string ROM_MEM32_HEX = "build/sw/YH_rv_cpu_demo.mem32.hex";
 localparam integer EXPECTED_LEN = 15;
-localparam integer DEBUG_TRACE = 0;
 
 reg         clk;
 reg         rst_n;
+reg         debug_trace;
 wire        trap;
 wire [31:0] debug_pc;
 wire        uart_tx_valid;
@@ -22,8 +27,12 @@ integer uart_count;
 integer idx;
 
 YH_rv_cpu_soc #(
+    .SYNC_IMEM(1),
+    .IMEM_OUTPUT_REG(1),
     .SYNC_DMEM(1),
-    .ROM_INIT_HEX(ROM_HEX)
+    .DMEM_OUTPUT_REG(1),
+    .ROM_INIT_HEX(ROM_HEX),
+    .ROM_INIT_MEM32_HEX(ROM_MEM32_HEX)
 ) dut (
     .clk         (clk),
     .rst_n       (rst_n),
@@ -37,19 +46,35 @@ YH_rv_cpu_soc #(
 
 always #5 clk = ~clk;
 
+initial begin
+    debug_trace = 1'b0;
+    if ($test$plusargs("debug_trace")) begin
+        debug_trace = 1'b1;
+    end
+end
+
 always @(posedge clk) begin
     if (rst_n) begin
         cycle <= cycle + 1;
 
-        if (DEBUG_TRACE && (cycle < 40)) begin
+        if (debug_trace && (cycle < 80)) begin
             $display(
-                "TRACE cycle=%0d pc=%h if_id_v=%0d if_id_pc=%h id_ex_v=%0d id_ex_pc=%h ex_mem_v=%0d mem_wb_v=%0d trap=%0d done=%0d x12=%h x13=%h x14=%h x15=%h daddr=%h dwdata=%h wstrb=%h",
+                "TRACE cycle=%0d pc=%h req=%0d fetch_pc=%h fetch_pc_d1=%h drop=%0d if_id_v=%0d if_id_pc=%h if_id_insn=%h id_ex_v=%0d id_ex_pc=%h br=%0d j=%0d ld=%0d st=%0d ex_mem_v=%0d mem_wb_v=%0d trap=%0d done=%0d x12=%h x13=%h x14=%h x15=%h daddr=%h dwdata=%h wstrb=%h",
                 cycle,
                 debug_pc,
+                dut.u_cpu.imem_req,
+                dut.u_cpu.fetch_pc_r,
+                dut.u_cpu.fetch_pc_d1_r,
+                dut.u_cpu.fetch_drop_count_r,
                 dut.u_cpu.if_id_valid_r,
                 dut.u_cpu.if_id_pc_r,
+                dut.u_cpu.if_id_instruction_r,
                 dut.u_cpu.id_ex_valid_r,
                 dut.u_cpu.id_ex_pc_r,
+                dut.u_cpu.id_ex_branch_r,
+                dut.u_cpu.id_ex_jump_r,
+                dut.u_cpu.id_ex_load_r,
+                dut.u_cpu.id_ex_store_r,
                 dut.u_cpu.ex_mem_valid_r,
                 dut.u_cpu.mem_wb_valid_r,
                 trap,
@@ -69,7 +94,7 @@ always @(posedge clk) begin
             uart_count <= uart_count + 1;
             $write("%c", uart_tx_data);
 
-            if (DEBUG_TRACE) begin
+            if (debug_trace) begin
                 $display(
                     "\nUART byte[%0d]=0x%02h (%c) a2=%h daddr=%h dwdata=%h",
                     uart_count,

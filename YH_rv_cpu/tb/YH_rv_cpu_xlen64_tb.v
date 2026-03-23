@@ -1,9 +1,14 @@
+// 文件说明：RV64 基础冒烟测试平台。
+// 作用：在 64 位配置下验证宽数据通路、装载/存储和 W 类指令的基本行为。
+// 备注：主要覆盖当前 RV64 骨架实现的核心烟测场景。
+
 `timescale 1ns / 1ps
 
 module YH_rv_cpu_xlen64_tb;
 
 reg         clk;
 reg         rst_n;
+wire        imem_req;
 wire [63:0] imem_addr;
 wire [31:0] imem_rdata;
 wire        imem_rvalid;
@@ -46,6 +51,7 @@ YH_rv_cpu #(
     .clk       (clk),
     .rst_n     (rst_n),
     .timer_irq (1'b0),
+    .imem_req  (imem_req),
     .imem_addr (imem_addr),
     .imem_rdata(imem_rdata),
     .imem_rvalid(imem_rvalid),

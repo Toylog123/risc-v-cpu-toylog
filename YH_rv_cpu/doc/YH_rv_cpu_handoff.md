@@ -307,3 +307,131 @@
 - 还缺一版板卡到位后的正式 `XDC` 记录
 - 还缺 `CoreMark` 稳定跑分记录
 - 还缺 `RV64` 扩展后的系统回归摘要
+
+## 2026-03-23 当前交接摘要（工作区统一与临时文件收纳）
+
+### 1. 项目是什么
+
+- 当前正式工作区已经统一为 `当前仓库根目录（icdc_workspace）`
+- 当前正式比赛工程仍然是 `YH_rv_cpu`
+- 这次工作不是技术方向切换，而是把工作区、Vivado 临时文件和交接入口彻底收口到单一目录
+
+### 2. 当前做到哪一步
+
+- 旧中文工作区已整体迁入当前工作区 `_tmp/legacy/`
+- 之后只再使用 `当前仓库根目录（icdc_workspace）`
+- 当前 `git status` 仍是本地脏工作区，说明技术主线改动尚未提交，这次整理属于 local-only 交接准备
+- Vivado / xsim 运行日志已经有统一收纳入口，不再默认散落在仓库根目录
+
+### 3. 已完成的关键工作
+
+- 新增 `YH_rv_cpu/scripts/open_vivado_project.bat`
+- 新增 `YH_rv_cpu/scripts/organize_tool_logs.bat`
+- 新增 `YH_rv_cpu/scripts/stage_runtime_to_tmp.bat`
+- 新增 `YH_rv_cpu/scripts/resolve_python.bat`
+- `build_vivado_project.bat` 改为把 Vivado 用户态缓存和 `log/jou` 收口到仓库根 `_tmp/`
+- `_tmp/README.md` 与 `YH_rv_cpu/doc/项目结构说明.md` 已补齐当前目录约定
+
+### 4. 当前阻塞与风险
+
+- 当前技术主线改动仍未 commit / push，交接时必须明确“当前依赖本地未提交状态”
+- `100MHz`、`CoreMark`、`RV64` 等主线任务并没有因为本轮整理而完成，仍需回到技术推进
+- 如果直接双击 `.xpr` 或从错误目录启动 Vivado，仍可能再次生成散落日志；应优先使用 `open_vivado_project.bat`
+
+### 5. 下一步最值得做的 3 到 5 项
+
+1. 只在 `当前仓库根目录（icdc_workspace）` 继续工作
+2. 用新的脚本入口复跑一次当前工作区的 `soc smoke` 和 Vivado 工程入口，确认整理后的运行目录完全稳定
+3. 回到主技术线，继续推进 `100MHz` / `imem/ROM` / `CoreMark`
+4. 在正式 handoff 前，基于当前工作区补一次最新的交接摘要和 `git status`
+
+### 6. 关键文档与命令
+
+- 当前项目总览：`README.md`
+- 当前项目交接：`01-项目管理/03-过程管理/工作交接.md`
+- 工程内技术交接：`YH_rv_cpu/doc/YH_rv_cpu_handoff.md`
+- 新的 Vivado GUI 入口：`YH_rv_cpu/scripts/open_vivado_project.bat`
+- 日志整理入口：`YH_rv_cpu/scripts/organize_tool_logs.bat`
+- 仿真运行时收纳入口：`YH_rv_cpu/scripts/stage_runtime_to_tmp.bat`
+
+### 7. 文档缺口与建议补齐项
+
+- 还缺一版基于当前 `icdc_workspace` 最新状态的综合 / 实现口径交接摘要
+- 还缺 `CoreMark` 与 `RV64` 的完整回归记录
+- 当前这次整理还没有形成新的 commit 和 push，后续正式交接时要单独写清 push 状态
+
+
+## 2026-03-23 当前交接摘要（正式提交版）
+
+### 1. 项目是什么
+
+- 当前正式比赛工程是 `YH_rv_cpu`
+- 当前唯一正式工作区是当前仓库根目录 `icdc_workspace`
+- 本次交接对应的真实状态是：RTL 主线、验证脚本、Vivado 本地工程入口和日志收纳规则都已经落在同一套目录结构内
+
+### 2. 当前做到哪一步
+
+- `imem/ROM` 包装层、`dmem` 包装层和同步存储返回语义已经接入主线
+- `dmem` 已被 Vivado 推成 `BRAM`
+- 当前最新可用 Vivado 结果为 2026-03-20：
+  - `synth100`：`WNS = +0.261ns`，`2548 LUT / 2229 FF / 4 BRAM / 0 DSP`
+  - `impl100`：`WNS = +0.103ns`，`2543 LUT / 2230 FF / 4 BRAM / 0 DSP`
+- `synth50` 最新可用报告仍为 2026-03-20 10:43：`WNS = +6.237ns`，`2842 LUT / 2314 FF / 2 BRAM / 0 DSP`，但这份报告没有在最新 `4 BRAM` 基线上复跑
+- 2026-03-23 已重新验证通过：
+  - `scripts/check_syntax.bat`
+  - `scripts/build_firmware.bat`
+  - `scripts/run_soc_smoke.bat`
+  - `scripts/run_trap_smoke.bat`
+  - `scripts/run_timer_irq_smoke.bat`
+
+### 3. 已完成的关键工作
+
+- `rtl/YH_rv_sync_rom32.v`、`rtl/YH_rv_sync_imem_rom.v`、`rtl/YH_rv_dmem_ram.v` 已形成当前主线的存储包装结构
+- `rtl/YH_rv_cpu.v`、`rtl/YH_rv_cpu_soc.v` 已接上同步取指 / 同步数据返回和现有控制逻辑
+- `100MHz` 当前实现口径已经过线，主阻塞从“必须先过频”转为“后续继续留裕量”
+- 工具链与目录整理已经固化：
+  - `scripts/open_vivado_project.bat`
+  - `scripts/organize_tool_logs.bat`
+  - `scripts/stage_runtime_to_tmp.bat`
+  - `scripts/resolve_python.bat`
+- `clockInfo.txt`、`vivado.log/.jou`、`xsim` 运行目录都已经收口到仓库根 `_tmp/`
+
+### 4. 当前阻塞与风险
+
+- `impl100` 只剩 `+0.103ns` 裕量，后续任何结构调整都可能把它重新压回负值
+- `CoreMark` 仍未形成稳定跑分链路
+- `RV64` 和更完整 `riscv-tests` 仍不是正式回归状态
+- 正式板卡、正式 `XDC` 和上板闭环仍未落地
+- 当前双频率对外口径尚未在同一份最新 RTL 上完整复跑
+
+### 5. 下一步最值得做的 3 到 5 项
+
+1. 接 `CoreMark` 并形成稳定跑分记录
+2. 扩大 `RV64` 和更完整 `riscv-tests` 回归
+3. 如需统一外部口径，基于当前 RTL 重跑 `synth50 / synth100 / impl100`
+4. 板卡到位后冻结正式 `XDC` 并推进上板
+
+### 6. 关键文档与命令
+
+- 技术总文档：`doc/技术文档.md`
+- 当前 handoff：`doc/YH_rv_cpu_handoff.md`
+- 当前任务：`doc/YH_rv_cpu_todo.md`
+- 修改记录：`doc/YH_rv_cpu_change_log.md`
+- 目录规则：`doc/项目结构说明.md`
+- 常用命令：
+  - `scripts/check_syntax.bat`
+  - `scripts/build_firmware.bat`
+  - `scripts/run_soc_smoke.bat`
+  - `scripts/run_trap_smoke.bat`
+  - `scripts/run_timer_irq_smoke.bat`
+  - `scripts/build_vivado_project.bat synth100`
+  - `scripts/build_vivado_project.bat impl100`
+  - `scripts/open_vivado_project.bat`
+  - `scripts/organize_tool_logs.bat`
+
+### 7. 文档缺口与建议补齐项
+
+- 缺 `CoreMark` 稳定跑分记录
+- 缺 `RV64` / 更完整 `riscv-tests` 的正式回归摘要
+- 缺正式板卡 `XDC`、上板日志和演示记录
+- 如需固化双频率统一口径，建议补一版当前 `4 BRAM` 基线下的 `synth50`

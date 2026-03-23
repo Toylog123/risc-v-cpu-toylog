@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 setlocal
 
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
@@ -79,4 +79,7 @@ set RUN_STATUS=%ERRORLEVEL%
 
 :done
 popd
+call "%~dp0stage_runtime_to_tmp.bat" xlen64_smoke
 exit /b %RUN_STATUS%
+
+

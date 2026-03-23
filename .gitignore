@@ -25,8 +25,11 @@ YH_rv_cpu/xsim_*.backup.log
 /vivado*.log
 /vivado_*.backup.jou
 /vivado_*.backup.log
+/clockInfo.txt
 
 # 这些目录只在本地保留，不进入当前 Git 仓库。
 /02-官方与规范/
 /03-参考实现/
 /05-验证测试/
+/_tmp/*
+!/_tmp/README.md

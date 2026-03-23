@@ -167,3 +167,45 @@
 - 当前结论
   - `dmem` BRAM 路线已验证成功
   - 下一步重点转向 `imem/ROM` 和 `100MHz` 时序收敛
+
+## 变更 18：统一工作区到 icdc_workspace，并收纳 Vivado / xsim 临时文件
+
+- 当前正式工作区统一为 `当前仓库根目录（icdc_workspace）`
+- 新增脚本：
+  - `scripts/open_vivado_project.bat`
+  - `scripts/organize_tool_logs.bat`
+  - `scripts/stage_runtime_to_tmp.bat`
+  - `scripts/resolve_python.bat`
+- `scripts/build_vivado_project.bat`
+  - Vivado 用户态缓存改为落在仓库根 `_tmp/vivado_user/`
+  - `vivado.log` / `vivado.jou` 改为落在仓库根 `_tmp/tool_logs/vivado/`
+- `run_*` 仿真脚本
+  - 运行后会把 `xsim.dir` 和 `xvlog/xelab/xsim` 日志归档到仓库根 `_tmp/`
+- 文档新增：
+  - `_tmp/README.md`
+  - `doc/项目结构说明.md`
+- 旧中文工作区已迁入当前工作区 `_tmp/legacy/`，后续不再作为正式工作区使用
+
+## 变更 19：正式交接收口与当前工作区基线校对
+
+- 当前唯一正式工作区固定为当前仓库根目录 `icdc_workspace`
+- 旧中文工作区只保留在 `_tmp/legacy/` 作为历史快照，不再作为正式开发路径
+- 目录与日志规则继续收口：
+  - `scripts/organize_tool_logs.bat` 现在会额外收纳 `clockInfo.txt`
+  - 根 `.gitignore` 新增 `/clockInfo.txt`
+  - 根 `.gitignore` 改为忽略 `/_tmp/*`，同时保留 `_tmp/README.md` 可提交
+  - `doc/项目结构说明.md` 与 `_tmp/README.md` 已同步补齐 `clockInfo.txt` 的收纳说明
+- 2026-03-23 重新验证通过：
+  - `scripts/check_syntax.bat`
+  - `scripts/build_firmware.bat`
+  - `scripts/run_soc_smoke.bat`
+  - `scripts/run_trap_smoke.bat`
+  - `scripts/run_timer_irq_smoke.bat`
+- 当前可直接引用的最新 Vivado 结果仍为 2026-03-20：
+  - `synth100`：`WNS = +0.261ns`，`2548 LUT / 2229 FF / 4 BRAM / 0 DSP`
+  - `impl100`：`WNS = +0.103ns`，`2543 LUT / 2230 FF / 4 BRAM / 0 DSP`
+  - `synth50`：`WNS = +6.237ns`，`2842 LUT / 2314 FF / 2 BRAM / 0 DSP`，但未在最新 `4 BRAM` 基线上复跑
+- 当前交接结论：
+  - 当前根目录已经干净，Vivado / xsim / 时钟调试文件都有统一收纳规则
+  - 当前 `100MHz` 最新实现口径已过线，但裕量较小
+  - 下一阶段优先级已从“先过 100MHz”转向“接 CoreMark、补 RV64 / 更完整回归、推进正式板级闭环”

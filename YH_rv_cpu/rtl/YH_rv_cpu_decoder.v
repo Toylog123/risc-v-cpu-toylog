@@ -29,7 +29,9 @@ module YH_rv_cpu_decoder #(
     output reg             csr_valid,
     output reg  [1:0]      csr_cmd,
     output reg             csr_use_imm,
-    output reg  [11:0]     csr_addr,
+    output reg  [2:0]      csr_sel,
+    output reg             csr_read_valid,
+    output reg             csr_write_allowed,
     output reg             ecall,
     output reg             ebreak,
     output reg             mret
@@ -72,7 +74,9 @@ always @* begin
     csr_valid     = 1'b0;
     csr_cmd       = `YH_rv_cpu_CSR_RW;
     csr_use_imm   = 1'b0;
-    csr_addr      = instruction[31:20];
+    csr_sel       = `YH_rv_cpu_CSR_SEL_NONE;
+    csr_read_valid = 1'b0;
+    csr_write_allowed = 1'b0;
     ecall         = 1'b0;
     ebreak        = 1'b0;
     mret          = 1'b0;
@@ -367,8 +371,6 @@ always @* begin
         end
 
         `YH_rv_cpu_OPCODE_SYSTEM: begin
-            csr_addr = instruction[31:20];
-
             if (funct3 == 3'b000) begin
                 case (instruction[31:20])
                     12'h000: ecall = 1'b1;
@@ -383,6 +385,49 @@ always @* begin
             end else begin
                 csr_valid = 1'b1;
                 rd_en = 1'b1;
+
+                case (instruction[31:20])
+                    `YH_rv_cpu_CSR_MSTATUS: begin
+                        csr_sel = `YH_rv_cpu_CSR_SEL_MSTATUS;
+                        csr_read_valid = 1'b1;
+                        csr_write_allowed = 1'b1;
+                    end
+                    `YH_rv_cpu_CSR_MIE: begin
+                        csr_sel = `YH_rv_cpu_CSR_SEL_MIE;
+                        csr_read_valid = 1'b1;
+                        csr_write_allowed = 1'b1;
+                    end
+                    `YH_rv_cpu_CSR_MTVEC: begin
+                        csr_sel = `YH_rv_cpu_CSR_SEL_MTVEC;
+                        csr_read_valid = 1'b1;
+                        csr_write_allowed = 1'b1;
+                    end
+                    `YH_rv_cpu_CSR_MSCRATCH: begin
+                        csr_sel = `YH_rv_cpu_CSR_SEL_MSCRATCH;
+                        csr_read_valid = 1'b1;
+                        csr_write_allowed = 1'b1;
+                    end
+                    `YH_rv_cpu_CSR_MEPC: begin
+                        csr_sel = `YH_rv_cpu_CSR_SEL_MEPC;
+                        csr_read_valid = 1'b1;
+                        csr_write_allowed = 1'b1;
+                    end
+                    `YH_rv_cpu_CSR_MCAUSE: begin
+                        csr_sel = `YH_rv_cpu_CSR_SEL_MCAUSE;
+                        csr_read_valid = 1'b1;
+                        csr_write_allowed = 1'b1;
+                    end
+                    `YH_rv_cpu_CSR_MIP: begin
+                        csr_sel = `YH_rv_cpu_CSR_SEL_MIP;
+                        csr_read_valid = 1'b1;
+                        csr_write_allowed = 1'b0;
+                    end
+                    default: begin
+                        csr_sel = `YH_rv_cpu_CSR_SEL_NONE;
+                        csr_read_valid = 1'b0;
+                        csr_write_allowed = 1'b0;
+                    end
+                endcase
 
                 case (funct3)
                     3'b001: begin
