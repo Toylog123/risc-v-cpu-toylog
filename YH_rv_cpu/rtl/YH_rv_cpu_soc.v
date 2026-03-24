@@ -72,6 +72,7 @@ wire [31:0] rom_read_offset;
 wire [31:0] ram_read_offset;
 wire [31:0] ram_bus_offset;
 wire        ram_read_issue;
+wire        dmem_read_accept;
 wire [XLEN-1:0] rom_read_data;
 wire [31:0] sync_shared_imem_rdata;
 wire        sync_shared_imem_rvalid;
@@ -89,6 +90,7 @@ reg  [XLEN-1:0] dmem_nonram_rdata_r;
 reg  [XLEN-1:0] dmem_nonram_rdata_d1_r;
 reg             dmem_rvalid_sync_r;
 reg             dmem_rvalid_sync_d1_r;
+reg             dmem_read_busy_r;
 wire [31:0] timer_ctrl_next;
 
 integer idx;
@@ -140,7 +142,8 @@ assign rom_read_offset = dmem_bus_base32 - ROM_BASE;
 assign rom_read_word_index = rom_read_offset >> 2;
 assign ram_read_offset = dmem_bus_base32 - RAM_BASE;
 assign ram_bus_offset = dmem_bus_base32 - RAM_BASE;
-assign ram_read_issue = ram_read_hit && ((SYNC_DMEM != 0) ? dmem_read_req : 1'b1);
+assign dmem_read_accept = (SYNC_DMEM != 0) ? (dmem_read_req && !dmem_read_busy_r) : dmem_read_req;
+assign ram_read_issue = ram_read_hit && ((SYNC_DMEM != 0) ? dmem_read_accept : 1'b1);
 
 generate
     if (USE_SHARED_SYNC_ROM != 0) begin : g_shared_sync_rom
@@ -155,7 +158,7 @@ generate
             .imem_word_index(imem_word_index),
             .imem_rdata     (sync_shared_imem_rdata),
             .imem_rvalid    (sync_shared_imem_rvalid),
-            .data_req       (rom_read_hit && dmem_read_req),
+            .data_req       (rom_read_hit && dmem_read_accept),
             .data_word_index(rom_read_word_index),
             .data_rdata     (sync_shared_rom_read_data)
         );
@@ -315,12 +318,17 @@ always @(posedge clk or negedge rst_n) begin
         dmem_nonram_rdata_d1_r <= {XLEN{1'b0}};
         dmem_rvalid_sync_r <= 1'b0;
         dmem_rvalid_sync_d1_r <= 1'b0;
+        dmem_read_busy_r <= 1'b0;
     end else begin
         dmem_read_src_d1_r <= dmem_read_src_r;
         dmem_nonram_rdata_d1_r <= dmem_nonram_rdata_r;
         dmem_rvalid_sync_d1_r <= dmem_rvalid_sync_r;
-        dmem_rvalid_sync_r <= dmem_read_req;
-        if (dmem_read_req) begin
+        dmem_rvalid_sync_r <= dmem_read_accept;
+        if (dmem_rvalid) begin
+            dmem_read_busy_r <= 1'b0;
+        end
+        if (dmem_read_accept) begin
+            dmem_read_busy_r <= 1'b1;
             if (ram_read_hit) begin
                 dmem_read_src_r <= DMEM_SRC_RAM;
                 dmem_nonram_rdata_r <= {XLEN{1'b0}};

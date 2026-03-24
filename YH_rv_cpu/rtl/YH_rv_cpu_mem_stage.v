@@ -3,6 +3,7 @@
 module YH_rv_cpu_mem_stage #(
     parameter integer XLEN = 32
 ) (
+    input  wire            valid,
     input  wire            load,
     input  wire            store,
     input  wire [XLEN-1:0] mem_addr,
@@ -25,9 +26,9 @@ wire [BYTE_OFFSET_W-1:0] byte_offset;
 wire [XLEN-1:0] shifted_rdata;
 
 assign dmem_addr = mem_addr;
-assign dmem_read_req = load;
-assign dmem_wdata = store ? store_data_in : {XLEN{1'b0}};
-assign dmem_wstrb = store ? store_wstrb_in : {STRB_W{1'b0}};
+assign dmem_read_req = valid && load;
+assign dmem_wdata = (valid && store) ? store_data_in : {XLEN{1'b0}};
+assign dmem_wstrb = (valid && store) ? store_wstrb_in : {STRB_W{1'b0}};
 assign byte_offset = mem_addr[BYTE_OFFSET_W-1:0];
 assign shifted_rdata = dmem_rdata >> {byte_offset, 3'b000};
 

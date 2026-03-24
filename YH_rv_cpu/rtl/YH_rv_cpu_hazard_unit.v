@@ -24,6 +24,7 @@ module YH_rv_cpu_hazard_unit (
 );
 
 wire load_use_hazard;
+wire ex_mem_load_hazard;
 
 assign load_use_hazard =
     id_ex_valid && id_ex_load && id_ex_rd_en && (id_ex_rd_addr != 5'd0) &&
@@ -32,7 +33,14 @@ assign load_use_hazard =
         (if_id_rs2_en && (if_id_rs2_addr == id_ex_rd_addr))
     );
 
-assign stall_decode = load_use_hazard;
+assign ex_mem_load_hazard =
+    ex_mem_valid && ex_mem_load && ex_mem_rd_en && (ex_mem_rd_addr != 5'd0) &&
+    (
+        (if_id_rs1_en && (if_id_rs1_addr == ex_mem_rd_addr)) ||
+        (if_id_rs2_en && (if_id_rs2_addr == ex_mem_rd_addr))
+    );
+
+assign stall_decode = load_use_hazard || ex_mem_load_hazard;
 
 always @* begin
     forward_a_sel = 2'b00;
