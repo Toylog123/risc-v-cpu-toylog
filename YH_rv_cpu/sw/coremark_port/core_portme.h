@@ -20,7 +20,7 @@ limitations under the License.
 #include <stddef.h>
 
 #ifndef HAS_FLOAT
-#define HAS_FLOAT 1
+#define HAS_FLOAT 0
 #endif
 
 #ifndef HAS_TIME_H

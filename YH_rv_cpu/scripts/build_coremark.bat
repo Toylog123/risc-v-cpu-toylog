@@ -114,18 +114,22 @@ if not defined PYTHON_CMD (
     exit /b 1
 )
 
-for /f "delims=" %%I in ('cmd /c ""%GCC%" -march=%MARCH% -mabi=%MABI% -print-libgcc-file-name"') do set LIBGCC=%%I
-for %%I in ("%LIBGCC%") do set LIBGCC=%%~fI
-if not exist "%LIBGCC%" (
-    echo Missing libgcc for %TARGET%.
-    exit /b 1
+set LIBGCC_SEARCH=
+for /f "delims=" %%I in ('"%GCC%" -march=%MARCH% -mabi=%MABI% -print-libgcc-file-name 2^>nul') do set LIBGCC_SEARCH=%%I
+for %%I in ("%LIBGCC_SEARCH%") do set LIBGCC_PATH=%%~fI
+if exist "%LIBGCC_PATH%" (
+    set LIBGCC_REF=%LIBGCC_PATH%
+) else (
+    set LIBGCC_REF=
 )
 
-for /f "delims=" %%I in ('cmd /c ""%GCC%" -march=%MARCH% -mabi=%MABI% -print-file-name=libm.a"') do set LIBM=%%I
-for %%I in ("%LIBM%") do set LIBM=%%~fI
-if not exist "%LIBM%" (
-    echo Missing libm for %TARGET%.
-    exit /b 1
+set LIBM_SEARCH=
+for /f "delims=" %%I in ('"%GCC%" -march=%MARCH% -mabi=%MABI% -print-file-name=libm.a 2^>nul') do set LIBM_SEARCH=%%I
+for %%I in ("%LIBM_SEARCH%") do set LIBM_PATH=%%~fI
+if exist "%LIBM_PATH%" (
+    set LIBM_REF=%LIBM_PATH%
+) else (
+    set LIBM_REF=
 )
 
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
@@ -149,8 +153,7 @@ if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
     "%PORT_DIR%\core_portme.c" ^
     "%PORT_DIR%\ee_printf.c" ^
     "%COREMARK_DIR%\barebones\cvt.c" ^
-    "%LIBM%" ^
-    "%LIBGCC%"
+    %LIBM_REF% %LIBGCC_REF%
 if errorlevel 1 exit /b 1
 
 %OBJDUMP% -d "%BUILD_DIR%\%OUTPUT_NAME%.elf" > "%BUILD_DIR%\%OUTPUT_NAME%.dump"
