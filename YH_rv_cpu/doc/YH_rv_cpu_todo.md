@@ -101,6 +101,22 @@
 - `待办` 板卡到位后冻结正式 `XDC` 并推进上板
 - `待办` 如需统一双频率对外口径，基于当前 RTL 补跑 `synth50`
 
+## 2026-04-01 追加状态：RTL 代码注释增强
+
+- `已完成` 为所有 RTL 模块添加详细中文注释
+  - `rtl/YH_rv_cpu_decoder.v` - 指令译码器
+  - `rtl/YH_rv_cpu_hazard_unit.v` - 冒险检测单元
+  - `rtl/YH_rv_cpu_regfile.v` - 寄存器堆
+  - `rtl/YH_rv_cpu_if_stage.v` - 取指阶段
+  - `rtl/YH_rv_cpu_id_stage.v` - 译码阶段
+  - `rtl/YH_rv_cpu_ex_stage.v` - 执行阶段
+  - `rtl/YH_rv_cpu_mem_stage.v` - 访存阶段
+  - `rtl/YH_rv_cpu_wb_stage.v` - 写回阶段
+  - `rtl/YH_rv_cpu.v` - 顶层 CPU 模块
+  - `rtl/YH_rv_cpu_soc.v` - SoC 顶层模块
+- `已完成` 验证代码语法正确性 (check_syntax.ps1 通过)
+- `进行中` 提交更改到 git
+
 ## 2026-04-01 追加状态：CoreMark libgcc 修复
 
 - `已完成` 修复 CoreMark libgcc 链接问题

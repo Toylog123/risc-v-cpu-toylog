@@ -268,3 +268,32 @@
 - 时序裕量从 0.103ns 提升到 2.481ns
 - 提升了约 24 倍的裕量
 - 100MHz 频率稳定运行
+
+## 变更 23：RTL 代码注释增强
+
+### 变更内容
+- 为所有 RTL 模块添加详细中文注释，满足赛题要求（代码注释率 ≥30%）
+- 注释规范：
+  - 模块级文件头注释（作者 Toylog、版本号、功能概述）
+  - 端口信号注释
+  - 内部信号注释
+  - 功能块分段注释
+  - 重要逻辑的详细说明
+
+### 修改的文件
+| 文件 | 功能 |
+|------|------|
+| `rtl/YH_rv_cpu_decoder.v` | 指令译码器，支持所有 RISC-V I/M/B/J/U/SYSTEM 指令 |
+| `rtl/YH_rv_cpu_hazard_unit.v` | 数据冒险检测与转发控制单元 |
+| `rtl/YH_rv_cpu_regfile.v` | 32 个通用寄存器，双端口读、单端口写 |
+| `rtl/YH_rv_cpu_if_stage.v` | 取指阶段：PC 管理、内存地址输出 |
+| `rtl/YH_rv_cpu_id_stage.v` | 译码阶段：译码器实例化、寄存器读取 |
+| `rtl/YH_rv_cpu_ex_stage.v` | 执行阶段：ALU 运算、分支判断 |
+| `rtl/YH_rv_cpu_mem_stage.v` | 访存阶段：内存访问、数据加载格式化 |
+| `rtl/YH_rv_cpu_wb_stage.v` | 写回阶段：ALU/内存/PC+4 三选一写回 |
+| `rtl/YH_rv_cpu.v` | 顶层 CPU 模块：五级流水线组织、CSR |
+| `rtl/YH_rv_cpu_soc.v` | SoC 顶层：CPU/ROM/RAM/UART/定时器集成 |
+
+### 验证结果
+- `scripts/check_syntax.ps1` 语法检查通过
+- 所有模块注释完整、结构清晰

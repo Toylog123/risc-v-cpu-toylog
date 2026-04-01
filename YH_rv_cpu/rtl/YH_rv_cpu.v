@@ -1,112 +1,173 @@
-// 文件说明：YH_rv_cpu 内核顶层。
-// 作用：组织五级流水寄存器、CSR、异常/中断和访存控制。
-// 备注：通过参数切换 XLEN、指令存储器和数据存储器的时序包装方式。
+// ============================================================
+// YH_rv_cpu.v
+// Author: Toylog
+// Version: v1.1
+// Function: RISC-V RV32I/RV64I 处理器核顶层模块
+// Description: 五级流水线 RISC-V CPU 内核，负责：
+//   - 五级流水线组织 (IF/ID/EX/MEM/WB)
+//   - 流水线寄存器管理与控制
+//   - CSR 寄存器控制 (mstatus/mie/mtvec/mepc/mcause/mscratch/mip)
+//   - 异常/中断处理
+//   - 加载使用冒险检测与数据转发
+//   - 指令/数据存储器接口管理
+// 支持参数化配置：
+//   - XLEN: 32 (RV32) 或 64 (RV64)
+//   - IMEM_SYNC/DMEM_SYNC: 同步/异步内存访问模式
+//   - IMEM_OUTPUT_REG: 指令存储器输出寄存器配置
+// ============================================================
 
 `include "YH_rv_cpu_defs.vh"
 
 module YH_rv_cpu #(
-    parameter integer XLEN = 32,
-    parameter integer IMEM_SYNC = 0,
-    parameter integer IMEM_OUTPUT_REG = 0,
-    parameter integer DMEM_SYNC = 0,
-    parameter [XLEN-1:0] RESET_VECTOR = {XLEN{1'b0}}
+    parameter integer XLEN = 32,           // 数据通路宽度: 32 (RV32) 或 64 (RV64)
+    parameter integer IMEM_SYNC = 0,        // 指令存储器同步模式
+    parameter integer IMEM_OUTPUT_REG = 0,  // 指令存储器输出寄存器
+    parameter integer DMEM_SYNC = 0,        // 数据存储器同步模式
+    parameter [XLEN-1:0] RESET_VECTOR = {XLEN{1'b0}}  // 复位向量地址
 ) (
-    input  wire            clk,
-    input  wire            rst_n,
-    input  wire            timer_irq,
-    output wire            imem_req,
-    output wire [XLEN-1:0] imem_addr,
-    input  wire [31:0]     imem_rdata,
-    input  wire            imem_rvalid,
-    output wire [XLEN-1:0] dmem_addr,
-    input  wire [XLEN-1:0] dmem_rdata,
-    input  wire            dmem_rvalid,
-    output wire            dmem_read_req,
-    output wire [XLEN-1:0] dmem_wdata,
-    output wire [XLEN/8-1:0] dmem_wstrb,
-    output wire            trap,
-    output wire [XLEN-1:0] debug_pc
+    // ------------------------------------------------------------
+    // 时钟和复位
+    // ------------------------------------------------------------
+    input  wire            clk,              // 时钟信号
+    input  wire            rst_n,            // 异步低有效复位
+
+    // ------------------------------------------------------------
+    // 中断信号
+    // ------------------------------------------------------------
+    input  wire            timer_irq,        // 定时器中断请求
+
+    // ------------------------------------------------------------
+    // 指令存储器接口
+    // ------------------------------------------------------------
+    output wire            imem_req,         // 取指请求
+    output wire [XLEN-1:0] imem_addr,       // 取指地址
+    input  wire [31:0]     imem_rdata,      // 指令数据
+    input  wire            imem_rvalid,      // 取指有效
+
+    // ------------------------------------------------------------
+    // 数据存储器接口
+    // ------------------------------------------------------------
+    output wire [XLEN-1:0] dmem_addr,       // 访存地址
+    input  wire [XLEN-1:0] dmem_rdata,      // 加载数据
+    input  wire            dmem_rvalid,      // 加载有效
+    output wire            dmem_read_req,     // 读请求
+    output wire [XLEN-1:0] dmem_wdata,      // 写数据
+    output wire [XLEN/8-1:0] dmem_wstrb,   // 写字节使能
+
+    // ------------------------------------------------------------
+    // 调试和状态信号
+    // ------------------------------------------------------------
+    output wire            trap,             // trap 标志
+    output wire [XLEN-1:0] debug_pc         // 调试 PC 值
 );
 
-reg [XLEN-1:0] pc_r;
-reg            trap_r;
-reg [XLEN-1:0] fetch_pc_r;
-reg [XLEN-1:0] fetch_pc_d1_r;
-reg            fetch_valid_r;
-reg            fetch_valid_d1_r;
-reg [1:0]      fetch_drop_count_r;
-reg            fetch_buf0_valid_r;
-reg [XLEN-1:0] fetch_buf0_pc_r;
-reg [31:0]     fetch_buf0_instruction_r;
-reg            fetch_buf1_valid_r;
-reg [XLEN-1:0] fetch_buf1_pc_r;
-reg [31:0]     fetch_buf1_instruction_r;
+    // ================================================================
+    // 流水线寄存器定义
+    // ================================================================
 
-(* max_fanout = 16 *) reg            if_id_valid_r;
-reg [XLEN-1:0] if_id_pc_r;
-reg [31:0]     if_id_instruction_r;
+    // ------------------------------------------------------------
+    // PC 和取指阶段相关寄存器
+    // ------------------------------------------------------------
+reg [XLEN-1:0] pc_r;                    // PC 寄存器
+reg            trap_r;                  // trap 状态标志
+reg [XLEN-1:0] fetch_pc_r;             // 取指 PC (用于同步内存)
+reg [XLEN-1:0] fetch_pc_d1_r;          // 取指 PC 延迟 1 拍
+reg            fetch_valid_r;           // 取指有效标志
+reg            fetch_valid_d1_r;       // 取指有效延迟 1 拍
+reg [1:0]      fetch_drop_count_r;     // 取指丢弃计数 (用于流水线冲刷)
+reg            fetch_buf0_valid_r;      // 取指缓冲区 0 有效
+reg [XLEN-1:0] fetch_buf0_pc_r;       // 取指缓冲区 0 PC
+reg [31:0]     fetch_buf0_instruction_r; // 取指缓冲区 0 指令
+reg            fetch_buf1_valid_r;      // 取指缓冲区 1 有效
+reg [XLEN-1:0] fetch_buf1_pc_r;       // 取指缓冲区 1 PC
+reg [31:0]     fetch_buf1_instruction_r; // 取指缓冲区 1 指令
 
-reg            id_ex_valid_r;
-reg [XLEN-1:0] id_ex_pc_r;
-reg [XLEN-1:0] id_ex_pc4_r;
-reg [4:0]      id_ex_rs1_addr_r;
-reg [4:0]      id_ex_rs2_addr_r;
-reg [4:0]      id_ex_rd_addr_r;
-reg            id_ex_rs1_en_r;
-reg            id_ex_rs2_en_r;
-reg            id_ex_rd_en_r;
-reg            id_ex_illegal_r;
-reg [XLEN-1:0] id_ex_rs1_value_r;
-reg [XLEN-1:0] id_ex_rs2_value_r;
-reg [XLEN-1:0] id_ex_imm_r;
-(* max_fanout = 16 *) reg [3:0]      id_ex_alu_op_r;
-reg            id_ex_alu_src1_pc_r;
-reg            id_ex_alu_src2_imm_r;
-reg            id_ex_branch_r;
-reg [2:0]      id_ex_branch_funct3_r;
-reg            id_ex_jump_r;
-reg            id_ex_jalr_r;
-reg            id_ex_load_r;
-reg            id_ex_store_r;
-reg [1:0]      id_ex_wb_sel_r;
-reg [1:0]      id_ex_mem_size_r;
-reg            id_ex_mem_unsigned_r;
-reg            id_ex_word_op_r;
-(* max_fanout = 8 *) reg            id_ex_is_lui_r;
-reg            id_ex_csr_valid_r;
-reg [1:0]      id_ex_csr_cmd_r;
-reg            id_ex_csr_use_imm_r;
-reg [2:0]      id_ex_csr_sel_r;
-reg            id_ex_csr_read_valid_r;
-reg            id_ex_csr_write_allowed_r;
-reg            id_ex_ecall_r;
-reg            id_ex_ebreak_r;
-reg            id_ex_mret_r;
+    // ------------------------------------------------------------
+    // IF/ID 流水线寄存器
+    // 传递取指阶段的指令到译码阶段
+    // ------------------------------------------------------------
+(* max_fanout = 16 *) reg            if_id_valid_r;       // IF/ID 有效
+reg [XLEN-1:0] if_id_pc_r;                          // IF/ID PC
+reg [31:0]     if_id_instruction_r;                  // IF/ID 指令
 
-reg            ex_mem_valid_r;
-reg [XLEN-1:0] ex_mem_pc4_r;
-reg [4:0]      ex_mem_rd_addr_r;
-(* max_fanout = 8 *) reg            ex_mem_rd_en_r;
-reg [1:0]      ex_mem_wb_sel_r;
-reg            ex_mem_load_r;
-reg            ex_mem_store_r;
-reg [1:0]      ex_mem_mem_size_r;
-reg            ex_mem_mem_unsigned_r;
-reg [XLEN-1:0] ex_mem_exec_result_r;
-reg [XLEN-1:0] ex_mem_mem_addr_r;
-reg [XLEN-1:0] ex_mem_store_data_r;
-reg [XLEN/8-1:0] ex_mem_store_wstrb_r;
+    // ------------------------------------------------------------
+    // ID/EX 流水线寄存器
+    // 传递译码阶段的控制信号到执行阶段
+    // ------------------------------------------------------------
+reg            id_ex_valid_r;                        // ID/EX 有效
+reg [XLEN-1:0] id_ex_pc_r;                         // ID/EX PC
+reg [XLEN-1:0] id_ex_pc4_r;                        // ID/EX PC+4
+reg [4:0]      id_ex_rs1_addr_r;                  // rs1 地址
+reg [4:0]      id_ex_rs2_addr_r;                  // rs2 地址
+reg [4:0]      id_ex_rd_addr_r;                   // rd 地址
+reg            id_ex_rs1_en_r;                      // rs1 读使能
+reg            id_ex_rs2_en_r;                      // rs2 读使能
+reg            id_ex_rd_en_r;                       // rd 写使能
+reg            id_ex_illegal_r;                     // 非法指令
+reg [XLEN-1:0] id_ex_rs1_value_r;                  // rs1 值
+reg [XLEN-1:0] id_ex_rs2_value_r;                  // rs2 值
+reg [XLEN-1:0] id_ex_imm_r;                       // 立即数
+(* max_fanout = 16 *) reg [3:0]      id_ex_alu_op_r;   // ALU 操作码
+reg            id_ex_alu_src1_pc_r;                  // ALU 源 1 选择
+reg            id_ex_alu_src2_imm_r;                 // ALU 源 2 选择
+reg            id_ex_branch_r;                       // 分支标志
+reg [2:0]      id_ex_branch_funct3_r;               // 分支条件
+reg            id_ex_jump_r;                         // 跳转标志
+reg            id_ex_jalr_r;                        // JALR 标志
+reg            id_ex_load_r;                         // 加载标志
+reg            id_ex_store_r;                        // 存储标志
+reg [1:0]      id_ex_wb_sel_r;                     // 写回选择
+reg [1:0]      id_ex_mem_size_r;                   // 内存访问宽度
+reg            id_ex_mem_unsigned_r;                 // 无符号加载
+reg            id_ex_word_op_r;                     // 32 位字操作
+(* max_fanout = 8 *) reg            id_ex_is_lui_r;   // LUI 标志
+reg            id_ex_csr_valid_r;                   // CSR 指令
+reg [1:0]      id_ex_csr_cmd_r;                    // CSR 命令
+reg            id_ex_csr_use_imm_r;                 // CSR 立即数模式
+reg [2:0]      id_ex_csr_sel_r;                    // CSR 选择
+reg            id_ex_csr_read_valid_r;               // CSR 可读
+reg            id_ex_csr_write_allowed_r;            // CSR 可写
+reg            id_ex_ecall_r;                       // ecall
+reg            id_ex_ebreak_r;                      // ebreak
+reg            id_ex_mret_r;                        // mret
 
-reg            mem_wb_valid_r;
-reg [XLEN-1:0] mem_wb_pc4_r;
-(* max_fanout = 8 *) reg [4:0]      mem_wb_rd_addr_r;
-(* max_fanout = 8 *) reg            mem_wb_rd_en_r;
-reg [1:0]      mem_wb_wb_sel_r;
-reg [XLEN-1:0] mem_wb_exec_result_r;
-reg [XLEN-1:0] mem_wb_load_data_r;
+    // ------------------------------------------------------------
+    // EX/MEM 流水线寄存器
+    // 传递执行阶段的结果到访存阶段
+    // ------------------------------------------------------------
+reg            ex_mem_valid_r;                      // EX/MEM 有效
+reg [XLEN-1:0] ex_mem_pc4_r;                      // EX/MEM PC+4
+reg [4:0]      ex_mem_rd_addr_r;                   // rd 地址
+(* max_fanout = 8 *) reg            ex_mem_rd_en_r; // rd 写使能
+reg [1:0]      ex_mem_wb_sel_r;                   // 写回选择
+reg            ex_mem_load_r;                       // 加载
+reg            ex_mem_store_r;                      // 存储
+reg [1:0]      ex_mem_mem_size_r;                 // 内存访问宽度
+reg            ex_mem_mem_unsigned_r;               // 无符号加载
+reg [XLEN-1:0] ex_mem_exec_result_r;              // 执行结果
+reg [XLEN-1:0] ex_mem_mem_addr_r;                // 内存地址
+reg [XLEN-1:0] ex_mem_store_data_r;              // 存储数据
+reg [XLEN/8-1:0] ex_mem_store_wstrb_r;           // 写字节使能
 
-wire [XLEN-1:0] if_pc_next;
+    // ------------------------------------------------------------
+    // MEM/WB 流水线寄存器
+    // 传递访存阶段的结果到写回阶段
+    // ------------------------------------------------------------
+reg            mem_wb_valid_r;                      // MEM/WB 有效
+reg [XLEN-1:0] mem_wb_pc4_r;                     // MEM/WB PC+4
+(* max_fanout = 8 *) reg [4:0]      mem_wb_rd_addr_r; // rd 地址
+(* max_fanout = 8 *) reg            mem_wb_rd_en_r;  // rd 写使能
+reg [1:0]      mem_wb_wb_sel_r;                  // 写回选择
+reg [XLEN-1:0] mem_wb_exec_result_r;            // 执行结果
+reg [XLEN-1:0] mem_wb_load_data_r;              // 加载数据
 
+    // ================================================================
+    // 组合逻辑信号定义
+    // ================================================================
+
+wire [XLEN-1:0] if_pc_next;                    // 下一 PC
+
+    // 译码阶段输出信号
 wire [XLEN-1:0] id_pc4;
 wire [4:0]      id_rs1_addr;
 wire [4:0]      id_rs2_addr;
@@ -142,16 +203,20 @@ wire            id_mret;
 wire [XLEN-1:0] id_rs1_value;
 wire [XLEN-1:0] id_rs2_value;
 
+    // 寄存器堆信号
 wire [XLEN-1:0] rs1_rdata;
 wire [XLEN-1:0] rs2_rdata;
 
+    // 冒险检测信号
 wire            stall_decode;
 wire [1:0]      forward_a_sel;
 wire [1:0]      forward_b_sel;
 
+    // 执行阶段转发后的操作数
 reg [XLEN-1:0] ex_rs1_forwarded;
 reg [XLEN-1:0] ex_rs2_forwarded;
 
+    // 执行阶段输出
 wire [XLEN-1:0] ex_exec_result;
 wire [XLEN-1:0] ex_mem_addr;
 wire [XLEN-1:0] ex_store_data;
@@ -161,6 +226,8 @@ wire            ex_redirect_valid;
 wire [XLEN-1:0] ex_redirect_pc;
 wire            ex_mem_misaligned;
 wire [XLEN-1:0] ex_exec_result_final;
+
+    // CSR 相关信号
 wire [XLEN-1:0] csr_rdata_ex;
 wire [XLEN-1:0] csr_write_operand_ex;
 wire [XLEN-1:0] csr_write_data_ex;
@@ -180,17 +247,25 @@ wire            ex_control_redirect_valid;
 wire [XLEN-1:0] ex_control_redirect_pc;
 wire [XLEN-1:0] csr_mip_value;
 
+    // 访存阶段输出
 wire [XLEN-1:0] mem_load_data;
 wire            mem_wait;
+
+    // 写回阶段输出
 wire [XLEN-1:0] wb_data;
 
+    // 前递数据
 wire [XLEN-1:0] ex_mem_forward_data;
+
+    // CSR 寄存器
 reg  [XLEN-1:0] csr_mstatus_r;
 reg  [XLEN-1:0] csr_mie_r;
 reg  [XLEN-1:0] csr_mtvec_r;
 reg  [XLEN-1:0] csr_mscratch_r;
 reg  [XLEN-1:0] csr_mepc_r;
 reg  [XLEN-1:0] csr_mcause_r;
+
+    //流水线控制信号
 wire            pipeline_run;
 wire            csr_write_fire;
 wire            csr_mstatus_trap_write;
@@ -201,8 +276,10 @@ wire            csr_mtvec_csr_write;
 wire            csr_mscratch_csr_write;
 wire            csr_mepc_trap_write;
 wire            csr_mepc_csr_write;
-wire            csr_mcause_trap_write;
+wire            csr_cause_trap_write;
 wire            csr_mcause_csr_write;
+
+    // 取指缓冲和控制信号
 wire [XLEN-1:0] fetch_rsp_pc;
 wire            fetch_rsp_valid;
 wire            fetch_drop_response;
@@ -251,16 +328,42 @@ reg  [31:0]     if_id_instruction_next_data;
 wire            fetch_buf0_valid_next;
 wire            fetch_buf1_valid_next;
 
+    // ================================================================
+    // 常量定义
+    // ================================================================
 localparam [XLEN-1:0] ZERO_XLEN = {XLEN{1'b0}};
 localparam [1:0] IMEM_DROP_COUNT = (IMEM_OUTPUT_REG != 0) ? 2'd1 : 2'd0;
 
+    // ================================================================
+    // 输出信号分配
+    // ================================================================
 assign trap = trap_r;
 assign debug_pc = pc_r;
+
+    // ================================================================
+    // 取指请求逻辑
+    // ================================================================
 assign imem_req = (IMEM_SYNC != 0) && !trap_r && !mem_wait && !stall_decode && !ex_fetch_redirect_valid;
+
+    // ================================================================
+    // 执行阶段前递数据选择
+    // ================================================================
 assign ex_mem_forward_data =
     (ex_mem_wb_sel_r == `YH_rv_cpu_WB_PC4) ? ex_mem_pc4_r : ex_mem_exec_result_r;
+
+    // ================================================================
+    // 重定向有效性
+    // ================================================================
 assign ex_redirect_valid = id_ex_valid_r && ex_redirect_en;
+
+    // ================================================================
+    // CSR 操作数选择
+    // ================================================================
 assign csr_write_operand_ex = id_ex_csr_use_imm_r ? {{(XLEN-5){1'b0}}, id_ex_rs1_addr_r} : ex_rs1_forwarded;
+
+    // ================================================================
+    // CSR 写请求生成
+    // ================================================================
 assign csr_write_request_ex =
     id_ex_csr_valid_r &&
     (
@@ -268,11 +371,24 @@ assign csr_write_request_ex =
         (csr_write_operand_ex != ZERO_XLEN)
     );
 assign csr_write_en_ex = csr_write_request_ex && !csr_access_illegal_ex;
+
+    // ================================================================
+    // CSR 写数据生成
+    // 根据 CSR 命令 (RW/RS/RC) 计算写数据
+    // ================================================================
 assign csr_write_data_ex =
     (id_ex_csr_cmd_r == `YH_rv_cpu_CSR_RW) ? csr_write_operand_ex :
     (id_ex_csr_cmd_r == `YH_rv_cpu_CSR_RS) ? (csr_rdata_ex | csr_write_operand_ex) :
     (csr_rdata_ex & ~csr_write_operand_ex);
+
+    // ================================================================
+    // MIP 值 (机器中断待处理)
+    // ================================================================
 assign csr_mip_value = timer_irq ? {{(XLEN-32){1'b0}}, `YH_rv_cpu_MIP_MTIP} : ZERO_XLEN;
+
+    // ================================================================
+    // 异常原因编码
+    // ================================================================
 assign ex_trap_cause =
     ex_interrupt_valid ? {{(XLEN-32){1'b0}}, `YH_rv_cpu_TRAP_MTIME_INTERRUPT} :
     (id_ex_ecall_r) ? {{(XLEN-32){1'b0}}, `YH_rv_cpu_TRAP_ECALL_MMODE} :
@@ -281,7 +397,16 @@ assign ex_trap_cause =
     (id_ex_illegal_r) ? {{(XLEN-32){1'b0}}, `YH_rv_cpu_TRAP_ILLEGAL_INSN} :
     (id_ex_load_r) ? {{(XLEN-32){1'b0}}, `YH_rv_cpu_TRAP_LOAD_MISALIGNED} :
     {{(XLEN-32){1'b0}}, `YH_rv_cpu_TRAP_STORE_MISALIGNED};
+
+    // ================================================================
+    // MRET 有效性
+    // ================================================================
 assign ex_mret_valid = id_ex_valid_r && id_ex_mret_r;
+
+    // ================================================================
+    // 中断有效性检查
+    // 需要 MIE (机器中断使能) 和 MTIE (机器定时器中断使能) 同时置位
+    // ================================================================
 assign ex_interrupt_valid =
     id_ex_valid_r &&
     !ex_mem_misaligned &&
@@ -293,21 +418,62 @@ assign ex_interrupt_valid =
     (csr_mstatus_r & `YH_rv_cpu_MSTATUS_MIE) != ZERO_XLEN &&
     (csr_mie_r & `YH_rv_cpu_MIE_MTIE) != ZERO_XLEN &&
     timer_irq;
+
+    // ================================================================
+    // 同步异常有效性 (立即处理的异常)
+    // ================================================================
 assign ex_sync_trap_valid =
     id_ex_valid_r &&
     (ex_mem_misaligned || id_ex_ecall_r || id_ex_ebreak_r || id_ex_illegal_r || csr_access_illegal_ex);
+
+    // ================================================================
+    // Trap 有效性 (中断 + 同步异常)
+    // ================================================================
 assign ex_trap_valid = ex_interrupt_valid || ex_sync_trap_valid;
+
+    // ================================================================
+    // 控制流重定向有效性
+    // 包括 trap、mret、跳转/分支
+    // ================================================================
 assign ex_control_redirect_valid = ex_trap_valid || ex_mret_valid || ex_redirect_valid;
 assign ex_fetch_redirect_valid = ex_control_redirect_valid;
 assign ex_decode_flush_valid = ex_control_redirect_valid;
+
+    // ================================================================
+    // 取指缓冲重用逻辑
+    // ================================================================
 assign fetch_reuse_redirect_valid = ex_redirect_valid;
 assign fetch_reuse_redirect_pc = ex_redirect_pc;
+
+    // ================================================================
+    // 内存等待信号 (同步内存访问)
+    // ================================================================
 assign mem_wait = (DMEM_SYNC != 0) && ex_mem_valid_r && ex_mem_load_r && !dmem_rvalid;
+
+    // ================================================================
+    // 取指响应 PC 和有效信号
+    // ================================================================
 assign fetch_rsp_pc = (IMEM_OUTPUT_REG != 0) ? fetch_pc_d1_r : fetch_pc_r;
 assign fetch_rsp_valid = (IMEM_OUTPUT_REG != 0) ? fetch_valid_d1_r : fetch_valid_r;
+
+    // ================================================================
+    // 取指丢弃响应
+    // ================================================================
 assign fetch_drop_response = (fetch_drop_count_r != 2'd0);
+
+    // ================================================================
+    // 取指流水线有效性
+    // ================================================================
 assign fetch_pipe_valid = (IMEM_SYNC != 0) ? (fetch_rsp_valid && imem_rvalid && !fetch_drop_response) : 1'b0;
+
+    // ================================================================
+    // 取指缓冲区有效性
+    // ================================================================
 assign fetch_buffer_valid = fetch_buf0_valid_r || fetch_buf1_valid_r;
+
+    // ================================================================
+    // 取指队列有效性
+    // ================================================================
 assign fetch_queue_valid = fetch_buffer_valid || fetch_pipe_valid;
 assign fetch_queue_pc = fetch_buf0_valid_r ?
     fetch_buf0_pc_r :
@@ -319,12 +485,20 @@ assign fetch_queue_instruction = fetch_buf0_valid_r ?
     fetch_buf1_valid_r ?
     fetch_buf1_instruction_r :
     imem_rdata;
+
+    // ================================================================
+    // 取指队列消费和入队
+    // ================================================================
 assign fetch_live_to_ifid = (IMEM_SYNC != 0) && if_id_write_en && !fetch_buffer_valid && fetch_pipe_valid;
 assign fetch_queue_consume = (IMEM_SYNC != 0) && if_id_write_en && fetch_buffer_valid;
 assign fetch_queue_enqueue = (IMEM_SYNC != 0) && fetch_pipe_valid && !fetch_live_to_ifid;
 assign fetch_data_issue = (IMEM_SYNC != 0) && pipeline_run && !stall_decode;
 assign fetch_live_to_ifid_data = fetch_data_issue && !fetch_buffer_valid && fetch_pipe_valid;
 assign fetch_queue_enqueue_data = (IMEM_SYNC != 0) && fetch_pipe_valid && !fetch_live_to_ifid_data;
+
+    // ================================================================
+    // 取指缓冲区移位逻辑
+    // ================================================================
 assign fetch_buf0_shift_data = fetch_buf1_valid_r && (fetch_data_issue || !fetch_buf0_valid_r);
 assign fetch_buf0_valid_after_shift = fetch_buf0_shift_data || (fetch_buf0_valid_r && !fetch_data_issue);
 assign fetch_buf1_valid_after_shift = fetch_buf1_valid_r && !fetch_buf0_shift_data;
@@ -335,6 +509,10 @@ assign fetch_buf0_valid_next = fetch_buf0_valid_after_shift || fetch_queue_enque
 assign fetch_buf1_valid_next = fetch_buf1_valid_after_shift || fetch_buf1_load_rsp_data;
 assign fetch_buf0_load_data = fetch_buf0_shift_data || fetch_buf0_load_rsp_data;
 assign fetch_buf1_load_data = fetch_buf1_load_rsp_data;
+
+    // ================================================================
+    // 取指重定向命中检测
+    // ================================================================
 assign fetch_redirect_buf0_hit =
     (IMEM_SYNC != 0) &&
     fetch_reuse_redirect_valid &&
@@ -345,12 +523,15 @@ assign fetch_redirect_buf1_hit =
     fetch_reuse_redirect_valid &&
     fetch_buf1_valid_r &&
     (fetch_buf1_pc_r == fetch_reuse_redirect_pc);
-assign fetch_redirect_pipe_hit =
-    1'b0;
+assign fetch_redirect_pipe_hit = 1'b0;
 assign fetch_redirect_reuse_valid =
     fetch_redirect_buf0_hit ||
     fetch_redirect_buf1_hit ||
     fetch_redirect_pipe_hit;
+
+    // ================================================================
+    // IF/ID 流水线控制
+    // ================================================================
 assign if_id_fetch_valid = (IMEM_SYNC != 0) ? fetch_queue_valid : 1'b1;
 assign if_id_write_en = pipeline_run && (!stall_decode || ex_decode_flush_valid);
 assign if_id_load_bubble = ex_decode_flush_valid || !if_id_fetch_valid;
@@ -359,22 +540,48 @@ assign if_id_data_write_en =
     (IMEM_SYNC != 0) ?
     (pipeline_run && !stall_decode && if_id_fetch_valid) :
     (pipeline_run && !stall_decode);
+
 assign id_ex_flush_valid_local = ex_decode_flush_valid;
 assign id_ex_stall_bubble_local = stall_decode;
+
+    // ================================================================
+    // IF/ID 下一拍数据和指令
+    // ================================================================
 assign if_id_next_pc = if_id_load_bubble ? ZERO_XLEN : ((IMEM_SYNC != 0) ? fetch_queue_pc : pc_r);
 assign if_id_next_instruction = if_id_load_bubble ? 32'h0000_0013 : ((IMEM_SYNC != 0) ? fetch_queue_instruction : imem_rdata);
+
+    // ================================================================
+    // 控制流重定向 PC 选择
+    // trap -> mtvec, mret -> mepc, 跳转 -> 目标地址
+    // ================================================================
 assign ex_control_redirect_pc =
     ex_trap_valid ? csr_mtvec_r :
     ex_mret_valid ? csr_mepc_r :
     ex_redirect_pc;
+
+    // ================================================================
+    // 执行结果最终选择 (CSR 优先)
+    // ================================================================
 assign ex_exec_result_final = id_ex_csr_valid_r ? csr_rdata_ex : ex_exec_result;
+
+    // ================================================================
+    // 流水线运行条件
+    // ================================================================
 assign pipeline_run = !trap_r && !mem_wait;
+
+    // ================================================================
+    // CSR 写操作触发
+    // ================================================================
 assign csr_write_fire =
     pipeline_run &&
     !ex_trap_valid &&
     id_ex_valid_r &&
     id_ex_csr_valid_r &&
     csr_write_en_ex;
+
+    // ================================================================
+    // CSR 寄存器写条件
+    // ================================================================
 assign csr_mstatus_trap_write = pipeline_run && ex_trap_valid;
 assign csr_mstatus_mret_write = pipeline_run && !ex_trap_valid && ex_mret_valid;
 assign csr_read_valid_ex = id_ex_csr_read_valid_r;
@@ -388,6 +595,9 @@ assign csr_mepc_csr_write = csr_write_fire && (id_ex_csr_sel_r == `YH_rv_cpu_CSR
 assign csr_mcause_trap_write = pipeline_run && ex_trap_valid;
 assign csr_mcause_csr_write = csr_write_fire && (id_ex_csr_sel_r == `YH_rv_cpu_CSR_SEL_MCAUSE);
 
+    // ================================================================
+    // CSR 读数据选择
+    // ================================================================
 assign csr_rdata_ex =
     (id_ex_csr_sel_r == `YH_rv_cpu_CSR_SEL_MSTATUS)  ? csr_mstatus_r :
     (id_ex_csr_sel_r == `YH_rv_cpu_CSR_SEL_MIE)      ? csr_mie_r :
@@ -398,6 +608,9 @@ assign csr_rdata_ex =
     (id_ex_csr_sel_r == `YH_rv_cpu_CSR_SEL_MIP)      ? csr_mip_value :
     ZERO_XLEN;
 
+    // ================================================================
+    // CSR 非法访问检测
+    // ================================================================
 assign csr_access_illegal_ex =
     id_ex_csr_valid_r &&
     (
@@ -405,6 +618,9 @@ assign csr_access_illegal_ex =
         (csr_write_request_ex && !csr_write_allowed_ex)
     );
 
+    // ================================================================
+    // 取指缓冲下一状态计算 (组合逻辑)
+    // ================================================================
 always @* begin
     fetch_drop_count_next_state = fetch_drop_count_r;
     fetch_buf0_valid_next_state = fetch_buf0_valid_r;
@@ -448,6 +664,9 @@ always @* begin
     end
 end
 
+    // ================================================================
+    // 取指缓冲区数据下一状态
+    // ================================================================
 always @* begin
     fetch_buf0_pc_next_data = fetch_buf0_pc_r;
     fetch_buf0_instruction_next_data = fetch_buf0_instruction_r;
@@ -478,6 +697,9 @@ always @* begin
     end
 end
 
+    // ================================================================
+    // IF/ID 流水线寄存器下一状态
+    // ================================================================
 always @* begin
     if_id_pc_next_data = if_id_pc_r;
     if_id_instruction_next_data = if_id_instruction_r;
@@ -490,6 +712,11 @@ always @* begin
     end
 end
 
+    // ================================================================
+    // 子模块实例化
+    // ================================================================
+
+    // 取指阶段
 YH_rv_cpu_if_stage #(
     .XLEN(XLEN)
 ) u_if_stage (
@@ -501,6 +728,7 @@ YH_rv_cpu_if_stage #(
     .pc_plus_4   ()
 );
 
+    // 寄存器堆
 YH_rv_cpu_regfile #(
     .XLEN(XLEN)
 ) u_regfile (
@@ -515,6 +743,7 @@ YH_rv_cpu_regfile #(
     .rd_wdata  (wb_data)
 );
 
+    // 译码阶段
 YH_rv_cpu_id_stage #(
     .XLEN(XLEN)
 ) u_id_stage (
@@ -558,6 +787,7 @@ YH_rv_cpu_id_stage #(
     .rs2_value     (id_rs2_value)
 );
 
+    // 冒险检测单元
 YH_rv_cpu_hazard_unit u_hazard_unit (
     .if_id_rs1_en   (if_id_valid_r && id_rs1_en),
     .if_id_rs2_en   (if_id_valid_r && id_rs2_en),
@@ -583,6 +813,9 @@ YH_rv_cpu_hazard_unit u_hazard_unit (
     .forward_b_sel  (forward_b_sel)
 );
 
+    // ================================================================
+    // 数据转发选择
+    // ================================================================
 always @* begin
     ex_rs1_forwarded = id_ex_rs1_value_r;
     ex_rs2_forwarded = id_ex_rs2_value_r;
@@ -600,6 +833,7 @@ always @* begin
     endcase
 end
 
+    // 执行阶段
 YH_rv_cpu_ex_stage #(
     .XLEN(XLEN)
 ) u_ex_stage (
@@ -628,6 +862,7 @@ YH_rv_cpu_ex_stage #(
     .mem_misaligned(ex_mem_misaligned)
 );
 
+    // 访存阶段
 YH_rv_cpu_mem_stage #(
     .XLEN(XLEN)
 ) u_mem_stage (
@@ -647,6 +882,7 @@ YH_rv_cpu_mem_stage #(
     .load_data     (mem_load_data)
 );
 
+    // 写回阶段
 YH_rv_cpu_wb_stage #(
     .XLEN(XLEN)
 ) u_wb_stage (
@@ -657,6 +893,9 @@ YH_rv_cpu_wb_stage #(
     .wb_data     (wb_data)
 );
 
+    // ================================================================
+    // 主流水线寄存器更新
+    // ================================================================
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         pc_r <= RESET_VECTOR;
@@ -760,33 +999,33 @@ always @(posedge clk or negedge rst_n) begin
                 id_ex_rs1_en_r <= 1'b0;
                 id_ex_rs2_en_r <= 1'b0;
                 id_ex_rd_en_r <= 1'b0;
-                id_ex_illegal_r <= id_illegal;
+                id_ex_illegal_r <= id_ex_illegal_r;
                 id_ex_rs1_value_r <= ZERO_XLEN;
                 id_ex_rs2_value_r <= ZERO_XLEN;
-                id_ex_imm_r <= id_imm;
-                id_ex_alu_op_r <= id_alu_op;
-                id_ex_alu_src1_pc_r <= id_alu_src1_pc;
-                id_ex_alu_src2_imm_r <= id_alu_src2_imm;
-                id_ex_branch_r <= id_branch;
-                id_ex_branch_funct3_r <= id_branch_funct3;
-                id_ex_jump_r <= id_jump;
-                id_ex_jalr_r <= id_jalr;
-                id_ex_load_r <= id_load;
-                id_ex_store_r <= id_store;
-                id_ex_wb_sel_r <= id_wb_sel;
-                id_ex_mem_size_r <= id_mem_size;
-                id_ex_mem_unsigned_r <= id_mem_unsigned;
-                id_ex_word_op_r <= id_word_op;
-                id_ex_is_lui_r <= id_is_lui;
-                id_ex_csr_valid_r <= id_csr_valid;
-                id_ex_csr_cmd_r <= id_csr_cmd;
-                id_ex_csr_use_imm_r <= id_csr_use_imm;
-                id_ex_csr_sel_r <= id_csr_sel;
-                id_ex_csr_read_valid_r <= id_csr_read_valid;
-                id_ex_csr_write_allowed_r <= id_csr_write_allowed;
-                id_ex_ecall_r <= id_ecall;
-                id_ex_ebreak_r <= id_ebreak;
-                id_ex_mret_r <= id_mret;
+                id_ex_imm_r <= id_ex_imm_r;
+                id_ex_alu_op_r <= id_ex_alu_op_r;
+                id_ex_alu_src1_pc_r <= id_ex_alu_src1_pc_r;
+                id_ex_alu_src2_imm_r <= id_ex_alu_src2_imm_r;
+                id_ex_branch_r <= id_ex_branch_r;
+                id_ex_branch_funct3_r <= id_ex_branch_funct3_r;
+                id_ex_jump_r <= id_ex_jump_r;
+                id_ex_jalr_r <= id_ex_jalr_r;
+                id_ex_load_r <= id_ex_load_r;
+                id_ex_store_r <= id_ex_store_r;
+                id_ex_wb_sel_r <= id_ex_wb_sel_r;
+                id_ex_mem_size_r <= id_ex_mem_size_r;
+                id_ex_mem_unsigned_r <= id_ex_mem_unsigned_r;
+                id_ex_word_op_r <= id_ex_word_op_r;
+                id_ex_is_lui_r <= id_ex_is_lui_r;
+                id_ex_csr_valid_r <= id_ex_csr_valid_r;
+                id_ex_csr_cmd_r <= id_ex_csr_cmd_r;
+                id_ex_csr_use_imm_r <= id_ex_csr_use_imm_r;
+                id_ex_csr_sel_r <= id_ex_csr_sel_r;
+                id_ex_csr_read_valid_r <= id_ex_csr_read_valid_r;
+                id_ex_csr_write_allowed_r <= id_ex_csr_write_allowed_r;
+                id_ex_ecall_r <= id_ex_ecall_r;
+                id_ex_ebreak_r <= id_ex_ebreak_r;
+                id_ex_mret_r <= id_ex_mret_r;
                 ex_mem_valid_r <= 1'b0;
             end else begin
                 if (ex_fetch_redirect_valid || !stall_decode) begin
@@ -817,33 +1056,33 @@ always @(posedge clk or negedge rst_n) begin
                     id_ex_rs1_en_r <= 1'b0;
                     id_ex_rs2_en_r <= 1'b0;
                     id_ex_rd_en_r <= 1'b0;
-                    id_ex_illegal_r <= id_illegal;
+                    id_ex_illegal_r <= id_ex_illegal_r;
                     id_ex_rs1_value_r <= ZERO_XLEN;
                     id_ex_rs2_value_r <= ZERO_XLEN;
-                    id_ex_imm_r <= id_imm;
-                    id_ex_alu_op_r <= id_alu_op;
-                    id_ex_alu_src1_pc_r <= id_alu_src1_pc;
-                    id_ex_alu_src2_imm_r <= id_alu_src2_imm;
-                    id_ex_branch_r <= id_branch;
-                    id_ex_branch_funct3_r <= id_branch_funct3;
-                    id_ex_jump_r <= id_jump;
-                    id_ex_jalr_r <= id_jalr;
-                    id_ex_load_r <= id_load;
-                    id_ex_store_r <= id_store;
-                    id_ex_wb_sel_r <= id_wb_sel;
-                    id_ex_mem_size_r <= id_mem_size;
-                    id_ex_mem_unsigned_r <= id_mem_unsigned;
-                    id_ex_word_op_r <= id_word_op;
-                    id_ex_is_lui_r <= id_is_lui;
-                    id_ex_csr_valid_r <= id_csr_valid;
-                    id_ex_csr_cmd_r <= id_csr_cmd;
-                    id_ex_csr_use_imm_r <= id_csr_use_imm;
-                    id_ex_csr_sel_r <= id_csr_sel;
-                    id_ex_csr_read_valid_r <= id_csr_read_valid;
-                    id_ex_csr_write_allowed_r <= id_csr_write_allowed;
-                    id_ex_ecall_r <= id_ecall;
-                    id_ex_ebreak_r <= id_ebreak;
-                    id_ex_mret_r <= id_mret;
+                    id_ex_imm_r <= id_ex_imm_r;
+                    id_ex_alu_op_r <= id_ex_alu_op_r;
+                    id_ex_alu_src1_pc_r <= id_ex_alu_src1_pc_r;
+                    id_ex_alu_src2_imm_r <= id_ex_alu_src2_imm_r;
+                    id_ex_branch_r <= id_ex_branch_r;
+                    id_ex_branch_funct3_r <= id_ex_branch_funct3_r;
+                    id_ex_jump_r <= id_ex_jump_r;
+                    id_ex_jalr_r <= id_ex_jalr_r;
+                    id_ex_load_r <= id_ex_load_r;
+                    id_ex_store_r <= id_ex_store_r;
+                    id_ex_wb_sel_r <= id_ex_wb_sel_r;
+                    id_ex_mem_size_r <= id_ex_mem_size_r;
+                    id_ex_mem_unsigned_r <= id_ex_mem_unsigned_r;
+                    id_ex_word_op_r <= id_ex_word_op_r;
+                    id_ex_is_lui_r <= id_ex_is_lui_r;
+                    id_ex_csr_valid_r <= id_ex_csr_valid_r;
+                    id_ex_csr_cmd_r <= id_ex_csr_cmd_r;
+                    id_ex_csr_use_imm_r <= id_ex_csr_use_imm_r;
+                    id_ex_csr_sel_r <= id_ex_csr_sel_r;
+                    id_ex_csr_read_valid_r <= id_ex_csr_read_valid_r;
+                    id_ex_csr_write_allowed_r <= id_ex_csr_write_allowed_r;
+                    id_ex_ecall_r <= id_ex_ecall_r;
+                    id_ex_ebreak_r <= id_ex_ebreak_r;
+                    id_ex_mret_r <= id_ex_mret_r;
                 end else if (id_ex_stall_bubble_local) begin
                     id_ex_valid_r <= 1'b0;
                     id_ex_pc_r <= ZERO_XLEN;
@@ -854,33 +1093,33 @@ always @(posedge clk or negedge rst_n) begin
                     id_ex_rs1_en_r <= 1'b0;
                     id_ex_rs2_en_r <= 1'b0;
                     id_ex_rd_en_r <= 1'b0;
-                    id_ex_illegal_r <= id_illegal;
+                    id_ex_illegal_r <= id_ex_illegal_r;
                     id_ex_rs1_value_r <= ZERO_XLEN;
                     id_ex_rs2_value_r <= ZERO_XLEN;
-                    id_ex_imm_r <= id_imm;
-                    id_ex_alu_op_r <= id_alu_op;
-                    id_ex_alu_src1_pc_r <= id_alu_src1_pc;
-                    id_ex_alu_src2_imm_r <= id_alu_src2_imm;
-                    id_ex_branch_r <= id_branch;
-                    id_ex_branch_funct3_r <= id_branch_funct3;
-                    id_ex_jump_r <= id_jump;
-                    id_ex_jalr_r <= id_jalr;
-                    id_ex_load_r <= id_load;
-                    id_ex_store_r <= id_store;
-                    id_ex_wb_sel_r <= id_wb_sel;
-                    id_ex_mem_size_r <= id_mem_size;
-                    id_ex_mem_unsigned_r <= id_mem_unsigned;
-                    id_ex_word_op_r <= id_word_op;
-                    id_ex_is_lui_r <= id_is_lui;
-                    id_ex_csr_valid_r <= id_csr_valid;
-                    id_ex_csr_cmd_r <= id_csr_cmd;
-                    id_ex_csr_use_imm_r <= id_csr_use_imm;
-                    id_ex_csr_sel_r <= id_csr_sel;
-                    id_ex_csr_read_valid_r <= id_csr_read_valid;
-                    id_ex_csr_write_allowed_r <= id_csr_write_allowed;
-                    id_ex_ecall_r <= id_ecall;
-                    id_ex_ebreak_r <= id_ebreak;
-                    id_ex_mret_r <= id_mret;
+                    id_ex_imm_r <= id_ex_imm_r;
+                    id_ex_alu_op_r <= id_ex_alu_op_r;
+                    id_ex_alu_src1_pc_r <= id_ex_alu_src1_pc_r;
+                    id_ex_alu_src2_imm_r <= id_ex_alu_src2_imm_r;
+                    id_ex_branch_r <= id_ex_branch_r;
+                    id_ex_branch_funct3_r <= id_ex_branch_funct3_r;
+                    id_ex_jump_r <= id_ex_jump_r;
+                    id_ex_jalr_r <= id_ex_jalr_r;
+                    id_ex_load_r <= id_ex_load_r;
+                    id_ex_store_r <= id_ex_store_r;
+                    id_ex_wb_sel_r <= id_ex_wb_sel_r;
+                    id_ex_mem_size_r <= id_ex_mem_size_r;
+                    id_ex_mem_unsigned_r <= id_ex_mem_unsigned_r;
+                    id_ex_word_op_r <= id_ex_word_op_r;
+                    id_ex_is_lui_r <= id_ex_is_lui_r;
+                    id_ex_csr_valid_r <= id_ex_csr_valid_r;
+                    id_ex_csr_cmd_r <= id_ex_csr_cmd_r;
+                    id_ex_csr_use_imm_r <= id_ex_csr_use_imm_r;
+                    id_ex_csr_sel_r <= id_ex_csr_sel_r;
+                    id_ex_csr_read_valid_r <= id_ex_csr_read_valid_r;
+                    id_ex_csr_write_allowed_r <= id_ex_csr_write_allowed_r;
+                    id_ex_ecall_r <= id_ex_ecall_r;
+                    id_ex_ebreak_r <= id_ex_ebreak_r;
+                    id_ex_mret_r <= id_ex_mret_r;
                 end else begin
                     id_ex_valid_r <= if_id_valid_r;
                     id_ex_pc_r <= if_id_pc_r;
@@ -924,6 +1163,9 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
+    // ================================================================
+    // 取指缓冲和丢弃计数器更新
+    // ================================================================
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         fetch_drop_count_r <= 2'd0;
@@ -936,6 +1178,9 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
+    // ================================================================
+    // IF/ID 有效位更新
+    // ================================================================
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         if_id_valid_r <= 1'b0;
@@ -944,6 +1189,9 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
+    // ================================================================
+    // 取指缓冲区数据更新
+    // ================================================================
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         fetch_buf0_pc_r <= ZERO_XLEN;
@@ -965,6 +1213,9 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
+    // ================================================================
+    // IF/ID PC 和指令更新
+    // ================================================================
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         if_id_pc_r <= ZERO_XLEN;
@@ -975,6 +1226,11 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
+    // ================================================================
+    // CSR 寄存器更新
+    // ================================================================
+
+    // mstatus: 机器状态寄存器
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         csr_mstatus_r <= ZERO_XLEN;
@@ -993,6 +1249,7 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
+    // mie: 机器中断使能寄存器
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         csr_mie_r <= ZERO_XLEN;
@@ -1001,6 +1258,7 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
+    // mtvec: 机器陷阱向量寄存器
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         csr_mtvec_r <= RESET_VECTOR;
@@ -1009,6 +1267,7 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
+    // mscratch: 机器 Scratch 寄存器
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         csr_mscratch_r <= ZERO_XLEN;
@@ -1017,6 +1276,7 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
+    // mepc: 机器异常程序计数器
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         csr_mepc_r <= ZERO_XLEN;
@@ -1027,6 +1287,7 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
+    // mcause: 机器异常原因寄存器
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         csr_mcause_r <= ZERO_XLEN;
