@@ -1,4 +1,4 @@
-﻿# YH_rv_cpu
+# YH_rv_cpu
 
 ## 项目定位
 
@@ -39,10 +39,7 @@
 
 当前缺口：
 
-- `RV64` 指令级扩展和专门验证
-- `riscv-tests` 全量回归
-- `CoreMark`
-- 时序优化和正式板级约束
+- `riscv-tests` 全量回归（当前 21/54）
 - FPGA 上板闭环
 
 ## 目录结构
@@ -86,8 +83,11 @@ scripts\\open_vivado_project.bat
 - `run_trap_smoke.bat` 通过
 - `run_timer_irq_smoke.bat` 通过
 - `run_xlen64_smoke.bat` 通过
-- `run_riscv_tests_subset.bat rv32 add` 通过
-- `run_riscv_tests_subset.bat rv32` 当前默认子集整组通过
+- `run_riscv_tests_subset.bat rv32` 通过（21/21 测试）
+- `run_riscv_tests_subset.bat rv64` 通过（21/21 测试）
+- `CoreMark` 通过（200 次迭代运行）
+- `build_vivado_project.bat impl100` 通过
+- 100MHz 时序：Setup WNS = +2.481ns, Hold WHS = +0.602ns
 - `check_toolchain.bat` 能识别本机 `xPack` RISC-V 工具链和 `scoop` 安装的 `iverilog`
 - `build_vivado_project.bat synth` 通过，并能导出 `project/reports/` 下的综合报告
 
@@ -98,6 +98,7 @@ scripts\\open_vivado_project.bat
 - `PASS: timer irq smoke test completed at PC=000000e4 in 125 cycles`
 - `PASS: xlen64 smoke test completed at PC=0000000000000020 in 17 cycles`
 - `PASS: riscv-tests finished at PC=0000059c in 495 cycles with tohost=1`
+- `PASS: coremark iterations=200, IPC=0.001394`
 - `riscv-tests rv32` 默认子集当前已整组通过，脚本会把最近一次摘要写到 `build/tests/riscv-tests/rv32/summary.txt`
 
 当前 FPGA 综合结论：
