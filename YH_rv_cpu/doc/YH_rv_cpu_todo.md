@@ -116,5 +116,7 @@
 - `已完成` riscv-tests 回归脚本验证
   - `run_riscv_tests_subset.bat rv32 add addi` 测试通过
   - 确认脚本工作正常
-- `待办` 扩大 RV64 和更完整 riscv-tests 回归
+- `已完成` 扩大 RV64 riscv-tests 回归
+  - rv64ui 子集测试 21/21 全部通过
+  - 包括：add addi addiw addw ld lwu sd sll slli slliw sllw sra srai sraiw sraw srl srli srliw srlw sub subw
 - `待办` 继续收敛 100MHz 时序

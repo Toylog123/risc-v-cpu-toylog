@@ -235,3 +235,19 @@
 - RV32I 无硬件 FPU，所有浮点运算通过软件库模拟
 - 每个浮点操作需要数百到数千个 CPU 周期
 - CoreMark 在 RV32I soft-float 上运行非常慢是正常现象
+
+## 变更 21：扩大 RV64 riscv-tests 回归覆盖
+
+### 变更内容
+- 创建 `build/tests/riscv-tests/rv64` 目录
+- 运行 `run_riscv_tests_subset.bat rv64` 验证 RV64 子集测试
+
+### 验证结果
+- rv64ui 子集测试 21/21 全部通过
+- 测试包括：add addi addiw addw ld lwu sd sll slli slliw sllw sra srai sraiw sraw srl srli srliw srlw sub subw
+- 全部在 40000 周期限制内完成
+
+### 当前 RV64 支持状态
+- XLEN=64 基础烟测通过
+- rv64ui 子集 21 个测试全部通过
+- 32 个基础指令验证完成
