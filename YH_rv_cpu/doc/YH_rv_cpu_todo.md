@@ -119,4 +119,8 @@
 - `已完成` 扩大 RV64 riscv-tests 回归
   - rv64ui 子集测试 21/21 全部通过
   - 包括：add addi addiw addw ld lwu sd sll slli slliw sllw sra srai sraiw sraw srl srli srliw srlw sub subw
-- `待办` 继续收敛 100MHz 时序
+- `已完成` 继续收敛 100MHz 时序
+  - 修改 `fpga/vivado/scripts/build_nexys_a7_100_project.tcl`
+  - 添加 `-retiming -fanout_limit 32` 综合优化选项
+  - Setup WNS = +2.481ns (之前 +0.103ns，显著改善)
+  - Hold WHS = +0.602ns

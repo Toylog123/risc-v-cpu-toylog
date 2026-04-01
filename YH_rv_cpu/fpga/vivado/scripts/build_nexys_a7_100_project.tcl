@@ -102,7 +102,7 @@ puts $clock_fd [format {create_clock -name sys_clk -period %s [get_ports CLK100M
 close $clock_fd
 run_checked "read_clock_constraints" [list read_xdc $clock_constr_file]
 
-set synth_cmd [list synth_design -top $top_name -part $part_name -flatten_hierarchy rebuilt]
+set synth_cmd [list synth_design -top $top_name -part $part_name -flatten_hierarchy rebuilt -retiming -fanout_limit 32]
 if {$rom_init_hex ne ""} {
     puts "INFO: ROM_INIT_HEX override = $rom_init_hex"
     lappend synth_cmd -generic "ROM_INIT_HEX=$rom_init_hex"
@@ -120,6 +120,7 @@ if {$ram_bytes_override ne ""} {
     lappend synth_cmd -generic "RAM_BYTES=$ram_bytes_override"
 }
 run_checked "synth_design" $synth_cmd
+
 run_checked "write_checkpoint" [list write_checkpoint -force [file join $build_dir ${project_name}_${clock_tag}_synth.dcp]]
 run_checked "report_utilization" [list report_utilization -file [file join $report_dir synth_utilization.rpt]]
 run_checked "report_timing_summary" [list report_timing_summary -file [file join $report_dir synth_timing_summary.rpt]]
@@ -136,9 +137,9 @@ if {$flow_mode ne "impl"} {
 
 run_checked "opt_design" [list opt_design -directive Explore]
 run_checked "place_design" [list place_design -directive Explore]
-run_checked "phys_opt_design_pre_route" [list phys_opt_design -directive AggressiveExplore]
+run_checked "phys_opt_design_pre_route" [list phys_opt_design -directive Explore]
 run_checked "route_design" [list route_design -directive Explore]
-run_checked "phys_opt_design_post_route" [list phys_opt_design -directive AggressiveExplore]
+run_checked "phys_opt_design_post_route" [list phys_opt_design -directive Explore]
 run_checked "report_impl_utilization" [list report_utilization -file [file join $report_dir impl_utilization.rpt]]
 run_checked "report_impl_timing_summary" [list report_timing_summary -file [file join $report_dir impl_timing_summary.rpt]]
 run_checked "write_impl_checkpoint" [list write_checkpoint -force [file join $build_dir ${project_name}_${clock_tag}_impl.dcp]]

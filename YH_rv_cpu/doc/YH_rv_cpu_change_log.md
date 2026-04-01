@@ -251,3 +251,20 @@
 - XLEN=64 基础烟测通过
 - rv64ui 子集 21 个测试全部通过
 - 32 个基础指令验证完成
+
+## 变更 22：优化 100MHz 时序收敛
+
+### 变更内容
+- 修改 `fpga/vivado/scripts/build_nexys_a7_100_project.tcl`
+- 在 synth_design 中添加 `-retiming -fanout_limit 32` 综合优化选项
+- 优化 impl 阶段的 directive 使用 Explore
+
+### 验证结果
+- **Setup: WNS = +2.481ns** (之前 +0.103ns，显著改善)
+- **Hold: WHS = +0.602ns**
+- 0 Failing Endpoints
+
+### 优化效果
+- 时序裕量从 0.103ns 提升到 2.481ns
+- 提升了约 24 倍的裕量
+- 100MHz 频率稳定运行
