@@ -52,3 +52,12 @@
 - `fetch/request/queue` 解耦设计
 - 单变量实验
 - 每轮都完整重跑 CoreMark score / smoke / RV32 / RV64 / impl50
+
+## 2026-04-04 Update
+
+- [x] Added directed fetch diagnostic assets:
+  - `tb/YH_rv_cpu_fetch_prefetch_tb.v`
+  - `scripts/run_fetch_prefetch_diag.bat`
+- [x] Completed the first `fetch/request/queue` single-variable trial.
+- [x] Rejected the 1-entry request-side cursor RTL after `0` CoreMark score delta.
+- [ ] Re-open front-end optimization only after redirect/flush/drop accounting gets a new small-step validation plan.

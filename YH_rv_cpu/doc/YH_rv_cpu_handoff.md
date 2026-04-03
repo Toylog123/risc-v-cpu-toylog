@@ -98,3 +98,13 @@ scripts\run_coremark_fpga.bat rv32
 
 - 板卡到位后，需要把 bring-up checklist 从“板前闭环”更新为“实板闭环”
 - 如果第二轮性能优化启动，需要把每轮实验完整写入 `doc/performance_experiment_log.md`
+
+## 2026-04-04 Update
+
+- Added directed fetch diagnostic assets:
+  - `tb/YH_rv_cpu_fetch_prefetch_tb.v`
+  - `scripts/run_fetch_prefetch_diag.bat`
+- Completed the first `fetch/request/queue` single-variable trial.
+- Trial conclusion: `not retained`.
+- Short CoreMark on the trial RTL remained `11014885 cycles` / `0.912472 CoreMark/MHz`.
+- Mainline RTL was reverted to the frozen baseline after the experiment.

@@ -75,3 +75,9 @@ scripts\run_coremark_fpga.bat rv32
 ### 当前风险
 
 - `impl50` 报告中仍存在 `no_input_delay(1)` / `no_output_delay(4)`，板级 signoff 仍需补正式 I/O delay 约束
+
+### 2026-04-04 Fetch Diagnostic
+
+- Command: `scripts\run_fetch_prefetch_diag.bat`
+- Result: `PASS`
+- Observation: `83 cycles`, `stall_cycles=6`, `opportunities=6`, frozen baseline `prefetch_seen=0`
