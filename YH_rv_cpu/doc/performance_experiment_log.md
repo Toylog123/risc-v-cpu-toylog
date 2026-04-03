@@ -140,3 +140,28 @@ Notes:
 
 - The retained `+2.70%` gain comes from O1, not from fetch-side speculation.
 - Keep O6 closed unless a dedicated fetch queue refactor is planned and regression budget is available.
+
+### O7 - Evaluate a 1-entry request-side fetch cursor
+
+| Item | Value |
+|------|------|
+| Change | Add a directed fetch diagnostic and trial a 1-entry request-side cursor so synchronous fetch can keep requesting while decode is stalled |
+| Diagnostic assets | `tb/YH_rv_cpu_fetch_prefetch_tb.v`, `scripts/run_fetch_prefetch_diag.bat` |
+| Experimental RTL | `rtl/YH_rv_cpu.v` (trial branch only, reverted before keep decision) |
+| Directed red/green command | `scripts\run_fetch_prefetch_diag.bat -testplusarg require_prefetch` |
+| Directed result on trial RTL | `PASS`, `83 cycles`, `stall_cycles=6`, `opportunities=6`, `prefetch_seen=1` |
+| Baseline diagnostic command | `scripts\run_fetch_prefetch_diag.bat` |
+| Baseline diagnostic result | `PASS`, `prefetch_seen=0`, confirms the frozen baseline still does not prefetch during `stall_decode` |
+| CoreMark smoke on trial RTL | `620530 cycles` |
+| CoreMark score on trial RTL | `11014885 cycles`, `CoreMark/MHz = 0.912472` |
+| Score delta vs frozen baseline | `0` |
+| RV32 regression on trial RTL | `33/33` |
+| RV64 regression on trial RTL | `21/21` |
+| impl50 / FPGA-like probe | `not re-run` because the official short-score delta was `0` and the RTL was reverted before retain consideration |
+| Keep? | `no` |
+
+Notes:
+
+- The directed diagnostic proved that the request cursor can create `stall_decode`-time fetch requests, but that behavior did not improve the formal short CoreMark score.
+- Review after the trial identified unresolved interactions around redirect reuse and `IMEM_OUTPUT_REG`/drop accounting, so the RTL was reverted instead of being carried into synthesis or FPGA probe work.
+- Keep the diagnostic assets in-tree; they are now the preferred starting point for any future fetch/request/queue experiment.
