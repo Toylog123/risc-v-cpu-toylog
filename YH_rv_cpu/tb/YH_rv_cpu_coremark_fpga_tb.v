@@ -1,8 +1,9 @@
 `timescale 1ns / 1ps
 
-module YH_rv_cpu_coremark_tb #(
+module YH_rv_cpu_coremark_fpga_tb #(
     parameter integer XLEN = 32,
     parameter string ROM_HEX = "build/sw/YH_rv_cpu_coremark_rv32.hex",
+    parameter string ROM_MEM32_HEX = "build/sw/YH_rv_cpu_coremark_rv32.mem32.hex",
     parameter [31:0] RAM_BASE = 32'h0001_0000,
     parameter integer ROM_BYTES = 65536,
     parameter integer RAM_BYTES = 65536,
@@ -17,7 +18,7 @@ reg                rst_n;
 wire               trap;
 wire [XLEN-1:0]    debug_pc;
 wire               uart_tx_valid;
-wire [7:0]        uart_tx_data;
+wire [7:0]         uart_tx_data;
 wire               done;
 wire               timer_irq;
 
@@ -33,11 +34,15 @@ reg     score_found;
 
 YH_rv_cpu_soc #(
     .XLEN(XLEN),
+    .SYNC_IMEM(1),
+    .IMEM_OUTPUT_REG(0),
     .SYNC_DMEM(1),
+    .DMEM_OUTPUT_REG(0),
     .RAM_BASE(RAM_BASE),
     .ROM_BYTES(ROM_BYTES),
     .RAM_BYTES(RAM_BYTES),
-    .ROM_INIT_HEX(ROM_HEX)
+    .ROM_INIT_HEX(ROM_HEX),
+    .ROM_INIT_MEM32_HEX(ROM_MEM32_HEX)
 ) dut (
     .clk          (clk),
     .rst_n        (rst_n),
@@ -163,7 +168,7 @@ initial begin
     #100;
     rst_n = 1'b1;
 
-    $display("Starting CoreMark simulation (MAX_CYCLES=%0d)...", max_cycles_runtime);
+    $display("Starting FPGA-like CoreMark simulation (MAX_CYCLES=%0d)...", max_cycles_runtime);
 end
 
 endmodule

@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 setlocal EnableDelayedExpansion
 
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
@@ -7,13 +7,18 @@ set ITERATIONS=%~2
 set DATA_SIZE=%~3
 set TIMER_HZ=%~4
 set MAX_CYCLES=%~5
-set EXEC_MASK=1
+set SUMMARY_FILE=%~6
+set EXEC_MASK=0
 
 if "%TARGET%"=="" set TARGET=rv32
-if "%ITERATIONS%"=="" set ITERATIONS=5
-if "%DATA_SIZE%"=="" set DATA_SIZE=400
-if "%TIMER_HZ%"=="" set TIMER_HZ=1000UL
-if "%MAX_CYCLES%"=="" set MAX_CYCLES=10000000
+if "%ITERATIONS%"=="" set ITERATIONS=10
+if "%DATA_SIZE%"=="" set DATA_SIZE=2000
+if "%TIMER_HZ%"=="" set TIMER_HZ=100000000UL
+if "%MAX_CYCLES%"=="" set MAX_CYCLES=20000000
+
+if "%SUMMARY_FILE%"=="" (
+    set SUMMARY_FILE=%PROJECT_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%_score.summary.txt
+)
 
 call "%~dp0build_coremark.bat" %TARGET% %ITERATIONS% %DATA_SIZE% %TIMER_HZ% %EXEC_MASK%
 if errorlevel 1 exit /b 1
@@ -21,8 +26,9 @@ if errorlevel 1 exit /b 1
 set XVLOG=
 set XELAB=
 set XSIM=
+set PYTHON_CMD=
 set TEST_TOP=YH_rv_cpu_coremark_rv32_tb
-set LOG_FILE=%PROJECT_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%_smoke.log
+set LOG_FILE=%PROJECT_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%_score.log
 
 if /I "%TARGET%"=="rv64" set TEST_TOP=YH_rv_cpu_coremark_rv64_tb
 
@@ -68,6 +74,12 @@ if not defined XSIM (
     exit /b 1
 )
 
+call "%~dp0resolve_python.bat" PYTHON_CMD
+if not defined PYTHON_CMD (
+    echo Missing Python.
+    exit /b 1
+)
+
 pushd "%PROJECT_DIR%"
 
 call %XVLOG% --sv -i rtl ^
@@ -90,16 +102,27 @@ call %XVLOG% --sv -i rtl ^
     rtl\YH_rv_cpu_alu.v
 if errorlevel 1 goto :fail
 
-call %XELAB% %TEST_TOP% -s %TEST_TOP%_snapshot
+call %XELAB% %TEST_TOP% -s %TEST_TOP%_score_snapshot
 if errorlevel 1 goto :fail
 
-call %XSIM% %TEST_TOP%_snapshot -testplusarg "max_cycles=%MAX_CYCLES%" -runall > "%LOG_FILE%" 2>&1
+call %XSIM% %TEST_TOP%_score_snapshot -testplusarg "max_cycles=%MAX_CYCLES%" -runall > "%LOG_FILE%" 2>&1
 type "%LOG_FILE%"
-findstr /c:"PASS: coremark smoke test completed" "%LOG_FILE%" >nul
-if errorlevel 1 findstr /c:"PASS: coremark completed" "%LOG_FILE%" >nul
+
+findstr /c:"PASS: coremark completed" "%LOG_FILE%" >nul
 if errorlevel 1 goto :fail
 
-echo PASS: coremark smoke completed.
+call %PYTHON_CMD% "%~dp0report_coremark_result.py" "%LOG_FILE%" "%TIMER_HZ%" "%SUMMARY_FILE%"
+if errorlevel 1 goto :fail
+
+findstr /c:"competition_reportable=yes" "%SUMMARY_FILE%" >nul
+if errorlevel 1 goto :fail
+
+echo.
+echo Score summary:
+type "%SUMMARY_FILE%"
+
+echo.
+echo PASS: coremark score completed.
 set RUN_STATUS=0
 goto :done
 
@@ -108,7 +131,5 @@ set RUN_STATUS=%ERRORLEVEL%
 
 :done
 popd
-call "%~dp0stage_runtime_to_tmp.bat" coremark_smoke
+call "%~dp0stage_runtime_to_tmp.bat" coremark_score
 exit /b %RUN_STATUS%
-
-

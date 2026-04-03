@@ -223,3 +223,47 @@ scripts\\open_vivado_project.bat
   2. 评估给 `dmem` BRAM 增加额外输出寄存器，继续压 `100MHz`
   3. 在新资源口径上继续推进 `rv64` 和 `CoreMark`
 
+## 2026-04-02 更新
+
+以下状态覆盖上文中更早的阶段性记录。
+
+- `scripts\run_coremark_smoke.bat rv32` fresh 通过，`PASS: coremark completed at PC=00001038 in 679998 cycles`
+- `scripts\run_coremark_score.bat rv32 10 2000 100000000UL 20000000` fresh 通过，`CoreMark/MHz = 0.888486`
+- `scripts\run_riscv_tests_subset.bat rv32` fresh 通过，baseline `33/33`
+- `scripts\run_riscv_tests_subset.bat rv64` fresh 通过，baseline `21/21`
+- `scripts\build_vivado_project.bat impl50` fresh 通过，并生成 `project/YH_rv_cpu_nexys_a7_100_20p000.bit`
+- `impl50` fresh 资源/时序为 `2545 LUT / 2240 FF / 4 BRAM / 0 DSP`，`WNS = +5.085ns`，`WHS = +0.058ns`
+
+当前推荐直接引用的文档入口：
+
+- `doc/coremark_submission_report.md`
+- `doc/performance_experiment_log.md`
+- `doc/fpga_bringup_checklist.md`
+
+## 2026-04-03 Optimization Update
+
+- The retained CoreMark RTL optimization is a tighter synchronous load hazard
+  policy in `rtl/YH_rv_cpu_hazard_unit.v`. The frozen score command
+  `scripts\run_coremark_score.bat rv32 10 2000 100000000UL 20000000` now
+  reports `CoreMark/MHz = 0.912472`.
+- Fresh smoke on the same retained RTL now completes via
+  `scripts\run_coremark_smoke.bat rv32` in `620530` cycles.
+- Fresh regression after that change remains green:
+  `scripts\run_riscv_tests_subset.bat rv32` -> `33/33`,
+  `scripts\run_riscv_tests_subset.bat rv64` -> `21/21`.
+- The FPGA-default memory path has also been tightened. Current retained
+  defaults in `fpga/vivado/src/YH_rv_cpu_fpga_top.v` are
+  `IMEM_OUTPUT_REG=0` and `DMEM_OUTPUT_REG=0`.
+- Fresh `impl50` with that FPGA-default configuration still passes and now
+  reports `2555 LUT / 2170 FF / 4 BRAM / 0 DSP`, `WNS = +5.822ns`,
+  `WHS = +0.057ns`.
+- A separate FPGA-like CoreMark probe entry now exists:
+  `scripts\run_coremark_fpga.bat`. Its default no-extra-args probe now matches
+  the retained reduced-workload tuning path (`rv32 / 1 / 400 / EXEC_MASK=1`).
+  With the retained `i0d0` memory setting, the quick probe
+  `scripts\run_coremark_fpga.bat rv32`
+  completes in `156442` cycles and reports `CoreMark/MHz = 7.728811`.
+- Remaining submission gap is unchanged: the frozen score path is reproducible
+  and competition-reportable, but still not strict EEMBC-valid because the run
+  time is below `10s`. The FPGA XDC also still lacks final I/O delay
+  constraints for board-grade signoff.

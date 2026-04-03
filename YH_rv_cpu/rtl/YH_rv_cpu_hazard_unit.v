@@ -60,10 +60,8 @@ module YH_rv_cpu_hazard_unit (
     // 必须插入 stall，等待加载完成
     //
     // 情况 1: ID/EX 阶段有加载指令，ID 阶段的指令需要 EX 阶段的结果
-    // 情况 2: EX/MEM 阶段有加载指令 (延迟槽中的加载使用)
     // ------------------------------------------------------------
 wire load_use_hazard;
-wire ex_mem_load_hazard;
 
     // ID/EX 加载冒险: 当前译码指令需要 ID/EX 阶段加载的结果
 assign load_use_hazard =
@@ -73,16 +71,9 @@ assign load_use_hazard =
         (if_id_rs2_en && (if_id_rs2_addr == id_ex_rd_addr))
     );
 
-    // EX/MEM 加载冒险: 延迟槽中的加载使用
-assign ex_mem_load_hazard =
-    ex_mem_valid && ex_mem_load && ex_mem_rd_en && (ex_mem_rd_addr != 5'd0) &&
-    (
-        (if_id_rs1_en && (if_id_rs1_addr == ex_mem_rd_addr)) ||
-        (if_id_rs2_en && (if_id_rs2_addr == ex_mem_rd_addr))
-    );
-
-    // 任一加载使用冒险都需要 stall
-assign stall_decode = load_use_hazard || ex_mem_load_hazard;
+    // 同步数据存储器路径下，额外等待周期由 mem_wait 冻住流水线，
+    // 因此这里只保留真正的 ID/EX load-use 冒险停顿。
+assign stall_decode = load_use_hazard;
 
     // ------------------------------------------------------------
     // 数据转发选择逻辑

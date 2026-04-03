@@ -1026,7 +1026,6 @@ always @(posedge clk or negedge rst_n) begin
                 id_ex_ecall_r <= id_ex_ecall_r;
                 id_ex_ebreak_r <= id_ex_ebreak_r;
                 id_ex_mret_r <= id_ex_mret_r;
-                ex_mem_valid_r <= 1'b0;
             end else begin
                 if (ex_fetch_redirect_valid || !stall_decode) begin
                     pc_r <= if_pc_next;

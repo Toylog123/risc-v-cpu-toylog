@@ -3,7 +3,20 @@ setlocal
 
 set MODE=%~1
 if "%MODE%"=="" set MODE=synth
+if /I "%MODE%"=="-h" goto :usage
+if /I "%MODE%"=="--help" goto :usage
+if /I "%MODE%"=="/?" goto :usage
 set CLOCK_PERIOD_NS_OVERRIDE=%~2
+
+set MODE_OK=
+if /I "%MODE%"=="project" set MODE_OK=1
+if /I "%MODE%"=="synth" set MODE_OK=1
+if /I "%MODE%"=="synth50" set MODE_OK=1
+if /I "%MODE%"=="synth100" set MODE_OK=1
+if /I "%MODE%"=="impl" set MODE_OK=1
+if /I "%MODE%"=="impl50" set MODE_OK=1
+if /I "%MODE%"=="impl100" set MODE_OK=1
+if not defined MODE_OK goto :usage_invalid
 
 if /I "%MODE%"=="synth50" (
     set MODE=synth
@@ -24,6 +37,9 @@ if /I "%MODE%"=="impl100" (
     set MODE=impl
     if not defined CLOCK_PERIOD_NS_OVERRIDE set CLOCK_PERIOD_NS_OVERRIDE=10.000
 )
+
+echo Vivado build mode: %MODE%
+if defined CLOCK_PERIOD_NS_OVERRIDE echo Clock period override: %CLOCK_PERIOD_NS_OVERRIDE% ns
 
 set VIVADO_CMD=
 set PHYSICAL_SCRIPT_DIR=%~dp0
@@ -139,3 +155,18 @@ set EC=%ERRORLEVEL%
 popd
 if defined CREATED_MAP subst %MAP_DRIVE% /d >nul 2>nul
 exit /b %EC%
+
+:usage
+echo Usage: %~nx0 [project^|synth^|synth50^|synth100^|impl^|impl50^|impl100] [clock_period_ns_override]
+echo.
+echo project    Generate the Vivado project skeleton only.
+echo synth50    Run synthesis at the frozen 50 MHz baseline (20.000 ns).
+echo impl50     Run implementation at the frozen 50 MHz baseline (20.000 ns).
+echo synth100   Run synthesis at the 100 MHz reference baseline (10.000 ns).
+echo impl100    Run implementation at the 100 MHz reference baseline (10.000 ns).
+echo synth/impl Use the default Tcl clock period or the explicit override.
+exit /b 0
+
+:usage_invalid
+echo Unsupported build mode: %MODE%
+exit /b 1

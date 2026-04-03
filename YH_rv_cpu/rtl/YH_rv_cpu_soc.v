@@ -510,7 +510,9 @@ always @(posedge clk or negedge rst_n) begin
                 end
 
                 TIMER_CTRL_ADDR: begin
-                    timer_irq_en_r <= timer_ctrl_next[0];
+                    if (dmem_mmio_wstrb4[0]) begin
+                        timer_irq_en_r <= 1'b1;
+                    end
                     if (dmem_mmio_wstrb4[0] && dmem_mmio_wdata32[1]) begin
                         timer_value_r <= 64'h0000_0000_0000_0000;
                     end

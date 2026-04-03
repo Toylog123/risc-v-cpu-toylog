@@ -2,11 +2,13 @@
 setlocal EnableDelayedExpansion
 
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
+for %%I in ("%PROJECT_DIR%\..") do set REPO_DIR=%%~fI
 set BUILD_DIR=%PROJECT_DIR%\build\tests\riscv-tests
 set EXTERNAL_DIR=%PROJECT_DIR%\build\external\riscv-tests
 set TARGET=%~1
 set TEST_OVERRIDE=%~2
 set DEBUG_CYCLES=%~3
+set TEST_MANIFEST=
 set SUMMARY_FILE=
 set CURRENT_TEST=
 set TOTAL_TESTS=0
@@ -28,6 +30,7 @@ set PYTHON_CMD=
 set USER_HOME=%USERPROFILE%
 set RISCV_XPACK_ROOT=%USER_HOME%\AppData\Roaming\xPacks\@xpack-dev-tools\riscv-none-elf-gcc
 set WORD_HEX_PY=%PROJECT_DIR%\scripts\make_word_hex.py
+set XSIM_STAGE_DIR=%REPO_DIR%\_tmp\sim_runtime\%TARGET%
 
 for %%T in (riscv-none-elf-gcc riscv32-unknown-elf-gcc riscv64-unknown-elf-gcc) do (
     where %%T >nul 2>nul
@@ -128,24 +131,27 @@ if /I "%TARGET%"=="rv64" (
     set MARCH=rv64i_zicsr
     set MABI=lp64
     set TEST_TOP=YH_rv_cpu_riscv_tests_rv64_tb
-    set TEST_LIST=add addi addiw addw ld lwu sd sll slli slliw sllw sra srai sraiw sraw srl srli srliw srlw sub subw
+    set TEST_MANIFEST=%~dp0riscv_tests_rv64_baseline.txt
 ) else (
     set XLEN=32
     set MARCH=rv32i_zicsr
     set MABI=ilp32
     set TEST_TOP=YH_rv_cpu_riscv_tests_rv32_tb
-    set TEST_LIST=add addi and andi auipc beq bne jal jalr lb lbu lh lhu lui lw or ori sb sh sll slli slt slti sltiu sltu sra srai srl srli sub sw xor xori
+    set TEST_MANIFEST=%~dp0riscv_tests_rv32_baseline.txt
 )
 
-if not "%TEST_OVERRIDE%"=="" (
-    set TEST_LIST=%TEST_OVERRIDE%
-)
+call :load_test_manifest "%TEST_MANIFEST%" TEST_LIST
+if errorlevel 1 exit /b 1
+
+if not "%TEST_OVERRIDE%"=="" set TEST_LIST=%TEST_OVERRIDE%
 
 if not exist "%BUILD_DIR%\%TARGET%" mkdir "%BUILD_DIR%\%TARGET%"
 set SUMMARY_FILE=%BUILD_DIR%\%TARGET%\summary.txt
 call :timestamp START_TS
 > "%SUMMARY_FILE%" echo target=%TARGET%
+>> "%SUMMARY_FILE%" echo manifest=%TEST_MANIFEST%
 >> "%SUMMARY_FILE%" echo tests=%TEST_LIST%
+if not "%TEST_OVERRIDE%"=="" >> "%SUMMARY_FILE%" echo override=%TEST_OVERRIDE%
 >> "%SUMMARY_FILE%" echo started=%START_TS%
 
 pushd "%PROJECT_DIR%"
@@ -165,9 +171,6 @@ call %XVLOG% --sv -i rtl ^
     rtl\YH_rv_cpu_alu.v
 if errorlevel 1 goto :fail
 
-call %XELAB% %TEST_TOP% -s %TEST_TOP%_snapshot
-if errorlevel 1 goto :fail
-
 for %%N in (%TEST_LIST%) do (
     set /a TOTAL_TESTS+=1
     set CURRENT_TEST=%%N
@@ -176,6 +179,7 @@ for %%N in (%TEST_LIST%) do (
     set TEST_BIN=%BUILD_DIR%\%TARGET%\%%N.bin
     set TEST_HEX=%BUILD_DIR%\%TARGET%\%%N.hex
     set TEST_MEM32_HEX=%BUILD_DIR%\%TARGET%\%%N.mem32.hex
+    set TEST_PREP_LOG=%BUILD_DIR%\%TARGET%\%%N.xelab.log
     set TEST_LOG=%BUILD_DIR%\%TARGET%\%%N.log
 
     echo Running %TARGET%ui/%%N ...
@@ -203,10 +207,13 @@ for %%N in (%TEST_LIST%) do (
     copy /y "!TEST_MEM32_HEX!" "%BUILD_DIR%\current.mem32.hex" >nul
     if errorlevel 1 goto :fail
 
+    call %XELAB% %TEST_TOP% -s %TEST_TOP%_snapshot > "!TEST_PREP_LOG!" 2>&1
+    if errorlevel 1 goto :fail
+
     if not "%DEBUG_CYCLES%"=="" (
-        call %XSIM% %TEST_TOP%_snapshot -testplusarg "hex=build/tests/riscv-tests/%TARGET%/%%N.hex" -testplusarg "max_cycles=40000" -testplusarg "debug_cycles=%DEBUG_CYCLES%" -runall > "!TEST_LOG!" 2>&1
+        call %XSIM% %TEST_TOP%_snapshot -testplusarg "hex=build/tests/riscv-tests/%TARGET%/%%N.hex" -testplusarg "test_name=%%N" -testplusarg "max_cycles=40000" -testplusarg "debug_cycles=%DEBUG_CYCLES%" -runall > "!TEST_LOG!" 2>&1
     ) else (
-        call %XSIM% %TEST_TOP%_snapshot -testplusarg "hex=build/tests/riscv-tests/%TARGET%/%%N.hex" -testplusarg "max_cycles=40000" -runall > "!TEST_LOG!" 2>&1
+        call %XSIM% %TEST_TOP%_snapshot -testplusarg "hex=build/tests/riscv-tests/%TARGET%/%%N.hex" -testplusarg "test_name=%%N" -testplusarg "max_cycles=40000" -runall > "!TEST_LOG!" 2>&1
     )
     type "!TEST_LOG!"
     findstr /c:"PASS: riscv-tests finished" "!TEST_LOG!" >nul
@@ -247,5 +254,23 @@ setlocal
 set TS_VALUE=
 for /f "usebackq delims=" %%T in (`powershell -NoProfile -Command "(Get-Date).ToString('yyyy-MM-ddTHH:mm:ssK')"`) do set TS_VALUE=%%T
 endlocal & set "%~1=%TS_VALUE%"
+exit /b 0
+
+:load_test_manifest
+setlocal EnableDelayedExpansion
+set "MANIFEST_PATH=%~1"
+set "MANIFEST_TESTS="
+if not exist "%MANIFEST_PATH%" (
+    echo Missing test manifest: %MANIFEST_PATH%
+    endlocal & exit /b 1
+)
+for /f "usebackq eol=# delims=" %%L in ("%MANIFEST_PATH%") do (
+    if defined MANIFEST_TESTS (
+        set "MANIFEST_TESTS=!MANIFEST_TESTS! %%L"
+    ) else (
+        set "MANIFEST_TESTS=%%L"
+    )
+)
+endlocal & set "%~2=%MANIFEST_TESTS%"
 exit /b 0
 

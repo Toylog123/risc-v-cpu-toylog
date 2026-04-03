@@ -140,3 +140,37 @@
   - 添加 `-retiming -fanout_limit 32` 综合优化选项
   - Setup WNS = +2.481ns (之前 +0.103ns，显著改善)
   - Hold WHS = +0.602ns
+## 2026-04-02 追加状态：Phase A / Phase B 收口
+
+- `已完成` CoreMark 正式提交口径
+  - `scripts/run_coremark_smoke.bat` 与 `scripts/run_coremark_score.bat` 已分离
+  - `scripts/report_coremark_result.py` 可直接解析 host-side `CoreMark/MHz`
+  - `doc/coremark_submission_report.md` 已形成可引用摘要
+- `已完成` riscv-tests 基线冻结
+  - `scripts/riscv_tests_rv32_baseline.txt`：`33/33`
+  - `scripts/riscv_tests_rv64_baseline.txt`：`21/21`
+- `已完成` FPGA pre-board 闭环
+  - `scripts/build_vivado_project.bat impl50` fresh 通过
+  - `project/YH_rv_cpu_nexys_a7_100_20p000.bit` 已生成
+  - `doc/fpga_bringup_checklist.md` 已补齐
+- `待办` 板卡到位后完成 UART/LED 实板闭环
+- `待办` 基于 `doc/performance_experiment_log.md` 开始两项性能优化实验
+## 2026-04-03 追加状态：首轮性能优化收口
+
+- `已完成` O1 同步 load hazard 收紧
+  - `rtl/YH_rv_cpu_hazard_unit.v` 只保留 `load_use_hazard` 停顿
+  - `CoreMark/MHz` 从 `0.888486` 提升到 `0.912472`
+  - `riscv-tests rv32 = 33/33`，`rv64 = 21/21`
+- `已完成` O3/O4 FPGA 默认内存路径收紧
+  - `fpga/vivado/src/YH_rv_cpu_fpga_top.v` 默认改为 `IMEM_OUTPUT_REG=0`、`DMEM_OUTPUT_REG=0`
+  - `impl50` fresh 结果：`2555 LUT / 2170 FF / 4 BRAM / 0 DSP`
+  - `impl50` fresh 时序：`WNS = +5.822ns`，`WHS = +0.057ns`
+- `已完成` FPGA-like CoreMark 快速探针入口
+  - `scripts/run_coremark_fpga.bat` 默认即 quick probe 口径
+  - 当前 fresh 结果：`156442 cycles`，`CoreMark/MHz = 7.728811`
+- `已完成` fetch 停顿进一步放松的可行性评估
+  - 当前单点放松 `!stall_decode` 不保留
+  - 原因：`pc_r` 在 stall 时同样冻结，简单放松门控会重新请求同一 PC，不是安全的前端提分改动
+- `待办` 板卡到位后完成 UART/LED 实板闭环并补正式证据
+- `待办` 如需 strict EEMBC 口径，补 `>=10s` 的 CoreMark 长跑配置
+- `待办` 如果继续提分，先单列 fetch 队列/前端解耦实验计划，再决定是否进入 RTL 改动

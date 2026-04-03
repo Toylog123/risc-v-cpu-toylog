@@ -435,3 +435,57 @@
 - 缺 `RV64` / 更完整 `riscv-tests` 的正式回归摘要
 - 缺正式板卡 `XDC`、上板日志和演示记录
 - 如需固化双频率统一口径，建议补一版当前 `4 BRAM` 基线下的 `synth50`
+## 2026-04-02 追加状态：比赛提交口径已冻结
+
+- `CoreMark` 正式脚本已拆分为：
+  - `scripts/run_coremark_smoke.bat`
+  - `scripts/run_coremark_score.bat`
+- `CoreMark score` 当前 fresh 结果：
+  - `build/sw/YH_rv_cpu_coremark_rv32_score.summary.txt`
+  - `CoreMark/MHz = 0.888486`
+  - `validation_mode = short_runtime_only`
+  - `competition_reportable = yes`
+- `riscv-tests` 默认回归基线已显式冻结：
+  - `scripts/riscv_tests_rv32_baseline.txt`：`33/33`
+  - `scripts/riscv_tests_rv64_baseline.txt`：`21/21`
+- FPGA `impl50` 当前 fresh 结果：
+  - `project/YH_rv_cpu_nexys_a7_100_20p000.bit`
+  - `project/reports/clk_20p000ns/impl_timing_summary.rpt`
+  - `project/reports/clk_20p000ns/impl_utilization.rpt`
+  - `WNS = +5.085ns`，`WHS = +0.058ns`
+- 当前真正剩余的阻塞已收敛为：
+  1. 板卡到位后按 `doc/fpga_bringup_checklist.md` 推进 UART/LED 实板闭环
+  2. 按 `doc/performance_experiment_log.md` 开始两项性能优化实验
+  3. 对外引用 CoreMark 时优先使用 `doc/coremark_submission_report.md`
+## 2026-04-03 追加状态：首轮提分优化已冻结
+
+- `CoreMark score` 当前 fresh 结果已更新为：
+  - `build/sw/YH_rv_cpu_coremark_rv32_score.summary.txt`
+  - `CoreMark/MHz = 0.912472`
+  - `completion_cycles = 11014885`
+  - `validation_mode = short_runtime_only`
+  - `competition_reportable = yes`
+- `CoreMark smoke` 最新 fresh 结果：
+  - `scripts/run_coremark_smoke.bat rv32`
+  - `PASS: coremark completed at PC=00001038 in 620530 cycles`
+- `riscv-tests` 默认回归基线保持通过：
+  - `scripts/riscv_tests_rv32_baseline.txt`：`33/33`
+  - `scripts/riscv_tests_rv64_baseline.txt`：`21/21`
+- FPGA 默认配置已收敛为：
+  - `fpga/vivado/src/YH_rv_cpu_fpga_top.v`
+  - `IMEM_OUTPUT_REG = 0`
+  - `DMEM_OUTPUT_REG = 0`
+- FPGA `impl50` 当前 fresh 结果：
+  - `project/YH_rv_cpu_nexys_a7_100_20p000.bit`
+  - `WNS = +5.822ns`，`WHS = +0.057ns`
+  - `2555 LUT / 2170 FF / 4 BRAM / 0 DSP`
+- 已新增 FPGA-like CoreMark 探针入口：
+  - `scripts/run_coremark_fpga.bat`
+  - 默认即 quick probe 口径：`rv32 / 1 / 400 / 100000000UL / 20000000 / EXEC_MASK=1`
+  - 当前 fresh 结果：`156442 cycles`，`CoreMark/MHz = 7.728811`
+- 本轮明确不保留的方向：
+  - `fetch` 侧继续在 `stall_decode` 期间推进取指的单点改动风险偏高，当前只记录为实验结论，不进入冻结配置
+- 当前真正剩余的阻塞进一步收敛为：
+  1. 板卡到位后按 `doc/fpga_bringup_checklist.md` 推进 UART/LED 实板闭环
+  2. 如需正式 EEMBC 口径，补一轮 `>=10s` 的长跑配置与日志
+  3. 若继续提分，优先规划专门的 fetch 队列/前端解耦实验，而不是直接放松现有 `stall_decode` 门控

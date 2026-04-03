@@ -1,5 +1,5 @@
-﻿﻿@echo off
-setlocal
+@echo off
+setlocal EnableDelayedExpansion
 
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
 set TARGET=%~1
@@ -42,7 +42,7 @@ if /I "%TARGET%"=="rv64" (
 for %%T in (riscv-none-elf-gcc riscv32-unknown-elf-gcc riscv64-unknown-elf-gcc) do (
     where %%T >nul 2>nul
     if not errorlevel 1 (
-        set GCC=%%T
+        for /f "delims=" %%P in ('where %%T 2^>nul') do set GCC=%%P
         goto :gcc_done
     )
 )
@@ -114,23 +114,49 @@ if not defined PYTHON_CMD (
     exit /b 1
 )
 
-set LIBGCC_SEARCH=
-for /f "delims=" %%I in ('"%GCC%" -march=%MARCH% -mabi=%MABI% -print-libgcc-file-name 2^>nul') do set LIBGCC_SEARCH=%%I
-for %%I in ("%LIBGCC_SEARCH%") do set LIBGCC_PATH=%%~fI
-if exist "%LIBGCC_PATH%" (
-    set LIBGCC_REF=%LIBGCC_PATH%
+set LIBGCC_REF=
+set LIBM_REF=
+set MULTIDIR=
+set GCC_VERSION_DIR=
+
+for %%I in ("!GCC!") do set GCC_DIR=%%~dpI
+set GCC_ROOT=!GCC_DIR:~0,-4!
+
+if /I "%TARGET%"=="rv64" (
+    set MULTIDIR=rv64i\lp64
 ) else (
-    set LIBGCC_REF=
+    set MULTIDIR=rv32i\ilp32
 )
 
-set LIBM_SEARCH=
-for /f "delims=" %%I in ('"%GCC%" -march=%MARCH% -mabi=%MABI% -print-file-name=libm.a 2^>nul') do set LIBM_SEARCH=%%I
-for %%I in ("%LIBM_SEARCH%") do set LIBM_PATH=%%~fI
-if exist "%LIBM_PATH%" (
-    set LIBM_REF=%LIBM_PATH%
-) else (
-    set LIBM_REF=
+for /d %%D in ("!GCC_ROOT!\lib\gcc\riscv-none-elf\*") do (
+    set GCC_VERSION_DIR=%%~fD
+    goto :gcc_version_resolved
 )
+:gcc_version_resolved
+
+if not defined GCC_VERSION_DIR (
+    echo Missing GCC multilib root under !GCC_ROOT!\lib\gcc\riscv-none-elf
+    exit /b 1
+)
+
+set LIBGCC_REF=!GCC_VERSION_DIR!\!MULTIDIR!\libgcc.a
+set LIBM_REF=!GCC_ROOT!\riscv-none-elf\lib\!MULTIDIR!\libm.a
+
+if not exist "!LIBGCC_REF!" (
+    echo Missing libgcc for !MARCH!/!MABI!: !LIBGCC_REF!
+    exit /b 1
+)
+
+if not exist "!LIBM_REF!" (
+    echo Missing libm for !MARCH!/!MABI!: !LIBM_REF!
+    exit /b 1
+)
+
+echo DEBUG: GCC=!GCC!
+echo DEBUG: MARCH=!MARCH! MABI=!MABI!
+echo DEBUG: MULTIDIR=!MULTIDIR!
+echo DEBUG: LIBGCC_REF=!LIBGCC_REF!
+echo DEBUG: LIBM_REF=!LIBM_REF!
 
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
@@ -153,7 +179,7 @@ if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
     "%PORT_DIR%\core_portme.c" ^
     "%PORT_DIR%\ee_printf.c" ^
     "%COREMARK_DIR%\barebones\cvt.c" ^
-    %LIBM_REF% %LIBGCC_REF%
+    !LIBM_REF! !LIBGCC_REF!
 if errorlevel 1 exit /b 1
 
 %OBJDUMP% -d "%BUILD_DIR%\%OUTPUT_NAME%.elf" > "%BUILD_DIR%\%OUTPUT_NAME%.dump"

@@ -1,93 +1,91 @@
-# FPGA 上板说明
+# YH_rv_cpu Nexys A7-100T FPGA Flow
 
-这个目录现在承载 `YH_rv_cpu` 的 Vivado 工程脚手架，但真正生成出来的 Vivado 工程目录不放在这里。
+This directory contains the frozen pre-board Vivado flow for `YH_rv_cpu`.
+It keeps the port naming and timing scaffolding stable now, while leaving
+the final board pinout to be filled in once the physical board arrives.
 
-## 当前结论
+## Current Baseline
 
-- 当前还没有实物板卡。
-- 当前推荐的主申请板卡是 `Digilent Nexys A7-100T`。
-- 当前仓库里已经补了：
-  - 板级顶层 `src/YH_rv_cpu_fpga_top.v`
-  - 串口发送模块 `src/YH_rv_uart_tx.v`
-  - 约束模板 `constraints/nexys_a7_100_template.xdc`
-  - Vivado 批处理脚本 `scripts/build_nexys_a7_100_project.tcl`
-- Vivado 生成工程统一落到仓库根目录 `project/`
-- `project/` 是本地目录，不进入 Git 同步范围
-- 当前目标是先拿到综合和资源估算，再为后续实物上板做准备。
-- `scripts/build_vivado_project.bat` 现在会自动临时映射 ASCII 盘符，规避中文路径导致的 Vivado 退出问题。
-- 如果本地已存在 `build/tests/riscv-tests/rv32/simple.hex`，综合脚本会自动把它挂到 `ROM_INIT_HEX`，并用 `8KB/8KB` 的 `ROM/RAM` 做本地资源估算。
+- The frozen bring-up target is `50 MHz`.
+- `project` generates only the Vivado project skeleton under repo-root `project/`.
+- `synth50` and `impl50` are the pre-board baseline modes.
+- `synth100` and `impl100` are retained as 100 MHz reference modes for comparison.
+- The Tcl flow now writes synthesis and implementation reports plus a final bitstream in `project/`.
 
-## 为什么优先用 `Nexys A7-100T`
+## Supported Modes
 
-- 当前项目主线不需要 PS 侧 ARM 和 DDR。
-- 纯 `Artix-7` 路线更贴合当前自写 RISC-V CPU + 最小 SoC 的工作方式。
-- Digilent 有公开的参考手册和 Master XDC，后续冻结约束更容易。
+From `YH_rv_cpu\scripts\build_vivado_project.bat`:
 
-## 当前目录结构
+- `project` - create the Vivado project skeleton only.
+- `synth` - run synthesis with the default clock override.
+- `synth50` - run synthesis at 20.000 ns, the frozen 50 MHz baseline.
+- `impl` - run implementation with the default clock override.
+- `impl50` - run implementation at 20.000 ns, the frozen 50 MHz baseline.
+- `synth100` - run synthesis at 10.000 ns, the 100 MHz reference.
+- `impl100` - run implementation at 10.000 ns, the 100 MHz reference.
 
-- `src/`
-  - 板级顶层和串口发送模块
-- `constraints/`
-  - 约束模板和后续正式 XDC 的入口
-- `scripts/`
-  - Vivado 工程和综合脚本
+`open_vivado_project.bat` always opens the project skeleton. It will create
+the skeleton first if the local `project/` directory does not exist.
 
-## 当前使用方法
+## What Is Frozen
 
-在仓库根目录执行：
+- Top-level port names are fixed by `YH_rv_cpu_fpga_top`.
+- The clock scaffold is fixed at `CLK100MHZ` in the Tcl-generated clock constraint.
+- The frozen XDC already carries the official Digilent pin map for
+  `CLK100MHZ`, `cpu_resetn`, `uart_txd_in`, `uart_rxd_out`, and `led[3:0]`.
+- The pre-board flow is intentionally centered on `synth50` and `impl50`.
+
+## What Still Blocks Final Board Closure
+
+- The actual Nexys A7-100T board must be available.
+- UART wiring must be verified on the actual board.
+- LED mapping must be verified on the actual board.
+- A full serial boot log and LED evidence capture are still required.
+
+## Generated Artifacts
+
+Implementation mode writes these files into `project/`:
+
+- `YH_rv_cpu_nexys_a7_100_<clock>.bit`
+- `YH_rv_cpu_nexys_a7_100_<clock>_impl.dcp`
+- `YH_rv_cpu_nexys_a7_100_<clock>_synth.dcp`
+- `reports/clk_<clock>ns/*.rpt`
+
+For the frozen 50 MHz baseline, `<clock>` is `20p000`.
+
+## Quick Start
 
 ```bat
 YH_rv_cpu\scripts\build_vivado_project.bat project
-YH_rv_cpu\scripts\build_vivado_project.bat synth
-YH_rv_cpu\scripts\clean_vivado_project.bat
+YH_rv_cpu\scripts\build_vivado_project.bat synth50
+YH_rv_cpu\scripts\build_vivado_project.bat impl50
+YH_rv_cpu\scripts\open_vivado_project.bat
 ```
 
-说明：
+## Bring-Up Expectation
 
-- `project`：在根目录 `project/` 生成工程骨架，方便后续在 GUI 中继续操作
-- `synth`：先跑综合，拿资源和时序估算
-- `clean_vivado_project.bat`：清掉 `project/` 下的 Vivado 临时目录和历史备份，只保留报告、检查点和最新日志
-- 现在没有实物板卡，所以还不建议把“生成最终 bitstream”当成本阶段目标
+Do not treat the flow as board-complete until the checklist in
+`YH_rv_cpu\doc\fpga_bringup_checklist.md` is finished, including:
 
-## 当前综合结果
+- bitstream generation
+- serial console capture
+- LED observation
+- screenshot or video evidence
 
-- 当前本地综合目标器件：`xc7a100tcsg324-1`
-- 当前资源估算口径：`ROM=8KB`、`RAM=8KB`、`ROM_INIT_HEX=simple.hex`
-- 当前综合结果：
-  - `Slice LUTs = 3445`
-  - `Slice Registers = 1962`
-  - `LUT as Memory = 1024`
-  - `BRAM = 0`
-  - `DSP = 0`
-- 当前时序结果：
-  - `sys_clk = 100MHz`
-  - `WNS = -2.405ns`
-  - 当前 100MHz 还未收敛，但赛题要求的 `50MHz` 目标仍有较大空间
-- 当前还存在的板级约束问题：
-  - `no_input_delay(1)`
-  - `no_output_delay(4)`
-  - 正式板卡到位后要用正式 `XDC` 补齐
+## Frozen Snapshot (2026-04-03)
 
-## 正式上板前还缺什么
-
-- 老师确认并下发板卡
-- 基于实物板卡冻结正式 `XDC`
-- 确认串口和复位引脚
-- 跑一次完整 bitstream 流程
-- 固化板级演示脚本和日志
-
-## 2026-03-17 双档综合口径
-
-- 当前脚本新增：
-  - `build_vivado_project.bat synth100`
-  - `build_vivado_project.bat synth50`
-- 当前报告目录：
-  - `project/reports/clk_10p000ns`
-  - `project/reports/clk_20p000ns`
-- 当前结果以这两组目录为准：
-  - `100MHz`：`3450 LUT / 1962 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = -2.487ns`
-  - `50MHz`：`3424 LUT / 1962 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = 7.525ns`
-- 当前判断：
-  - 50MHz 已经满足比赛目标频率
-  - 100MHz 仍需要继续收敛
-  - 模板 `XDC` 现在只负责板级端口占位，具体时钟周期由 Tcl 按模式动态生成
+- Retained FPGA-default top-level parameters in
+  `src/YH_rv_cpu_fpga_top.v` are now `IMEM_OUTPUT_REG=0` and
+  `DMEM_OUTPUT_REG=0`.
+- Fresh `impl50` on this retained configuration reports:
+  `2555 LUT / 2170 FF / 4 BRAM / 0 DSP`, `WNS = +5.822ns`,
+  `WHS = +0.057ns`.
+- A fast FPGA-like CoreMark tuning entry now exists at
+  `YH_rv_cpu\scripts\run_coremark_fpga.bat`.
+- Its default no-extra-args probe corresponds to:
+  `rv32 / 1 iteration / data_size=400 / timer_hz=100000000UL / max_cycles=20000000 / exec_mask=1`.
+- Fresh quick-probe result on the retained configuration:
+  `156442` completion cycles, `CoreMark/MHz = 7.728811`.
+- Remaining closure gap is unchanged:
+  final board I/O delay constraints, UART/LED evidence, and real board bring-up
+  still depend on the physical Nexys A7-100T arriving.

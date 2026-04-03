@@ -38,6 +38,7 @@ if {[info exists ::env(CLOCK_PERIOD_NS_OVERRIDE)] && $::env(CLOCK_PERIOD_NS_OVER
 
 set clock_tag [string map {. p} $clock_period_ns]
 set report_dir [file join $report_dir clk_${clock_tag}ns]
+set bitstream_file [file join $build_dir ${project_name}_${clock_tag}.bit]
 
 set rtl_dir [file join $project_root rtl]
 set fpga_src_dir [file join $vivado_dir src]
@@ -47,11 +48,13 @@ set rtl_files [lsort [glob -nocomplain [file join $rtl_dir *.v]]]
 set fpga_files [lsort [glob -nocomplain [file join $fpga_src_dir *.v]]]
 
 if {[llength $rtl_files] == 0} {
-    error "未找到 RTL 源文件。"
+    error "No RTL source files found under $rtl_dir"
 }
 
 file mkdir $build_dir
 file mkdir $report_dir
+puts "INFO: Flow mode = $flow_mode"
+puts "INFO: Clock period = ${clock_period_ns} ns"
 
 proc add_project_files {rtl_files fpga_files constr_file rtl_dir} {
     add_files -norecurse $rtl_files
@@ -88,6 +91,10 @@ if {$flow_mode eq "project"} {
     exit 0
 }
 
+if {$flow_mode ne "synth" && $flow_mode ne "impl"} {
+    error "Unsupported flow mode: $flow_mode"
+}
+
 run_checked "read_rtl" [list read_verilog -sv $rtl_files]
 
 if {[llength $fpga_files] > 0} {
@@ -97,6 +104,7 @@ if {[llength $fpga_files] > 0} {
 if {[file exists $constr_file]} {
     run_checked "read_constraints" [list read_xdc $constr_file]
 }
+
 set clock_fd [open $clock_constr_file w]
 puts $clock_fd [format {create_clock -name sys_clk -period %s [get_ports CLK100MHZ]} $clock_period_ns]
 close $clock_fd
@@ -131,10 +139,6 @@ if {$flow_mode eq "synth"} {
     exit 0
 }
 
-if {$flow_mode ne "impl"} {
-    error "Unsupported flow mode: $flow_mode"
-}
-
 run_checked "opt_design" [list opt_design -directive Explore]
 run_checked "place_design" [list place_design -directive Explore]
 run_checked "phys_opt_design_pre_route" [list phys_opt_design -directive Explore]
@@ -143,6 +147,8 @@ run_checked "phys_opt_design_post_route" [list phys_opt_design -directive Explor
 run_checked "report_impl_utilization" [list report_utilization -file [file join $report_dir impl_utilization.rpt]]
 run_checked "report_impl_timing_summary" [list report_timing_summary -file [file join $report_dir impl_timing_summary.rpt]]
 run_checked "write_impl_checkpoint" [list write_checkpoint -force [file join $build_dir ${project_name}_${clock_tag}_impl.dcp]]
+run_checked "write_bitstream" [list write_bitstream -force $bitstream_file]
 
 puts "INFO: Implementation completed. Reports written to $report_dir"
+puts "INFO: Bitstream written to $bitstream_file"
 exit 0

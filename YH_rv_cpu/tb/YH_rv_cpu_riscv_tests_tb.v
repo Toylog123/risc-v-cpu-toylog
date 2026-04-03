@@ -37,6 +37,7 @@ integer              idx;
 integer              byte_idx;
 integer              max_cycles;
 integer              debug_cycles;
+reg [8*128-1:0]     test_name;
 
 wire [31:0] imem_addr32;
 wire [31:0] dmem_addr32;
@@ -144,33 +145,24 @@ always @(posedge clk) begin
             );
         end
 
-        if (dmem_wstrb != {STRB_W{1'b0}}) begin
-            $display(
-                "STORE cycle=%0d pc=%h daddr=%h dwdata=%h wstrb=%h tohost_before=%h",
-                cycle,
-                debug_pc,
-                dmem_addr,
-                dmem_wdata,
-                dmem_wstrb,
-                tohost_value
-            );
-        end
-
         if (trap) begin
-            $fatal(1, "FAIL: trap asserted at PC=%h", debug_pc);
+            $fatal(1, "FAIL: riscv-tests trap asserted test=%0s pc=%h cycle=%0d inst=%h tohost=%0d max_cycles=%0d debug_cycles=%0d dmem_addr=%h dmem_wdata=%h dmem_wstrb=%h",
+                test_name, debug_pc, cycle, imem_rdata, tohost_value, max_cycles, debug_cycles, dmem_addr, dmem_wdata, dmem_wstrb);
         end
 
         if (tohost_value != 64'd0) begin
             if (tohost_value == 64'd1) begin
-                $display("PASS: riscv-tests finished at PC=%h in %0d cycles with tohost=%0d", debug_pc, cycle, tohost_value);
+                $display("PASS: riscv-tests finished test=%0s at PC=%h in %0d cycles with tohost=%0d", test_name, debug_pc, cycle, tohost_value);
                 $finish;
             end else begin
-                $fatal(1, "FAIL: riscv-tests reported failure at PC=%h in %0d cycles with tohost=%0d", debug_pc, cycle, tohost_value);
+                $fatal(1, "FAIL: riscv-tests reported failure test=%0s pc=%h cycle=%0d inst=%h tohost=%0d max_cycles=%0d debug_cycles=%0d dmem_addr=%h dmem_wdata=%h dmem_wstrb=%h",
+                    test_name, debug_pc, cycle, imem_rdata, tohost_value, max_cycles, debug_cycles, dmem_addr, dmem_wdata, dmem_wstrb);
             end
         end
 
         if (cycle > max_cycles) begin
-            $fatal(1, "FAIL: riscv-tests timeout at PC=%h after %0d cycles", debug_pc, cycle);
+            $fatal(1, "FAIL: riscv-tests timeout test=%0s pc=%h cycle=%0d inst=%h tohost=%0d max_cycles=%0d debug_cycles=%0d dmem_addr=%h dmem_wdata=%h dmem_wstrb=%h",
+                test_name, debug_pc, cycle, imem_rdata, tohost_value, max_cycles, debug_cycles, dmem_addr, dmem_wdata, dmem_wstrb);
         end
     end
 end
@@ -181,6 +173,7 @@ initial begin
     cycle = 0;
     max_cycles = 20000;
     debug_cycles = 0;
+    test_name = "(unknown)";
     program_hex = "build/tests/riscv-tests/current.hex";
 
     if (!$value$plusargs("hex=%s", program_hex)) begin
@@ -193,6 +186,10 @@ initial begin
 
     if (!$value$plusargs("debug_cycles=%d", debug_cycles)) begin
         debug_cycles = 0;
+    end
+
+    if (!$value$plusargs("test_name=%s", test_name)) begin
+        test_name = "(unknown)";
     end
 
     for (idx = 0; idx < MEM_BYTES; idx = idx + 1) begin

@@ -20,6 +20,11 @@ limitations under the License.
 #include <stddef.h>
 
 #ifndef HAS_FLOAT
+/*
+ * Keep the portable CoreMark path on integer-only reporting so the benchmark
+ * binary stays small and smoke runs finish quickly on RV32I without an FPU.
+ * Formal score reporting is derived host-side from raw ticks.
+ */
 #define HAS_FLOAT 0
 #endif
 
@@ -107,6 +112,12 @@ typedef ee_u32 CORE_TICKS;
 #endif
 
 #ifndef YH_COREMARK_TIMER_HZ
+/*
+ * Smoke runs use a coarse default timer rate for readable integer seconds.
+ * Submission-grade reports pass the real core clock (for example 100000000UL)
+ * and parse raw ticks on the host because HAS_FLOAT=0 truncates in-program
+ * seconds/Iterations-Sec output.
+ */
 #define YH_COREMARK_TIMER_HZ 1000UL
 #endif
 

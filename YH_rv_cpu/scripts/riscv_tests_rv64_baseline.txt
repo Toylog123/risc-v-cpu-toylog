@@ -1,0 +1,22 @@
+# Frozen from the rv64 default subset in run_riscv_tests_subset.bat
+add
+addi
+addiw
+addw
+ld
+lwu
+sd
+sll
+slli
+slliw
+sllw
+sra
+srai
+sraiw
+sraw
+srl
+srli
+srliw
+srlw
+sub
+subw

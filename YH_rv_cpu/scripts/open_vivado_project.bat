@@ -2,6 +2,10 @@
 setlocal
 
 set PHYSICAL_SCRIPT_DIR=%~dp0
+set MODE_HINT=%~1
+if /I "%MODE_HINT%"=="-h" goto :usage
+if /I "%MODE_HINT%"=="--help" goto :usage
+if /I "%MODE_HINT%"=="/?" goto :usage
 for %%I in ("%PHYSICAL_SCRIPT_DIR%..") do set CPU_ROOT=%%~fI
 for %%I in ("%CPU_ROOT%\..") do set REPO_ROOT=%%~fI
 set PROJECT_NAME=YH_rv_cpu_nexys_a7_100
@@ -88,8 +92,16 @@ pushd "%MAPPED_ROOT%project"
 start "Vivado GUI" "%VIVADO_CMD%" -log "%VIVADO_LOG_FILE%" -journal "%VIVADO_JOU_FILE%" "%PROJECT_FILE%"
 popd
 
+if defined MODE_HINT echo Requested flow hint: %MODE_HINT%
 echo Vivado GUI started from %MAPPED_ROOT%project
 
 echo Vivado logs: %VIVADO_LOG_ROOT%
 echo Keep %MAP_DRIVE% mapped while Vivado is open. If needed, close Vivado first and then run: subst %MAP_DRIVE% /d
+exit /b 0
+
+:usage
+echo Usage: %~nx0 [flow_hint]
+echo.
+echo The GUI always opens the Vivado project skeleton in the repository project\ directory.
+echo flow_hint is optional and is only echoed back for operator context.
 exit /b 0
