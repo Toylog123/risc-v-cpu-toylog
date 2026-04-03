@@ -2,6 +2,7 @@ tb/YH_rv_cpu_soc_tb.v
 tb/YH_rv_cpu_trap_tb.v
 tb/YH_rv_cpu_timer_irq_tb.v
 tb/YH_rv_cpu_xlen64_tb.v
+tb/YH_rv_cpu_fetch_prefetch_tb.v
 rtl/YH_rv_cpu_soc.v
 rtl/YH_rv_sync_imem_rom.v
 rtl/YH_rv_sync_rom32.v
