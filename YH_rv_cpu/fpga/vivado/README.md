@@ -7,6 +7,9 @@ the final board pinout to be filled in once the physical board arrives.
 ## Current Baseline
 
 - The frozen bring-up target is `50 MHz`.
+- Always invoke `YH_rv_cpu\scripts\build_vivado_project.bat impl50` explicitly for
+  the frozen baseline. The no-argument default of `build_vivado_project.bat`
+  is still `synth` and is not the competition-facing entry point.
 - `project` generates only the Vivado project skeleton under repo-root `project/`.
 - `synth50` and `impl50` are the pre-board baseline modes.
 - `synth100` and `impl100` are retained as 100 MHz reference modes for comparison.
@@ -33,6 +36,8 @@ the skeleton first if the local `project/` directory does not exist.
 - The clock scaffold is fixed at `CLK100MHZ` in the Tcl-generated clock constraint.
 - The frozen XDC already carries the official Digilent pin map for
   `CLK100MHZ`, `cpu_resetn`, `uart_txd_in`, `uart_rxd_out`, and `led[3:0]`.
+- The frozen XDC is a pin-map freeze, not a board-grade signoff freeze.
+  Final I/O delay constraints and real-board verification are still pending.
 - The pre-board flow is intentionally centered on `synth50` and `impl50`.
 
 ## What Still Blocks Final Board Closure
@@ -53,6 +58,29 @@ Implementation mode writes these files into `project/`:
 
 For the frozen 50 MHz baseline, `<clock>` is `20p000`.
 
+## Firmware Image Staging
+
+`impl50` does not automatically freeze a board-demo payload. The build script
+uses the following priority when choosing ROM init files:
+
+1. `YH_rv_cpu\build\tests\riscv-tests\current.hex`
+2. `YH_rv_cpu\build\tests\riscv-tests\current.mem32.hex`
+3. fallback to `YH_rv_cpu\build\tests\riscv-tests\rv32\simple.hex`
+
+If you want the board to boot the default `YH_rv_cpu boot` demo image instead
+of the last staged `riscv-tests` payload, run:
+
+```bat
+YH_rv_cpu\scripts\build_firmware.bat
+copy /y YH_rv_cpu\build\sw\YH_rv_cpu_demo.hex YH_rv_cpu\build\tests\riscv-tests\current.hex
+copy /y YH_rv_cpu\build\sw\YH_rv_cpu_demo.mem32.hex YH_rv_cpu\build\tests\riscv-tests\current.mem32.hex
+YH_rv_cpu\scripts\build_vivado_project.bat impl50
+```
+
+If you intentionally want a `riscv-tests` payload instead, record which command
+last refreshed `current.hex` / `current.mem32.hex` before generating the
+bitstream.
+
 ## Quick Start
 
 ```bat
@@ -68,9 +96,10 @@ Do not treat the flow as board-complete until the checklist in
 `YH_rv_cpu\doc\fpga_bringup_checklist.md` is finished, including:
 
 - bitstream generation
-- serial console capture
+- serial console capture at `115200 8N1`
 - LED observation
 - screenshot or video evidence
+- evidence archived under `YH_rv_cpu\doc\fpga_bringup_evidence\`
 
 ## Frozen Snapshot (2026-04-03)
 
