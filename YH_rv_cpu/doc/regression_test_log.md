@@ -22,6 +22,7 @@
 ```bat
 scripts\run_coremark_smoke.bat rv32
 scripts\run_coremark_score.bat rv32 10 2000 100000000UL 20000000
+scripts\run_coremark_score.bat rv32 1000 2000 100000000UL 1500000000 build\sw\YH_rv_cpu_coremark_rv32_strict.summary.txt
 scripts\run_riscv_tests_subset.bat rv32
 scripts\run_riscv_tests_subset.bat rv64
 scripts\build_vivado_project.bat impl50
@@ -35,8 +36,9 @@ scripts\run_coremark_fpga.bat rv32
 | RV32 riscv-tests | 通过 | baseline manifest `33/33` |
 | RV64 riscv-tests | 通过 | baseline manifest `21/21` |
 | CoreMark smoke | 通过 | `620530 cycles` |
-| CoreMark score | 通过 | `11014885 cycles`，`CoreMark/MHz = 0.912472` |
-| CoreMark score validity | 非 strict | `competition_reportable=yes`，`strict_eembc_10s_compliant=no` |
+| CoreMark score short | 通过 | `11014885 cycles`，`CoreMark/MHz = 0.912472` |
+| CoreMark score strict | 通过 | `1095991523 cycles`，`CoreMark/MHz = 0.912465`，`10.959325s` |
+| CoreMark score validity | 通过 | short path `competition_reportable=yes`；strict path `strict_eembc_10s_compliant=yes` |
 | FPGA-like probe | 通过 | `156442 cycles`，`CoreMark/MHz = 7.728811` |
 
 ### impl50 结果
@@ -67,10 +69,9 @@ scripts\run_coremark_fpga.bat rv32
 
 - [x] 当前冻结主线可回归
 - [x] 当前保留优化无 RV32 / RV64 / impl50 回归
-- [ ] strict EEMBC `>=10s` CoreMark 长跑证据仍需补齐
+- [x] strict EEMBC `>=10s` CoreMark 长跑证据已补齐
 - [ ] 实板 bring-up 证据仍需等待板卡
 
 ### 当前风险
 
-- `CoreMark score` 当前仍是可复现短跑口径，不得对外表述为 strict valid
 - `impl50` 报告中仍存在 `no_input_delay(1)` / `no_output_delay(4)`，板级 signoff 仍需补正式 I/O delay 约束

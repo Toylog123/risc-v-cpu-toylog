@@ -11,6 +11,14 @@
 - [x] 归档长期执行计划文档
   - `docs/superpowers/plans/2026-04-02-yh-rv-cpu-competition-closure.md`
   - `docs/superpowers/plans/2026-04-03-yh-rv-cpu-long-horizon-execution.md`
+- [x] 完成 strict EEMBC `>=10s` CoreMark 长跑
+  - `CoreMark/MHz = 0.912465`
+  - `completion_cycles = 1095991523`
+  - `total_seconds = 10.959325`
+  - `strict_eembc_10s_compliant = yes`
+- [x] 完成当前状态文档统一
+- [x] 完成剩余 debug/trace 资产治理
+  - `debug` 与 `trace` 临时工具已归档到 `_tmp\legacy\`
 - [x] 明确保留优化：
   - `stall_decode = load_use_hazard`
   - `IMEM_OUTPUT_REG=0`
@@ -19,17 +27,11 @@
 
 ## 进行中
 
-- [ ] strict EEMBC `>=10s` CoreMark 长跑
-  - 当前冻结短跑结果仍为 `0.912472 CoreMark/MHz`
-  - 当前状态仍只能标记为 `competition_reportable=yes`
-  - 在 strict 长跑 fresh 通过前，不得改写为 strict valid
-- [ ] 当前状态文档统一
-  - 目标：README / handoff / todo / regression log / 汇报材料 / 技术文档口径一致
-
 ## 待处理
 
-- [ ] 对剩余未跟踪 debug/trace 资产做去留分类
-- [ ] 在 strict CoreMark 收口后冻结第二轮优化前基线
+- [ ] 冻结第二轮优化前基线
+- [ ] 启动 `fetch/request/queue` 解耦方向的单变量设计与实验
+- [ ] 对任何 retained 优化补齐完整 fresh 回归矩阵
 
 ## 仅外部阻塞
 
@@ -40,10 +42,10 @@
 
 只允许在下面条件全部满足后启动：
 
-1. strict CoreMark 长跑口径收口
-2. 当前文档和材料全部同步
-3. 工作区未跟踪文件完成分类
-4. 新基线完成 fresh 回归
+1. 当前优化方案有明确的单变量边界
+2. 新基线已写入 `doc/performance_experiment_log.md`
+3. 每轮实验都承诺重跑 fresh 回归矩阵
+4. 工作区保持只含 intentional 内容或外部阻塞
 
 启动后仅允许优先探索：
 

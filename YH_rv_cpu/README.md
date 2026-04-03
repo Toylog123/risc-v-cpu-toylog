@@ -4,7 +4,7 @@
 
 `YH_rv_cpu` 是当前比赛提交主线使用的 RISC-V CPU 工程基线。仓库目标不是继续堆叠一次性实验，而是维持一套可复现、可验证、可交接、可继续优化的竞赛级基线。
 
-当前主线口径以 `2026-04-03` 的 fresh 结果为准，历史实验过程请看：
+当前主线口径以 `2026-04-04` 的 fresh 结果为准，历史实验过程请看：
 
 - `doc/coremark_submission_report.md`
 - `doc/performance_experiment_log.md`
@@ -18,9 +18,12 @@
 
 | 项目 | 结果 |
 |------|------|
-| CoreMark score | `0.912472 CoreMark/MHz` |
-| completion cycles | `11014885` |
-| CoreMark score 结论 | `competition_reportable=yes`，`strict_eembc_10s_compliant=no` |
+| CoreMark short score | `0.912472 CoreMark/MHz` |
+| CoreMark short completion cycles | `11014885` |
+| CoreMark strict score | `0.912465 CoreMark/MHz` |
+| CoreMark strict completion cycles | `1095991523` |
+| CoreMark strict runtime | `10.959325s` (`Total ticks = 1095932534`) |
+| CoreMark score 结论 | short path `competition_reportable=yes`；strict path `strict_eembc_10s_compliant=yes` |
 | CoreMark smoke | `620530 cycles` |
 | riscv-tests rv32 | `33/33` |
 | riscv-tests rv64 | `21/21` |
@@ -64,6 +67,7 @@ scripts\run_xlen64_smoke.bat
 
 scripts\run_coremark_smoke.bat rv32
 scripts\run_coremark_score.bat rv32 10 2000 100000000UL 20000000
+scripts\run_coremark_score.bat rv32 1000 2000 100000000UL 1500000000 build\sw\YH_rv_cpu_coremark_rv32_strict.summary.txt
 scripts\run_riscv_tests_subset.bat rv32
 scripts\run_riscv_tests_subset.bat rv64
 
@@ -84,6 +88,5 @@ scripts\run_coremark_fpga.bat rv32
 
 ## 当前剩余阻塞
 
-- strict EEMBC `>=10s` 的 CoreMark 长跑证据仍在补齐中；在长跑完成前，当前正式冻结分数仍然只能标记为 `competition_reportable=yes`、`strict_eembc_10s_compliant=no`
 - 实体板卡未到位，UART/LED 实板闭环仍需按 checklist 补证据
 - XDC 仍缺正式板级 I/O delay 约束，当前只能作为 pre-board 约束口径

@@ -9,15 +9,18 @@
 - 当前主线冻结基线来自 `2026-04-03` fresh 验证
 - 最新已提交的 FPGA pre-board 文档收口提交为 `cd22afc`：`docs: tighten fpga pre-board bring-up SOP`
 - CoreMark 正式短跑、RV32/RV64 baseline、`impl50`、FPGA-like probe 均已有 fresh 证据
-- strict EEMBC `>=10s` 长跑仍在补齐，完成前不得把当前分数表述成 strict valid
+- strict EEMBC `>=10s` 长跑已完成，strict 口径现已可对外引用
 
 当前冻结结果：
 
 | 项目 | 结果 |
 |------|------|
-| CoreMark score | `0.912472 CoreMark/MHz` |
-| completion cycles | `11014885` |
-| CoreMark score 结论 | `competition_reportable=yes`，`strict_eembc_10s_compliant=no` |
+| CoreMark short score | `0.912472 CoreMark/MHz` |
+| CoreMark short completion cycles | `11014885` |
+| CoreMark strict score | `0.912465 CoreMark/MHz` |
+| CoreMark strict completion cycles | `1095991523` |
+| CoreMark strict runtime | `10.959325s` |
+| CoreMark score 结论 | short path `competition_reportable=yes`；strict path `strict_eembc_10s_compliant=yes` |
 | CoreMark smoke | `620530 cycles` |
 | RV32 baseline | `33/33` |
 | RV64 baseline | `21/21` |
@@ -47,18 +50,16 @@
 - 外部阻塞：
   - 缺实体板卡，无法完成 UART/LED 实板闭环
   - 缺最终板级 I/O delay 约束，`XDC` 仍是 pre-board 版本
-- 本机内仍在推进：
-  - strict EEMBC `>=10s` CoreMark 长跑
 - 已明确关闭的高风险方向：
   - 不能简单通过放松 `stall_decode` 去继续做 fetch 前端提分
 
 ## 5. 下一步最值得做的 5 项
 
-1. 收口 strict CoreMark 长跑，归档 raw log 和 summary，并同步 `coremark_submission_report.md`
-2. 完成当前状态文档统一，确保 README / handoff / todo / regression log / 汇报材料只表达最新冻结口径
-3. 处理剩余未跟踪 debug/trace 资产，决定纳入主线还是归档到 `_tmp`
-4. 在 strict 口径收口后，冻结第二轮优化前基线
-5. 如果继续提分，只能从 `fetch/request/queue` 解耦方向按单变量实验推进
+1. 冻结第二轮优化前基线，并把 strict CoreMark 结果作为正式性能口径写入实验日志
+2. 如果继续提分，只能从 `fetch/request/queue` 解耦方向按单变量实验推进
+3. 为任何 retained 优化补齐完整 fresh 回归矩阵
+4. 板卡到位后按 checklist 完成 UART/LED/boot banner 实板闭环
+5. 板卡到位后补正式 I/O delay 约束与实板证据
 
 ## 6. 关键文档与命令
 
@@ -87,16 +88,13 @@ scripts\run_coremark_fpga.bat rv32
 
 - CoreMark summary: `build/sw/YH_rv_cpu_coremark_rv32_score.summary.txt`
 - CoreMark raw log: `build/sw/YH_rv_cpu_coremark_rv32_score.log`
+- Strict CoreMark summary: `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt`
+- Strict CoreMark raw log: `build/sw/YH_rv_cpu_coremark_rv32_strict.log`
 - FPGA 报告：`project/reports/clk_20p000ns/`
 - 100MHz 参考报告：`project/reports/clk_10p000ns/`
 - 比特流：`project/YH_rv_cpu_nexys_a7_100_20p000.bit`
 
 ## 7. 文档缺口与建议补齐项
 
-- strict CoreMark 长跑结束后，需要把 strict 结论同步到：
-  - `README.md`
-  - `doc/coremark_submission_report.md`
-  - `doc/regression_test_log.md`
-  - `06-汇报材料/`
 - 板卡到位后，需要把 bring-up checklist 从“板前闭环”更新为“实板闭环”
 - 如果第二轮性能优化启动，需要把每轮实验完整写入 `doc/performance_experiment_log.md`

@@ -69,6 +69,30 @@ Notes:
 - The per-benchmark CRCs remain correct: `crclist=0xe714`,
   `crcmatrix=0x1fd7`, `crcstate=0x8e3a`.
 
+## 2026-04-04 Formal CoreMark Validation Closure
+
+This entry does not introduce a new retained optimization. It closes the formal
+CoreMark validation gap on top of the already-retained baseline.
+
+| Item | Value |
+|------|------|
+| Short command | `scripts\run_coremark_score.bat rv32 10 2000 100000000UL 20000000` |
+| Short result | `CoreMark/MHz = 0.912472` |
+| Short completion cycles | `11014885` |
+| Short validation | `competition_reportable=yes`, `strict_eembc_10s_compliant=no` |
+| Strict command | `scripts\run_coremark_score.bat rv32 1000 2000 100000000UL 1500000000 build\sw\YH_rv_cpu_coremark_rv32_strict.summary.txt` |
+| Strict result | `CoreMark/MHz = 0.912465` |
+| Strict completion cycles | `1095991523` |
+| Strict runtime | `10.959325s` (`Total ticks = 1095932534`) |
+| Strict validation | `validation_clean=yes`, `strict_eembc_10s_compliant=yes` |
+
+Notes:
+
+- The strict run confirms that the retained optimized baseline scales to a
+  valid `>=10s` CoreMark result without changing workload semantics.
+- The short run remains useful as a fast reproducible comparison path during
+  future optimization work.
+
 ### O3 - FPGA path `DMEM_OUTPUT_REG: 1 -> 0`
 
 | Item | Value |
