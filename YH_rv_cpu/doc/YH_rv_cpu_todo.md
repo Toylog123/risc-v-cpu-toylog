@@ -8,6 +8,9 @@
 - [x] 冻结 FPGA `impl50` 比特流和 fresh 资源/时序口径
 - [x] 冻结 FPGA-like CoreMark probe 入口
 - [x] 收口 FPGA pre-board SOP、串口口径、evidence 路径和 firmware staging 说明
+- [x] 归档长期执行计划文档
+  - `docs/superpowers/plans/2026-04-02-yh-rv-cpu-competition-closure.md`
+  - `docs/superpowers/plans/2026-04-03-yh-rv-cpu-long-horizon-execution.md`
 - [x] 明确保留优化：
   - `stall_decode = load_use_hazard`
   - `IMEM_OUTPUT_REG=0`
@@ -26,7 +29,6 @@
 ## 待处理
 
 - [ ] 对剩余未跟踪 debug/trace 资产做去留分类
-- [ ] 整理并提交长期执行计划文档
 - [ ] 在 strict CoreMark 收口后冻结第二轮优化前基线
 
 ## 仅外部阻塞
