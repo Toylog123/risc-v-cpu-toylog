@@ -6,7 +6,7 @@
 
 ## 2. 当前做到哪一步
 
-- 当前主线冻结基线来自 `2026-04-03` fresh 验证
+- 当前主线冻结基线来自 `2026-04-07` fresh 验证
 - 最新已提交的 FPGA pre-board 文档收口提交为 `cd22afc`：`docs: tighten fpga pre-board bring-up SOP`
 - CoreMark 正式短跑、RV32/RV64 baseline、`impl50`、FPGA-like probe 均已有 fresh 证据
 - strict EEMBC `>=10s` 长跑已完成，strict 口径现已可对外引用
@@ -24,8 +24,8 @@
 | CoreMark smoke | `620530 cycles` |
 | RV32 baseline | `33/33` |
 | RV64 baseline | `21/21` |
-| impl50 | `2555 LUT / 2170 FF / 4 BRAM / 0 DSP` |
-| impl50 timing | `WNS = +5.822ns`，`WHS = +0.057ns` |
+| impl50 | `2556 LUT / 2170 FF / 4 BRAM / 0 DSP` |
+| impl50 timing | `WNS = +5.599ns`，`WHS = +0.025ns` |
 | FPGA-like probe | `156442 cycles`，`7.728811 CoreMark/MHz` |
 
 ## 3. 已完成的关键工作
@@ -108,3 +108,18 @@ scripts\run_coremark_fpga.bat rv32
 - Trial conclusion: `not retained`.
 - Short CoreMark on the trial RTL remained `11014885 cycles` / `0.912472 CoreMark/MHz`.
 - Mainline RTL was reverted to the frozen baseline after the experiment.
+
+## 2026-04-07 Update
+
+- Added the new directed `mem-wait overlap` diagnostic:
+  - `tb/YH_rv_cpu_memwait_overlap_tb.v`
+  - `scripts/run_memwait_overlap_diag.bat`
+- Baseline observation is green and purely observational:
+  - `mem_wait_cycles=1`
+  - `mem_wait_overlap_opportunities=1`
+  - `mem_wait_overlap_requests=0`
+- The strict red/green entry is now reserved by `+require_overlap` for future use; it currently fails as expected because the frozen RTL does not yet generate an actual overlap request.
+- The redirect `pipe-hit` minimal RTL trial is no longer active. The directed diagnostic is kept in-tree, but the RTL trial stayed at `0` short-score delta and remains rejected until a new redirect/flush/drop-accounting plan exists.
+- `timer_irq_smoke` is green again after fixing `TIMER_CTRL_ADDR` so a zero write really clears `timer_irq_en_r`.
+- `build_vivado_project.bat impl50` now defaults to the frozen `YH_rv_cpu_demo` payload instead of inheriting the last `current.hex` left by regressions.
+- Board bring-up is still externally blocked, so the UART/LED closed-loop and final board timing evidence remain pending.

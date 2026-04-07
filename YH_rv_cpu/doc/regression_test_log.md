@@ -2,9 +2,9 @@
 
 ## 当前有效记录
 
-本文件只保留当前仍可直接引用的 fresh 回归结果。更早的阶段性记录请看 `git history` 和 `doc/performance_experiment_log.md`，不要再把旧分数或旧时序当作当前口径引用。
+本文档只保留当前仍可直接引用的 fresh 回归结果。更早的阶段性记录请看 `git history` 和 `doc/performance_experiment_log.md`，不要再把旧分数或旧时序当作当前口径引用。
 
-## 2026-04-03 - Frozen Baseline Refresh
+## 2026-04-07 - Frozen Baseline Refresh
 
 ### 测试环境
 
@@ -20,6 +20,11 @@
 ### 实际命令
 
 ```bat
+scripts\check_syntax.bat
+scripts\run_soc_smoke.bat
+scripts\run_trap_smoke.bat
+scripts\run_timer_irq_smoke.bat
+scripts\run_xlen64_smoke.bat
 scripts\run_coremark_smoke.bat rv32
 scripts\run_coremark_score.bat rv32 10 2000 100000000UL 20000000
 scripts\run_coremark_score.bat rv32 1000 2000 100000000UL 1500000000 build\sw\YH_rv_cpu_coremark_rv32_strict.summary.txt
@@ -33,51 +38,78 @@ scripts\run_coremark_fpga.bat rv32
 
 | 项目 | 结果 | 备注 |
 |------|------|------|
+| SoC smoke | 通过 | `PASS` at `PC=00000038` in `164 cycles` |
+| trap smoke | 通过 | `PASS` at `PC=000000ac` in `89 cycles` |
+| timer_irq smoke | 通过 | `PASS` at `PC=000000e4` in `136 cycles` |
+| xlen64 smoke | 通过 | `PASS` at `PC=0000000000000020` in `17 cycles` |
 | RV32 riscv-tests | 通过 | baseline manifest `33/33` |
 | RV64 riscv-tests | 通过 | baseline manifest `21/21` |
 | CoreMark smoke | 通过 | `620530 cycles` |
 | CoreMark score short | 通过 | `11014885 cycles`，`CoreMark/MHz = 0.912472` |
 | CoreMark score strict | 通过 | `1095991523 cycles`，`CoreMark/MHz = 0.912465`，`10.959325s` |
-| CoreMark score validity | 通过 | short path `competition_reportable=yes`；strict path `strict_eembc_10s_compliant=yes` |
+| CoreMark score validity | 通过 | short path `competition_reportable=yes`，strict path `strict_eembc_10s_compliant=yes` |
 | FPGA-like probe | 通过 | `156442 cycles`，`CoreMark/MHz = 7.728811` |
 
 ### impl50 结果
 
 | 项目 | 结果 |
 |------|------|
-| Setup WNS | `+5.822 ns` |
-| Hold WHS | `+0.057 ns` |
-| Slice LUTs | `2555` |
+| Setup WNS | `+5.599 ns` |
+| Hold WHS | `+0.025 ns` |
+| Slice LUTs | `2556` |
 | Slice Registers | `2170` |
 | BRAM | `4` |
 | DSP | `0` |
 | bitstream | `project/YH_rv_cpu_nexys_a7_100_20p000.bit` |
 
-### 100MHz 参考实现
+Notes:
 
-下列结果仅作为当前顶层 `100MHz` 参考实现，不是比赛冻结提交口径：
-
-| 项目 | 结果 |
-|------|------|
-| Setup WNS | `+0.062 ns` |
-| Hold WHS | `+0.048 ns` |
-| Slice LUTs | `2598` |
-| Slice Registers | `2240` |
-| BRAM | `4` |
+- `scripts\build_vivado_project.bat impl50` 现在默认绑定冻结的 `YH_rv_cpu_demo` ROM 镜像。
+- `current.hex` / `current.mem32.hex` 不再是 `impl50` 的隐式冻结基线来源。
 
 ### 当前结论
 
 - [x] 当前冻结主线可回归
-- [x] 当前保留优化无 RV32 / RV64 / impl50 回归
+- [x] 当前保留优化无 RV32 / RV64 / impl50 / FPGA-like probe 回归
 - [x] strict EEMBC `>=10s` CoreMark 长跑证据已补齐
+- [x] `timer_irq_smoke` 本机回归已修复
 - [ ] 实板 bring-up 证据仍需等待板卡
 
 ### 当前风险
 
-- `impl50` 报告中仍存在 `no_input_delay(1)` / `no_output_delay(4)`，板级 signoff 仍需补正式 I/O delay 约束
+- `impl50` 报告中仍存在 `no_input_delay(1)` / `no_output_delay(4)`，板级 signoff 仍需补正式 I/O delay 约束。
 
-### 2026-04-04 Fetch Diagnostic
+## 2026-04-07 Diagnostics and Runtime Isolation
 
-- Command: `scripts\run_fetch_prefetch_diag.bat`
-- Result: `PASS`
-- Observation: `83 cycles`, `stall_cycles=6`, `opportunities=6`, frozen baseline `prefetch_seen=0`
+### 测试环境
+
+- GCC: `15.2.0`
+- Vivado: `2025.2`
+- branch: `main`
+- runtime isolation: `scripts\prepare_xsim_runtime.bat`
+
+### 实际命令
+
+```bat
+scripts\run_coremark_profile.bat rv32
+scripts\run_fetch_redirect_reuse_diag.bat
+scripts\run_fetch_redirect_reuse_diag.bat require_pipe_hit
+scripts\run_memwait_overlap_diag.bat
+scripts\run_memwait_overlap_diag.bat require_overlap
+```
+
+### 结果摘要
+
+| Item | Result | Notes |
+|------|------|------|
+| CoreMark profile | PASS | `12516421 cycles`, `stall_decode_cycles=207474`, `mem_wait_cycles=553215`, `ex_fetch_redirect_valid_cycles=1504970`, `fetch_queue_empty_cycles=1504970` |
+| Redirect reuse diag | PASS | `21 cycles`, `stall_cycles=2`, `redirects=2`, `overlaps=1` |
+| Redirect reuse strict | FAIL | `require_pipe_hit` currently trips because `fetch_redirect_pipe_hit` is still disabled in RTL |
+| Memwait overlap diag | PASS | `21 cycles`, `mem_wait_cycles=1`, `opportunities=1`, `overlap_requests=0` |
+| Memwait overlap strict | FAIL | `require_overlap` currently trips because the baseline does not yet issue an overlap-time request |
+
+### 结论
+
+- 这轮补了一个 CoreMark profiling 入口，方便把 `stall_decode` / `mem_wait` / redirect 的负载分布单独拿出来看。
+- `fetch_redirect_reuse` 和 `memwait_overlap` 两个 directed test 都已经有默认绿路径和严格红绿入口，后续 RTL 打开对应 reuse 行为时可以直接复用。
+- `prepare_xsim_runtime.bat` 解决了并行 worker 共用 `xsim.dir` 的冲突问题，现在这些仿真脚本可以安全落在独立 runtime 目录里。

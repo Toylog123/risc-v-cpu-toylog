@@ -18,14 +18,13 @@ the physical board is present and the real XDC has been applied.
 
 ## 2. Firmware Image Freeze
 
-- [ ] Decide which ROM image the `impl50` bitstream should boot.
-- [ ] If the target is the default boot-banner demo, run `YH_rv_cpu\scripts\build_firmware.bat`.
-- [ ] If the target is the default boot-banner demo, copy:
-      `YH_rv_cpu\build\sw\YH_rv_cpu_demo.hex` -> `YH_rv_cpu\build\tests\riscv-tests\current.hex`
-- [ ] If the target is the default boot-banner demo, copy:
-      `YH_rv_cpu\build\sw\YH_rv_cpu_demo.mem32.hex` -> `YH_rv_cpu\build\tests\riscv-tests\current.mem32.hex`
-- [ ] If the target is not the demo image, record which command last staged
-      `current.hex` / `current.mem32.hex`.
+- [ ] Confirm the default `impl50` payload should remain the boot-banner demo.
+- [ ] Confirm `YH_rv_cpu\scripts\build_vivado_project.bat impl50` reports
+      `YH_rv_cpu_demo.hex` / `YH_rv_cpu_demo.mem32.hex` as the ROM init files.
+- [ ] If the demo artifacts are missing, run `YH_rv_cpu\scripts\build_firmware.bat`
+      before starting Vivado.
+- [ ] If the target is not the demo image, set explicit `ROM_INIT_HEX_OVERRIDE`
+      and `ROM_INIT_MEM32_HEX_OVERRIDE` values before starting Vivado.
 
 ## 3. Bitstream Artifact
 

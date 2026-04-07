@@ -4,7 +4,7 @@
 
 `YH_rv_cpu` 是当前比赛提交主线使用的 RISC-V CPU 工程基线。仓库目标不是继续堆叠一次性实验，而是维持一套可复现、可验证、可交接、可继续优化的竞赛级基线。
 
-当前主线口径以 `2026-04-04` 的 fresh 结果为准，历史实验过程请看：
+当前主线口径以 `2026-04-07` 的 fresh 结果为准，历史实验过程请看：
 
 - `doc/coremark_submission_report.md`
 - `doc/performance_experiment_log.md`
@@ -27,8 +27,8 @@
 | CoreMark smoke | `620530 cycles` |
 | riscv-tests rv32 | `33/33` |
 | riscv-tests rv64 | `21/21` |
-| impl50 资源 | `2555 LUT / 2170 FF / 4 BRAM / 0 DSP` |
-| impl50 时序 | `WNS = +5.822ns`，`WHS = +0.057ns` |
+| impl50 资源 | `2556 LUT / 2170 FF / 4 BRAM / 0 DSP` |
+| impl50 时序 | `WNS = +5.599ns`，`WHS = +0.025ns` |
 | FPGA-like probe | `156442 cycles`，`7.728811 CoreMark/MHz` |
 
 ### 100MHz 参考口径

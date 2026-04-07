@@ -1,6 +1,6 @@
 # Performance Experiment Log
 
-## Frozen Baseline (2026-04-02)
+## Frozen Baseline (2026-04-07)
 
 Use this baseline before starting any competition-facing optimization work.
 
@@ -11,7 +11,7 @@ Use this baseline before starting any competition-facing optimization work.
 | Command | `scripts\run_coremark_score.bat rv32 10 2000 100000000UL 20000000` |
 | Raw log | `build/sw/YH_rv_cpu_coremark_rv32_score.log` |
 | Summary | `build/sw/YH_rv_cpu_coremark_rv32_score.summary.txt` |
-| Result | `CoreMark/MHz = 0.888486` |
+| Result | `CoreMark/MHz = 0.912472` |
 | Validation mode | `short_runtime_only` |
 
 ### riscv-tests
@@ -31,10 +31,10 @@ Use this baseline before starting any competition-facing optimization work.
 | Bitstream | `project/YH_rv_cpu_nexys_a7_100_20p000.bit` |
 | Timing report | `project/reports/clk_20p000ns/impl_timing_summary.rpt` |
 | Utilization report | `project/reports/clk_20p000ns/impl_utilization.rpt` |
-| WNS | `+5.085ns` |
-| WHS | `+0.058ns` |
-| Slice LUTs | `2545` |
-| Slice Registers | `2240` |
+| WNS | `+5.599ns` |
+| WHS | `+0.025ns` |
+| Slice LUTs | `2556` |
+| Slice Registers | `2170` |
 | BRAM | `4` |
 
 ## Experiment Rules
@@ -165,3 +165,73 @@ Notes:
 - The directed diagnostic proved that the request cursor can create `stall_decode`-time fetch requests, but that behavior did not improve the formal short CoreMark score.
 - Review after the trial identified unresolved interactions around redirect reuse and `IMEM_OUTPUT_REG`/drop accounting, so the RTL was reverted instead of being carried into synthesis or FPGA probe work.
 - Keep the diagnostic assets in-tree; they are now the preferred starting point for any future fetch/request/queue experiment.
+
+## 2026-04-07 Diagnostic and Profiling Follow-up
+
+This round added profiling coverage and two directed diagnostics that mirror the current sync-fetch redirect/mem-wait behavior. It also switched the sim scripts to isolated per-run runtime directories so parallel workers no longer collide on `xsim.dir`.
+
+### CoreMark profile snapshot
+
+| Item | Value |
+|------|------|
+| Command | `scripts\run_coremark_profile.bat rv32` |
+| Result | `PASS` |
+| Raw log | `build/sw/YH_rv_cpu_coremark_rv32_profile.log` |
+| Total cycles | `12516421` |
+| `stall_decode_cycles` | `207474` |
+| `mem_wait_cycles` | `553215` |
+| `ex_fetch_redirect_valid_cycles` | `1504970` |
+| `fetch_queue_empty_cycles` | `1504970` |
+
+Notes:
+
+- This is a profiling-only path, not a score submission path.
+- The profile shows both `mem_wait` and redirect activity are still material contributors in the current RV32 CoreMark workload. That is an inference from the counters, not a direct functional assertion.
+
+### Redirect reuse diagnostic
+
+| Item | Value |
+|------|------|
+| Command | `scripts\run_fetch_redirect_reuse_diag.bat` |
+| Result | `PASS` |
+| Runtime isolation | `prepare_xsim_runtime.bat fetch_redirect_reuse_diag` |
+| Directed result | `21 cycles`, `stall_cycles=2`, `redirects=2`, `overlaps=1`, `require_pipe_hit=0` |
+| Strict red/green entry | `scripts\run_fetch_redirect_reuse_diag.bat require_pipe_hit` |
+| Strict result | `FAIL` as expected, because `fetch_redirect_pipe_hit` is still hardwired low in RTL |
+
+### Memwait overlap diagnostic
+
+| Item | Value |
+|------|------|
+| Command | `scripts\run_memwait_overlap_diag.bat` |
+| Result | `PASS` |
+| Runtime isolation | `prepare_xsim_runtime.bat memwait_overlap_diag` |
+| Directed result | `21 cycles`, `mem_wait_cycles=1`, `opportunities=1`, `overlap_requests=0`, `require_overlap=0` |
+| Strict red/green entry | `scripts\run_memwait_overlap_diag.bat require_overlap` |
+| Strict result | `FAIL` as expected, because the current baseline does not yet issue an actual overlap-time request |
+
+### Runtime isolation fix
+
+All `xsim`-based scripts that matter here now run under unique runtime directories created by `scripts\prepare_xsim_runtime.bat`. The practical effect is that the new profile and diagnostics can run beside other workers without fighting over a shared `YH_rv_cpu\xsim.dir`.
+
+## 2026-04-07 Timer IRQ Closure and Vivado Payload Freeze
+
+This round closed the remaining local regression in `timer_irq_smoke` and removed the last unstable default from the `impl50` build flow.
+
+| Item | Value |
+|------|------|
+| Root cause | `rtl/YH_rv_cpu_soc.v` forced `timer_irq_en_r <= 1'b1` on `TIMER_CTRL_ADDR` byte writes, so handler-side `sw zero` could not disable the timer interrupt |
+| Functional fix | Restore `timer_irq_en_r <= timer_ctrl_next[0]` |
+| Quality fix | Explicitly declare `csr_mcause_trap_write` in `rtl/YH_rv_cpu.v` so synthesis no longer relies on an implicit net |
+| Build-flow fix | `scripts\build_vivado_project.bat` now defaults `impl50` to the frozen `build\sw\YH_rv_cpu_demo.{hex,mem32.hex}` image and only falls back to staged `current.*` payloads if the demo artifacts are unavailable |
+| timer_irq smoke | `PASS`, `PC=000000e4`, `136 cycles` |
+| CoreMark short | unchanged, `11014885 cycles`, `0.912472 CoreMark/MHz` |
+| RV32 regression | unchanged, `33/33` |
+| RV64 regression | unchanged, `21/21` |
+| impl50 | `2556 LUT / 2170 FF / 4 BRAM / 0 DSP`, `WNS = +5.599ns`, `WHS = +0.025ns` |
+| FPGA-like probe | unchanged, `156442 cycles`, `7.728811 CoreMark/MHz` |
+
+Notes:
+
+- The `impl50` resource/timing delta is a real post-fix result on the repaired SoC path, not a payload-staging artifact.
+- This is now the fresh local frozen baseline to quote in README, handoff, regression, and FPGA flow materials.

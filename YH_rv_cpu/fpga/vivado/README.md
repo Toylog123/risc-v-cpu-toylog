@@ -60,26 +60,26 @@ For the frozen 50 MHz baseline, `<clock>` is `20p000`.
 
 ## Firmware Image Staging
 
-`impl50` does not automatically freeze a board-demo payload. The build script
-uses the following priority when choosing ROM init files:
+`impl50` now freezes the default board-demo payload automatically. The build
+script uses the following priority when choosing ROM init files:
 
-1. `YH_rv_cpu\build\tests\riscv-tests\current.hex`
-2. `YH_rv_cpu\build\tests\riscv-tests\current.mem32.hex`
-3. fallback to `YH_rv_cpu\build\tests\riscv-tests\rv32\simple.hex`
+1. caller-supplied `ROM_INIT_HEX_OVERRIDE` / `ROM_INIT_MEM32_HEX_OVERRIDE`
+2. `YH_rv_cpu\build\sw\YH_rv_cpu_demo.hex`
+3. `YH_rv_cpu\build\sw\YH_rv_cpu_demo.mem32.hex`
+4. fallback to staged `build\tests\riscv-tests\current.*`
+5. fallback to `build\tests\riscv-tests\rv32\simple.*`
 
-If you want the board to boot the default `YH_rv_cpu boot` demo image instead
-of the last staged `riscv-tests` payload, run:
+If the frozen demo artifacts are missing, `build_vivado_project.bat` will call
+`build_firmware.bat` automatically before invoking Vivado.
+
+If you intentionally want a non-demo payload, set both override variables
+explicitly before running the Vivado flow, for example:
 
 ```bat
-YH_rv_cpu\scripts\build_firmware.bat
-copy /y YH_rv_cpu\build\sw\YH_rv_cpu_demo.hex YH_rv_cpu\build\tests\riscv-tests\current.hex
-copy /y YH_rv_cpu\build\sw\YH_rv_cpu_demo.mem32.hex YH_rv_cpu\build\tests\riscv-tests\current.mem32.hex
+set ROM_INIT_HEX_OVERRIDE=YH_rv_cpu\build\tests\riscv-tests\rv32\simple.hex
+set ROM_INIT_MEM32_HEX_OVERRIDE=YH_rv_cpu\build\tests\riscv-tests\rv32\simple.mem32.hex
 YH_rv_cpu\scripts\build_vivado_project.bat impl50
 ```
-
-If you intentionally want a `riscv-tests` payload instead, record which command
-last refreshed `current.hex` / `current.mem32.hex` before generating the
-bitstream.
 
 ## Quick Start
 
@@ -101,20 +101,22 @@ Do not treat the flow as board-complete until the checklist in
 - screenshot or video evidence
 - evidence archived under `YH_rv_cpu\doc\fpga_bringup_evidence\`
 
-## Frozen Snapshot (2026-04-03)
+## Frozen Snapshot (2026-04-07)
 
 - Retained FPGA-default top-level parameters in
   `src/YH_rv_cpu_fpga_top.v` are now `IMEM_OUTPUT_REG=0` and
   `DMEM_OUTPUT_REG=0`.
 - Fresh `impl50` on this retained configuration reports:
-  `2555 LUT / 2170 FF / 4 BRAM / 0 DSP`, `WNS = +5.822ns`,
-  `WHS = +0.057ns`.
+  `2556 LUT / 2170 FF / 4 BRAM / 0 DSP`, `WNS = +5.599ns`,
+  `WHS = +0.025ns`.
 - A fast FPGA-like CoreMark tuning entry now exists at
   `YH_rv_cpu\scripts\run_coremark_fpga.bat`.
 - Its default no-extra-args probe corresponds to:
   `rv32 / 1 iteration / data_size=400 / timer_hz=100000000UL / max_cycles=20000000 / exec_mask=1`.
 - Fresh quick-probe result on the retained configuration:
   `156442` completion cycles, `CoreMark/MHz = 7.728811`.
+- `impl50` now boots the frozen `YH_rv_cpu_demo` payload by default instead of
+  inheriting the last staged `current.hex`.
 - Remaining closure gap is unchanged:
   final board I/O delay constraints, UART/LED evidence, and real board bring-up
   still depend on the physical Nexys A7-100T arriving.
