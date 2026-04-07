@@ -313,3 +313,23 @@ Notes:
 - The change stayed functionally green under current directed diagnostics.
 - Short-score delta remains `0`, so the trial was reverted immediately and not
   carried into full regression or implementation flow.
+
+## 2026-04-07 FQ-01 Queue-Decouple Trial (Rejected)
+
+This round executed the FQ-01 candidate (`fetch/request/queue` 2-entry queue
+semantic decouple) as a single-variable quick screen.
+
+| Item | Value |
+|------|------|
+| Trial scope | `rtl/YH_rv_cpu.v` only, queue semantics only, no request-timing change |
+| Redirect diag default | `scripts\run_fetch_redirect_reuse_diag.bat` -> `PASS` |
+| Redirect accounting strict (`IMEM_OUTPUT_REG=0`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0` -> `PASS` |
+| Redirect accounting strict (`IMEM_OUTPUT_REG=1`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1` -> `PASS` |
+| CoreMark smoke | `620530 cycles` |
+| CoreMark short | `11014885 cycles`, `0.912472 CoreMark/MHz` (unchanged) |
+| Keep? | `no` |
+
+Notes:
+
+- Directed diagnostics stayed green, but short-score delta is still `0`.
+- The trial RTL was reverted immediately and not expanded to full matrix.
