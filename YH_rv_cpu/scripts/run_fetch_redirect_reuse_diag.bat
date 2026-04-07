@@ -2,13 +2,50 @@
 setlocal
 
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
+set SCRIPT_DIR=%~dp0
 set BUILD_DIR=%PROJECT_DIR%\build\sim
 set XVLOG=
 set XELAB=
 set XSIM=
 set XSIM_TESTPLUSARGS=
 set XSIM_RUN_DIR=
-set RAW_TESTPLUSARGS=%*
+set RAW_TESTPLUSARGS=
+set IMEM_OUTPUT_REG=0
+
+:parse_args
+if "%~1"=="" goto :args_done
+if /I "%~1"=="imem_output_reg=0" (
+    set IMEM_OUTPUT_REG=0
+    shift
+    goto :parse_args
+)
+if /I "%~1"=="imem_output_reg=1" (
+    set IMEM_OUTPUT_REG=1
+    shift
+    goto :parse_args
+)
+if /I "%~1"=="imem_output_reg" (
+    if /I "%~2"=="0" (
+        set IMEM_OUTPUT_REG=0
+        shift
+        shift
+        goto :parse_args
+    )
+    if /I "%~2"=="1" (
+        set IMEM_OUTPUT_REG=1
+        shift
+        shift
+        goto :parse_args
+    )
+)
+if defined RAW_TESTPLUSARGS (
+    set RAW_TESTPLUSARGS=%RAW_TESTPLUSARGS% %~1
+) else (
+    set RAW_TESTPLUSARGS=%~1
+)
+shift
+goto :parse_args
+:args_done
 
 for %%T in (xvlog.bat xvlog) do (
     where %%T >nul 2>nul
@@ -54,7 +91,7 @@ if not defined XSIM (
 
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
-call "%~dp0prepare_xsim_runtime.bat" fetch_redirect_reuse_diag XSIM_RUN_DIR
+call "%SCRIPT_DIR%prepare_xsim_runtime.bat" fetch_redirect_reuse_diag XSIM_RUN_DIR
 if not defined XSIM_RUN_DIR exit /b 1
 
 pushd "%XSIM_RUN_DIR%"
@@ -82,7 +119,7 @@ call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_alu.v"
 if errorlevel 1 goto :fail
 
-call %XELAB% YH_rv_cpu_fetch_redirect_reuse_tb -s YH_rv_cpu_fetch_redirect_reuse_tb_snapshot
+call %XELAB% YH_rv_cpu_fetch_redirect_reuse_tb -generic_top "IMEM_OUTPUT_REG=%IMEM_OUTPUT_REG%" -s YH_rv_cpu_fetch_redirect_reuse_tb_snapshot
 if errorlevel 1 goto :fail
 
 call %XSIM% YH_rv_cpu_fetch_redirect_reuse_tb_snapshot -runall %XSIM_TESTPLUSARGS%
