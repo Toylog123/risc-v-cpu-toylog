@@ -343,7 +343,20 @@ assign debug_pc = pc_r;
     // ================================================================
     // 取指请求逻辑
     // ================================================================
-assign imem_req = (IMEM_SYNC != 0) && !trap_r && !mem_wait && !stall_decode && !ex_fetch_redirect_valid;
+    // mem_wait overlap: allow one safe fetch request during sync-load wait
+wire fetch_overlap_req =
+    (IMEM_SYNC != 0) &&
+    !trap_r &&
+    mem_wait &&
+    !stall_decode &&
+    !ex_fetch_redirect_valid &&
+    !fetch_buffer_valid;
+assign imem_req =
+    (IMEM_SYNC != 0) &&
+    !trap_r &&
+    !stall_decode &&
+    !ex_fetch_redirect_valid &&
+    (!mem_wait || fetch_overlap_req);
 
     // ================================================================
     // 执行阶段前递数据选择
