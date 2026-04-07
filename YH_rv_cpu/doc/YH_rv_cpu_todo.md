@@ -39,8 +39,11 @@
 - [x] 设计并冻结 `FQ-04` 非重复单变量候选（已执行，结果为 `if_id` redirect-hit bubble bypass）
 - [x] 执行 `FQ-04` quick screen（与 FQ-03 相同门禁，结果：guardrail 全绿但 short score 未提升）
 - [x] 完成 `FQ-04` 保留决策：不保留（short score 仅到 `11014886 cycles`，已回退 RTL）
-- [ ] 切换到 `FQ-05`：基于 fresh profile / 复盘结果提出下一轮非重复单变量候选
-- [ ] 仅当 `FQ-05` short score 提升时，补跑完整矩阵：RV32 / RV64 / strict CoreMark `>=10s` / `impl50`
+- [x] 切换到 `FQ-05`：基于 fresh profile / 复盘结果提出下一轮非重复单变量候选（P1/P2/P3）
+- [x] 执行 `FQ-05A` quick screen（queue-consume/data-write 对齐，guardrail 全绿但 short score 无提升）
+- [x] 完成 `FQ-05A` 保留决策：不保留（`11014885 cycles`，与冻结基线相同，已回退 RTL）
+- [ ] 执行 `FQ-05B` quick screen（单变量、非重复，沿用同一门禁）
+- [ ] 仅当 `FQ-05B` short score 提升时，补跑完整矩阵：RV32 / RV64 / strict CoreMark `>=10s` / `impl50`
 - [ ] 若出现 retained 候选，补齐完整 fresh 回归矩阵并统一同步文档口径（README / handoff / todo / regression / performance）
 
 ## 仅外部阻塞
@@ -61,8 +64,8 @@
 
 1. 先执行 `FQ-03` 结果归档（已完成，结论：rejected）。
 2. 进入 `FQ-04`：先跑 profile，再定候选，避免无证据重复试验。
-3. `FQ-04` 已执行完毕并拒绝保留，下一步转入 `FQ-05`。
-4. 仍坚持“short score 先过门，再扩完整矩阵”的门禁策略。
+3. `FQ-04` 已执行完毕并拒绝保留，`FQ-05A` 也已执行并拒绝保留。
+4. 下一步进入 `FQ-05B`，仍坚持“short score 先过门，再扩完整矩阵”的门禁策略。
 
 允许优先探索的方向：
 

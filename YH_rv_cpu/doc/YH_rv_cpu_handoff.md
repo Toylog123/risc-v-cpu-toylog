@@ -164,3 +164,17 @@ scripts\run_coremark_fpga.bat rv32
   - `run_coremark_score.bat rv32` -> PASS, but `completion_cycles=11014886`
 - Retention decision: `no` because the short score did not improve, so the RTL was reverted in the same round.
 - Handoff direction now moves to `FQ-05`: keep the single-variable rule, avoid repeating rejected front-end directions, and base the next candidate on fresh evidence rather than re-sampling the same fetch knobs.
+
+## 2026-04-07 FQ-05A Update
+
+- Executed FQ-05A as a single-variable queue handshake trial in `rtl/YH_rv_cpu.v`.
+- Trial change boundary: align `fetch_live_to_ifid` and `fetch_queue_consume` gate from `if_id_write_en` to `if_id_data_write_en`.
+- Redirect guardrails all stayed green:
+  - `run_fetch_redirect_reuse_diag.bat`
+  - `run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0`
+  - `run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1`
+- CoreMark stayed green:
+  - `run_coremark_smoke.bat rv32` -> PASS (`620530 cycles`)
+  - `run_coremark_score.bat rv32` -> PASS, `completion_cycles=11014885`
+- Retention decision: `no` (short score unchanged vs frozen baseline), so RTL was reverted in the same round.
+- Next direction: continue to `FQ-05B` with the same single-variable quick-screen gate.

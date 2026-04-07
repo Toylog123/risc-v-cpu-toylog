@@ -398,3 +398,25 @@ Notes:
   variants.
 - The trial missed the retention bar by one cycle on the short score, so it
   was rejected immediately and not expanded to the full matrix.
+
+## 2026-04-07 FQ-05A Queue-Consume/Data-Write Align Trial (Rejected)
+
+This round tested a single-variable queue-handshake change in
+`rtl/YH_rv_cpu.v`: align `fetch_live_to_ifid` and `fetch_queue_consume` from
+`if_id_write_en` to `if_id_data_write_en`.
+
+| Item | Value |
+|------|------|
+| Trial scope | `rtl/YH_rv_cpu.v` only, queue consume/live handshake alignment |
+| Directed default | `scripts\run_fetch_redirect_reuse_diag.bat` -> `PASS` |
+| Redirect accounting strict (`IMEM_OUTPUT_REG=0`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0` -> `PASS` |
+| Redirect accounting strict (`IMEM_OUTPUT_REG=1`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1` -> `PASS` |
+| CoreMark smoke | `620530 cycles` |
+| CoreMark short | `11014885 cycles`, `0.912472 CoreMark/MHz` (unchanged) |
+| Keep? | `no` |
+
+Notes:
+
+- The guardrail diagnostics stayed green across both accounting variants.
+- The short score did not improve, so the trial RTL was reverted in the same
+  round and not expanded to full matrix validation.
