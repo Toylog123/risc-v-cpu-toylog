@@ -41,6 +41,7 @@ Allow `imem_req` during `mem_wait` only when all of the following are true:
 - no decode stall
 - no redirect/flush request
 - no buffered fetch data is already waiting
+- no earlier fetch request is still in flight
 
 Keep `pipeline_run = !trap_r && !mem_wait` unchanged so IF/ID consumption stays
 frozen during `mem_wait`.
@@ -103,6 +104,8 @@ Modify only `rtl/YH_rv_cpu.v`.
 3. Allow overlap only when:
    - `mem_wait` is asserted
    - `fetch_buffer_valid` is false
+   - no fetch response is already in flight (`fetch_valid_r`, and `fetch_valid_d1_r`
+     when `IMEM_OUTPUT_REG != 0`)
    - `stall_decode` is low
    - `ex_fetch_redirect_valid` is low
 4. Leave `pipeline_run`, queue consumption, trap handling, redirect drop logic,
