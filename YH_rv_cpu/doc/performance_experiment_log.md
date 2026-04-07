@@ -353,3 +353,25 @@ Notes:
 
 - FQ-02 remained functionally green under directed checks.
 - Short-score delta is still `0`, so RTL was reverted and not retained.
+
+## 2026-04-07 FQ-03 Explicit 3-Entry Queue Trial (Rejected)
+
+This round executed FQ-03 as an explicit 3-entry fetch queue semantics trial in
+`rtl/YH_rv_cpu.v`, while keeping request issue and redirect/drop-accounting
+policies unchanged.
+
+| Item | Value |
+|------|------|
+| Trial scope | `rtl/YH_rv_cpu.v` only, explicit 3-entry queue semantics |
+| Redirect diag default | `scripts\run_fetch_redirect_reuse_diag.bat` -> `PASS` |
+| Redirect accounting strict (`IMEM_OUTPUT_REG=0`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0` -> `PASS` |
+| Redirect accounting strict (`IMEM_OUTPUT_REG=1`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1` -> `PASS` |
+| CoreMark smoke | `620530 cycles` |
+| CoreMark short | `11014885 cycles`, `0.912472 CoreMark/MHz` (unchanged) |
+| Keep? | `no` |
+
+Notes:
+
+- Guardrail diagnostics and smoke stayed green.
+- Short score did not beat the frozen baseline, so RTL was reverted in the
+  same round.

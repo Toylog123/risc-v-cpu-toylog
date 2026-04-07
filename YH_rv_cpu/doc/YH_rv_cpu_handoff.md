@@ -58,19 +58,18 @@
 
 ## 5. 后续任务（执行顺序）
 
-1. 提出并冻结 `FQ-03` 全新非重复假设（不得重复 request-cursor / pipe-hit / redirect 同拍取指 / FQ-01 / FQ-02）
-2. 按单变量门禁执行 `FQ-03` quick screen：
-   - `run_fetch_redirect_reuse_diag` 默认
-   - redirect accounting strict `IMEM_OUTPUT_REG=0/1`
-   - `run_coremark_smoke.bat rv32`
-   - `run_coremark_score.bat rv32`
-3. 仅当 short score 实际提升时，继续跑完整矩阵：
+1. `FQ-03` 已执行完毕并拒绝保留（quick screen 全绿，但 short score 仍为 `11014885 cycles`，无提升）。
+2. 后续禁止重复前端已拒绝方向：`request-cursor / pipe-hit / redirect 同拍取指 / FQ-01 / FQ-02 / FQ-03`。
+3. 下一轮改为“证据驱动 + 非重复候选”流程：
+   - 先跑 `scripts\run_coremark_profile.bat rv32` 固化热点证据；
+   - 基于证据提出 `FQ-04`（必须与历史候选非重复）；
+   - 再按 quick screen 门禁执行。
+4. 仅当 `FQ-04` short score 实际提升时，继续完整矩阵：
    - `run_riscv_tests_subset.bat rv32/rv64`
    - strict CoreMark `>=10s`
    - `build_vivado_project.bat impl50`
-4. 无收益或有回归则当轮立即回退 RTL，并把 reject 结果写入 `doc/performance_experiment_log.md`
-5. 若出现 retained 候选，补齐 fresh 证据并同步 `README / handoff / todo / regression log`
-6. 板卡到位后再进入实板闭环与 I/O delay 约束补齐（外部阻塞）
+5. 若 `FQ-04` 仍无收益或有回归，当轮立即回退 RTL，并把 reject 结果写入 `doc/performance_experiment_log.md`。
+6. 板卡到位后再进入实板闭环与 I/O delay 约束补齐（外部阻塞）。
 
 ## 6. 关键文档与命令
 
@@ -139,3 +138,16 @@ scripts\run_coremark_fpga.bat rv32
 - `build_vivado_project.bat impl50` now defaults to the frozen `YH_rv_cpu_demo` payload instead of inheriting the last `current.hex` left by regressions.
 - Board bring-up is still externally blocked, so the UART/LED closed-loop and final board timing evidence remain pending.
 - The `mem_wait overlap` RTL trial was executed and then rejected because the short CoreMark score stayed flat (`11014885 cycles`, `0.912472 CoreMark/MHz`).
+
+## 2026-04-07 FQ-03 Update
+
+- Executed FQ-03 (explicit 3-entry queue semantics trial in `rtl/YH_rv_cpu.v`) with the required quick screen gate.
+- Redirect diagnostics were green:
+  - `run_fetch_redirect_reuse_diag.bat`
+  - `run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0`
+  - `run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1`
+- CoreMark was also green functionally:
+  - `run_coremark_smoke.bat rv32` -> PASS (`620530 cycles`)
+  - `run_coremark_score.bat rv32` -> PASS, but `completion_cycles=11014885`
+- Retention decision: `no` (short score did not beat baseline), RTL reverted in the same round.
+- Handoff direction is now explicit: stop repeating front-end queue variants and move to a profile-backed, non-duplicate `FQ-04` candidate.
