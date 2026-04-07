@@ -151,3 +151,16 @@ scripts\run_coremark_fpga.bat rv32
   - `run_coremark_score.bat rv32` -> PASS, but `completion_cycles=11014885`
 - Retention decision: `no` (short score did not beat baseline), RTL reverted in the same round.
 - Handoff direction is now explicit: stop repeating front-end queue variants and move to a profile-backed, non-duplicate `FQ-04` candidate.
+
+## 2026-04-07 FQ-04 Update
+
+- Executed FQ-04 as a single-variable `if_id` redirect-hit bubble bypass trial in `rtl/YH_rv_cpu.v`.
+- The quick screen stayed clean under both redirect-accounting variants:
+  - `run_fetch_redirect_reuse_diag.bat`
+  - `run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0`
+  - `run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1`
+- CoreMark stayed functionally green:
+  - `run_coremark_smoke.bat rv32` -> PASS (`620531 cycles`)
+  - `run_coremark_score.bat rv32` -> PASS, but `completion_cycles=11014886`
+- Retention decision: `no` because the short score did not improve, so the RTL was reverted in the same round.
+- Handoff direction now moves to `FQ-05`: keep the single-variable rule, avoid repeating rejected front-end directions, and base the next candidate on fresh evidence rather than re-sampling the same fetch knobs.

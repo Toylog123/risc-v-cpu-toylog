@@ -34,11 +34,13 @@
 - [x] 设计并冻结 `FQ-03` 全新非重复假设（explicit 3-entry queue 语义）
 - [x] 执行 `FQ-03` quick screen：redirect diag 默认 + redirect accounting strict(`IMEM_OUTPUT_REG=0/1`) + CoreMark smoke + CoreMark short
 - [x] 完成 `FQ-03` 保留决策：不保留（short score 未优于 `11014885 cycles`，已回退 RTL）
-- [ ] 执行下一轮方向切换：停止重复前端已拒绝候选（request-cursor / pipe-hit / redirect 同拍取指 / FQ-01 / FQ-02 / FQ-03）
-- [ ] 跑 `scripts\run_coremark_profile.bat rv32` 并固化 profile 证据（作为 `FQ-04` 立项输入）
-- [ ] 设计并冻结 `FQ-04` 非重复单变量候选（必须有 profile 证据绑定）
-- [ ] 执行 `FQ-04` quick screen（与 FQ-03 相同门禁）
-- [ ] 仅当 `FQ-04` short score 提升时，补跑完整矩阵：RV32 / RV64 / strict CoreMark `>=10s` / `impl50`
+- [x] 执行下一轮方向切换：停止重复前端已拒绝候选（request-cursor / pipe-hit / redirect 同拍取指 / FQ-01 / FQ-02 / FQ-03）
+- [x] 跑 `scripts\run_coremark_profile.bat rv32` 并固化 profile 证据（作为 `FQ-04` 立项输入）
+- [x] 设计并冻结 `FQ-04` 非重复单变量候选（已执行，结果为 `if_id` redirect-hit bubble bypass）
+- [x] 执行 `FQ-04` quick screen（与 FQ-03 相同门禁，结果：guardrail 全绿但 short score 未提升）
+- [x] 完成 `FQ-04` 保留决策：不保留（short score 仅到 `11014886 cycles`，已回退 RTL）
+- [ ] 切换到 `FQ-05`：基于 fresh profile / 复盘结果提出下一轮非重复单变量候选
+- [ ] 仅当 `FQ-05` short score 提升时，补跑完整矩阵：RV32 / RV64 / strict CoreMark `>=10s` / `impl50`
 - [ ] 若出现 retained 候选，补齐完整 fresh 回归矩阵并统一同步文档口径（README / handoff / todo / regression / performance）
 
 ## 仅外部阻塞
@@ -59,7 +61,8 @@
 
 1. 先执行 `FQ-03` 结果归档（已完成，结论：rejected）。
 2. 进入 `FQ-04`：先跑 profile，再定候选，避免无证据重复试验。
-3. 仍坚持“short score 先过门，再扩完整矩阵”的门禁策略。
+3. `FQ-04` 已执行完毕并拒绝保留，下一步转入 `FQ-05`。
+4. 仍坚持“short score 先过门，再扩完整矩阵”的门禁策略。
 
 允许优先探索的方向：
 

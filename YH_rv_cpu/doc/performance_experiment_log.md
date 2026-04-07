@@ -375,3 +375,26 @@ Notes:
 - Guardrail diagnostics and smoke stayed green.
 - Short score did not beat the frozen baseline, so RTL was reverted in the
   same round.
+
+## 2026-04-07 FQ-04 IF/ID Redirect-Hit Bubble Bypass Trial (Rejected)
+
+This round tested a single-variable `if_id` redirect-hit bubble bypass. The
+candidate stayed inside the existing fetch guardrails, but the short CoreMark
+result did not improve, so the RTL was reverted in the same round.
+
+| Item | Value |
+|------|------|
+| Trial scope | `rtl/YH_rv_cpu.v` only, `if_id` redirect-hit bubble bypass |
+| Redirect diag default | `scripts\run_fetch_redirect_reuse_diag.bat` -> `PASS` |
+| Redirect accounting strict (`IMEM_OUTPUT_REG=0`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0` -> `PASS` |
+| Redirect accounting strict (`IMEM_OUTPUT_REG=1`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1` -> `PASS` |
+| CoreMark smoke | `620531 cycles` |
+| CoreMark short | `11014886 cycles`, `0.912472 CoreMark/MHz` (unchanged) |
+| Keep? | `no` |
+
+Notes:
+
+- The guardrail diagnostics remained green under both `IMEM_OUTPUT_REG`
+  variants.
+- The trial missed the retention bar by one cycle on the short score, so it
+  was rejected immediately and not expanded to the full matrix.
