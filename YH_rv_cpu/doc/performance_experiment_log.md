@@ -292,3 +292,24 @@ Notes:
   `0`, so the trial does not pass retention criteria.
 - The RTL was reverted in the same round and the frozen baseline remains
   unchanged.
+
+## 2026-04-07 Redirect Same-Cycle Request Trial (Rejected)
+
+This round tested whether issuing an IMEM request in the same cycle as redirect
+control could reduce redirect penalty.
+
+| Item | Value |
+|------|------|
+| Trial RTL change | `imem_req` allows redirect cycles; request PC uses `ex_control_redirect_pc` when `ex_fetch_redirect_valid` |
+| Directed default | `scripts\run_fetch_redirect_reuse_diag.bat` -> `PASS` |
+| Redirect accounting strict (`IMEM_OUTPUT_REG=0`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0` -> `PASS` |
+| Redirect accounting strict (`IMEM_OUTPUT_REG=1`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1` -> `PASS` |
+| CoreMark smoke | `620530 cycles` |
+| CoreMark short | `11014885 cycles`, `0.912472 CoreMark/MHz` (unchanged) |
+| Keep? | `no` |
+
+Notes:
+
+- The change stayed functionally green under current directed diagnostics.
+- Short-score delta remains `0`, so the trial was reverted immediately and not
+  carried into full regression or implementation flow.

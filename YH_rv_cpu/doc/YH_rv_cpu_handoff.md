@@ -121,6 +121,7 @@ scripts\run_coremark_fpga.bat rv32
 - The strict red/green entry is now reserved by `+require_overlap` for future use; it currently fails as expected because the frozen RTL does not yet generate an actual overlap request.
 - Redirect accounting strict diagnostics are now closed for both `IMEM_OUTPUT_REG=0` and `IMEM_OUTPUT_REG=1`.
 - The redirect `pipe-hit` minimal RTL trial was rechecked with the new accounting guardrail; strict diagnostics can pass, but short score delta remains `0`, so the RTL is still rejected.
+- The redirect same-cycle request trial also stayed at `0` short-score delta and was reverted in the same round.
 - `timer_irq_smoke` is green again after fixing `TIMER_CTRL_ADDR` so a zero write really clears `timer_irq_en_r`.
 - `build_vivado_project.bat impl50` now defaults to the frozen `YH_rv_cpu_demo` payload instead of inheriting the last `current.hex` left by regressions.
 - Board bring-up is still externally blocked, so the UART/LED closed-loop and final board timing evidence remain pending.
