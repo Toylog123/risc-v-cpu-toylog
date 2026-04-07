@@ -420,3 +420,25 @@ Notes:
 - The guardrail diagnostics stayed green across both accounting variants.
 - The short score did not improve, so the trial RTL was reverted in the same
   round and not expanded to full matrix validation.
+
+## 2026-04-07 FQ-05B Redirect-Reuse Next-Line Prefetch Trial (Rejected)
+
+This round tested a single-variable fetch request policy in `rtl/YH_rv_cpu.v`:
+when `fetch_redirect_reuse_valid` is true, allow request issue in the redirect
+cycle and request `redirect_pc + 4` as a speculative next-line prefetch.
+
+| Item | Value |
+|------|------|
+| Trial scope | `rtl/YH_rv_cpu.v` only, redirect-reuse next-line prefetch |
+| Directed default | `scripts\run_fetch_redirect_reuse_diag.bat` -> `PASS` |
+| Redirect accounting strict (`IMEM_OUTPUT_REG=0`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0` -> `PASS` |
+| Redirect accounting strict (`IMEM_OUTPUT_REG=1`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1` -> `PASS` |
+| CoreMark smoke | `620530 cycles` |
+| CoreMark short | `11014885 cycles`, `0.912472 CoreMark/MHz` (unchanged) |
+| Keep? | `no` |
+
+Notes:
+
+- Functionality and accounting guardrails remained green in both strict variants.
+- Short-score delta remained `0`, so the trial was rejected and RTL reverted in
+  the same round.

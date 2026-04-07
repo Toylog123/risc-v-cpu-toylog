@@ -178,3 +178,17 @@ scripts\run_coremark_fpga.bat rv32
   - `run_coremark_score.bat rv32` -> PASS, `completion_cycles=11014885`
 - Retention decision: `no` (short score unchanged vs frozen baseline), so RTL was reverted in the same round.
 - Next direction: continue to `FQ-05B` with the same single-variable quick-screen gate.
+
+## 2026-04-07 FQ-05B Update
+
+- Executed FQ-05B as a single-variable redirect-reuse next-line prefetch trial in `rtl/YH_rv_cpu.v`.
+- Trial boundary: when `fetch_redirect_reuse_valid` is true, permit request issue in redirect cycle and target `redirect_pc + 4`.
+- Redirect guardrails remained green:
+  - `run_fetch_redirect_reuse_diag.bat`
+  - `run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0`
+  - `run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1`
+- CoreMark remained green:
+  - `run_coremark_smoke.bat rv32` -> PASS (`620530 cycles`)
+  - `run_coremark_score.bat rv32` -> PASS, `completion_cycles=11014885`
+- Retention decision: `no` because short score stayed flat; RTL reverted in the same round.
+- Next direction: continue with `FQ-05C` using the same single-variable quick-screen policy.
