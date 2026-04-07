@@ -1,6 +1,8 @@
 `timescale 1ns / 1ps
 
-module YH_rv_cpu_fetch_redirect_reuse_tb;
+module YH_rv_cpu_fetch_redirect_reuse_tb #(
+    parameter integer IMEM_OUTPUT_REG = 0
+);
 
 reg         clk;
 reg         rst_n;
@@ -31,13 +33,26 @@ integer redirect_count;
 integer reuse_count;
 integer pipe_hit_count;
 integer overlap_count;
+integer overlap_cycle;
+integer overlap_window_end_cycle;
 reg     debug_trace;
 reg     require_pipe_hit;
+reg     require_queue_preserve;
+reg     require_drop_accounting;
 reg     stall_seen;
 reg     redirect_seen;
 reg     reuse_seen;
 reg     pipe_hit_seen;
 reg     overlap_seen;
+reg     queue_preserve_seen;
+reg     queue_consumed_seen;
+reg     queue_instruction_seen;
+reg     drop_count_loaded_seen;
+reg     drop_count_decrement_seen;
+reg     drop_count_cleared_seen;
+reg [31:0] overlap_redirect_pc;
+reg [31:0] overlap_expected_instruction;
+localparam [1:0] IMEM_DROP_COUNT = (IMEM_OUTPUT_REG != 0) ? 2'd1 : 2'd0;
 
 wire fetch_reuse_hit;
 wire fetch_buffer_hit;
@@ -57,7 +72,7 @@ assign dmem_rvalid = dmem_rvalid_r;
 
 YH_rv_cpu #(
     .IMEM_SYNC(1),
-    .IMEM_OUTPUT_REG(0),
+    .IMEM_OUTPUT_REG(IMEM_OUTPUT_REG),
     .DMEM_SYNC(1),
     .RESET_VECTOR(32'h0000_0000)
 ) dut (
@@ -165,11 +180,122 @@ always @(posedge clk) begin
         if (fetch_response_overlap) begin
             overlap_seen <= 1'b1;
             overlap_count <= overlap_count + 1;
+            if (require_queue_preserve) begin
+                if (dut.fetch_queue_valid) begin
+                    if (dut.fetch_queue_pc !== dut.ex_redirect_pc) begin
+                        $fatal(1,
+                            "FAIL: queue PC changed on overlap at cycle=%0d expected_pc=%h observed_pc=%h",
+                            cycle,
+                            dut.ex_redirect_pc,
+                            dut.fetch_queue_pc);
+                    end
+
+                    if (dut.fetch_queue_instruction === ((IMEM_OUTPUT_REG != 0) ? imem[dut.ex_redirect_pc[31:2] + 1] : imem[dut.ex_redirect_pc[31:2]])) begin
+                        queue_instruction_seen <= 1'b1;
+                    end
+
+                    queue_preserve_seen <= 1'b1;
+                end
+
+                if ((dut.if_id_pc_r === dut.ex_redirect_pc) &&
+                    (dut.if_id_instruction_r === ((IMEM_OUTPUT_REG != 0) ? imem[dut.ex_redirect_pc[31:2] + 1] : imem[dut.ex_redirect_pc[31:2]]))) begin
+                    queue_preserve_seen <= 1'b1;
+                    queue_instruction_seen <= 1'b1;
+                end
+
+                if (dut.if_id_data_write_en && dut.if_id_fetch_valid) begin
+                    if (dut.if_id_next_instruction === ((IMEM_OUTPUT_REG != 0) ? imem[dut.ex_redirect_pc[31:2] + 1] : imem[dut.ex_redirect_pc[31:2]])) begin
+                        queue_instruction_seen <= 1'b1;
+                    end
+
+                    queue_preserve_seen <= 1'b1;
+                    queue_consumed_seen <= 1'b1;
+                end
+            end
+            if (overlap_cycle == 0) begin
+                overlap_cycle <= cycle;
+                overlap_window_end_cycle <= cycle + 2;
+                overlap_redirect_pc <= dut.ex_redirect_pc;
+                overlap_expected_instruction <= ((IMEM_OUTPUT_REG != 0) ? imem[dut.ex_redirect_pc[31:2] + 1] : imem[dut.ex_redirect_pc[31:2]]);
+                queue_preserve_seen <= 1'b0;
+                queue_consumed_seen <= 1'b0;
+                queue_instruction_seen <= 1'b0;
+                drop_count_loaded_seen <= 1'b0;
+                drop_count_decrement_seen <= 1'b0;
+                drop_count_cleared_seen <= 1'b0;
+            end
+        end
+
+        if (require_queue_preserve && overlap_seen && (overlap_cycle != 0)) begin
+            if ((cycle >= overlap_cycle) && (cycle <= overlap_window_end_cycle)) begin
+                if (dut.fetch_queue_valid) begin
+                    if (dut.fetch_queue_pc !== overlap_redirect_pc) begin
+                        $fatal(1,
+                            "FAIL: queue PC changed after overlap at cycle=%0d expected_pc=%h observed_pc=%h",
+                            cycle,
+                            overlap_redirect_pc,
+                            dut.fetch_queue_pc);
+                    end
+
+                    if (dut.fetch_queue_instruction === overlap_expected_instruction) begin
+                        queue_instruction_seen <= 1'b1;
+                    end
+
+                    queue_preserve_seen <= 1'b1;
+                end
+
+                if ((dut.if_id_pc_r === overlap_redirect_pc) &&
+                    (dut.if_id_instruction_r === overlap_expected_instruction)) begin
+                    queue_preserve_seen <= 1'b1;
+                    queue_instruction_seen <= 1'b1;
+                end
+
+                if (dut.if_id_data_write_en && dut.if_id_fetch_valid) begin
+                    if (dut.if_id_next_instruction === overlap_expected_instruction) begin
+                        queue_instruction_seen <= 1'b1;
+                    end
+
+                    queue_preserve_seen <= 1'b1;
+                    queue_consumed_seen <= 1'b1;
+                end
+            end else if ((cycle > overlap_window_end_cycle) && (!queue_preserve_seen || !queue_instruction_seen)) begin
+                $fatal(1,
+                    "FAIL: require_queue_preserve set but queue target/instruction never observed within %0d cycles after overlap at PC=%h",
+                    (overlap_window_end_cycle - overlap_cycle),
+                    overlap_redirect_pc);
+            end
+        end
+
+        if (require_drop_accounting && (IMEM_OUTPUT_REG != 0) && overlap_seen && (overlap_cycle != 0)) begin
+            if (dut.fetch_drop_response && dut.fetch_pipe_valid) begin
+                $fatal(1,
+                    "FAIL: stale response entered fetch_pipe while drop_response was asserted at cycle=%0d drop_count=%0d",
+                    cycle,
+                    dut.fetch_drop_count_r);
+            end
+
+            if ((cycle > overlap_cycle) && (cycle <= overlap_window_end_cycle)) begin
+                if (cycle == (overlap_cycle + 1)) begin
+                    if (dut.fetch_drop_count_r !== IMEM_DROP_COUNT) begin
+                        $fatal(1,
+                            "FAIL: drop counter did not arm after overlap at cycle=%0d expected=%0d observed=%0d",
+                            cycle,
+                            IMEM_DROP_COUNT,
+                            dut.fetch_drop_count_r);
+                    end
+                    drop_count_loaded_seen <= 1'b1;
+                end
+
+                if (drop_count_loaded_seen && (dut.fetch_drop_count_r == 2'd0)) begin
+                    drop_count_decrement_seen <= 1'b1;
+                    drop_count_cleared_seen <= 1'b1;
+                end
+            end
         end
 
         if (debug_trace && (cycle < 120)) begin
             $display(
-                "TRACE cycle=%0d pc=%h req=%0d rvalid=%0d rsp_pc=%h redir_pc=%h redirect=%0d reuse=%0d buf0_hit=%0d buf1_hit=%0d pipe_hit=%0d overlap=%0d buf0_v=%0d buf0_pc=%h buf1_v=%0d buf1_pc=%h fetch_q_v=%0d fetch_q_pc=%h if_id_v=%0d if_id_pc=%h if_id_insn=%h x5=%h",
+                "TRACE cycle=%0d pc=%h req=%0d rvalid=%0d rsp_pc=%h redir_pc=%h redirect=%0d reuse=%0d buf0_hit=%0d buf1_hit=%0d pipe_hit=%0d overlap=%0d overlap_cycle=%0d q_pres=%0d q_insn=%0d q_cons=%0d drop_cnt=%0d drop_rsp=%0d pipe_v=%0d buf0_v=%0d buf0_pc=%h buf1_v=%0d buf1_pc=%h fetch_q_v=%0d fetch_q_pc=%h if_id_v=%0d if_id_pc=%h if_id_insn=%h x5=%h",
                 cycle,
                 debug_pc,
                 imem_req,
@@ -182,6 +308,13 @@ always @(posedge clk) begin
                 dut.fetch_redirect_buf1_hit,
                 dut.fetch_redirect_pipe_hit,
                 fetch_response_overlap,
+                overlap_cycle,
+                queue_preserve_seen,
+                queue_instruction_seen,
+                queue_consumed_seen,
+                dut.fetch_drop_count_r,
+                dut.fetch_drop_response,
+                dut.fetch_pipe_valid,
                 dut.fetch_buf0_valid_r,
                 dut.fetch_buf0_pc_r,
                 dut.fetch_buf1_valid_r,
@@ -216,8 +349,30 @@ always @(posedge clk) begin
                 $fatal(1, "FAIL: strict plusarg require_pipe_hit set but fetch_redirect_pipe_hit never asserted");
             end
 
-            $display(
-                "PASS: fetch redirect reuse diagnostic completed at PC=%h in %0d cycles (stall_cycles=%0d redirects=%0d reuse_hits=%0d pipe_hits=%0d overlaps=%0d require_pipe_hit=%0d)",
+            if (require_queue_preserve && (!queue_preserve_seen || !queue_instruction_seen)) begin
+                // Keep running until the bounded window either proves the queue
+                // payload or trips the timeout/fatal checks above.
+            end else begin
+                $display(
+                    "PASS: fetch redirect reuse diagnostic completed at PC=%h in %0d cycles (stall_cycles=%0d redirects=%0d reuse_hits=%0d pipe_hits=%0d overlaps=%0d require_pipe_hit=%0d require_queue_preserve=%0d require_drop_accounting=%0d IMEM_OUTPUT_REG=%0d)",
+                    debug_pc,
+                    cycle,
+                    stall_cycles,
+                    redirect_count,
+                    reuse_count,
+                    pipe_hit_count,
+                    overlap_count,
+                    require_pipe_hit,
+                    require_queue_preserve,
+                    require_drop_accounting,
+                    IMEM_OUTPUT_REG);
+                $finish;
+            end
+        end
+
+        if (cycle > timeout_cycles) begin
+            $fatal(1,
+                "FAIL: timeout at PC=%h cycle=%0d stall_cycles=%0d redirects=%0d reuse_hits=%0d pipe_hits=%0d overlaps=%0d q_pres=%0d q_insn=%0d q_cons=%0d drop_loaded=%0d drop_dec=%0d drop_zero=%0d IMEM_OUTPUT_REG=%0d",
                 debug_pc,
                 cycle,
                 stall_cycles,
@@ -225,21 +380,13 @@ always @(posedge clk) begin
                 reuse_count,
                 pipe_hit_count,
                 overlap_count,
-                require_pipe_hit
-            );
-            $finish;
-        end
-
-        if (cycle > timeout_cycles) begin
-            $fatal(1,
-                "FAIL: timeout at PC=%h cycle=%0d stall_cycles=%0d redirects=%0d reuse_hits=%0d pipe_hits=%0d overlaps=%0d",
-                debug_pc,
-                cycle,
-                stall_cycles,
-                redirect_count,
-                reuse_count,
-                pipe_hit_count,
-                overlap_count);
+                queue_preserve_seen,
+                queue_instruction_seen,
+                queue_consumed_seen,
+                drop_count_loaded_seen,
+                drop_count_decrement_seen,
+                drop_count_cleared_seen,
+                IMEM_OUTPUT_REG);
         end
     end
 end
@@ -254,13 +401,25 @@ initial begin
     reuse_count = 0;
     pipe_hit_count = 0;
     overlap_count = 0;
+    overlap_cycle = 0;
+    overlap_window_end_cycle = 0;
     stall_seen = 1'b0;
     redirect_seen = 1'b0;
     reuse_seen = 1'b0;
     pipe_hit_seen = 1'b0;
     overlap_seen = 1'b0;
+    queue_preserve_seen = 1'b0;
+    queue_consumed_seen = 1'b0;
+    queue_instruction_seen = 1'b0;
+    drop_count_loaded_seen = 1'b0;
+    drop_count_decrement_seen = 1'b0;
+    drop_count_cleared_seen = 1'b0;
+    overlap_redirect_pc = 32'h0000_0000;
+    overlap_expected_instruction = 32'h0000_0013;
     debug_trace = 1'b0;
     require_pipe_hit = 1'b0;
+    require_queue_preserve = 1'b0;
+    require_drop_accounting = 1'b0;
 
     if ($test$plusargs("debug_trace")) begin
         debug_trace = 1'b1;
@@ -268,6 +427,14 @@ initial begin
 
     if ($test$plusargs("require_pipe_hit")) begin
         require_pipe_hit = 1'b1;
+    end
+
+    if ($test$plusargs("require_queue_preserve")) begin
+        require_queue_preserve = 1'b1;
+    end
+
+    if ($test$plusargs("require_drop_accounting")) begin
+        require_drop_accounting = 1'b1;
     end
 
     if (!$value$plusargs("timeout_cycles=%d", timeout_cycles)) begin
@@ -283,12 +450,12 @@ initial begin
     end
 
     // Mirror the prefetch-style shape: a load-use stall creates a fetch backlog,
-    // then the redirect overlaps a synchronous fetch response. This is the
-    // baseline green path; strict mode can require future pipe-hit behavior.
+    // then the redirect overlaps a synchronous fetch response. Strict mode can
+    // additionally require queue preservation and drop accounting.
     // lw x3, 0(x0)
     imem[0]  = rv32_i(12'sd0, 5'd0, 3'b000, 5'd1, 7'b0010011);
-    // addi x2, x0, 6
-    imem[1]  = rv32_i(12'sd6, 5'd0, 3'b000, 5'd2, 7'b0010011);
+    // addi x2, x0, 1
+    imem[1]  = rv32_i(12'sd1, 5'd0, 3'b000, 5'd2, 7'b0010011);
     // lw x3, 0(x1)
     imem[2]  = rv32_i(12'sd0, 5'd1, 3'b010, 5'd3, 7'b0000011);
     // beq x3, x0, +8
@@ -303,8 +470,8 @@ initial begin
     imem[7]  = rv32_b(-13'sd20, 5'd0, 5'd2, 3'b001, 7'b1100011);
     // addi x5, x0, 42
     imem[8]  = rv32_i(12'sd42, 5'd0, 3'b000, 5'd5, 7'b0010011);
-    // jal x0, 0
-    imem[9]  = rv32_j(21'sd0, 5'd0, 7'b1101111);
+    // nop
+    imem[9]  = rv32_i(12'sd0, 5'd0, 3'b000, 5'd0, 7'b0010011);
 
     dmem[0] = 8'h01;
 
