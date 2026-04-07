@@ -113,3 +113,22 @@ scripts\run_memwait_overlap_diag.bat require_overlap
 - 这轮补了一个 CoreMark profiling 入口，方便把 `stall_decode` / `mem_wait` / redirect 的负载分布单独拿出来看。
 - `fetch_redirect_reuse` 和 `memwait_overlap` 两个 directed test 都已经有默认绿路径和严格红绿入口，后续 RTL 打开对应 reuse 行为时可以直接复用。
 - `prepare_xsim_runtime.bat` 解决了并行 worker 共用 `xsim.dir` 的冲突问题，现在这些仿真脚本可以安全落在独立 runtime 目录里。
+
+## 2026-04-07 Redirect Accounting Diagnostic
+
+### 测试环境
+
+- target: `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting`
+- strict coverage: `IMEM_OUTPUT_REG=0` and `IMEM_OUTPUT_REG=1`
+
+### 结果摘要
+
+| Item | Result | Notes |
+|------|------|------|
+| IMEM_OUTPUT_REG=0 strict | PENDING | Strict result was not provided in this handoff. |
+| IMEM_OUTPUT_REG=1 strict | PENDING | Strict result was not provided in this handoff. |
+
+### 结论
+
+- 这条记录先占位新加入的 strict redirect accounting diagnostic；当前没有收到实际跑测结果，所以两个 `IMEM_OUTPUT_REG` 变体都保留为 `PENDING`。
+- 等后续执行结果补齐后，再把这里更新成明确的 PASS / FAIL 记录。

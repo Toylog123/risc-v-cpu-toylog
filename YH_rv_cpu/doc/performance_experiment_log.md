@@ -199,6 +199,18 @@ Notes:
 | Strict red/green entry | `scripts\run_fetch_redirect_reuse_diag.bat require_pipe_hit` |
 | Strict result | `FAIL` as expected, because `fetch_redirect_pipe_hit` is still hardwired low in RTL |
 
+### Redirect accounting diagnostic
+
+This diagnostic is meant to validate redirect/flush/drop accounting under both
+`IMEM_OUTPUT_REG=0` and `IMEM_OUTPUT_REG=1`.
+
+| Item | Value |
+|------|------|
+| Command | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting` |
+| `IMEM_OUTPUT_REG=0` strict result | `PENDING` |
+| `IMEM_OUTPUT_REG=1` strict result | `PENDING` |
+| Notes | Strict execution results were not provided in this handoff, so both variants remain pending. |
+
 ### Memwait overlap diagnostic
 
 | Item | Value |
