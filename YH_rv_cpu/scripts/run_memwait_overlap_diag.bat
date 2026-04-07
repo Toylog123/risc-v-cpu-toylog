@@ -83,7 +83,7 @@ shift
 goto :collect_plusargs
 :plusargs_done
 
-set XSIM_LOG=%BUILD_DIR%\memwait_overlap_diag_xsim.log
+set XSIM_LOG=%XSIM_RUN_DIR%\memwait_overlap_diag_xsim.log
 call %XSIM% YH_rv_cpu_memwait_overlap_tb_snapshot --onerror quit -runall !XSIM_TESTPLUSARGS! > "%XSIM_LOG%" 2>&1
 set RUN_STATUS=%ERRORLEVEL%
 if exist "%XSIM_LOG%" (
