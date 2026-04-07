@@ -206,10 +206,10 @@ This diagnostic is meant to validate redirect/flush/drop accounting under both
 
 | Item | Value |
 |------|------|
-| Command | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting` |
-| `IMEM_OUTPUT_REG=0` strict result | `PENDING` |
-| `IMEM_OUTPUT_REG=1` strict result | `PENDING` |
-| Notes | Strict execution results were not provided in this handoff, so both variants remain pending. |
+| Command | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0` and `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1` |
+| `IMEM_OUTPUT_REG=0` strict result | `PASS` (`21 cycles`, `redirects=1`, `overlaps=1`, `require_queue_preserve=1`, `require_drop_accounting=1`) |
+| `IMEM_OUTPUT_REG=1` strict result | `PASS` (`21 cycles`, `redirects=1`, `overlaps=1`, `require_queue_preserve=1`, `require_drop_accounting=1`) |
+| Notes | `run_fetch_redirect_reuse_diag.bat` now strips `imem_output_reg` from runtime plusargs and maps it to compile-time `xelab -generic_top IMEM_OUTPUT_REG=<0|1>`, so both strict variants are real compile-time runs. |
 
 ### Memwait overlap diagnostic
 

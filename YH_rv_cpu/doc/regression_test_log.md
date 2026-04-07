@@ -125,10 +125,10 @@ scripts\run_memwait_overlap_diag.bat require_overlap
 
 | Item | Result | Notes |
 |------|------|------|
-| IMEM_OUTPUT_REG=0 strict | PENDING | Strict result was not provided in this handoff. |
-| IMEM_OUTPUT_REG=1 strict | PENDING | Strict result was not provided in this handoff. |
+| IMEM_OUTPUT_REG=0 strict | PASS | `run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0` passed in 21 cycles with strict checks enabled. |
+| IMEM_OUTPUT_REG=1 strict | PASS | `run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1` passed in 21 cycles; drop accounting checks were active. |
 
 ### 结论
 
-- 这条记录先占位新加入的 strict redirect accounting diagnostic；当前没有收到实际跑测结果，所以两个 `IMEM_OUTPUT_REG` 变体都保留为 `PENDING`。
+- strict redirect accounting diagnostic 已完成双变体验证：`IMEM_OUTPUT_REG=0` 与 `IMEM_OUTPUT_REG=1` 均为 fresh `PASS`，且脚本已改为编译期参数切换，避免把 `imem_output_reg` 误传为运行时 plusarg。
 - 等后续执行结果补齐后，再把这里更新成明确的 PASS / FAIL 记录。
