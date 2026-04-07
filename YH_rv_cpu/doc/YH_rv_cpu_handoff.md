@@ -230,3 +230,10 @@ scripts\run_coremark_fpga.bat rv32
   `CYCLE=610000000`.
 - Current strict authoritative evidence remains the last completed summary:
   `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt` from `2026-04-04`.
+
+## Next Optimization Entry
+
+- FQ-06 is now queued as the next direction:
+  fetch request FIFO + outstanding-request decouple (higher intrusion).
+- Spec: `docs/superpowers/specs/2026-04-07-yh-rv-cpu-fq06-fetch-request-fifo-design.md`
+- Plan: `docs/superpowers/plans/2026-04-07-yh-rv-cpu-fq06-fetch-request-fifo-plan.md`

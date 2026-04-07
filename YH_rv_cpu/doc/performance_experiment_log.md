@@ -489,3 +489,7 @@ After FQ-05 closure and RTL reverts, fresh matrix checks remained stable:
 strict `>=10s` rerun was attempted in this round but exceeded local runtime
 budget (`7200s` timeout) before completion, so strict fresh timestamp was not
 updated.
+
+Next queued direction after FQ-05 closure:
+`FQ-06` fetch request FIFO + outstanding-request decouple
+(`docs/superpowers/specs/2026-04-07-yh-rv-cpu-fq06-fetch-request-fifo-design.md`).

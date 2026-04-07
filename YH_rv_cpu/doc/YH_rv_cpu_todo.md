@@ -47,7 +47,7 @@
 - [x] 执行 `FQ-05C` quick screen（mem_wait 期间 IF/ID 预装载，首个 redirect guardrail 即失败并回退 RTL）
 - [x] 完成 `FQ-05C` 保留决策：不保留（`run_fetch_redirect_reuse_diag.bat` timeout，按门禁提前终止）
 - [x] 完成 `FQ-05` 系列收口：明确“当前单变量前端候选无可保留收益/稳定性”，并冻结基线
-- [ ] 如需继续性能优化，转入更高侵入度新课题（需新 spec + 风险审查 + 新 guardrail）
+- [ ] 立项并执行 `FQ-06` 高侵入度课题：fetch request FIFO + outstanding request 跟踪解耦（需新 spec + 风险审查 + 新 guardrail）
 - [ ] strict `>=10s` CoreMark fresh rerun（本轮已尝试但超出 `7200s` 本机预算；如需刷新 strict 时间戳建议夜间长跑）
 - [ ] 若出现 retained 候选，补齐完整 fresh 回归矩阵并统一同步文档口径（README / handoff / todo / regression / performance）
 
