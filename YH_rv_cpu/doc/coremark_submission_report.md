@@ -4,6 +4,8 @@
 
 This document freezes the CoreMark reporting path used for the competition
 submission package.
+Project-wide frozen baseline references were refreshed on `2026-04-07`; this
+report remains the command-level authority for the CoreMark score flow.
 
 - `scripts/run_coremark_smoke.bat` is the fast functional smoke test.
 - `scripts/run_coremark_score.bat` is the reproducible submission score path.

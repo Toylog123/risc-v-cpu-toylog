@@ -23,11 +23,13 @@
 - [x] 修复 `timer_irq_smoke` 回归
 - [x] 重新冻结第二轮优化前基线
 - [x] 让 `scripts/build_vivado_project.bat impl50` 默认绑定冻结 demo payload
+- [x] 已补齐 redirect/flush/drop-accounting 小步验证方案，并完成双变体 strict 通过
+- [x] 完成 redirect `pipe-hit` 单变量复核并拒绝保留（strict 可过但 short score 无收益）
 
 ## 待处理
 
-- [ ] 仅在有新的 redirect/flush/drop-accounting 小步验证方案后，再重开前端优化
 - [ ] 对未来任意 retained 优化补齐完整 fresh 回归矩阵
+- [ ] 设计并执行下一条非 `pipe-hit` 的 `fetch/request/queue` 单变量候选
 
 ## 仅外部阻塞
 

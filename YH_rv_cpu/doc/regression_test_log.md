@@ -131,4 +131,29 @@ scripts\run_memwait_overlap_diag.bat require_overlap
 ### 结论
 
 - strict redirect accounting diagnostic 已完成双变体验证：`IMEM_OUTPUT_REG=0` 与 `IMEM_OUTPUT_REG=1` 均为 fresh `PASS`，且脚本已改为编译期参数切换，避免把 `imem_output_reg` 误传为运行时 plusarg。
-- 等后续执行结果补齐后，再把这里更新成明确的 PASS / FAIL 记录。
+
+## 2026-04-07 Post-Accounting Fresh Recheck
+
+### 实际命令
+
+```bat
+scripts\run_coremark_smoke.bat rv32
+scripts\run_coremark_score.bat rv32
+scripts\run_riscv_tests_subset.bat rv32
+scripts\run_riscv_tests_subset.bat rv64
+scripts\build_vivado_project.bat impl50
+```
+
+### 结果摘要
+
+| Item | Result | Notes |
+|------|------|------|
+| CoreMark smoke | PASS | `620530 cycles` |
+| CoreMark score short | PASS | `11014885 cycles`, `CoreMark/MHz = 0.912472` |
+| RV32 riscv-tests | PASS | `33/33` |
+| RV64 riscv-tests | PASS | `21/21` |
+| impl50 | PASS | `2556 LUT / 2170 FF / 4 BRAM / 0 DSP`, `WNS = +5.599ns`, `WHS = +0.025ns` |
+
+### 结论
+
+- Redirect accounting 收口后，主线关键矩阵仍保持 frozen baseline 数值，无新回归。

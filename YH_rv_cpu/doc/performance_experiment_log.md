@@ -270,3 +270,25 @@ Notes:
   score did not improve.
 - The RTL was reverted immediately; only the diagnostics and documentation
   remain in mainline.
+
+## 2026-04-07 Redirect Pipe-Hit Recheck Trial (Rejected)
+
+This round re-tested a minimal `fetch_redirect_pipe_hit` gate after the
+redirect accounting diagnostic was fully closed.
+
+| Item | Value |
+|------|------|
+| Trial RTL change | Temporarily drive `fetch_redirect_pipe_hit` from `(IMEM_SYNC != 0) && fetch_reuse_redirect_valid && fetch_pipe_valid && (fetch_rsp_pc == fetch_reuse_redirect_pc)` |
+| Directed strict | `scripts\run_fetch_redirect_reuse_diag.bat require_pipe_hit` -> `PASS` (`pipe_hits=1`) |
+| Redirect accounting strict (`IMEM_OUTPUT_REG=0`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0` -> `PASS` |
+| Redirect accounting strict (`IMEM_OUTPUT_REG=1`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1` -> `PASS` |
+| CoreMark smoke | `620530 cycles` |
+| CoreMark short | `11014885 cycles`, `0.912472 CoreMark/MHz` (unchanged) |
+| Keep? | `no` |
+
+Notes:
+
+- The functional gate is feasible under current diagnostics, but score gain is
+  `0`, so the trial does not pass retention criteria.
+- The RTL was reverted in the same round and the frozen baseline remains
+  unchanged.
