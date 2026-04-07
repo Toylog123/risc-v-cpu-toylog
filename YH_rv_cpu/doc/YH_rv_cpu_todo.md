@@ -31,8 +31,10 @@
 
 ## 待处理
 
-- [ ] 对未来任意 retained 优化补齐完整 fresh 回归矩阵
-- [ ] 若继续优化前端，需提出全新非重复假设（不得重复 request-cursor / pipe-hit / redirect 同拍取指 / FQ-01 / FQ-02）
+- [ ] 设计并冻结 `FQ-03` 全新非重复假设（不得重复 request-cursor / pipe-hit / redirect 同拍取指 / FQ-01 / FQ-02）
+- [ ] 执行 `FQ-03` quick screen：redirect diag 默认 + redirect accounting strict(`IMEM_OUTPUT_REG=0/1`) + CoreMark smoke + CoreMark short
+- [ ] 仅当 `FQ-03` short score 提升时，补跑完整矩阵：RV32 / RV64 / strict CoreMark `>=10s` / `impl50`
+- [ ] 若出现 retained 候选，补齐完整 fresh 回归矩阵并统一同步文档口径（README / handoff / todo / regression / performance）
 
 ## 仅外部阻塞
 
@@ -47,6 +49,12 @@
 2. 新基线已写入 `doc/performance_experiment_log.md`。
 3. 每轮实验都承诺重跑 fresh 回归矩阵。
 4. 工作区保持只有 intentional 内容或外部阻塞。
+
+当前建议执行顺序：
+
+1. 先完成 `FQ-03` 假设文档（spec + plan）。
+2. 再执行 quick screen，先看 short score 是否有实际增益。
+3. 只有出现增益才扩展到完整矩阵并考虑 retain。
 
 允许优先探索的方向：
 

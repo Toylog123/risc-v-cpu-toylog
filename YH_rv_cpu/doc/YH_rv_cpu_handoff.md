@@ -7,9 +7,12 @@
 ## 2. 当前做到哪一步
 
 - 当前主线冻结基线来自 `2026-04-07` fresh 验证
-- 最新已提交的 FPGA pre-board 文档收口提交为 `cd22afc`：`docs: tighten fpga pre-board bring-up SOP`
+- 最新连续优化收口提交到 `5ba86e6`：`docs: record rejected FQ-02 queue fifo trial`
 - CoreMark 正式短跑、RV32/RV64 baseline、`impl50`、FPGA-like probe 均已有 fresh 证据
 - strict EEMBC `>=10s` 长跑已完成，strict 口径现已可对外引用
+- redirect accounting strict 双变体（`IMEM_OUTPUT_REG=0/1`）已闭环为 `PASS`
+- 前端单变量试验已连续拒绝并回退：request-cursor、pipe-hit、redirect 同拍取指、FQ-01、FQ-02（均 short score `0` 增益）
+- 交接时工作区为 clean（无未提交改动）
 
 当前冻结结果：
 
@@ -53,13 +56,21 @@
 - 已明确关闭的高风险方向：
   - 不能简单通过放松 `stall_decode` 去继续做 fetch 前端提分
 
-## 5. 下一步最值得做的 5 项
+## 5. 后续任务（执行顺序）
 
-1. 冻结第二轮优化前基线，并把 strict CoreMark 结果作为正式性能口径写入实验日志
-2. 如果继续提分，只能从 `fetch/request/queue` 解耦方向按单变量实验推进
-3. 为任何 retained 优化补齐完整 fresh 回归矩阵
-4. 板卡到位后按 checklist 完成 UART/LED/boot banner 实板闭环
-5. 板卡到位后补正式 I/O delay 约束与实板证据
+1. 提出并冻结 `FQ-03` 全新非重复假设（不得重复 request-cursor / pipe-hit / redirect 同拍取指 / FQ-01 / FQ-02）
+2. 按单变量门禁执行 `FQ-03` quick screen：
+   - `run_fetch_redirect_reuse_diag` 默认
+   - redirect accounting strict `IMEM_OUTPUT_REG=0/1`
+   - `run_coremark_smoke.bat rv32`
+   - `run_coremark_score.bat rv32`
+3. 仅当 short score 实际提升时，继续跑完整矩阵：
+   - `run_riscv_tests_subset.bat rv32/rv64`
+   - strict CoreMark `>=10s`
+   - `build_vivado_project.bat impl50`
+4. 无收益或有回归则当轮立即回退 RTL，并把 reject 结果写入 `doc/performance_experiment_log.md`
+5. 若出现 retained 候选，补齐 fresh 证据并同步 `README / handoff / todo / regression log`
+6. 板卡到位后再进入实板闭环与 I/O delay 约束补齐（外部阻塞）
 
 ## 6. 关键文档与命令
 
