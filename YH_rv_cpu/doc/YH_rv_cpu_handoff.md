@@ -123,3 +123,4 @@ scripts\run_coremark_fpga.bat rv32
 - `timer_irq_smoke` is green again after fixing `TIMER_CTRL_ADDR` so a zero write really clears `timer_irq_en_r`.
 - `build_vivado_project.bat impl50` now defaults to the frozen `YH_rv_cpu_demo` payload instead of inheriting the last `current.hex` left by regressions.
 - Board bring-up is still externally blocked, so the UART/LED closed-loop and final board timing evidence remain pending.
+- The `mem_wait overlap` RTL trial was executed and then rejected because the short CoreMark score stayed flat (`11014885 cycles`, `0.912472 CoreMark/MHz`).

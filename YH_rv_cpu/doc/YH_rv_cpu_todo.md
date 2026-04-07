@@ -19,6 +19,7 @@
 - [x] 完成第一轮 `fetch/request/queue` 单变量实验
 - [x] 拒绝保留 1-entry request-side cursor RTL，原因是 short score delta 为 `0`
 - [x] 新增 `mem-wait overlap` 定向诊断
+- [x] 完成 `mem-wait overlap` 单变量 RTL 试验并拒绝保留（short score 无收益）
 - [x] 修复 `timer_irq_smoke` 回归
 - [x] 重新冻结第二轮优化前基线
 - [x] 让 `scripts/build_vivado_project.bat impl50` 默认绑定冻结 demo payload

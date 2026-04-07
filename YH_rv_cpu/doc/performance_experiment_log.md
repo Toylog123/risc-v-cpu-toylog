@@ -235,3 +235,26 @@ Notes:
 
 - The `impl50` resource/timing delta is a real post-fix result on the repaired SoC path, not a payload-staging artifact.
 - This is now the fresh local frozen baseline to quote in README, handoff, regression, and FPGA flow materials.
+
+## 2026-04-07 Memwait Overlap Trial (Rejected)
+
+This round tried the minimal `mem_wait overlap` request gate described in
+`docs/superpowers/specs/2026-04-07-yh-rv-cpu-memwait-overlap-design.md`.
+
+| Item | Value |
+|------|------|
+| RTL change | Allow `imem_req` during `mem_wait` when no buffered fetch data is present |
+| Directed strict | `scripts\run_memwait_overlap_diag.bat require_overlap` -> `PASS` (`overlap_requests=1`) |
+| Directed default | `scripts\run_memwait_overlap_diag.bat` -> `PASS` |
+| Redirect guardrail | `scripts\run_fetch_redirect_reuse_diag.bat` -> `PASS` |
+| CoreMark short | `11014885 cycles`, `0.912472 CoreMark/MHz` (unchanged) |
+| RV32 regression | `33/33` |
+| RV64 regression | `21/21` |
+| Keep? | `no` |
+
+Notes:
+
+- The strict directed diagnostic turned green, but the formal short CoreMark
+  score did not improve.
+- The RTL was reverted immediately; only the diagnostics and documentation
+  remain in mainline.
