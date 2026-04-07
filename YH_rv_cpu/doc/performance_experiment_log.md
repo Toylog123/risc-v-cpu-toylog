@@ -442,3 +442,34 @@ Notes:
 - Functionality and accounting guardrails remained green in both strict variants.
 - Short-score delta remained `0`, so the trial was rejected and RTL reverted in
   the same round.
+
+## 2026-04-07 FQ-05C IF/ID Mem-Wait Preload Trial (Rejected)
+
+This round tested a conservative IF/ID preload variant in `rtl/YH_rv_cpu.v`:
+relax only `if_id_data_write_en` so IF/ID payload can update during `mem_wait`
+while keeping `if_id_write_en` and queue-consume policy unchanged.
+
+| Item | Value |
+|------|------|
+| Trial scope | `rtl/YH_rv_cpu.v` only, IF/ID data-write gate during `mem_wait` |
+| Memwait guardrail | `scripts\run_memwait_overlap_diag.bat` -> `PASS` |
+| Redirect guardrail default | `scripts\run_fetch_redirect_reuse_diag.bat` -> `FAIL` (timeout at `PC=00000064`, `cycle=241`) |
+| Keep? | `no` |
+
+Notes:
+
+- Because the first redirect guardrail failed, this trial was rejected
+  immediately and the RTL was reverted in the same round.
+- Per quick-screen gate policy, strict variants and CoreMark smoke/short were
+  intentionally skipped after the early failure.
+
+## 2026-04-07 FQ-05 Round Closure
+
+FQ-05A/FQ-05B/FQ-05C are all closed as rejected in the same day under the
+single-variable quick-screen gate. No candidate reached retention criteria, so
+the frozen baseline remains unchanged.
+
+Post-revert confirmation in the same round:
+`run_fetch_redirect_reuse_diag.bat` -> PASS,
+`run_coremark_score.bat rv32 10 2000 100000000UL 20000000` ->
+`completion_cycles=11014885`, `0.912472 CoreMark/MHz`.

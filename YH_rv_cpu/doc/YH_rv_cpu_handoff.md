@@ -192,3 +192,25 @@ scripts\run_coremark_fpga.bat rv32
   - `run_coremark_score.bat rv32` -> PASS, `completion_cycles=11014885`
 - Retention decision: `no` because short score stayed flat; RTL reverted in the same round.
 - Next direction: continue with `FQ-05C` using the same single-variable quick-screen policy.
+
+## 2026-04-07 FQ-05C Update
+
+- Executed FQ-05C as a conservative IF/ID mem-wait preload trial in `rtl/YH_rv_cpu.v`.
+- Trial boundary: relaxed only `if_id_data_write_en` (allow payload preload during `mem_wait`), while keeping `if_id_write_en` and queue-consume policy unchanged.
+- Guardrail result:
+  - `run_memwait_overlap_diag.bat` -> PASS
+  - `run_fetch_redirect_reuse_diag.bat` -> FAIL (timeout at `PC=00000064`, `cycle=241`)
+- Retention decision: `no`; RTL reverted immediately in the same round.
+- Because the first redirect guardrail failed, strict variants and CoreMark smoke/short were intentionally not continued.
+- Closure direction: FQ-05 series is now fully executed/rejected; current baseline remains frozen until a new higher-intrusion optimization spec is approved.
+
+## 2026-04-07 FQ-05 Closure Summary
+
+- FQ-05A: rejected (guardrails green, short score unchanged).
+- FQ-05B: rejected (guardrails green, short score unchanged).
+- FQ-05C: rejected (redirect guardrail timeout, fail-fast rollback).
+- Net conclusion: no retainable gain was found in this round of single-variable front-end candidates.
+- Active baseline remains unchanged at `completion_cycles=11014885`, `0.912472 CoreMark/MHz`.
+- Post-revert confirmation in this round:
+  - `run_fetch_redirect_reuse_diag.bat` -> PASS
+  - `run_coremark_score.bat rv32` -> PASS, `completion_cycles=11014885`
