@@ -276,7 +276,7 @@ wire            csr_mtvec_csr_write;
 wire            csr_mscratch_csr_write;
 wire            csr_mepc_trap_write;
 wire            csr_mepc_csr_write;
-wire            csr_cause_trap_write;
+wire            csr_mcause_trap_write;
 wire            csr_mcause_csr_write;
 
     // 取指缓冲和控制信号

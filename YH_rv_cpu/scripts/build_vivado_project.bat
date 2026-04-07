@@ -122,21 +122,58 @@ if not exist "%TCL_PATH%" (
     exit /b 1
 )
 
-set ROM_INIT_HEX_OVERRIDE=
-set ROM_INIT_MEM32_HEX_OVERRIDE=
+set DEFAULT_DEMO_HEX=%SCRIPT_DIR%..\build\sw\YH_rv_cpu_demo.hex
+set DEFAULT_DEMO_MEM32_HEX=%SCRIPT_DIR%..\build\sw\YH_rv_cpu_demo.mem32.hex
 set ROM_BYTES_OVERRIDE=
 set RAM_BYTES_OVERRIDE=
-if exist "%SCRIPT_DIR%..\build\tests\riscv-tests\current.hex" (
+
+if not defined ROM_INIT_HEX_OVERRIDE (
+    if not exist "%DEFAULT_DEMO_HEX%" (
+        echo Demo firmware image missing. Building frozen demo payload...
+        call "%SCRIPT_DIR%build_firmware.bat"
+        if errorlevel 1 (
+            echo Failed to build frozen demo payload.
+            if defined CREATED_MAP subst %MAP_DRIVE% /d >nul 2>nul
+            exit /b 1
+        )
+    )
+)
+
+if not defined ROM_INIT_MEM32_HEX_OVERRIDE (
+    if not exist "%DEFAULT_DEMO_MEM32_HEX%" (
+        echo Demo mem32 firmware image missing. Building frozen demo payload...
+        call "%SCRIPT_DIR%build_firmware.bat"
+        if errorlevel 1 (
+            echo Failed to build frozen demo payload.
+            if defined CREATED_MAP subst %MAP_DRIVE% /d >nul 2>nul
+            exit /b 1
+        )
+    )
+)
+
+if not defined ROM_INIT_HEX_OVERRIDE if exist "%DEFAULT_DEMO_HEX%" (
+    set ROM_INIT_HEX_OVERRIDE=%DEFAULT_DEMO_HEX%
+    set ROM_BYTES_OVERRIDE=8192
+    set RAM_BYTES_OVERRIDE=8192
+)
+
+if not defined ROM_INIT_HEX_OVERRIDE if exist "%SCRIPT_DIR%..\build\tests\riscv-tests\current.hex" (
     set ROM_INIT_HEX_OVERRIDE=%SCRIPT_DIR%..\build\tests\riscv-tests\current.hex
     set ROM_BYTES_OVERRIDE=8192
     set RAM_BYTES_OVERRIDE=8192
 )
+
 if not defined ROM_INIT_HEX_OVERRIDE if exist "%SCRIPT_DIR%..\build\tests\riscv-tests\rv32\simple.hex" (
     set ROM_INIT_HEX_OVERRIDE=%SCRIPT_DIR%..\build\tests\riscv-tests\rv32\simple.hex
     set ROM_BYTES_OVERRIDE=8192
     set RAM_BYTES_OVERRIDE=8192
 )
-if exist "%SCRIPT_DIR%..\build\tests\riscv-tests\current.mem32.hex" (
+
+if not defined ROM_INIT_MEM32_HEX_OVERRIDE if exist "%DEFAULT_DEMO_MEM32_HEX%" (
+    set ROM_INIT_MEM32_HEX_OVERRIDE=%DEFAULT_DEMO_MEM32_HEX%
+)
+
+if not defined ROM_INIT_MEM32_HEX_OVERRIDE if exist "%SCRIPT_DIR%..\build\tests\riscv-tests\current.mem32.hex" (
     set ROM_INIT_MEM32_HEX_OVERRIDE=%SCRIPT_DIR%..\build\tests\riscv-tests\current.mem32.hex
 )
 if not defined ROM_INIT_MEM32_HEX_OVERRIDE if exist "%SCRIPT_DIR%..\build\tests\riscv-tests\rv32\simple.mem32.hex" (
