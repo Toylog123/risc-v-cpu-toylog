@@ -30,7 +30,7 @@
 ## 待处理
 
 - [ ] 对未来任意 retained 优化补齐完整 fresh 回归矩阵
-- [ ] 设计并执行下一条区别于 `pipe-hit`/redirect 同拍取指的 `fetch/request/queue` 单变量候选
+- [ ] 执行候选 FQ-01：`fetch/request/queue` 2-entry queue 语义解耦（单变量）
 
 ## 仅外部阻塞
 
