@@ -1,14 +1,13 @@
-﻿@echo off
-setlocal
+@echo off
+setlocal EnableDelayedExpansion
 
+for %%I in ("%~dp0") do set SCRIPT_DIR=%%~fI
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
+set BUILD_DIR=%PROJECT_DIR%\build\sim
 set XVLOG=
 set XELAB=
 set XSIM=
 set XSIM_RUN_DIR=
-
-call "%~dp0build_firmware.bat" trap_smoke
-if errorlevel 1 exit /b 1
 
 for %%T in (xvlog.bat xvlog) do (
     where %%T >nul 2>nul
@@ -52,21 +51,15 @@ if not defined XSIM (
     exit /b 1
 )
 
-call "%~dp0prepare_xsim_runtime.bat" trap_smoke XSIM_RUN_DIR
-if not defined XSIM_RUN_DIR exit /b 1
+if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
-if not exist "%XSIM_RUN_DIR%\build\sw" mkdir "%XSIM_RUN_DIR%\build\sw"
-copy /y "%PROJECT_DIR%\build\sw\YH_rv_cpu_trap_smoke.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_trap_smoke.hex" >nul
-if errorlevel 1 exit /b 1
+call "%SCRIPT_DIR%prepare_xsim_runtime.bat" memwait_overlap_diag XSIM_RUN_DIR
+if not defined XSIM_RUN_DIR exit /b 1
 
 pushd "%XSIM_RUN_DIR%"
 
 call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
-    "%PROJECT_DIR%\tb\YH_rv_cpu_trap_tb.v" ^
-    "%PROJECT_DIR%\rtl\YH_rv_cpu_soc.v" ^
-    "%PROJECT_DIR%\rtl\YH_rv_sync_imem_rom.v" ^
-    "%PROJECT_DIR%\rtl\YH_rv_sync_rom32.v" ^
-    "%PROJECT_DIR%\rtl\YH_rv_dmem_ram.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_memwait_overlap_tb.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_if_stage.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_id_stage.v" ^
@@ -79,11 +72,25 @@ call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_alu.v"
 if errorlevel 1 goto :fail
 
-call %XELAB% YH_rv_cpu_trap_tb -s YH_rv_cpu_trap_tb_snapshot
+call %XELAB% YH_rv_cpu_memwait_overlap_tb -s YH_rv_cpu_memwait_overlap_tb_snapshot
 if errorlevel 1 goto :fail
 
-call %XSIM% YH_rv_cpu_trap_tb_snapshot -runall
+set XSIM_TESTPLUSARGS=
+:collect_plusargs
+if "%~1"=="" goto :plusargs_done
+set XSIM_TESTPLUSARGS=!XSIM_TESTPLUSARGS! --testplusarg "%~1"
+shift
+goto :collect_plusargs
+:plusargs_done
+
+set XSIM_LOG=%BUILD_DIR%\memwait_overlap_diag_xsim.log
+call %XSIM% YH_rv_cpu_memwait_overlap_tb_snapshot --onerror quit -runall !XSIM_TESTPLUSARGS! > "%XSIM_LOG%" 2>&1
 set RUN_STATUS=%ERRORLEVEL%
+if exist "%XSIM_LOG%" (
+    type "%XSIM_LOG%"
+    findstr /c:"Fatal: FAIL:" "%XSIM_LOG%" >nul 2>nul
+    if not errorlevel 1 set RUN_STATUS=1
+)
 goto :done
 
 :fail
@@ -92,5 +99,3 @@ set RUN_STATUS=%ERRORLEVEL%
 :done
 popd
 exit /b %RUN_STATUS%
-
-

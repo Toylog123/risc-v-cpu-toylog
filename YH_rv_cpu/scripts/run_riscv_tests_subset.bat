@@ -31,6 +31,7 @@ set USER_HOME=%USERPROFILE%
 set RISCV_XPACK_ROOT=%USER_HOME%\AppData\Roaming\xPacks\@xpack-dev-tools\riscv-none-elf-gcc
 set WORD_HEX_PY=%PROJECT_DIR%\scripts\make_word_hex.py
 set XSIM_STAGE_DIR=%REPO_DIR%\_tmp\sim_runtime\%TARGET%
+set XSIM_RUN_DIR=
 
 for %%T in (riscv-none-elf-gcc riscv32-unknown-elf-gcc riscv64-unknown-elf-gcc) do (
     where %%T >nul 2>nul
@@ -154,21 +155,24 @@ call :timestamp START_TS
 if not "%TEST_OVERRIDE%"=="" >> "%SUMMARY_FILE%" echo override=%TEST_OVERRIDE%
 >> "%SUMMARY_FILE%" echo started=%START_TS%
 
-pushd "%PROJECT_DIR%"
+call "%~dp0prepare_xsim_runtime.bat" riscv_tests_%TARGET% XSIM_RUN_DIR
+if not defined XSIM_RUN_DIR exit /b 1
 
-call %XVLOG% --sv -i rtl ^
-    tb\YH_rv_cpu_riscv_tests_tb.v ^
-    tb\YH_rv_cpu_riscv_tests_%TARGET%_tb.v ^
-    rtl\YH_rv_cpu.v ^
-    rtl\YH_rv_cpu_if_stage.v ^
-    rtl\YH_rv_cpu_id_stage.v ^
-    rtl\YH_rv_cpu_ex_stage.v ^
-    rtl\YH_rv_cpu_mem_stage.v ^
-    rtl\YH_rv_cpu_wb_stage.v ^
-    rtl\YH_rv_cpu_hazard_unit.v ^
-    rtl\YH_rv_cpu_decoder.v ^
-    rtl\YH_rv_cpu_regfile.v ^
-    rtl\YH_rv_cpu_alu.v
+pushd "%XSIM_RUN_DIR%"
+
+call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_riscv_tests_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_riscv_tests_%TARGET%_tb.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_if_stage.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_id_stage.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_ex_stage.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_mem_stage.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_wb_stage.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_hazard_unit.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_decoder.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_regfile.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_alu.v"
 if errorlevel 1 goto :fail
 
 for %%N in (%TEST_LIST%) do (
@@ -211,8 +215,14 @@ for %%N in (%TEST_LIST%) do (
     if errorlevel 1 goto :fail
 
     if not "%DEBUG_CYCLES%"=="" (
+        if not exist "build\tests\riscv-tests\%TARGET%" mkdir "build\tests\riscv-tests\%TARGET%"
+        copy /y "!TEST_HEX!" "build\tests\riscv-tests\%TARGET%\%%N.hex" >nul
+        if errorlevel 1 goto :fail
         call %XSIM% %TEST_TOP%_snapshot -testplusarg "hex=build/tests/riscv-tests/%TARGET%/%%N.hex" -testplusarg "test_name=%%N" -testplusarg "max_cycles=40000" -testplusarg "debug_cycles=%DEBUG_CYCLES%" -runall > "!TEST_LOG!" 2>&1
     ) else (
+        if not exist "build\tests\riscv-tests\%TARGET%" mkdir "build\tests\riscv-tests\%TARGET%"
+        copy /y "!TEST_HEX!" "build\tests\riscv-tests\%TARGET%\%%N.hex" >nul
+        if errorlevel 1 goto :fail
         call %XSIM% %TEST_TOP%_snapshot -testplusarg "hex=build/tests/riscv-tests/%TARGET%/%%N.hex" -testplusarg "test_name=%%N" -testplusarg "max_cycles=40000" -runall > "!TEST_LOG!" 2>&1
     )
     type "!TEST_LOG!"
@@ -246,7 +256,6 @@ echo   %SUMMARY_FILE%
 
 :done
 popd
-call "%~dp0stage_runtime_to_tmp.bat" riscv_tests_%TARGET%
 exit /b %RUN_STATUS%
 
 :timestamp

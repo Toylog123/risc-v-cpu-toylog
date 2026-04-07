@@ -6,6 +6,7 @@ set BUILD_DIR=%PROJECT_DIR%\build\sim
 set XVLOG=
 set XELAB=
 set XSIM=
+set XSIM_RUN_DIR=
 
 for %%T in (xvlog.bat xvlog) do (
     where %%T >nul 2>nul
@@ -51,20 +52,23 @@ if not defined XSIM (
 
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
-pushd "%PROJECT_DIR%"
+call "%~dp0prepare_xsim_runtime.bat" xlen64_smoke XSIM_RUN_DIR
+if not defined XSIM_RUN_DIR exit /b 1
 
-call %XVLOG% --sv -i rtl ^
-    tb\YH_rv_cpu_xlen64_tb.v ^
-    rtl\YH_rv_cpu.v ^
-    rtl\YH_rv_cpu_if_stage.v ^
-    rtl\YH_rv_cpu_id_stage.v ^
-    rtl\YH_rv_cpu_ex_stage.v ^
-    rtl\YH_rv_cpu_mem_stage.v ^
-    rtl\YH_rv_cpu_wb_stage.v ^
-    rtl\YH_rv_cpu_hazard_unit.v ^
-    rtl\YH_rv_cpu_decoder.v ^
-    rtl\YH_rv_cpu_regfile.v ^
-    rtl\YH_rv_cpu_alu.v
+pushd "%XSIM_RUN_DIR%"
+
+call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_xlen64_tb.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_if_stage.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_id_stage.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_ex_stage.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_mem_stage.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_wb_stage.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_hazard_unit.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_decoder.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_regfile.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_alu.v"
 if errorlevel 1 goto :fail
 
 call %XELAB% YH_rv_cpu_xlen64_tb -s YH_rv_cpu_xlen64_tb_snapshot
@@ -79,7 +83,6 @@ set RUN_STATUS=%ERRORLEVEL%
 
 :done
 popd
-call "%~dp0stage_runtime_to_tmp.bat" xlen64_smoke
 exit /b %RUN_STATUS%
 
 

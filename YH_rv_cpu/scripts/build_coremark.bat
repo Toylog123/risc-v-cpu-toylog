@@ -7,6 +7,7 @@ set ITERATIONS=%~2
 set DATA_SIZE=%~3
 set TIMER_HZ=%~4
 set EXEC_MASK=%~5
+set OUTPUT_NAME=%~6
 
 if "%TARGET%"=="" set TARGET=rv32
 if "%ITERATIONS%"=="" set ITERATIONS=200
@@ -29,7 +30,7 @@ set WORD_HEX_PY=%PROJECT_DIR%\scripts\make_word_hex.py
 set COREMARK_DIR=%PROJECT_DIR%\build\external\coremark
 set PORT_DIR=%PROJECT_DIR%\sw\coremark_port
 set BUILD_DIR=%PROJECT_DIR%\build\sw
-set OUTPUT_NAME=YH_rv_cpu_coremark_%TARGET%
+if "%OUTPUT_NAME%"=="" set OUTPUT_NAME=YH_rv_cpu_coremark_%TARGET%
 
 if /I "%TARGET%"=="rv64" (
     set MARCH=rv64i_zicsr

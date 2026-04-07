@@ -9,6 +9,8 @@ set TIMER_HZ=%~4
 set MAX_CYCLES=%~5
 set SUMMARY_FILE=%~6
 set EXEC_MASK=%~7
+set BUILD_OUTPUT_NAME=
+set XSIM_RUN_DIR=
 
 if "%TARGET%"=="" set TARGET=rv32
 if "%ITERATIONS%"=="" set ITERATIONS=1
@@ -16,12 +18,13 @@ if "%DATA_SIZE%"=="" set DATA_SIZE=400
 if "%TIMER_HZ%"=="" set TIMER_HZ=100000000UL
 if "%MAX_CYCLES%"=="" set MAX_CYCLES=20000000
 if "%EXEC_MASK%"=="" set EXEC_MASK=1
+set BUILD_OUTPUT_NAME=YH_rv_cpu_coremark_%TARGET%_fpga
 
 if "%SUMMARY_FILE%"=="" (
     set SUMMARY_FILE=%PROJECT_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%_fpga.summary.txt
 )
 
-call "%~dp0build_coremark.bat" %TARGET% %ITERATIONS% %DATA_SIZE% %TIMER_HZ% %EXEC_MASK%
+call "%~dp0build_coremark.bat" %TARGET% %ITERATIONS% %DATA_SIZE% %TIMER_HZ% %EXEC_MASK% %BUILD_OUTPUT_NAME%
 if errorlevel 1 exit /b 1
 
 set XVLOG=
@@ -79,24 +82,35 @@ if not defined PYTHON_CMD (
     exit /b 1
 )
 
-pushd "%PROJECT_DIR%"
+call "%~dp0prepare_xsim_runtime.bat" coremark_fpga XSIM_RUN_DIR
+if not defined XSIM_RUN_DIR exit /b 1
 
-call %XVLOG% --sv -i rtl ^
-    tb\YH_rv_cpu_coremark_fpga_tb.v ^
-    rtl\YH_rv_cpu_soc.v ^
-    rtl\YH_rv_sync_imem_rom.v ^
-    rtl\YH_rv_sync_rom32.v ^
-    rtl\YH_rv_dmem_ram.v ^
-    rtl\YH_rv_cpu.v ^
-    rtl\YH_rv_cpu_if_stage.v ^
-    rtl\YH_rv_cpu_id_stage.v ^
-    rtl\YH_rv_cpu_ex_stage.v ^
-    rtl\YH_rv_cpu_mem_stage.v ^
-    rtl\YH_rv_cpu_wb_stage.v ^
-    rtl\YH_rv_cpu_hazard_unit.v ^
-    rtl\YH_rv_cpu_decoder.v ^
-    rtl\YH_rv_cpu_regfile.v ^
-    rtl\YH_rv_cpu_alu.v
+if not exist "%XSIM_RUN_DIR%\build\sw" mkdir "%XSIM_RUN_DIR%\build\sw"
+copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%.hex" >nul
+if errorlevel 1 exit /b 1
+if exist "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.mem32.hex" (
+    copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.mem32.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%.mem32.hex" >nul
+    if errorlevel 1 exit /b 1
+)
+
+pushd "%XSIM_RUN_DIR%"
+
+call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_fpga_tb.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_soc.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_sync_imem_rom.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_sync_rom32.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_dmem_ram.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_if_stage.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_id_stage.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_ex_stage.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_mem_stage.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_wb_stage.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_hazard_unit.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_decoder.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_regfile.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_alu.v"
 if errorlevel 1 goto :fail
 
 call %XELAB% %TEST_TOP% -s %TEST_TOP%_snapshot
@@ -125,5 +139,4 @@ set RUN_STATUS=%ERRORLEVEL%
 
 :done
 popd
-call "%~dp0stage_runtime_to_tmp.bat" coremark_fpga
 exit /b %RUN_STATUS%

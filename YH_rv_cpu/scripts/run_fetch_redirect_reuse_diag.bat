@@ -1,14 +1,14 @@
-﻿@echo off
+@echo off
 setlocal
 
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
+set BUILD_DIR=%PROJECT_DIR%\build\sim
 set XVLOG=
 set XELAB=
 set XSIM=
+set XSIM_TESTPLUSARGS=
 set XSIM_RUN_DIR=
-
-call "%~dp0build_firmware.bat" trap_smoke
-if errorlevel 1 exit /b 1
+set RAW_TESTPLUSARGS=%*
 
 for %%T in (xvlog.bat xvlog) do (
     where %%T >nul 2>nul
@@ -52,21 +52,24 @@ if not defined XSIM (
     exit /b 1
 )
 
-call "%~dp0prepare_xsim_runtime.bat" trap_smoke XSIM_RUN_DIR
-if not defined XSIM_RUN_DIR exit /b 1
+if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
-if not exist "%XSIM_RUN_DIR%\build\sw" mkdir "%XSIM_RUN_DIR%\build\sw"
-copy /y "%PROJECT_DIR%\build\sw\YH_rv_cpu_trap_smoke.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_trap_smoke.hex" >nul
-if errorlevel 1 exit /b 1
+call "%~dp0prepare_xsim_runtime.bat" fetch_redirect_reuse_diag XSIM_RUN_DIR
+if not defined XSIM_RUN_DIR exit /b 1
 
 pushd "%XSIM_RUN_DIR%"
 
+for /f "usebackq delims=" %%A in (`
+    powershell -NoProfile -Command ^
+        "$raw = $env:RAW_TESTPLUSARGS; " ^
+        "if ([string]::IsNullOrWhiteSpace($raw)) { exit 0 } " ^
+        "$out = @(); " ^
+        "foreach ($token in ($raw -split '\s+')) { if ($token) { $out += '--testplusarg'; $out += $token } } " ^
+        "$out -join ' '"
+`) do set XSIM_TESTPLUSARGS=%%A
+
 call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
-    "%PROJECT_DIR%\tb\YH_rv_cpu_trap_tb.v" ^
-    "%PROJECT_DIR%\rtl\YH_rv_cpu_soc.v" ^
-    "%PROJECT_DIR%\rtl\YH_rv_sync_imem_rom.v" ^
-    "%PROJECT_DIR%\rtl\YH_rv_sync_rom32.v" ^
-    "%PROJECT_DIR%\rtl\YH_rv_dmem_ram.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_fetch_redirect_reuse_tb.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_if_stage.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_id_stage.v" ^
@@ -79,10 +82,10 @@ call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_alu.v"
 if errorlevel 1 goto :fail
 
-call %XELAB% YH_rv_cpu_trap_tb -s YH_rv_cpu_trap_tb_snapshot
+call %XELAB% YH_rv_cpu_fetch_redirect_reuse_tb -s YH_rv_cpu_fetch_redirect_reuse_tb_snapshot
 if errorlevel 1 goto :fail
 
-call %XSIM% YH_rv_cpu_trap_tb_snapshot -runall
+call %XSIM% YH_rv_cpu_fetch_redirect_reuse_tb_snapshot -runall %XSIM_TESTPLUSARGS%
 set RUN_STATUS=%ERRORLEVEL%
 goto :done
 
@@ -92,5 +95,3 @@ set RUN_STATUS=%ERRORLEVEL%
 :done
 popd
 exit /b %RUN_STATUS%
-
-
