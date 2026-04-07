@@ -214,3 +214,19 @@ scripts\run_coremark_fpga.bat rv32
 - Post-revert confirmation in this round:
   - `run_fetch_redirect_reuse_diag.bat` -> PASS
   - `run_coremark_score.bat rv32` -> PASS, `completion_cycles=11014885`
+
+## 2026-04-07 Final Fresh Regression Snapshot
+
+- Fresh matrix rerun after FQ-05 closure:
+  - `run_coremark_smoke.bat rv32` -> PASS (`620530 cycles`)
+  - `run_coremark_score.bat rv32` -> PASS (`11014885`, `0.912472 CoreMark/MHz`)
+  - `run_riscv_tests_subset.bat rv32` -> PASS (`33/33`)
+  - `run_riscv_tests_subset.bat rv64` -> PASS (`21/21`)
+  - `build_vivado_project.bat impl50` -> PASS (`2556 LUT / 2170 FF / 4 BRAM / 0 DSP`, `WNS=+5.599ns`, `WHS=+0.025ns`)
+  - `run_coremark_fpga.bat rv32` -> PASS (`156442 cycles`, `7.728811 CoreMark/MHz`)
+  - `run_coremark_profile.bat rv32` -> PASS (`12516421 cycles`, profile counters unchanged)
+- strict `>=10s` rerun was attempted but not completed in local budget:
+  command hit `7200s` timeout and was manually stopped after progress beyond
+  `CYCLE=610000000`.
+- Current strict authoritative evidence remains the last completed summary:
+  `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt` from `2026-04-04`.

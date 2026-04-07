@@ -473,3 +473,19 @@ Post-revert confirmation in the same round:
 `run_fetch_redirect_reuse_diag.bat` -> PASS,
 `run_coremark_score.bat rv32 10 2000 100000000UL 20000000` ->
 `completion_cycles=11014885`, `0.912472 CoreMark/MHz`.
+
+## 2026-04-07 Final Fresh Matrix Snapshot
+
+After FQ-05 closure and RTL reverts, fresh matrix checks remained stable:
+
+- `run_coremark_smoke.bat rv32` -> PASS (`620530 cycles`)
+- `run_coremark_score.bat rv32` -> PASS (`11014885 cycles`, `0.912472 CoreMark/MHz`)
+- `run_riscv_tests_subset.bat rv32` -> PASS (`33/33`)
+- `run_riscv_tests_subset.bat rv64` -> PASS (`21/21`)
+- `build_vivado_project.bat impl50` -> PASS (`2556 LUT / 2170 FF / 4 BRAM / 0 DSP`, `WNS=+5.599ns`, `WHS=+0.025ns`)
+- `run_coremark_fpga.bat rv32` -> PASS (`156442 cycles`, `7.728811 CoreMark/MHz`)
+- `run_coremark_profile.bat rv32` -> PASS (`12516421 cycles`)
+
+strict `>=10s` rerun was attempted in this round but exceeded local runtime
+budget (`7200s` timeout) before completion, so strict fresh timestamp was not
+updated.

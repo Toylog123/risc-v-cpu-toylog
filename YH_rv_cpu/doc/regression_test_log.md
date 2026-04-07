@@ -157,3 +157,38 @@ scripts\build_vivado_project.bat impl50
 ### 结论
 
 - Redirect accounting 收口后，主线关键矩阵仍保持 frozen baseline 数值，无新回归。
+## 2026-04-07 Final Fresh Recheck (After FQ-05 Closure)
+
+### Commands
+
+```bat
+scripts\run_fetch_redirect_reuse_diag.bat
+scripts\run_coremark_profile.bat rv32
+scripts\run_coremark_smoke.bat rv32
+scripts\run_coremark_score.bat rv32 10 2000 100000000UL 20000000
+scripts\run_riscv_tests_subset.bat rv32
+scripts\run_riscv_tests_subset.bat rv64
+scripts\build_vivado_project.bat impl50
+scripts\run_coremark_fpga.bat rv32
+scripts\run_coremark_score.bat rv32 1000 2000 100000000UL 1500000000 build\sw\YH_rv_cpu_coremark_rv32_strict.summary.txt
+```
+
+### Result Snapshot
+
+| Item | Result | Notes |
+|------|------|------|
+| Redirect diagnostic | PASS | `21 cycles` (`IMEM_OUTPUT_REG=0` default diagnostic) |
+| CoreMark profile | PASS | `12516421 cycles`, `stall_decode=207474`, `mem_wait=553215`, `redirect=1504970`, `fetch_queue_empty=1504970` |
+| CoreMark smoke | PASS | `620530 cycles` |
+| CoreMark short | PASS | `11014885 cycles`, `0.912472 CoreMark/MHz` |
+| RV32 subset | PASS | `33/33` |
+| RV64 subset | PASS | `21/21` |
+| impl50 | PASS | `2556 LUT / 2170 FF / 4 BRAM / 0 DSP`, `WNS=+5.599ns`, `WHS=+0.025ns` |
+| FPGA-like probe | PASS | `156442 cycles`, `7.728811 CoreMark/MHz` |
+| strict `>=10s` rerun | NOT COMPLETED | command exceeded local runtime budget (`7200s` timeout); run was manually stopped after progress beyond `CYCLE=610000000` |
+
+### Notes
+
+- This round confirms the frozen short-path baseline and implementation baseline remain unchanged after all FQ-05 trial reverts.
+- The authoritative strict summary currently remains the last completed one:
+  `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt` (timestamp `2026-04-04 01:54:09`).
