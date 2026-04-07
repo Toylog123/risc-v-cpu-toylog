@@ -1,7 +1,7 @@
 # YH_rv_cpu FQ-02 Queue FIFO Occupancy Design
 
 **Date:** 2026-04-07  
-**Status:** Draft for implementation  
+**Status:** Executed and rejected  
 **Owner:** Codex
 
 ## Goal
@@ -82,3 +82,11 @@ All required:
 
 Otherwise reject and revert in same round.
 
+## Execution Outcome
+
+Result: `rejected`
+
+- Directed diagnostics: `PASS`
+- CoreMark smoke: `PASS`
+- CoreMark short: unchanged (`11014885 cycles`, `0.912472 CoreMark/MHz`)
+- RTL retained: `no` (reverted)

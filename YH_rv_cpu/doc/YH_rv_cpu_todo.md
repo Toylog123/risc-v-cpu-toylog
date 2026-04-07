@@ -27,11 +27,12 @@
 - [x] 完成 redirect `pipe-hit` 单变量复核并拒绝保留（strict 可过但 short score 无收益）
 - [x] 完成 redirect 同拍取指单变量复核并拒绝保留（定向诊断通过但 short score 无收益）
 - [x] 完成 FQ-01（queue 语义解耦）单变量复核并拒绝保留（诊断全绿但 short score 无收益）
+- [x] 完成 FQ-02（queue/FIFO occupancy）单变量复核并拒绝保留（诊断全绿但 short score 无收益）
 
 ## 待处理
 
 - [ ] 对未来任意 retained 优化补齐完整 fresh 回归矩阵
-- [ ] 设计并执行候选 FQ-02：更高侵入度的 queue/FIFO 结构试验（仍保持单变量）
+- [ ] 若继续优化前端，需提出全新非重复假设（不得重复 request-cursor / pipe-hit / redirect 同拍取指 / FQ-01 / FQ-02）
 
 ## 仅外部阻塞
 

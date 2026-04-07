@@ -333,3 +333,23 @@ Notes:
 
 - Directed diagnostics stayed green, but short-score delta is still `0`.
 - The trial RTL was reverted immediately and not expanded to full matrix.
+
+## 2026-04-07 FQ-02 Queue FIFO Occupancy Trial (Rejected)
+
+This round executed FQ-02 (higher-intrusion queue/FIFO occupancy semantics)
+after FQ-01 was rejected.
+
+| Item | Value |
+|------|------|
+| Trial scope | `rtl/YH_rv_cpu.v` only, queue/FIFO semantics only |
+| Redirect diag default | `scripts\run_fetch_redirect_reuse_diag.bat` -> `PASS` |
+| Redirect accounting strict (`IMEM_OUTPUT_REG=0`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0` -> `PASS` |
+| Redirect accounting strict (`IMEM_OUTPUT_REG=1`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1` -> `PASS` |
+| CoreMark smoke | `620530 cycles` |
+| CoreMark short | `11014885 cycles`, `0.912472 CoreMark/MHz` (unchanged) |
+| Keep? | `no` |
+
+Notes:
+
+- FQ-02 remained functionally green under directed checks.
+- Short-score delta is still `0`, so RTL was reverted and not retained.
