@@ -32,6 +32,7 @@ wire [XLEN-1:0]      debug_pc;
 reg [7:0]            mem [0:MEM_BYTES-1];
 reg [8*260-1:0]      program_hex;
 reg [63:0]           tohost_value;
+reg [31:0]           tohost_addr;
 integer              cycle;
 integer              idx;
 integer              byte_idx;
@@ -104,14 +105,14 @@ always #5 clk = ~clk;
 task update_tohost;
     begin
         tohost_value = {
-            mem[TOHOST_ADDR + 32'd7],
-            mem[TOHOST_ADDR + 32'd6],
-            mem[TOHOST_ADDR + 32'd5],
-            mem[TOHOST_ADDR + 32'd4],
-            mem[TOHOST_ADDR + 32'd3],
-            mem[TOHOST_ADDR + 32'd2],
-            mem[TOHOST_ADDR + 32'd1],
-            mem[TOHOST_ADDR + 32'd0]
+            mem[tohost_addr + 32'd7],
+            mem[tohost_addr + 32'd6],
+            mem[tohost_addr + 32'd5],
+            mem[tohost_addr + 32'd4],
+            mem[tohost_addr + 32'd3],
+            mem[tohost_addr + 32'd2],
+            mem[tohost_addr + 32'd1],
+            mem[tohost_addr + 32'd0]
         };
     end
 endtask
@@ -175,6 +176,7 @@ initial begin
     debug_cycles = 0;
     test_name = "(unknown)";
     program_hex = "build/tests/riscv-tests/current.hex";
+    tohost_addr = TOHOST_ADDR;
 
     if (!$value$plusargs("hex=%s", program_hex)) begin
         program_hex = "build/tests/riscv-tests/current.hex";
@@ -190,6 +192,10 @@ initial begin
 
     if (!$value$plusargs("test_name=%s", test_name)) begin
         test_name = "(unknown)";
+    end
+
+    if (!$value$plusargs("tohost_addr=%h", tohost_addr)) begin
+        tohost_addr = TOHOST_ADDR;
     end
 
     for (idx = 0; idx < MEM_BYTES; idx = idx + 1) begin
