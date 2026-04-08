@@ -30,9 +30,11 @@ integer stall_cycles;
 integer stall_opportunities;
 reg     debug_trace;
 reg     require_prefetch;
+reg     require_queue_fill;
 reg     stall_seen;
 reg     redirect_seen;
 reg     prefetch_seen;
+reg     queue_fill_seen;
 
 wire fetch_buffer_full;
 wire stall_prefetch_opportunity;
@@ -155,6 +157,10 @@ always @(posedge clk) begin
             prefetch_seen <= 1'b1;
         end
 
+        if (fetch_buffer_full && (prefetch_seen || stall_prefetch_fire)) begin
+            queue_fill_seen <= 1'b1;
+        end
+
         if (debug_trace && (cycle < 80)) begin
             $display(
                 "TRACE cycle=%0d pc=%h req=%0d imem_rvalid=%0d stall=%0d mem_wait=%0d redirect=%0d buf0=%0d buf1=%0d fetch_pc=%h if_id_v=%0d if_id_pc=%h if_id_insn=%h id_ex_v=%0d id_ex_pc=%h ex_mem_v=%0d ex_mem_load=%0d x2=%h x3=%h x4=%h x5=%h",
@@ -205,16 +211,22 @@ always @(posedge clk) begin
                     cycle, stall_cycles, stall_opportunities);
             end
 
+            if (require_queue_fill && !queue_fill_seen) begin
+                $fatal(1,
+                    "FAIL: stall-prefetch never produced a full fetch queue cycles=%0d stall_cycles=%0d opportunities=%0d prefetch_seen=%0d",
+                    cycle, stall_cycles, stall_opportunities, prefetch_seen);
+            end
+
             $display(
-                "PASS: fetch prefetch diagnostic completed at PC=%h in %0d cycles (stall_cycles=%0d opportunities=%0d prefetch_seen=%0d require_prefetch=%0d)",
-                debug_pc, cycle, stall_cycles, stall_opportunities, prefetch_seen, require_prefetch);
+                "PASS: fetch prefetch diagnostic completed at PC=%h in %0d cycles (stall_cycles=%0d opportunities=%0d prefetch_seen=%0d queue_fill_seen=%0d require_prefetch=%0d require_queue_fill=%0d)",
+                debug_pc, cycle, stall_cycles, stall_opportunities, prefetch_seen, queue_fill_seen, require_prefetch, require_queue_fill);
             $finish;
         end
 
         if (cycle > timeout_cycles) begin
             $fatal(1,
-                "FAIL: timeout at PC=%h cycle=%0d stall_cycles=%0d opportunities=%0d prefetch_seen=%0d",
-                debug_pc, cycle, stall_cycles, stall_opportunities, prefetch_seen);
+                "FAIL: timeout at PC=%h cycle=%0d stall_cycles=%0d opportunities=%0d prefetch_seen=%0d queue_fill_seen=%0d require_queue_fill=%0d",
+                debug_pc, cycle, stall_cycles, stall_opportunities, prefetch_seen, queue_fill_seen, require_queue_fill);
         end
     end
 end
@@ -229,8 +241,10 @@ initial begin
     stall_seen = 1'b0;
     redirect_seen = 1'b0;
     prefetch_seen = 1'b0;
+    queue_fill_seen = 1'b0;
     debug_trace = 1'b0;
     require_prefetch = 1'b0;
+    require_queue_fill = 1'b0;
 
     if ($test$plusargs("debug_trace")) begin
         debug_trace = 1'b1;
@@ -238,6 +252,10 @@ initial begin
 
     if ($test$plusargs("require_prefetch")) begin
         require_prefetch = 1'b1;
+    end
+
+    if ($test$plusargs("require_queue_fill")) begin
+        require_queue_fill = 1'b1;
     end
 
     if (!$value$plusargs("timeout_cycles=%d", timeout_cycles)) begin

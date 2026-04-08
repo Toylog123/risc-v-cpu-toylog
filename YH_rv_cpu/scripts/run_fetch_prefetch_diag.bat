@@ -1,12 +1,26 @@
 @echo off
 setlocal
 
-for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
+set SCRIPT_DIR=%~dp0
+for %%I in ("%SCRIPT_DIR%..") do set PROJECT_DIR=%%~fI
 set BUILD_DIR=%PROJECT_DIR%\build\sim
 set XVLOG=
 set XELAB=
 set XSIM=
 set XSIM_RUN_DIR=
+set XSIM_TESTPLUSARGS=
+set RAW_TESTPLUSARGS=
+
+:parse_args
+if "%~1"=="" goto :args_done
+if defined RAW_TESTPLUSARGS (
+    set RAW_TESTPLUSARGS=%RAW_TESTPLUSARGS% %~1
+) else (
+    set RAW_TESTPLUSARGS=%~1
+)
+shift
+goto :parse_args
+:args_done
 
 for %%T in (xvlog.bat xvlog) do (
     where %%T >nul 2>nul
@@ -52,10 +66,19 @@ if not defined XSIM (
 
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
-call "%~dp0prepare_xsim_runtime.bat" fetch_prefetch_diag XSIM_RUN_DIR
+call "%SCRIPT_DIR%prepare_xsim_runtime.bat" fetch_prefetch_diag XSIM_RUN_DIR
 if not defined XSIM_RUN_DIR exit /b 1
 
 pushd "%XSIM_RUN_DIR%"
+
+for /f "usebackq delims=" %%A in (`
+    powershell -NoProfile -Command ^
+        "$raw = $env:RAW_TESTPLUSARGS; " ^
+        "if ([string]::IsNullOrWhiteSpace($raw)) { exit 0 } " ^
+        "$out = @(); " ^
+        "foreach ($token in ($raw -split '\s+')) { if ($token) { $out += '--testplusarg'; $out += $token } } " ^
+        "$out -join ' '"
+`) do set XSIM_TESTPLUSARGS=%%A
 
 call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_fetch_prefetch_tb.v" ^
@@ -74,7 +97,7 @@ if errorlevel 1 goto :fail
 call %XELAB% YH_rv_cpu_fetch_prefetch_tb -s YH_rv_cpu_fetch_prefetch_tb_snapshot
 if errorlevel 1 goto :fail
 
-call %XSIM% YH_rv_cpu_fetch_prefetch_tb_snapshot -runall %*
+call %XSIM% YH_rv_cpu_fetch_prefetch_tb_snapshot -runall %XSIM_TESTPLUSARGS%
 set RUN_STATUS=%ERRORLEVEL%
 goto :done
 
