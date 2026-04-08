@@ -128,3 +128,50 @@ Pre-optimization closure is now complete. The next local batch is:
 1. freeze the post-closure baseline table
 2. start `FQ-06` as the next single-variable optimization candidate
 3. keep docs and focused commits aligned with each retained/rejected experiment
+
+## 2026-04-08 FQ-06 Launch Contract
+
+This entry started the next optimization batch after strict closure and froze
+the first active `FQ-06` slice plus its red/green gate.
+
+| Item | Value |
+|------|------|
+| Active baseline | `2026-04-08` fresh closure set (`full-ui`, baseline, smoke, short, strict) |
+| Performance target path | `IMEM_OUTPUT_REG=0` |
+| Correctness-only guardrail path | `IMEM_OUTPUT_REG=1` |
+| Selected change class | bounded request cursor / request-side decouple |
+| Explicitly unchanged in first cut | IF/ID payload path, fetch buffer depth, competition ISA baseline |
+| New red/green entry | strengthen `run_fetch_prefetch_diag.bat` so the frozen baseline fails a stricter stall-prefetch requirement |
+| Must stay green before any CoreMark claim | `run_fetch_redirect_reuse_diag.bat` default + strict `imem_output_reg=0/1`, `run_memwait_overlap_diag.bat` |
+| Quick-screen performance gate | `run_coremark_smoke.bat rv32`, `run_coremark_score.bat rv32 10 2000 100000000UL 20000000` |
+| Expansion rule | only if short CoreMark strictly improves |
+
+## 2026-04-08 FQ-06A Bounded Request-Cursor Trial (Rejected)
+
+This round executed the first post-closure `FQ-06` slice in `rtl/YH_rv_cpu.v`:
+add bounded request-side decoupling on the active `IMEM_OUTPUT_REG=0` path,
+while keeping `IMEM_OUTPUT_REG=1` as a strict correctness guardrail only.
+
+| Item | Value |
+|------|------|
+| Trial scope | `rtl/YH_rv_cpu.v` only, bounded request cursor / request-side decouple |
+| Retained diagnostics | `scripts\run_fetch_prefetch_diag.bat` now accepts raw plusargs; `tb\YH_rv_cpu_fetch_prefetch_tb.v` adds `require_queue_fill` |
+| New directed red/green | frozen baseline fails `run_fetch_prefetch_diag.bat require_prefetch` and `run_fetch_prefetch_diag.bat require_queue_fill`; trial RTL passes both |
+| Redirect diag default | `scripts\run_fetch_redirect_reuse_diag.bat` -> `PASS` |
+| Redirect accounting strict (`IMEM_OUTPUT_REG=0`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0` -> `PASS` |
+| Redirect accounting strict (`IMEM_OUTPUT_REG=1`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1` -> `PASS` |
+| Memwait guardrail | `scripts\run_memwait_overlap_diag.bat` -> `PASS` |
+| CoreMark smoke on trial RTL | `620530 cycles` |
+| CoreMark short on trial RTL | `11014885 cycles`, `0.912472 CoreMark/MHz` |
+| Trial evidence archive | `build/sw/YH_rv_cpu_coremark_rv32_score_fq06_request_cursor_2026-04-08.log`, `build/sw/YH_rv_cpu_coremark_rv32_score_fq06_request_cursor_2026-04-08.summary.txt` |
+| Keep? | `no` |
+
+Notes:
+
+- The bounded request cursor is functionally feasible under the current
+  diagnostics and does create stall-time prefetch activity.
+- Short CoreMark remains exactly unchanged, so the RTL does not meet the
+  retention bar and was reverted in the same round.
+- Keep the new `run_fetch_prefetch_diag.bat` plusarg normalization and the
+  `require_queue_fill` guardrail in-tree; they are useful entry points for any
+  future fetch/request experiment.

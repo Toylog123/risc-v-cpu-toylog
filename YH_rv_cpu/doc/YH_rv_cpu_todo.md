@@ -34,8 +34,8 @@
 - [x] 等待 fresh strict `>=10s` CoreMark 长跑完成并归档 dated summary/log
 - [x] 对齐 README / 技术文档 / handoff / regression log / performance log / submission report
 - [x] 做 focused git commit，只提交当前阶段直接相关成果
-- [ ] 冻结新的 post-closure 优化前基线
-- [ ] 启动 `FQ-06` 单变量实验并完整回归
+- [x] 冻结新的 post-closure 优化前基线
+- [x] 启动 `FQ-06A` 单变量实验并完成 quick-screen
 - [ ] 每轮优化继续同步 performance / regression / handoff / todo
 
 ## 当前事实
@@ -50,8 +50,24 @@
 
 ## 暂不推进
 
-- [ ] 暂不重启高侵入 `FQ-06`，直到扩展验证和文档闭环完成
+- [x] 暂不重启高侵入 `FQ-06`，直到扩展验证和文档闭环完成
 - [ ] 暂不推进实板 bring-up，当前只保留 pre-board 冻结状态
+
+## `FQ-06` 当前开工范围
+
+- [x] 将 `2026-04-08` strict / full-ui / baseline fresh 结果作为新的优化前基线
+- [x] 选定本轮唯一候选：`IMEM_OUTPUT_REG=0` 路径上的 bounded request cursor
+- [x] 明确 `IMEM_OUTPUT_REG=1` 本轮只做 redirect/drop-accounting correctness guardrail
+- [x] 先让更严格的 stall-prefetch 定向测试在 frozen baseline 上失败
+- [x] 再改 `rtl/YH_rv_cpu.v` 并补齐 redirect/memwait 诊断
+- [x] 通过 quick-screen 做出保留决策：`FQ-06A` 已拒绝保留并回退 RTL
+
+## `FQ-06` 当前结论
+
+- [x] `FQ-06A` 诊断全绿，但 short CoreMark 仍是 `11014885 / 0.912472`
+- [x] 主线 RTL 已回退到冻结基线，不携带无收益 fetch 改动
+- [x] 保留新的 `require_queue_fill` 诊断与 `run_fetch_prefetch_diag.bat` plusarg 归一化
+- [ ] 是否继续下一条更高侵入的 `FQ-06` 变体，需要先确认存在新的非重复假设
 
 ## 仅外部阻塞
 

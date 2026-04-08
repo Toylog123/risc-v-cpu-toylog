@@ -7,7 +7,7 @@
 当前工程存在两层状态，引用时必须区分：
 
 - 冻结基线：`2026-04-07` 完整收口的比赛提交级基线
-- 活跃工作区：`2026-04-08` 正在推进的 `riscv-tests` 扩展验证与文档同步，尚未提交收口
+- 活跃工作区：`2026-04-08` strict / `full-ui` / baseline fresh 收口已完成；第一轮 `FQ-06A` quick-screen 已执行并拒绝保留
 
 主文档入口：
 
@@ -52,7 +52,7 @@
 
 | 项目 | 当前状态 |
 |------|------|
-| 工作区状态 | clean，`2026-04-08` 收口结果已拆成 focused commits |
+| 工作区状态 | `FQ-06A` quick-screen 已完成；主线 RTL 已回退到冻结基线，当前保留文档与诊断资产更新 |
 | 扩展验证目标 | 从 baseline 子集扩展到更接近普遍 `rv32ui/rv64ui` 的真实矩阵 |
 | `rv32 full-ui` | fresh `42/42`，摘要见 `build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt` |
 | `fence_i` 处理策略 | 扩展 UI 覆盖矩阵采用 `rv32i_zicsr_zifencei` 编译口径，`fence_i` 已通过；冻结比赛口径仍维持 `RV32I + Zicsr` |
@@ -88,6 +88,8 @@
 
 - `2026-04-08` 的 `rv32/rv64 full-ui`、fresh baseline、fresh CoreMark smoke/short/strict 都已闭环
 - 如继续进入下一轮优化，先冻结新的 post-closure baseline，再按单变量方式启动 `FQ-06`
+- `FQ-06A` 已完成：`IMEM_OUTPUT_REG=0` 路径上的 bounded request cursor 诊断全绿，但 short CoreMark 零收益，因此未保留
+- `IMEM_OUTPUT_REG=1` 本轮继续只做 correctness guardrail，严格 redirect/drop-accounting 诊断已通过
 - 文档、脚本、summary、handoff 必须继续同步更新，不能在下一阶段重新产生口径漂移
 
 ## 快速验证命令
@@ -136,7 +138,7 @@ scripts\run_riscv_tests_subset.bat rv64 - - 120000 YH_rv_cpu\scripts\riscv_tests
 
 ### 本机内待推进
 
-- 强制收口阶段已完成；当前如继续本机内工作，下一阶段是冻结新的优化前基线并启动 `FQ-06` 单变量实验
+- 强制收口阶段已完成；当前如继续本机内工作，下一阶段不是补收口，而是判断是否还存在新的、非重复的 fetch/request/queue 优化假设
 
 ### 外部阻塞
 

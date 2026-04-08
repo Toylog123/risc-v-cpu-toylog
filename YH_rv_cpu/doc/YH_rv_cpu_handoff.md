@@ -97,6 +97,16 @@
 4. 保持 handoff / todo / performance log 与实验结果实时同步
 5. 如新一轮优化无明确收益，及时关闭方向并回到 clean worktree
 
+`FQ-06A` 已在 `2026-04-08` 执行完 quick-screen，并已收口为 rejected。
+这轮的真实结论是：
+
+- 性能目标路径：`IMEM_OUTPUT_REG=0`
+- 结构目标：bounded request cursor / request-side decouple
+- 不动的部分：IF/ID payload path、fetch buffer 深度、比赛 ISA 口径
+- correctness guardrail：`run_fetch_redirect_reuse_diag.bat` 严格覆盖 `IMEM_OUTPUT_REG=0/1` 的 queue preserve 与 drop-accounting，均已通过
+- quick-screen gate：`require_prefetch` / `require_queue_fill` / redirect / memwait / smoke 全绿，但 CoreMark short 仍为 `11014885 / 0.912472`
+- 收口动作：实验 RTL 已回退，主线只保留更强的 prefetch 诊断和脚本 plusarg 归一化
+
 ## 6. 关键文档与命令
 
 关键文档：
@@ -141,5 +151,5 @@ scripts\run_coremark_fpga.bat rv32
 - 文档已同步到“冻结基线 + 2026-04-08 活跃验证”双层口径
 - 当前主要不再是收口缺口，而是下一阶段优化工作：
   - freeze post-closure baseline
-  - decide whether `FQ-06` is worth the next single-variable round
+  - decide whether there is a genuinely new `FQ-06` hypothesis beyond the rejected bounded request-cursor slice
   - keep docs aligned if optimization resumes
