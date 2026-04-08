@@ -54,11 +54,16 @@
 |------|------|
 | 工作区状态 | dirty，存在未提交 RTL/脚本/文档/manifest/linker 改动 |
 | 扩展验证目标 | 从 baseline 子集扩展到更接近普遍 `rv32ui/rv64ui` 的真实矩阵 |
-| `rv32 full-ui` | fresh `41/42`，摘要见 `build/tests/riscv-tests/rv32/summary.txt` |
-| 当前唯一失败项 | `fence_i` |
-| `fence_i` 根因 | 当前编译口径为 `-march=rv32i_zicsr`，而 `fence_i.S` 需要 `zifencei` 扩展，属于 ISA/march 口径问题，不是超时问题 |
+| `rv32 full-ui` | fresh `42/42`，摘要见 `build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt` |
+| `fence_i` 处理策略 | 扩展 UI 覆盖矩阵采用 `rv32i_zicsr_zifencei` 编译口径，`fence_i` 已通过；冻结比赛口径仍维持 `RV32I + Zicsr` |
+| `fence_i` 当前结论 | 对当前无 I-cache、同步 ROM/RAM 的核，`fence.i` 以 non-trapping nop 形式即可满足当前 `riscv-tests` 覆盖需求 |
 | `ma_data` | 已通过，说明 misaligned trap 软件补偿链路已生效 |
-| `rv64 full-ui` | 尚待 fresh 重跑并归档 |
+| `rv64 full-ui` | fresh `54/54`，摘要见 `build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-08.txt` |
+| `rv32 baseline` | fresh `33/33`，归档=`build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt` |
+| `rv64 baseline` | fresh `21/21`，归档=`build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt` |
+| CoreMark smoke | fresh `620530 cycles` |
+| CoreMark short | fresh `0.912472 CoreMark/MHz`，`11014885 cycles`，摘要=`build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt` |
+| CoreMark strict | `2026-04-08` fresh 长跑已启动；完成前仍以 `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt` 作为当前 authoritative strict evidence |
 | FPGA 实板计划 | 当前仅保留 pre-board 冻结状态；实板闭环继续视为外部阻塞且暂不优先推进 |
 
 当前扩展验证使用的新主线输入文件：
@@ -81,9 +86,9 @@
 
 ## 当前收口原则
 
-- 在 `fence_i` 口径明确前，不要声称 `rv32 full-ui` 已全部通过
-- 在 `rv32/rv64 full-ui` 与 fresh baseline 没有闭环前，不要重启高侵入优化
-- 在新的 fresh CoreMark smoke/short/strict 复核没有完成前，不要更新 CoreMark 基线数字
+- `rv32/rv64 full-ui` 与 fresh baseline 已闭环；当前只剩 fresh CoreMark strict 长跑在收口
+- 在 fresh CoreMark strict 长跑没有形成新证据前，不要重启高侵入优化
+- `2026-04-08` 已完成 fresh CoreMark smoke/short 复核；在 strict 新结果落地前，不要更新时间戳或改写 strict 口径
 - 文档、脚本、summary、handoff 必须同步更新，不能只改代码不记记录
 
 ## 快速验证命令
@@ -113,8 +118,8 @@ scripts\run_coremark_fpga.bat rv32
 ### 扩展验证命令
 
 ```bat
-scripts\run_riscv_tests_subset.bat rv32 - - 120000 YH_rv_cpu\scripts\riscv_tests_rv32_ui_all.txt - continue YH_rv_cpu\sw\linker\YH_rv_cpu_riscv_tests_large.ld 0x00008000
-scripts\run_riscv_tests_subset.bat rv64 - - 120000 YH_rv_cpu\scripts\riscv_tests_rv64_ui_all.txt - continue YH_rv_cpu\sw\linker\YH_rv_cpu_riscv_tests_large.ld 0x00008000
+scripts\run_riscv_tests_subset.bat rv32 - - 120000 YH_rv_cpu\scripts\riscv_tests_rv32_ui_all.txt rv32i_zicsr_zifencei continue YH_rv_cpu\sw\linker\YH_rv_cpu_riscv_tests_large.ld 0x00008000
+scripts\run_riscv_tests_subset.bat rv64 - - 120000 YH_rv_cpu\scripts\riscv_tests_rv64_ui_all.txt rv64i_zicsr_zifencei continue YH_rv_cpu\sw\linker\YH_rv_cpu_riscv_tests_large.ld 0x00008000
 ```
 
 ## 文档入口
@@ -132,8 +137,7 @@ scripts\run_riscv_tests_subset.bat rv64 - - 120000 YH_rv_cpu\scripts\riscv_tests
 
 ### 本机内待收口
 
-- `fence_i` 的 ISA/march 口径必须明确：要么纳入 `zifencei`，要么明确排除在当前矩阵之外
-- `rv64 full-ui`、fresh baseline、fresh CoreMark 复核仍待补齐
+- fresh CoreMark strict 长跑仍在收口；其余本机验证缺口已明显缩小
 
 ### 外部阻塞
 

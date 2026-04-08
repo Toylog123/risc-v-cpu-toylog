@@ -108,21 +108,25 @@ the verification envelope before any higher-intrusion optimization work such as
 
 | Item | Result |
 |------|------|
-| Command | `scripts\run_riscv_tests_subset.bat rv32 - - 120000 YH_rv_cpu\scripts\riscv_tests_rv32_ui_all.txt - continue YH_rv_cpu\sw\linker\YH_rv_cpu_riscv_tests_large.ld 0x00008000` |
-| Overall result | `41/42` |
-| Summary | `build/tests/riscv-tests/rv32/summary.txt` |
+| Command | `scripts\run_riscv_tests_subset.bat rv32 - - 120000 YH_rv_cpu\scripts\riscv_tests_rv32_ui_all.txt rv32i_zicsr_zifencei continue YH_rv_cpu\sw\linker\YH_rv_cpu_riscv_tests_large.ld 0x00008000` |
+| Overall result | `42/42` |
+| Summary | `build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt` |
+| RV64 full-ui | `54/54` via `build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-08.txt` |
 | Newly important pass | `ma_data` |
-| Current only failure | `fence_i` |
-| Failure class | assembler ISA mismatch: current `-march=rv32i_zicsr` does not include `zifencei` |
+| `fence_i` handling | `PASS` under `rv32i_zicsr_zifencei` |
+| Coverage statement | expanded UI coverage matrix now includes `zifencei`; frozen competition baseline remains `RV32I + Zicsr` |
+| RV32 baseline fresh rerun | `33/33` via `build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt` |
+| RV64 baseline fresh rerun | `21/21` via `build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt` |
+| CoreMark smoke fresh rerun | `620530 cycles` |
+| CoreMark short fresh rerun | `0.912472` via `build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt` |
+| CoreMark strict fresh rerun | `in progress` on `2026-04-08`; until completion keep `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt` as authoritative strict evidence |
 
 ### Current decision gate
 
 Before optimization work resumes, the following must be closed:
 
-1. decide whether `fence_i` belongs in the claimed ISA/test matrix
-2. rerun and archive `rv32/rv64 full-ui`
-3. refresh baseline `rv32/rv64` summaries
-4. refresh CoreMark smoke/short and strict if budget requires
-5. sync all status docs and commit the closure
+1. wait for the fresh strict CoreMark rerun to complete and archive dated log/summary
+2. sync the final strict result into all status docs
+3. commit verification assets, RTL closure, and docs closure with focused boundaries
 
 Until those items are complete, `FQ-06` remains queued but not active.

@@ -137,15 +137,28 @@ Result:
 
 ## 2026-04-08 Status Note
 
-No fresh CoreMark rerun was completed in this worktree on `2026-04-08`.
-Current active work is instead:
+Fresh CoreMark reruns in this worktree now include:
+
+- smoke rerun complete: `620530 cycles`
+- short rerun complete: `0.912472 CoreMark/MHz`, `11014885 cycles`
+- dated short summary: `build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt`
+
+Current active work also includes:
 
 - expanded `riscv-tests` validation beyond the frozen baseline subsets
 - documentation synchronization to the current true repo state
 - closure of the `fence_i` ISA/march ambiguity in the general `rv32ui` matrix
 
-Do not quote a newer CoreMark timestamp until smoke, short, and any required
-strict reruns are actually completed again.
+Important boundary:
+
+- no `fence` / `fence.i` opcode appears in the fresh short-run dump, so the
+  current `fence_i` decode legalization is not part of the observed CoreMark
+  hot path
+- fresh strict `>=10s` rerun has been launched on `2026-04-08`; until it
+  finishes, keep quoting `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt`
+  as the authoritative strict-valid evidence
+- do not claim a new strict timestamp until the dated strict log/summary are
+  actually produced
 
 ## Notes
 

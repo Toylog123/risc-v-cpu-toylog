@@ -4,6 +4,8 @@
 
 `YH_rv_cpu` 是当前比赛提交主线使用的 RISC-V CPU 工程基线。核心目标不是做更多一次性实验，而是把工程维持在“可复现、可验证、可交接、可继续优化”的提交级状态。
 
+本文件按 live handoff 维护。每完成一个阶段，都应先把这里同步到可接手状态，再继续下一阶段。
+
 当前主线 ISA 口径仍是：
 
 - `RV32I + Zicsr`
@@ -15,9 +17,18 @@
 - 当前工作区正在做 `2026-04-08` 的 `riscv-tests` 扩展验证与全文档同步
 - 工作区不是 clean，存在未提交 RTL/脚本/manifest/linker 改动
 - 当前最新 fresh 活跃证据是：
-  - `build/tests/riscv-tests/rv32/summary.txt`
-  - `rv32 full-ui = 41/42`
-  - 当前唯一失败项：`fence_i`
+  - `build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt`
+  - `rv32 full-ui = 42/42`
+  - `build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-08.txt`
+  - `rv64 full-ui = 54/54`
+  - `fence_i` 已在 `rv32i_zicsr_zifencei` 口径下通过
+  - `build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt`
+  - `rv32 baseline = 33/33`
+  - `build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt`
+  - `rv64 baseline = 21/21`
+  - `build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt`
+  - fresh `CoreMark short = 0.912472 CoreMark/MHz`
+  - fresh `CoreMark smoke = 620530 cycles`
 
 当前冻结结果：
 
@@ -61,9 +72,10 @@
 
 ### 本机内待收口
 
-- `fence_i` 的根因已经定位：不是跑得慢，也不是 trap 死循环，而是 `zifencei` ISA 口径问题
-- 在 `fence_i` 的 ISA 边界没有明确前，不能声称 `rv32 full-ui` 全通过
-- `rv64 full-ui`、fresh baseline 复跑、fresh CoreMark 复核仍待补齐
+- `rv32 full-ui` 已闭环；当前 `fence_i` 处理策略是：扩展 UI 覆盖矩阵使用 `zifencei`，但冻结比赛 ISA 口径仍是 `RV32I + Zicsr`
+- 对当前无 I-cache、同步 ROM/RAM 的核，`fence.i` 作为 non-trapping nop 足以通过当前测试覆盖；这不等于完整 `Zifencei` signoff
+- fresh baseline 与 fresh CoreMark smoke/short 已补齐
+- `2026-04-08` fresh strict `>=10s` CoreMark 已启动；完成前仍以历史 strict summary 作为 authoritative strict evidence
 
 ### 外部阻塞
 
@@ -72,16 +84,16 @@
 
 ### 风险
 
-- 如果把 `fence_i` 直接当作功能失败，会误判当前问题
+- 如果后续文档把扩展 UI 覆盖矩阵误写成“冻结比赛 ISA 口径升级”，会造成口径漂移
 - 如果跳过文档同步继续做高侵入优化，会让口径再次失真
 
 ## 5. 下一步最值得做的 5 项
 
-1. 明确 `fence_i` 处理策略：纳入 `zifencei` 还是显式排除出当前普遍矩阵
-2. 重跑并归档 `rv32 full-ui` 与 `rv64 full-ui`
-3. 重跑 fresh `rv32 baseline` / `rv64 baseline`
-4. 补 fresh CoreMark smoke / short，按预算决定 strict 是否重跑
-5. 文档、summary、git commit 一起收口后，再决定是否启动 `FQ-06`
+1. 等待 fresh strict `>=10s` CoreMark 完成并归档 dated log/summary
+2. 把本轮 fresh baseline / CoreMark 结果继续同步进 README / regression / performance / submission report / todo
+3. 形成 focused git commit，先收口验证资产与 RTL 改动，再收口 docs
+4. 检查工作区与 handoff/todo 是否仍可随时接手
+5. 仅在 strict 和文档都闭环后，再决定是否启动 `FQ-06`
 
 ## 6. 关键文档与命令
 
@@ -103,8 +115,8 @@ scripts\run_coremark_score.bat rv32 10 2000 100000000UL 20000000
 scripts\run_coremark_score.bat rv32 1000 2000 100000000UL 1500000000 build\sw\YH_rv_cpu_coremark_rv32_strict.summary.txt
 scripts\run_riscv_tests_subset.bat rv32
 scripts\run_riscv_tests_subset.bat rv64
-scripts\run_riscv_tests_subset.bat rv32 - - 120000 YH_rv_cpu\scripts\riscv_tests_rv32_ui_all.txt - continue YH_rv_cpu\sw\linker\YH_rv_cpu_riscv_tests_large.ld 0x00008000
-scripts\run_riscv_tests_subset.bat rv64 - - 120000 YH_rv_cpu\scripts\riscv_tests_rv64_ui_all.txt - continue YH_rv_cpu\sw\linker\YH_rv_cpu_riscv_tests_large.ld 0x00008000
+scripts\run_riscv_tests_subset.bat rv32 - - 120000 YH_rv_cpu\scripts\riscv_tests_rv32_ui_all.txt rv32i_zicsr_zifencei continue YH_rv_cpu\sw\linker\YH_rv_cpu_riscv_tests_large.ld 0x00008000
+scripts\run_riscv_tests_subset.bat rv64 - - 120000 YH_rv_cpu\scripts\riscv_tests_rv64_ui_all.txt rv64i_zicsr_zifencei continue YH_rv_cpu\sw\linker\YH_rv_cpu_riscv_tests_large.ld 0x00008000
 scripts\build_vivado_project.bat impl50
 scripts\run_coremark_fpga.bat rv32
 ```
@@ -112,15 +124,19 @@ scripts\run_coremark_fpga.bat rv32
 关键证据位置：
 
 - CoreMark short summary: `build/sw/YH_rv_cpu_coremark_rv32_score.summary.txt`
+- CoreMark short dated summary: `build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt`
 - CoreMark strict summary: `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt`
-- `rv32 full-ui` current summary: `build/tests/riscv-tests/rv32/summary.txt`
+- `rv32` baseline current summary: `build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt`
+- `rv64` baseline current summary: `build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt`
+- `rv32 full-ui` current summary: `build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt`
+- `rv64 full-ui` current summary: `build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-08.txt`
 - FPGA reports: `project/reports/clk_20p000ns/`
 
 ## 7. 文档缺口与建议补齐项
 
 - 文档已同步到“冻结基线 + 2026-04-08 活跃验证”双层口径
-- 剩余缺口主要不是文档结构，而是 fresh 证据尚未完全补齐：
-  - `rv64 full-ui`
-  - fresh baseline rerun
-  - fresh CoreMark rerun
+- 剩余缺口主要收敛到 fresh strict CoreMark 与 focused commit 收口：
+  - fresh strict rerun result
+  - dated strict log / summary archive
+  - focused verification / rtl / docs commits
 - 待 `fence_i` 策略明确后，需要再做一次 focused docs commit，避免 README / handoff / regression / performance 出现二次漂移

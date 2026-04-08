@@ -76,29 +76,35 @@ scripts\run_coremark_fpga.bat rv32
 ### 实际命令
 
 ```bat
-scripts\run_riscv_tests_subset.bat rv32 - - 120000 YH_rv_cpu\scripts\riscv_tests_rv32_ui_all.txt - continue YH_rv_cpu\sw\linker\YH_rv_cpu_riscv_tests_large.ld 0x00008000
+scripts\run_riscv_tests_subset.bat rv32 - - 120000 YH_rv_cpu\scripts\riscv_tests_rv32_ui_all.txt rv32i_zicsr_zifencei continue YH_rv_cpu\sw\linker\YH_rv_cpu_riscv_tests_large.ld 0x00008000
+scripts\run_riscv_tests_subset.bat rv64 - - 120000 YH_rv_cpu\scripts\riscv_tests_rv64_ui_all.txt rv64i_zicsr_zifencei continue YH_rv_cpu\sw\linker\YH_rv_cpu_riscv_tests_large.ld 0x00008000
 ```
 
 ### 结果快照
 
 | 项目 | 结果 | 备注 |
 |------|------|------|
-| `rv32 full-ui` 总体 | `41/42` | 摘要：`build/tests/riscv-tests/rv32/summary.txt` |
+| `rv32 full-ui` 总体 | `42/42` | 摘要：`build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt` |
+| `rv64 full-ui` 总体 | `54/54` | 摘要：`build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-08.txt` |
 | `ma_data` | PASS | 说明 misaligned trap 软件补偿已生效 |
-| `fence_i` | FAIL | 失败类型不是 timeout，而是 assembler ISA mismatch |
-| 根因 | `-march=rv32i_zicsr` | `fence_i.S` 需要 `zifencei` 扩展 |
+| `fence_i` | PASS | 在 `rv32i_zicsr_zifencei` 口径下通过 |
+| 口径说明 | `rv32i_zicsr_zifencei` | 该扩展覆盖矩阵用于 general UI 验证；冻结比赛口径仍维持 `RV32I + Zicsr` |
+| `rv32 baseline` fresh rerun | `33/33` | 归档：`build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt` |
+| `rv64 baseline` fresh rerun | `21/21` | 归档：`build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt` |
+| CoreMark smoke fresh rerun | PASS | `620530 cycles` |
+| CoreMark short fresh rerun | PASS | `11014885 cycles`，`0.912472 CoreMark/MHz`，摘要：`build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt` |
 
 ### 解释
 
 - 这轮结果已经排除了“`ma_data` 只是跑得慢”的假设
-- 当前普遍矩阵扩展的主阻塞已经收敛为 `fence_i` 的 ISA/march 口径问题
-- 在 `zifencei` 是否纳入当前设计口径之前，不能直接宣称 `rv32 full-ui` 全通过
+- `rv32 full-ui` 已在扩展 UI 覆盖矩阵下闭环
+- `rv64 full-ui`、fresh baseline、fresh CoreMark smoke/short 已闭环
+- 当前只剩 fresh strict `>=10s` CoreMark 长跑在收口
 
 ### 待补跑项
 
-- `rv64 full-ui` fresh 重跑与归档
-- `rv32 baseline` / `rv64 baseline` fresh 复跑
-- fresh CoreMark smoke / short / strict（按预算决定 strict）
+- fresh strict `>=10s` CoreMark dated log / summary
+- 完成后再做 focused commit 与最终 docs diff 复核
 
 ## 当前风险
 

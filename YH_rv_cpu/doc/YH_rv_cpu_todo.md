@@ -25,24 +25,24 @@
 
 ## 正在进行
 
-- [ ] 明确 `fence_i` 的处理策略：
-  - 选项 A：把 `zifencei` 纳入当前矩阵并重跑
-  - 选项 B：保持 `RV32I + Zicsr` 口径，并明确把 `fence_i` 标为超出口径项
-- [ ] 重跑并归档 `rv32 full-ui`
-- [ ] 重跑并归档 `rv64 full-ui`
-- [ ] 重跑 fresh `rv32 baseline`
-- [ ] 重跑 fresh `rv64 baseline`
-- [ ] 补 fresh CoreMark smoke / short
-- [ ] 视本机预算决定是否补 fresh strict `>=10s` CoreMark
+- [x] 明确 `fence_i` 的处理策略：扩展 UI 覆盖矩阵采用 `zifencei` 并已通过；冻结比赛口径仍维持 `RV32I + Zicsr`
+- [x] 重跑并归档 `rv32 full-ui`：`42/42`，归档=`build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt`
+- [x] 重跑并归档 `rv64 full-ui`：`54/54`，归档=`build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-08.txt`
+- [x] 重跑 fresh `rv32 baseline`：`33/33`，归档=`build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt`
+- [x] 重跑 fresh `rv64 baseline`：`21/21`，归档=`build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt`
+- [x] 补 fresh CoreMark smoke / short：`620530 cycles`，`0.912472 CoreMark/MHz`
+- [ ] 等待 fresh strict `>=10s` CoreMark 长跑完成并归档 dated summary/log
 - [ ] 对齐 README / 技术文档 / handoff / regression log / performance log / submission report
 - [ ] 做 focused git commit，只提交当前阶段直接相关成果
 
 ## 当前事实
 
-- [x] `rv32 full-ui` 最新活跃结果是 `41/42`
-- [x] 当前唯一失败项是 `fence_i`
-- [x] `fence_i` 当前根因是 `-march=rv32i_zicsr` 不包含 `zifencei`
-- [x] 当前问题不是“跑得慢”，而是 ISA/march 口径问题
+- [x] `rv32 full-ui` 最新活跃结果是 `42/42`
+- [x] `rv64 full-ui` 最新活跃结果是 `54/54`
+- [x] `fence_i` 已在 `rv32i_zicsr_zifencei` 口径下通过
+- [x] fresh baseline 已闭环到 `33/33` / `21/21`
+- [x] fresh CoreMark smoke / short 已复现冻结短口径
+- [x] 当前问题已经收敛到 fresh strict CoreMark 与 commit 收口
 
 ## 暂不推进
 
@@ -60,6 +60,6 @@
 
 1. `fence_i` 口径已经写清楚
 2. `rv32/rv64 full-ui` 已有 fresh 归档结果
-3. fresh baseline 与 fresh CoreMark 已补齐到可接受程度
+3. fresh baseline 与 fresh CoreMark smoke/short 已补齐，strict 长跑只剩结果落盘
 4. README / handoff / regression / performance / submission report 全部同步
 5. 当前阶段成果已做 focused git commit

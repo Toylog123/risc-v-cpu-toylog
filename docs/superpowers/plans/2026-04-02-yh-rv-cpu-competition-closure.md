@@ -25,9 +25,12 @@
   "expand `riscv-tests` coverage, close the `fence_i` ISA/march ambiguity, then
   rerun fresh regression and sync docs"
 - Current fresh active evidence:
-  - `rv32 full-ui = 41/42`
+  - `rv32 full-ui = 42/42`
+  - `rv64 full-ui = 54/54`
   - `ma_data = PASS`
-  - only current open item is `fence_i`, blocked by `zifencei` ISA/march scope
+  - `fence_i = PASS` under `zifencei` coverage
+  - fresh baseline reruns are complete: `33/33`, `21/21`
+  - fresh CoreMark smoke/short are complete; fresh strict long run is now the only remaining local closure item
 
 Treat the rest of this plan as historical execution guidance plus a checklist
 for anything that still remains incomplete.
