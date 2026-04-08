@@ -51,12 +51,28 @@ history instead of being treated as the current engineering truth.
   - non-fail-fast summary mode
 - Added misaligned load/store trap software compensation in
   `sw/riscv-tests-env/riscv_test.h`
+- Legalized `MISC_MEM` decode for `fence` / `fence.i` as non-trapping
+  instructions under the current no-I-cache synchronous-memory baseline
 - Fresh active result:
-  - `rv32 full-ui = 41/42`
-  - `ma_data = PASS`
-  - only current open item is `fence_i`
-- Current root cause for `fence_i` is not timeout or trap looping. It is the
-  current compile ISA scope: `-march=rv32i_zicsr` does not include `zifencei`
+  - `rv32 full-ui = 42/42`
+  - `rv64 full-ui = 54/54`
+  - `rv32 baseline = 33/33`
+  - `rv64 baseline = 21/21`
+  - fresh CoreMark smoke = `620530 cycles`
+  - fresh CoreMark short = `11014885 cycles`, `0.912472 CoreMark/MHz`
+- `fence_i` is no longer open in the expanded UI matrix:
+  - expanded validation now uses `rv32i_zicsr_zifencei` / `rv64i_zicsr_zifencei`
+  - frozen competition ISA baseline still remains `RV32I + Zicsr`
 - Synced the main docs so they now distinguish:
   - frozen baseline
   - active 2026-04-08 validation worktree
+  - live handoff status during strict CoreMark closure
+- Focused commits created during this round:
+  - `1f6767f` `test(env): add misaligned load/store trap compensation for riscv-tests`
+  - `8e8719d` `test(infra): enable full rv32ui/rv64ui runs with custom manifest/linker/tohost`
+  - `e8b22eb` `rtl: legalize misc-mem fence and fence.i decode`
+  - `2897dea` `docs: sync fresh baseline and live handoff before strict closure`
+- Remaining local closure item:
+  - fresh strict `>=10s` CoreMark rerun is in progress; until it finishes,
+    `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt` remains the current
+    authoritative strict-valid evidence
