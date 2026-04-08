@@ -519,6 +519,12 @@ always @* begin
         // SYSTEM: 特权指令和 CSR 访问
         // 支持: ecall, ebreak, mret, csrrw, csrrs, csrrc, csrrwi, csrrsi, csrrci
         // ============================================================
+        `YH_rv_cpu_OPCODE_MISC_MEM: begin
+            if ((funct3 != 3'b000) && (funct3 != 3'b001)) begin
+                illegal = 1'b1;
+            end
+        end
+
         `YH_rv_cpu_OPCODE_SYSTEM: begin
             if (funct3 == 3'b000) begin
                 // 环境调用/断点/返回指令 (无 CSR 操作数)

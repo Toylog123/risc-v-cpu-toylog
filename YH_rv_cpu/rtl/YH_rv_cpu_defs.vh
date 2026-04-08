@@ -45,6 +45,7 @@
 // 高位立即数加载 (Load Upper Immediate): lui - 加载立即数到高位
 `define YH_rv_cpu_OPCODE_LUI     7'b0110111
 // 系统指令 (System): csrrw, csrrs, csrrc, ecall, ebreak, mret, wfi
+`define YH_rv_cpu_OPCODE_MISC_MEM 7'b0001111
 `define YH_rv_cpu_OPCODE_SYSTEM  7'b1110011
 
 // ------------------------------------------------------------
