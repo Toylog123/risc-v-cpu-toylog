@@ -12,18 +12,19 @@ Use this baseline before starting any competition-facing optimization work.
 | Raw log | `build/sw/YH_rv_cpu_coremark_rv32_score.log` |
 | Summary | `build/sw/YH_rv_cpu_coremark_rv32_score.summary.txt` |
 | Result | `CoreMark/MHz = 0.912472` |
-| Validation mode | `short_runtime_only` |
+| Short completion cycles | `11014885` |
+| Strict-valid companion | `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt` -> `0.912465`, `1095991523 cycles`, `10.959325s` |
 
-### riscv-tests
+### riscv-tests baseline
 
 | Item | Value |
 |------|------|
-| RV32 baseline | `scripts\riscv_tests_rv32_baseline.txt` |
+| RV32 baseline manifest | `scripts\riscv_tests_rv32_baseline.txt` |
 | RV32 fresh result | `33/33` |
-| RV64 baseline | `scripts\riscv_tests_rv64_baseline.txt` |
+| RV64 baseline manifest | `scripts\riscv_tests_rv64_baseline.txt` |
 | RV64 fresh result | `21/21` |
 
-### FPGA impl50
+### FPGA impl50 / probe
 
 | Item | Value |
 |------|------|
@@ -31,465 +32,97 @@ Use this baseline before starting any competition-facing optimization work.
 | Bitstream | `project/YH_rv_cpu_nexys_a7_100_20p000.bit` |
 | Timing report | `project/reports/clk_20p000ns/impl_timing_summary.rpt` |
 | Utilization report | `project/reports/clk_20p000ns/impl_utilization.rpt` |
-| WNS | `+5.599ns` |
-| WHS | `+0.025ns` |
-| Slice LUTs | `2556` |
-| Slice Registers | `2170` |
-| BRAM | `4` |
+| WNS / WHS | `+5.599ns / +0.025ns` |
+| Slice LUTs / FF / BRAM / DSP | `2556 / 2170 / 4 / 0` |
+| FPGA-like probe | `156442 cycles`, `7.728811 CoreMark/MHz` |
 
-## Experiment Rules
-
-- Change only one optimization dimension at a time.
-- Re-run `CoreMark score`, `riscv-tests rv32`, `riscv-tests rv64`, and `impl50` after every retained optimization.
-- Do not replace this baseline with speculative or stale results.
-
-## 2026-04-03 Retained Optimizations
+## Retained Optimizations
 
 ### O1 - Tighten synchronous load hazard stall
 
 | Item | Value |
 |------|------|
-| Change | `stall_decode` now stalls only on `load_use_hazard` |
+| Change | `stall_decode` stalls only on `load_use_hazard` |
 | Files | `rtl/YH_rv_cpu_hazard_unit.v` |
 | Before | `CoreMark/MHz = 0.888486` |
 | After | `CoreMark/MHz = 0.912472` |
 | Delta | `+0.023986` (`+2.70%`) |
-| Formal command | `scripts\run_coremark_score.bat rv32 10 2000 100000000UL 20000000` |
-| Raw log | `build/sw/YH_rv_cpu_coremark_rv32_score.log` |
-| Summary | `build/sw/YH_rv_cpu_coremark_rv32_score.summary.txt` |
-| Validation | `validation_mode=short_runtime_only`, `competition_reportable=yes` |
-| RV32 regression | `scripts\run_riscv_tests_subset.bat rv32` -> `33/33` |
-| RV64 regression | `scripts\run_riscv_tests_subset.bat rv64` -> `21/21` |
 | Keep? | `yes` |
 
-Notes:
-
-- The printed `Errors detected` line in this score run comes from the CoreMark
-  `>=10s` runtime floor, not from CRC mismatch.
-- The per-benchmark CRCs remain correct: `crclist=0xe714`,
-  `crcmatrix=0x1fd7`, `crcstate=0x8e3a`.
-
-## 2026-04-04 Formal CoreMark Validation Closure
-
-This entry does not introduce a new retained optimization. It closes the formal
-CoreMark validation gap on top of the already-retained baseline.
+### O2 - FPGA path defaults
 
 | Item | Value |
 |------|------|
-| Short command | `scripts\run_coremark_score.bat rv32 10 2000 100000000UL 20000000` |
-| Short result | `CoreMark/MHz = 0.912472` |
-| Short completion cycles | `11014885` |
-| Short validation | `competition_reportable=yes`, `strict_eembc_10s_compliant=no` |
-| Strict command | `scripts\run_coremark_score.bat rv32 1000 2000 100000000UL 1500000000 build\sw\YH_rv_cpu_coremark_rv32_strict.summary.txt` |
-| Strict result | `CoreMark/MHz = 0.912465` |
-| Strict completion cycles | `1095991523` |
-| Strict runtime | `10.959325s` (`Total ticks = 1095932534`) |
-| Strict validation | `validation_clean=yes`, `strict_eembc_10s_compliant=yes` |
-
-Notes:
-
-- The strict run confirms that the retained optimized baseline scales to a
-  valid `>=10s` CoreMark result without changing workload semantics.
-- The short run remains useful as a fast reproducible comparison path during
-  future optimization work.
-
-### O3 - FPGA path `DMEM_OUTPUT_REG: 1 -> 0`
-
-| Item | Value |
-|------|------|
-| Change | Remove the extra synchronous DMEM output register on the FPGA path |
+| Change | Retain `IMEM_OUTPUT_REG=0` and `DMEM_OUTPUT_REG=0` on FPGA path |
 | Files | `fpga/vivado/src/YH_rv_cpu_fpga_top.v`, `tb/YH_rv_cpu_coremark_fpga_tb.v` |
-| FPGA probe command | `scripts\run_coremark_fpga.bat rv32 1 400 100000000UL 20000000 build\sw\fpga_probe_dmem0.summary.txt 1` |
-| FPGA probe result | `timeout` at `20,000,000` cycles |
-| impl50 WNS | `+6.113ns` |
-| impl50 WHS | `+0.042ns` |
-| impl50 LUT / FF / BRAM | `2555 / 2170 / 4` |
-| Keep? | `yes, as intermediate step to O4` |
-
-### O4 - FPGA path `IMEM_OUTPUT_REG: 1 -> 0` on top of O3
-
-| Item | Value |
-|------|------|
-| Change | Remove the extra synchronous IMEM output register on the FPGA path |
-| Files | `fpga/vivado/src/YH_rv_cpu_fpga_top.v`, `tb/YH_rv_cpu_coremark_fpga_tb.v` |
-| FPGA probe command | `scripts\run_coremark_fpga.bat rv32 1 400 100000000UL 20000000 build\sw\fpga_probe_i0d0.summary.txt 1` |
-| FPGA probe result | `PASS`, `completion_cycles=156442`, `CoreMark/MHz=7.728811` |
-| FPGA probe validation | `validation_clean=yes`, reduced workload so `competition_reportable=no` |
-| impl50 WNS | `+5.822ns` |
-| impl50 WHS | `+0.057ns` |
-| impl50 LUT / FF / BRAM | `2555 / 2170 / 4` |
+| Probe result | `156442 cycles`, `7.728811 CoreMark/MHz` |
+| impl50 result | `2556 LUT / 2170 FF / 4 BRAM / 0 DSP`, `WNS=+5.599ns`, `WHS=+0.025ns` |
 | Keep? | `yes` |
 
-Final retained FPGA-default state:
+Final retained state:
 
-- `IMEM_OUTPUT_REG=0`
-- `DMEM_OUTPUT_REG=0`
-- Bitstream target remains `project/YH_rv_cpu_nexys_a7_100_20p000.bit`
+- `stall_decode = load_use_hazard`
+- FPGA default `IMEM_OUTPUT_REG=0`
+- FPGA default `DMEM_OUTPUT_REG=0`
 
-### O6 - Evaluate fetch-side prefetch during decode stall
+## Closed / Rejected Optimization Directions
 
-| Item | Value |
+The following directions were fully executed and rejected because they produced
+no retainable benefit or failed guardrails:
+
+| Direction | Result | Reason |
+|------|------|------|
+| Simple `stall_decode` relaxation for fetch-side gain | closed | current fetch PC freezes under stall, so relaxing the gate is not a safe one-line optimization |
+| O6 fetch-side prefetch / request cursor | rejected | directed behavior could be shown, but short CoreMark delta remained `0` |
+| redirect `pipe-hit` recheck | rejected | strict diagnostics could pass, but short score stayed flat |
+| redirect same-cycle request | rejected | functionally green, score delta `0` |
+| FQ-01 queue-decouple | rejected | guardrails green, score delta `0` |
+| FQ-02 queue/FIFO occupancy | rejected | guardrails green, score delta `0` |
+| FQ-03 explicit 3-entry queue | rejected | guardrails green, score delta `0` |
+| FQ-04 IF/ID redirect-hit bubble bypass | rejected | score regressed by one cycle |
+| FQ-05A queue-consume/data-write align | rejected | score delta `0` |
+| FQ-05B redirect-reuse next-line prefetch | rejected | score delta `0` |
+| FQ-05C IF/ID mem-wait preload | rejected | redirect guardrail failed early |
+
+## 2026-04-08 Validation-Led Pause Before Further Optimization
+
+This round does not introduce a new retained optimization. Instead, it expands
+the verification envelope before any higher-intrusion optimization work such as
+`FQ-06`.
+
+### Worktree changes under active validation
+
+- `scripts\run_riscv_tests_subset.bat`
+  - adds custom manifest, `march`, linker, `tohost_addr`, `max_cycles`, and
+    non-fail-fast support
+- `tb\YH_rv_cpu_riscv_tests_tb.v`
+  - adds runtime-configurable `tohost_addr`
+- `sw\riscv-tests-env\riscv_test.h`
+  - adds misaligned load/store trap software compensation for `riscv-tests`
+- new formal inputs:
+  - `scripts\riscv_tests_rv32_ui_all.txt`
+  - `scripts\riscv_tests_rv64_ui_all.txt`
+  - `sw\linker\YH_rv_cpu_riscv_tests_large.ld`
+
+### Fresh evidence from this round
+
+| Item | Result |
 |------|------|
-| Change | Investigate whether `imem_req` / fetch queue can keep advancing when `stall_decode=1` |
-| Files reviewed | `rtl/YH_rv_cpu.v`, `rtl/YH_rv_cpu_hazard_unit.v` |
-| Result | `not retained` |
-| Reason | Current fetch PC (`pc_r`) is frozen when `stall_decode=1`, so simply relaxing the `!stall_decode` gate would re-request the same PC instead of safely prefetching future instructions |
-| Risk | A real fetch-side gain would require a deeper decoupling of fetch PC advance, IF/ID hold, and redirect/drop accounting rather than a one-line gate removal |
-
-Notes:
-
-- The retained `+2.70%` gain comes from O1, not from fetch-side speculation.
-- Keep O6 closed unless a dedicated fetch queue refactor is planned and regression budget is available.
-
-### O7 - Evaluate a 1-entry request-side fetch cursor
-
-| Item | Value |
-|------|------|
-| Change | Add a directed fetch diagnostic and trial a 1-entry request-side cursor so synchronous fetch can keep requesting while decode is stalled |
-| Diagnostic assets | `tb/YH_rv_cpu_fetch_prefetch_tb.v`, `scripts/run_fetch_prefetch_diag.bat` |
-| Experimental RTL | `rtl/YH_rv_cpu.v` (trial branch only, reverted before keep decision) |
-| Directed red/green command | `scripts\run_fetch_prefetch_diag.bat -testplusarg require_prefetch` |
-| Directed result on trial RTL | `PASS`, `83 cycles`, `stall_cycles=6`, `opportunities=6`, `prefetch_seen=1` |
-| Baseline diagnostic command | `scripts\run_fetch_prefetch_diag.bat` |
-| Baseline diagnostic result | `PASS`, `prefetch_seen=0`, confirms the frozen baseline still does not prefetch during `stall_decode` |
-| CoreMark smoke on trial RTL | `620530 cycles` |
-| CoreMark score on trial RTL | `11014885 cycles`, `CoreMark/MHz = 0.912472` |
-| Score delta vs frozen baseline | `0` |
-| RV32 regression on trial RTL | `33/33` |
-| RV64 regression on trial RTL | `21/21` |
-| impl50 / FPGA-like probe | `not re-run` because the official short-score delta was `0` and the RTL was reverted before retain consideration |
-| Keep? | `no` |
-
-Notes:
-
-- The directed diagnostic proved that the request cursor can create `stall_decode`-time fetch requests, but that behavior did not improve the formal short CoreMark score.
-- Review after the trial identified unresolved interactions around redirect reuse and `IMEM_OUTPUT_REG`/drop accounting, so the RTL was reverted instead of being carried into synthesis or FPGA probe work.
-- Keep the diagnostic assets in-tree; they are now the preferred starting point for any future fetch/request/queue experiment.
-
-## 2026-04-07 Diagnostic and Profiling Follow-up
-
-This round added profiling coverage and two directed diagnostics that mirror the current sync-fetch redirect/mem-wait behavior. It also switched the sim scripts to isolated per-run runtime directories so parallel workers no longer collide on `xsim.dir`.
-
-### CoreMark profile snapshot
-
-| Item | Value |
-|------|------|
-| Command | `scripts\run_coremark_profile.bat rv32` |
-| Result | `PASS` |
-| Raw log | `build/sw/YH_rv_cpu_coremark_rv32_profile.log` |
-| Total cycles | `12516421` |
-| `stall_decode_cycles` | `207474` |
-| `mem_wait_cycles` | `553215` |
-| `ex_fetch_redirect_valid_cycles` | `1504970` |
-| `fetch_queue_empty_cycles` | `1504970` |
-
-Notes:
-
-- This is a profiling-only path, not a score submission path.
-- The profile shows both `mem_wait` and redirect activity are still material contributors in the current RV32 CoreMark workload. That is an inference from the counters, not a direct functional assertion.
-
-### Redirect reuse diagnostic
-
-| Item | Value |
-|------|------|
-| Command | `scripts\run_fetch_redirect_reuse_diag.bat` |
-| Result | `PASS` |
-| Runtime isolation | `prepare_xsim_runtime.bat fetch_redirect_reuse_diag` |
-| Directed result | `21 cycles`, `stall_cycles=2`, `redirects=2`, `overlaps=1`, `require_pipe_hit=0` |
-| Strict red/green entry | `scripts\run_fetch_redirect_reuse_diag.bat require_pipe_hit` |
-| Strict result | `FAIL` as expected, because `fetch_redirect_pipe_hit` is still hardwired low in RTL |
-
-### Redirect accounting diagnostic
-
-This diagnostic is meant to validate redirect/flush/drop accounting under both
-`IMEM_OUTPUT_REG=0` and `IMEM_OUTPUT_REG=1`.
-
-| Item | Value |
-|------|------|
-| Command | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0` and `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1` |
-| `IMEM_OUTPUT_REG=0` strict result | `PASS` (`21 cycles`, `redirects=1`, `overlaps=1`, `require_queue_preserve=1`, `require_drop_accounting=1`) |
-| `IMEM_OUTPUT_REG=1` strict result | `PASS` (`21 cycles`, `redirects=1`, `overlaps=1`, `require_queue_preserve=1`, `require_drop_accounting=1`) |
-| Notes | `run_fetch_redirect_reuse_diag.bat` now strips `imem_output_reg` from runtime plusargs and maps it to compile-time `xelab -generic_top IMEM_OUTPUT_REG=<0|1>`, so both strict variants are real compile-time runs. |
-
-### Memwait overlap diagnostic
-
-| Item | Value |
-|------|------|
-| Command | `scripts\run_memwait_overlap_diag.bat` |
-| Result | `PASS` |
-| Runtime isolation | `prepare_xsim_runtime.bat memwait_overlap_diag` |
-| Directed result | `21 cycles`, `mem_wait_cycles=1`, `opportunities=1`, `overlap_requests=0`, `require_overlap=0` |
-| Strict red/green entry | `scripts\run_memwait_overlap_diag.bat require_overlap` |
-| Strict result | `FAIL` as expected, because the current baseline does not yet issue an actual overlap-time request |
-
-### Runtime isolation fix
-
-All `xsim`-based scripts that matter here now run under unique runtime directories created by `scripts\prepare_xsim_runtime.bat`. The practical effect is that the new profile and diagnostics can run beside other workers without fighting over a shared `YH_rv_cpu\xsim.dir`.
-
-## 2026-04-07 Timer IRQ Closure and Vivado Payload Freeze
-
-This round closed the remaining local regression in `timer_irq_smoke` and removed the last unstable default from the `impl50` build flow.
-
-| Item | Value |
-|------|------|
-| Root cause | `rtl/YH_rv_cpu_soc.v` forced `timer_irq_en_r <= 1'b1` on `TIMER_CTRL_ADDR` byte writes, so handler-side `sw zero` could not disable the timer interrupt |
-| Functional fix | Restore `timer_irq_en_r <= timer_ctrl_next[0]` |
-| Quality fix | Explicitly declare `csr_mcause_trap_write` in `rtl/YH_rv_cpu.v` so synthesis no longer relies on an implicit net |
-| Build-flow fix | `scripts\build_vivado_project.bat` now defaults `impl50` to the frozen `build\sw\YH_rv_cpu_demo.{hex,mem32.hex}` image and only falls back to staged `current.*` payloads if the demo artifacts are unavailable |
-| timer_irq smoke | `PASS`, `PC=000000e4`, `136 cycles` |
-| CoreMark short | unchanged, `11014885 cycles`, `0.912472 CoreMark/MHz` |
-| RV32 regression | unchanged, `33/33` |
-| RV64 regression | unchanged, `21/21` |
-| impl50 | `2556 LUT / 2170 FF / 4 BRAM / 0 DSP`, `WNS = +5.599ns`, `WHS = +0.025ns` |
-| FPGA-like probe | unchanged, `156442 cycles`, `7.728811 CoreMark/MHz` |
-
-Notes:
-
-- The `impl50` resource/timing delta is a real post-fix result on the repaired SoC path, not a payload-staging artifact.
-- This is now the fresh local frozen baseline to quote in README, handoff, regression, and FPGA flow materials.
-
-## 2026-04-07 Memwait Overlap Trial (Rejected)
-
-This round tried the minimal `mem_wait overlap` request gate described in
-`docs/superpowers/specs/2026-04-07-yh-rv-cpu-memwait-overlap-design.md`.
-
-| Item | Value |
-|------|------|
-| RTL change | Allow `imem_req` during `mem_wait` when no buffered fetch data is present |
-| Directed strict | `scripts\run_memwait_overlap_diag.bat require_overlap` -> `PASS` (`overlap_requests=1`) |
-| Directed default | `scripts\run_memwait_overlap_diag.bat` -> `PASS` |
-| Redirect guardrail | `scripts\run_fetch_redirect_reuse_diag.bat` -> `PASS` |
-| CoreMark short | `11014885 cycles`, `0.912472 CoreMark/MHz` (unchanged) |
-| RV32 regression | `33/33` |
-| RV64 regression | `21/21` |
-| Keep? | `no` |
-
-Notes:
-
-- The strict directed diagnostic turned green, but the formal short CoreMark
-  score did not improve.
-- The RTL was reverted immediately; only the diagnostics and documentation
-  remain in mainline.
-
-## 2026-04-07 Redirect Pipe-Hit Recheck Trial (Rejected)
-
-This round re-tested a minimal `fetch_redirect_pipe_hit` gate after the
-redirect accounting diagnostic was fully closed.
-
-| Item | Value |
-|------|------|
-| Trial RTL change | Temporarily drive `fetch_redirect_pipe_hit` from `(IMEM_SYNC != 0) && fetch_reuse_redirect_valid && fetch_pipe_valid && (fetch_rsp_pc == fetch_reuse_redirect_pc)` |
-| Directed strict | `scripts\run_fetch_redirect_reuse_diag.bat require_pipe_hit` -> `PASS` (`pipe_hits=1`) |
-| Redirect accounting strict (`IMEM_OUTPUT_REG=0`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0` -> `PASS` |
-| Redirect accounting strict (`IMEM_OUTPUT_REG=1`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1` -> `PASS` |
-| CoreMark smoke | `620530 cycles` |
-| CoreMark short | `11014885 cycles`, `0.912472 CoreMark/MHz` (unchanged) |
-| Keep? | `no` |
-
-Notes:
-
-- The functional gate is feasible under current diagnostics, but score gain is
-  `0`, so the trial does not pass retention criteria.
-- The RTL was reverted in the same round and the frozen baseline remains
-  unchanged.
-
-## 2026-04-07 Redirect Same-Cycle Request Trial (Rejected)
-
-This round tested whether issuing an IMEM request in the same cycle as redirect
-control could reduce redirect penalty.
-
-| Item | Value |
-|------|------|
-| Trial RTL change | `imem_req` allows redirect cycles; request PC uses `ex_control_redirect_pc` when `ex_fetch_redirect_valid` |
-| Directed default | `scripts\run_fetch_redirect_reuse_diag.bat` -> `PASS` |
-| Redirect accounting strict (`IMEM_OUTPUT_REG=0`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0` -> `PASS` |
-| Redirect accounting strict (`IMEM_OUTPUT_REG=1`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1` -> `PASS` |
-| CoreMark smoke | `620530 cycles` |
-| CoreMark short | `11014885 cycles`, `0.912472 CoreMark/MHz` (unchanged) |
-| Keep? | `no` |
-
-Notes:
-
-- The change stayed functionally green under current directed diagnostics.
-- Short-score delta remains `0`, so the trial was reverted immediately and not
-  carried into full regression or implementation flow.
-
-## 2026-04-07 FQ-01 Queue-Decouple Trial (Rejected)
-
-This round executed the FQ-01 candidate (`fetch/request/queue` 2-entry queue
-semantic decouple) as a single-variable quick screen.
-
-| Item | Value |
-|------|------|
-| Trial scope | `rtl/YH_rv_cpu.v` only, queue semantics only, no request-timing change |
-| Redirect diag default | `scripts\run_fetch_redirect_reuse_diag.bat` -> `PASS` |
-| Redirect accounting strict (`IMEM_OUTPUT_REG=0`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0` -> `PASS` |
-| Redirect accounting strict (`IMEM_OUTPUT_REG=1`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1` -> `PASS` |
-| CoreMark smoke | `620530 cycles` |
-| CoreMark short | `11014885 cycles`, `0.912472 CoreMark/MHz` (unchanged) |
-| Keep? | `no` |
-
-Notes:
-
-- Directed diagnostics stayed green, but short-score delta is still `0`.
-- The trial RTL was reverted immediately and not expanded to full matrix.
-
-## 2026-04-07 FQ-02 Queue FIFO Occupancy Trial (Rejected)
-
-This round executed FQ-02 (higher-intrusion queue/FIFO occupancy semantics)
-after FQ-01 was rejected.
-
-| Item | Value |
-|------|------|
-| Trial scope | `rtl/YH_rv_cpu.v` only, queue/FIFO semantics only |
-| Redirect diag default | `scripts\run_fetch_redirect_reuse_diag.bat` -> `PASS` |
-| Redirect accounting strict (`IMEM_OUTPUT_REG=0`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0` -> `PASS` |
-| Redirect accounting strict (`IMEM_OUTPUT_REG=1`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1` -> `PASS` |
-| CoreMark smoke | `620530 cycles` |
-| CoreMark short | `11014885 cycles`, `0.912472 CoreMark/MHz` (unchanged) |
-| Keep? | `no` |
-
-Notes:
-
-- FQ-02 remained functionally green under directed checks.
-- Short-score delta is still `0`, so RTL was reverted and not retained.
-
-## 2026-04-07 FQ-03 Explicit 3-Entry Queue Trial (Rejected)
-
-This round executed FQ-03 as an explicit 3-entry fetch queue semantics trial in
-`rtl/YH_rv_cpu.v`, while keeping request issue and redirect/drop-accounting
-policies unchanged.
-
-| Item | Value |
-|------|------|
-| Trial scope | `rtl/YH_rv_cpu.v` only, explicit 3-entry queue semantics |
-| Redirect diag default | `scripts\run_fetch_redirect_reuse_diag.bat` -> `PASS` |
-| Redirect accounting strict (`IMEM_OUTPUT_REG=0`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0` -> `PASS` |
-| Redirect accounting strict (`IMEM_OUTPUT_REG=1`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1` -> `PASS` |
-| CoreMark smoke | `620530 cycles` |
-| CoreMark short | `11014885 cycles`, `0.912472 CoreMark/MHz` (unchanged) |
-| Keep? | `no` |
-
-Notes:
-
-- Guardrail diagnostics and smoke stayed green.
-- Short score did not beat the frozen baseline, so RTL was reverted in the
-  same round.
-
-## 2026-04-07 FQ-04 IF/ID Redirect-Hit Bubble Bypass Trial (Rejected)
-
-This round tested a single-variable `if_id` redirect-hit bubble bypass. The
-candidate stayed inside the existing fetch guardrails, but the short CoreMark
-result did not improve, so the RTL was reverted in the same round.
-
-| Item | Value |
-|------|------|
-| Trial scope | `rtl/YH_rv_cpu.v` only, `if_id` redirect-hit bubble bypass |
-| Redirect diag default | `scripts\run_fetch_redirect_reuse_diag.bat` -> `PASS` |
-| Redirect accounting strict (`IMEM_OUTPUT_REG=0`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0` -> `PASS` |
-| Redirect accounting strict (`IMEM_OUTPUT_REG=1`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1` -> `PASS` |
-| CoreMark smoke | `620531 cycles` |
-| CoreMark short | `11014886 cycles`, `0.912472 CoreMark/MHz` (unchanged) |
-| Keep? | `no` |
-
-Notes:
-
-- The guardrail diagnostics remained green under both `IMEM_OUTPUT_REG`
-  variants.
-- The trial missed the retention bar by one cycle on the short score, so it
-  was rejected immediately and not expanded to the full matrix.
-
-## 2026-04-07 FQ-05A Queue-Consume/Data-Write Align Trial (Rejected)
-
-This round tested a single-variable queue-handshake change in
-`rtl/YH_rv_cpu.v`: align `fetch_live_to_ifid` and `fetch_queue_consume` from
-`if_id_write_en` to `if_id_data_write_en`.
-
-| Item | Value |
-|------|------|
-| Trial scope | `rtl/YH_rv_cpu.v` only, queue consume/live handshake alignment |
-| Directed default | `scripts\run_fetch_redirect_reuse_diag.bat` -> `PASS` |
-| Redirect accounting strict (`IMEM_OUTPUT_REG=0`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0` -> `PASS` |
-| Redirect accounting strict (`IMEM_OUTPUT_REG=1`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1` -> `PASS` |
-| CoreMark smoke | `620530 cycles` |
-| CoreMark short | `11014885 cycles`, `0.912472 CoreMark/MHz` (unchanged) |
-| Keep? | `no` |
-
-Notes:
-
-- The guardrail diagnostics stayed green across both accounting variants.
-- The short score did not improve, so the trial RTL was reverted in the same
-  round and not expanded to full matrix validation.
-
-## 2026-04-07 FQ-05B Redirect-Reuse Next-Line Prefetch Trial (Rejected)
-
-This round tested a single-variable fetch request policy in `rtl/YH_rv_cpu.v`:
-when `fetch_redirect_reuse_valid` is true, allow request issue in the redirect
-cycle and request `redirect_pc + 4` as a speculative next-line prefetch.
-
-| Item | Value |
-|------|------|
-| Trial scope | `rtl/YH_rv_cpu.v` only, redirect-reuse next-line prefetch |
-| Directed default | `scripts\run_fetch_redirect_reuse_diag.bat` -> `PASS` |
-| Redirect accounting strict (`IMEM_OUTPUT_REG=0`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=0` -> `PASS` |
-| Redirect accounting strict (`IMEM_OUTPUT_REG=1`) | `scripts\run_fetch_redirect_reuse_diag.bat require_queue_preserve require_drop_accounting imem_output_reg=1` -> `PASS` |
-| CoreMark smoke | `620530 cycles` |
-| CoreMark short | `11014885 cycles`, `0.912472 CoreMark/MHz` (unchanged) |
-| Keep? | `no` |
-
-Notes:
-
-- Functionality and accounting guardrails remained green in both strict variants.
-- Short-score delta remained `0`, so the trial was rejected and RTL reverted in
-  the same round.
-
-## 2026-04-07 FQ-05C IF/ID Mem-Wait Preload Trial (Rejected)
-
-This round tested a conservative IF/ID preload variant in `rtl/YH_rv_cpu.v`:
-relax only `if_id_data_write_en` so IF/ID payload can update during `mem_wait`
-while keeping `if_id_write_en` and queue-consume policy unchanged.
-
-| Item | Value |
-|------|------|
-| Trial scope | `rtl/YH_rv_cpu.v` only, IF/ID data-write gate during `mem_wait` |
-| Memwait guardrail | `scripts\run_memwait_overlap_diag.bat` -> `PASS` |
-| Redirect guardrail default | `scripts\run_fetch_redirect_reuse_diag.bat` -> `FAIL` (timeout at `PC=00000064`, `cycle=241`) |
-| Keep? | `no` |
-
-Notes:
-
-- Because the first redirect guardrail failed, this trial was rejected
-  immediately and the RTL was reverted in the same round.
-- Per quick-screen gate policy, strict variants and CoreMark smoke/short were
-  intentionally skipped after the early failure.
-
-## 2026-04-07 FQ-05 Round Closure
-
-FQ-05A/FQ-05B/FQ-05C are all closed as rejected in the same day under the
-single-variable quick-screen gate. No candidate reached retention criteria, so
-the frozen baseline remains unchanged.
-
-Post-revert confirmation in the same round:
-`run_fetch_redirect_reuse_diag.bat` -> PASS,
-`run_coremark_score.bat rv32 10 2000 100000000UL 20000000` ->
-`completion_cycles=11014885`, `0.912472 CoreMark/MHz`.
-
-## 2026-04-07 Final Fresh Matrix Snapshot
-
-After FQ-05 closure and RTL reverts, fresh matrix checks remained stable:
-
-- `run_coremark_smoke.bat rv32` -> PASS (`620530 cycles`)
-- `run_coremark_score.bat rv32` -> PASS (`11014885 cycles`, `0.912472 CoreMark/MHz`)
-- `run_riscv_tests_subset.bat rv32` -> PASS (`33/33`)
-- `run_riscv_tests_subset.bat rv64` -> PASS (`21/21`)
-- `build_vivado_project.bat impl50` -> PASS (`2556 LUT / 2170 FF / 4 BRAM / 0 DSP`, `WNS=+5.599ns`, `WHS=+0.025ns`)
-- `run_coremark_fpga.bat rv32` -> PASS (`156442 cycles`, `7.728811 CoreMark/MHz`)
-- `run_coremark_profile.bat rv32` -> PASS (`12516421 cycles`)
-
-strict `>=10s` rerun was attempted in this round but exceeded local runtime
-budget (`7200s` timeout) before completion, so strict fresh timestamp was not
-updated.
-
-Next queued direction after FQ-05 closure:
-`FQ-06` fetch request FIFO + outstanding-request decouple
-(`docs/superpowers/specs/2026-04-07-yh-rv-cpu-fq06-fetch-request-fifo-design.md`).
+| Command | `scripts\run_riscv_tests_subset.bat rv32 - - 120000 YH_rv_cpu\scripts\riscv_tests_rv32_ui_all.txt - continue YH_rv_cpu\sw\linker\YH_rv_cpu_riscv_tests_large.ld 0x00008000` |
+| Overall result | `41/42` |
+| Summary | `build/tests/riscv-tests/rv32/summary.txt` |
+| Newly important pass | `ma_data` |
+| Current only failure | `fence_i` |
+| Failure class | assembler ISA mismatch: current `-march=rv32i_zicsr` does not include `zifencei` |
+
+### Current decision gate
+
+Before optimization work resumes, the following must be closed:
+
+1. decide whether `fence_i` belongs in the claimed ISA/test matrix
+2. rerun and archive `rv32/rv64 full-ui`
+3. refresh baseline `rv32/rv64` summaries
+4. refresh CoreMark smoke/short and strict if budget requires
+5. sync all status docs and commit the closure
+
+Until those items are complete, `FQ-06` remains queued but not active.

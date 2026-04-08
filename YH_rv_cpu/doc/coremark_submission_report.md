@@ -4,13 +4,15 @@
 
 This document freezes the CoreMark reporting path used for the competition
 submission package.
-Project-wide frozen baseline references were refreshed on `2026-04-07`; this
-report remains the command-level authority for the CoreMark score flow.
 
-- `scripts/run_coremark_smoke.bat` is the fast functional smoke test.
-- `scripts/run_coremark_score.bat` is the reproducible submission score path.
-- Host-side parsing is authoritative for `CoreMark/MHz` because the portable
-  `HAS_FLOAT=0` build keeps the benchmark output integer-only.
+Two layers must be distinguished:
+
+- frozen command-level baseline: the current competition-facing score flow
+- active worktree validation: newer non-CoreMark tasks that do not change the
+  frozen CoreMark numbers unless a fresh rerun is completed
+
+As of `2026-04-08`, the CoreMark path itself is unchanged. Current active work
+is focused on expanded `riscv-tests` coverage and documentation closure.
 
 ## Frozen Commands
 
@@ -20,33 +22,41 @@ report remains the command-level authority for the CoreMark score flow.
 scripts\run_coremark_smoke.bat rv32
 ```
 
-Expected purpose:
+Purpose:
 
 - verify that CoreMark can build and complete on the current RTL
 - keep runtime short enough for routine regression
 
-### Score
+### Short Score
 
 ```bat
 scripts\run_coremark_score.bat rv32 10 2000 100000000UL 20000000
 ```
 
-Expected purpose:
+Purpose:
 
 - run the full workload with `EXEC_MASK=0`
 - capture a reproducible raw log and parsed summary
-- mark whether the run is a competition-reportable short run or a strict
-  EEMBC-valid `>=10s` run
+- maintain the fast comparison path used during routine optimization work
 
-## Frozen Short-Run Baseline (2026-04-03)
+### Strict `>=10s` Score
 
-Raw log:
+```bat
+scripts\run_coremark_score.bat rv32 1000 2000 100000000UL 1500000000 build\sw\YH_rv_cpu_coremark_rv32_strict.summary.txt
+```
 
-- `build/sw/YH_rv_cpu_coremark_rv32_score.log`
+Purpose:
 
-Parsed summary:
+- produce the strict EEMBC-valid `>=10s` answer
+- confirm that the retained baseline scales without changing workload semantics
 
-- `build/sw/YH_rv_cpu_coremark_rv32_score.summary.txt`
+## Frozen Short-Run Baseline
+
+Project-wide references were refreshed on `2026-04-07`. The underlying short
+run evidence remains:
+
+- raw log: `build/sw/YH_rv_cpu_coremark_rv32_score.log`
+- parsed summary: `build/sw/YH_rv_cpu_coremark_rv32_score.summary.txt`
 
 Current result:
 
@@ -64,34 +74,23 @@ Current result:
 
 Interpretation:
 
-- The run is suitable for a reproducible competition submission report.
-- The run is not a strict EEMBC-valid score because the benchmark does not run
-  for 10 seconds in simulation at the frozen `10` iteration setting.
+- this is the frozen fast comparison path
+- it is suitable for competition-package reporting as the short path
+- it is not the strict EEMBC-valid answer by itself
 
 Validation note:
 
-- In this port, CoreMark still prints `Errors detected` when the runtime is
-  under 10 seconds. For the fresh frozen score above, the actual benchmark CRCs
-  still match the expected `2K performance` values:
+- In this port, CoreMark still prints `Errors detected` when runtime is under
+  10 seconds. That line reflects the EEMBC runtime floor, not a CRC mismatch.
+- The benchmark CRCs still match the expected `2K performance` values:
   `crclist=0xe714`, `crcmatrix=0x1fd7`, `crcstate=0x8e3a`.
-- Treat the frozen score as `competition_reportable=yes` but
-  `strict_eembc_10s_compliant=no`.
 
-## Strict EEMBC-Valid Long Run (2026-04-04)
+## Strict EEMBC-Valid Long Run
 
-Command:
+The current authoritative strict evidence is:
 
-```bat
-scripts\run_coremark_score.bat rv32 1000 2000 100000000UL 1500000000 build\sw\YH_rv_cpu_coremark_rv32_strict.summary.txt
-```
-
-Raw log:
-
-- `build/sw/YH_rv_cpu_coremark_rv32_strict.log`
-
-Parsed summary:
-
-- `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt`
+- raw log: `build/sw/YH_rv_cpu_coremark_rv32_strict.log`
+- parsed summary: `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt`
 
 Current result:
 
@@ -111,12 +110,11 @@ Current result:
 
 Interpretation:
 
-- The project now has a fresh strict EEMBC-valid `>=10s` CoreMark run.
-- The frozen short run remains useful as a fast reproducible reporting path.
-- The strict long run is the authoritative answer when a strict-valid result is
-  required.
+- this is the authoritative strict-valid answer
+- the short path remains useful for rapid comparison
+- the strict path is the one to quote when a formal `>=10s` result is required
 
-## FPGA-Like Probe (2026-04-03)
+## FPGA-Like Probe
 
 Command:
 
@@ -128,20 +126,31 @@ Purpose:
 
 - exercise the near-FPGA synchronous memory configuration
 - verify the retained `IMEM_OUTPUT_REG=0 / DMEM_OUTPUT_REG=0` default
-- keep the workload small enough for quick turnaround during FPGA-path tuning
+- keep the workload small enough for fast FPGA-path tuning
 
 Result:
 
 - `completion_cycles = 156442`
 - `CoreMark/MHz (host-parsed) = 7.728811`
 - `validation_clean = yes`
-- `competition_reportable = no` because this is not the frozen full-workload
-  score path
+- `competition_reportable = no`
+
+## 2026-04-08 Status Note
+
+No fresh CoreMark rerun was completed in this worktree on `2026-04-08`.
+Current active work is instead:
+
+- expanded `riscv-tests` validation beyond the frozen baseline subsets
+- documentation synchronization to the current true repo state
+- closure of the `fence_i` ISA/march ambiguity in the general `rv32ui` matrix
+
+Do not quote a newer CoreMark timestamp until smoke, short, and any required
+strict reruns are actually completed again.
 
 ## Notes
 
-- `run_coremark_smoke.bat` intentionally uses a smaller workload and keeps the
-  default timer at `1000UL`.
+- `run_coremark_smoke.bat` intentionally uses a smaller workload and a lighter
+  runtime budget.
 - `run_coremark_score.bat` passes the real reporting clock (`100000000UL`) and
   relies on `report_coremark_result.py` to compute the final host-side score.
 - The short run and strict run intentionally coexist:

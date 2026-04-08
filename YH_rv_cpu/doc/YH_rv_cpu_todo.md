@@ -2,83 +2,64 @@
 
 ## 已完成
 
-- [x] 冻结 CoreMark 正式短跑口径
+- [x] 冻结 CoreMark short 正式口径
 - [x] 冻结 strict EEMBC `>=10s` CoreMark 长跑口径
 - [x] 冻结 RV32 baseline `33/33`
 - [x] 冻结 RV64 baseline `21/21`
-- [x] 冻结 FPGA `impl50` 比特流和 fresh 资源/时序口径
-- [x] 冻结 FPGA-like CoreMark probe 入口
-- [x] 收口 FPGA pre-board SOP、串口口径、evidence 路径和 firmware staging 说明
-- [x] 完成当前状态文档统一
-- [x] 完成 debug/trace 资产治理
+- [x] 冻结 FPGA `impl50` fresh 资源/时序/bitstream 口径
+- [x] 冻结 FPGA-like CoreMark probe 入口与结果
+- [x] 收口 FPGA pre-board SOP、串口口径、evidence 路径和 demo payload staging
 - [x] 明确保留优化：
   - `stall_decode = load_use_hazard`
   - `IMEM_OUTPUT_REG=0`
   - `DMEM_OUTPUT_REG=0`
 - [x] 明确关闭“简单放松 `stall_decode` 继续优化 fetch”的方向
-- [x] 完成第一轮 `fetch/request/queue` 单变量实验
-- [x] 拒绝保留 1-entry request-side cursor RTL，原因是 short score delta 为 `0`
-- [x] 新增 `mem-wait overlap` 定向诊断
-- [x] 完成 `mem-wait overlap` 单变量 RTL 试验并拒绝保留（short score 无收益）
+- [x] 完成 `request-cursor / pipe-hit / redirect 同拍取指 / FQ-01 ~ FQ-05` 单变量试验并拒绝保留
 - [x] 修复 `timer_irq_smoke` 回归
-- [x] 重新冻结第二轮优化前基线
-- [x] 让 `scripts/build_vivado_project.bat impl50` 默认绑定冻结 demo payload
-- [x] 已补齐 redirect/flush/drop-accounting 小步验证方案，并完成双变体 strict 通过
-- [x] 完成 redirect `pipe-hit` 单变量复核并拒绝保留（strict 可过但 short score 无收益）
-- [x] 完成 redirect 同拍取指单变量复核并拒绝保留（定向诊断通过但 short score 无收益）
-- [x] 完成 FQ-01（queue 语义解耦）单变量复核并拒绝保留（诊断全绿但 short score 无收益）
-- [x] 完成 FQ-02（queue/FIFO occupancy）单变量复核并拒绝保留（诊断全绿但 short score 无收益）
+- [x] 为普遍 `riscv-tests` 扩展验证补入：
+  - full-ui manifest
+  - large linker
+  - custom `tohost_addr`
+  - misaligned trap 软件补偿
+- [x] 用 fresh `rv32 full-ui` 证明 `ma_data` 已通过，不再是 trap 回到 `0x0` 的旧问题
 
-## 待处理
+## 正在进行
 
-- [x] 设计并冻结 `FQ-03` 全新非重复假设（explicit 3-entry queue 语义）
-- [x] 执行 `FQ-03` quick screen：redirect diag 默认 + redirect accounting strict(`IMEM_OUTPUT_REG=0/1`) + CoreMark smoke + CoreMark short
-- [x] 完成 `FQ-03` 保留决策：不保留（short score 未优于 `11014885 cycles`，已回退 RTL）
-- [x] 执行下一轮方向切换：停止重复前端已拒绝候选（request-cursor / pipe-hit / redirect 同拍取指 / FQ-01 / FQ-02 / FQ-03）
-- [x] 跑 `scripts\run_coremark_profile.bat rv32` 并固化 profile 证据（作为 `FQ-04` 立项输入）
-- [x] 设计并冻结 `FQ-04` 非重复单变量候选（已执行，结果为 `if_id` redirect-hit bubble bypass）
-- [x] 执行 `FQ-04` quick screen（与 FQ-03 相同门禁，结果：guardrail 全绿但 short score 未提升）
-- [x] 完成 `FQ-04` 保留决策：不保留（short score 仅到 `11014886 cycles`，已回退 RTL）
-- [x] 切换到 `FQ-05`：基于 fresh profile / 复盘结果提出下一轮非重复单变量候选（P1/P2/P3）
-- [x] 执行 `FQ-05A` quick screen（queue-consume/data-write 对齐，guardrail 全绿但 short score 无提升）
-- [x] 完成 `FQ-05A` 保留决策：不保留（`11014885 cycles`，与冻结基线相同，已回退 RTL）
-- [x] 执行 `FQ-05B` quick screen（redirect-reuse next-line prefetch，guardrail 全绿但 short score 无提升）
-- [x] 完成 `FQ-05B` 保留决策：不保留（`11014885 cycles`，与冻结基线相同，已回退 RTL）
-- [x] 执行 `FQ-05C` quick screen（mem_wait 期间 IF/ID 预装载，首个 redirect guardrail 即失败并回退 RTL）
-- [x] 完成 `FQ-05C` 保留决策：不保留（`run_fetch_redirect_reuse_diag.bat` timeout，按门禁提前终止）
-- [x] 完成 `FQ-05` 系列收口：明确“当前单变量前端候选无可保留收益/稳定性”，并冻结基线
-- [ ] 立项并执行 `FQ-06` 高侵入度课题：fetch request FIFO + outstanding request 跟踪解耦（需新 spec + 风险审查 + 新 guardrail）
-- [ ] strict `>=10s` CoreMark fresh rerun（本轮已尝试但超出 `7200s` 本机预算；如需刷新 strict 时间戳建议夜间长跑）
-- [ ] 若出现 retained 候选，补齐完整 fresh 回归矩阵并统一同步文档口径（README / handoff / todo / regression / performance）
+- [ ] 明确 `fence_i` 的处理策略：
+  - 选项 A：把 `zifencei` 纳入当前矩阵并重跑
+  - 选项 B：保持 `RV32I + Zicsr` 口径，并明确把 `fence_i` 标为超出口径项
+- [ ] 重跑并归档 `rv32 full-ui`
+- [ ] 重跑并归档 `rv64 full-ui`
+- [ ] 重跑 fresh `rv32 baseline`
+- [ ] 重跑 fresh `rv64 baseline`
+- [ ] 补 fresh CoreMark smoke / short
+- [ ] 视本机预算决定是否补 fresh strict `>=10s` CoreMark
+- [ ] 对齐 README / 技术文档 / handoff / regression log / performance log / submission report
+- [ ] 做 focused git commit，只提交当前阶段直接相关成果
+
+## 当前事实
+
+- [x] `rv32 full-ui` 最新活跃结果是 `41/42`
+- [x] 当前唯一失败项是 `fence_i`
+- [x] `fence_i` 当前根因是 `-march=rv32i_zicsr` 不包含 `zifencei`
+- [x] 当前问题不是“跑得慢”，而是 ISA/march 口径问题
+
+## 暂不推进
+
+- [ ] 暂不重启高侵入 `FQ-06`，直到扩展验证和文档闭环完成
+- [ ] 暂不推进实板 bring-up，当前只保留 pre-board 冻结状态
 
 ## 仅外部阻塞
 
 - [ ] 实体板卡到位后完成 UART/LED 实板闭环
 - [ ] 板卡到位后补齐正式 I/O delay 约束与实板证据
 
-## 下一轮性能优化入口
+## 重新进入性能优化的门禁
 
-只有满足以下条件后，才允许进入下一轮性能优化：
+只有满足以下条件后，才允许继续下一轮性能优化：
 
-1. 当前优化方案有明确的单变量边界。
-2. 新基线已写入 `doc/performance_experiment_log.md`。
-3. 每轮实验都承诺重跑 fresh 回归矩阵。
-4. 工作区保持只有 intentional 内容或外部阻塞。
-
-当前建议执行顺序：
-
-1. 先执行 `FQ-03` 结果归档（已完成，结论：rejected）。
-2. 进入 `FQ-04`：先跑 profile，再定候选，避免无证据重复试验。
-3. `FQ-04` / `FQ-05A` / `FQ-05B` / `FQ-05C` 已执行并拒绝保留。
-4. `FQ-05` 系列已收口完成；如继续优化，下一步转入更高侵入度新课题。
-
-允许优先探索的方向：
-
-- `fetch/request/queue` 解耦设计
-- redirect/flush/drop accounting 定向验证
-- 单变量 RTL 实验
-
-禁止直接重开的方向：
-
-- 没有新验证计划时重开 redirect `pipe-hit` RTL
-- 继续拍脑袋放松 `stall_decode`
+1. `fence_i` 口径已经写清楚
+2. `rv32/rv64 full-ui` 已有 fresh 归档结果
+3. fresh baseline 与 fresh CoreMark 已补齐到可接受程度
+4. README / handoff / regression / performance / submission report 全部同步
+5. 当前阶段成果已做 focused git commit

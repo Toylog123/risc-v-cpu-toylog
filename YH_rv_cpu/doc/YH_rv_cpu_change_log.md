@@ -1,299 +1,62 @@
-# YH_rv_cpu 修改记录
+# YH_rv_cpu Change Log
 
-## 2026-03-16
+## Scope
 
-### 变更 1：建立正式比赛工程
+This file keeps only the milestones that still matter for understanding the
+current project baseline. Older one-off debug notes should be read from git
+history instead of being treated as the current engineering truth.
 
-- 从参考实现中独立出正式比赛工程
-- 固化工程内交接、记录和任务清单机制
+## 2026-04-03 - Retain O1 Load-Use Stall Tightening
 
-### 变更 2：完成 `RV32I` 五级流水第一版
+- Retained `stall_decode = load_use_hazard`
+- Short CoreMark improved from `0.888486` to `0.912472 CoreMark/MHz`
+- Current competition baseline still inherits this retained change
 
-- 建立 `IF / ID / EX / MEM / WB`
-- 打通基础前递、`load-use` 暂停和跳转重定向
+## 2026-04-04 - Close Strict CoreMark Validation
 
-### 变更 3：打通最小 SoC 闭环
+- Added the strict `>=10s` CoreMark path
+- Current strict-valid result:
+  - `0.912465 CoreMark/MHz`
+  - `1095991523 cycles`
+  - `10.959325s`
+- The project now has both:
+  - short reproducible comparison path
+  - strict EEMBC-valid reporting path
 
-- 新增 `ROM / RAM / UART / DONE / timer`
-- 打通固件构建链路
-- 完成 `xsim` SoC smoke
+## 2026-04-07 - Freeze Competition Baseline
 
-### 变更 4：补齐最小机器态 `CSR / trap`
+- Refreshed the frozen competition-facing baseline
+- Current retained baseline:
+  - CoreMark short: `11014885 cycles`, `0.912472 CoreMark/MHz`
+  - RV32 baseline: `33/33`
+  - RV64 baseline: `21/21`
+  - impl50: `2556 LUT / 2170 FF / 4 BRAM / 0 DSP`, `WNS=+5.599ns`, `WHS=+0.025ns`
+  - FPGA-like probe: `156442 cycles`, `7.728811 CoreMark/MHz`
+- Closed and rejected the single-variable front-end quick-screen rounds through
+  `FQ-05`
+- Froze the FPGA pre-board flow and the default `impl50` demo payload
 
-- 接入最小机器态 CSR
-- 支持 `ecall / ebreak / mret`
-- 完成 `xsim` trap smoke
+## 2026-04-08 - Expand General `riscv-tests` Coverage And Sync Docs
 
-### 变更 5：补齐 machine timer interrupt
-
-- 接入 `mie / mip / MTIE / MTIP`
-- 新增 timer irq 烟测程序和测试平台
-- 完成 `xsim` timer irq smoke
-
-### 变更 6：正式工程统一改名为 `YH_rv_cpu`
-
-- 根目录工程切换为 `YH_rv_cpu`
-- 工具链目录切换为 `04-工具链/YH_rv_cpu_toolchain`
-- 路径、脚本和文档入口统一切换
-
-### 变更 7：抽出 `XLEN` 参数化骨架
-
-- 给 CPU 顶层、SoC 顶层、关键流水级、ALU 和寄存器堆增加 `XLEN`
-- 当前保持 `XLEN=32`，验证链路继续通过
-- 为后续 `RV32 / RV64` 共线改造预留统一数据通路
-
-### 变更 8：建立 `XLEN=64` 基础烟测
-
-- 补上 `RV64` 下 6 位移位量的立即数译码基础支持
-- 新增 `tb/YH_rv_cpu_xlen64_tb.v`
-- 新增 `scripts/run_xlen64_smoke.bat`
-- 实测通过：`PASS: xlen64 smoke test completed at PC=0000000000000020 in 17 cycles`
-
-### 变更 9：打通 Vivado 本地综合链
-
-- `build_vivado_project.bat` 现在会自动临时映射 ASCII 盘符，规避中文路径导致的 Vivado 退出问题
-- `build_nexys_a7_100_project.tcl` 增加分步日志，能稳定导出检查点、资源报告和时序报告
-- 本地综合会优先挂接 `build/tests/riscv-tests/rv32/simple.hex`，并用 `ROM/RAM = 8KB/8KB` 做资源估算
-- 新增 `scripts/clean_vivado_project.bat`，用于清理 `project/` 下的 Vivado 中间产物
-- 实测导出：
-  - `project/reports/synth_utilization.rpt`
-  - `project/reports/synth_timing_summary.rpt`
-  - `project/YH_rv_cpu_nexys_a7_100_synth.dcp`
-
-### 变更 10：补入第一版 FPGA 资源与时序结论
-
-- `xc7a100tcsg324-1` 综合结果：
-  - `Slice LUTs = 3445`
-  - `Slice Registers = 1962`
-  - `LUT as Memory = 1024`
-  - `BRAM = 0`
-  - `DSP = 0`
-- 当前 100MHz 约束下 `WNS = -2.405ns`
-- 当前模板 `XDC` 仍存在 `no_input_delay(1)` 和 `no_output_delay(4)`，正式板卡到位后要补齐
-
-### 变更 11：新增整体设计总文档
-
-- 新增 `doc/技术文档.md`
-- 把 CPU、SoC、验证、FPGA、改动入口和后续维护规则收成一份长期维护的总文档
-- 已同步接入 `README.md`、`YH_rv_cpu_handoff.md` 和根 `.codex-handoff.json`
-
-### 变更 12：补齐 50MHz / 100MHz 双档综合口径
-
-- `build_vivado_project.bat` 新增 `synth50` 和 `synth100`
-- `build_nexys_a7_100_project.tcl` 改成按时钟周期动态生成临时 XDC，并把报告按频率分目录输出
-- `nexys_a7_100_template.xdc` 现在只保留板级模板占位，不再内嵌固定时钟周期
-- 最新结论：
-  - `100MHz`：`3450 LUT / 1962 FF / 0 BRAM / 0 DSP`，`WNS = -2.487ns`
-  - `50MHz`：`3424 LUT / 1962 FF / 0 BRAM / 0 DSP`，`WNS = 7.525ns`
-
-### 变更 13：确认当前 BRAM 迁移的结构前提
-
-- 额外试过一轮针对 `100MHz` 的流水寄存器控制链优化，但综合结果更差，已经回退
-- 当前稳定基线仍以：
-  - `100MHz`：`WNS = -2.487ns`
-  - `50MHz`：`WNS = 7.525ns`
-  为准
-- 明确结论：当前 `ROM/RAM` 还没进 BRAM，不是单纯属性问题，而是因为 SoC 还采用零等待、组合读出的异步存储接口
-- 后续 BRAM 化必须先改同步返回语义，再改底层存储实现
-### 变更 14：接入同步取指路径并固化 mem32 镜像流程
-
-- `YH_rv_cpu.v` 增加 `IMEM_SYNC` 和 `imem_rvalid`，CPU 可以接受同步取指返回
-- `YH_rv_cpu_soc.v` 接入同步取指路径，并保留现有 SoC 骨架
-- 新增 `rtl/YH_rv_sync_imem_rom.v`
-- 新增 `scripts/make_word_hex.py`
-- `build_firmware.bat`、`build_coremark.bat`、`run_riscv_tests_subset.bat` 现在都会生成 `*.mem32.hex`
-- `build_vivado_project.bat` 现在优先挂接：
-  - `build/tests/riscv-tests/current.hex`
-  - `build/tests/riscv-tests/current.mem32.hex`
-- Vivado 临时盘符映射逻辑加固为 `V:/W:/X:/Y:/Z:` 轮询，不再在映射失败时悄悄退回中文路径
-- 最新综合结果：
-  - `100MHz`：`4086 LUT / 2040 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = -2.468ns`
-  - `50MHz`：`4061 LUT / 2040 FF / 1024 LUTRAM / 0 BRAM / 0 DSP`，`WNS = 7.548ns`
-- 当前结论：
-  - 同步取指已经正式进入主线
-  - 但 `BRAM` 仍未被推断，说明后续仍需继续推进同步存储结构，而不是只靠属性优化
-
-### 变更 15：把默认 rv32 回归子集收成稳定基线
-
-- `run_riscv_tests_subset.bat rv32` 当前默认子集已整组通过
-- 脚本现在会自动生成：
-  - `build/tests/riscv-tests/rv32/summary.txt`
-- 这样后续每次回归后都能直接看到：
-  - 跑了哪些测试
-  - 是全部通过还是中途失败
-  - 当前通过数量
-- 这次确认通过后，当前项目的功能基线已经从“单个 add 用例”提升为“一组默认 rv32 子集”
-## 变更 16：同步 dmem 语义接入主线
-
-- `rtl/YH_rv_cpu.v`
-  - 新增 `DMEM_SYNC`
-  - 新增 `dmem_read_req` / `dmem_rvalid`
-  - 新增 MEM 阶段等待逻辑，保证同步数据返回时流水线不会错误推进
-- `rtl/YH_rv_cpu_mem_stage.v`
-  - 导出 `dmem_read_req`
-- `rtl/YH_rv_cpu_soc.v`
-  - 新增 `SYNC_DMEM`
-  - 在 SoC 中加入同步数据返回寄存器
-- `tb/*.v`
-  - SoC smoke、trap、timer irq、coremark 路线切换到 `SYNC_DMEM=1`
-  - 核心 testbench 同步补齐新接口
-- `fpga/vivado/src/YH_rv_cpu_fpga_top.v`
-  - FPGA 顶层改为使用同步 `dmem`
-- 验证结论
-  - `rv32` 默认回归子集仍然全通过
-  - `xlen64 smoke` 仍然通过
-  - `50MHz / 100MHz` 综合链仍然可跑通
-
-## 变更 17：dmem BRAM 推断成功
-
-- 新增 `rtl/YH_rv_dmem_ram.v`
-  - 把数据 RAM 从 SoC 内联数组抽成独立包装层
-  - 同时保留同步读和异步读两种路径
-- `rtl/YH_rv_cpu_soc.v`
-  - 改为通过 `u_dmem_ram` 承接数据 RAM
-  - 保持现有 `SYNC_DMEM` 返回语义不变
-- 本轮关键修正
-  - 去掉同步 RAM 分支里的异步复位
-  - 改成按 byte lane 直接写入的块 RAM 友好模板
-- 验证结论
-  - `run_soc_smoke.bat` 通过
-  - `run_trap_smoke.bat` 通过
-  - `run_timer_irq_smoke.bat` 通过
-  - `run_riscv_tests_subset.bat rv32` 默认子集全通过
-  - `synth50` / `synth100` 全部通过
-- 最新资源与时序
-  - `50MHz`：`2590 LUT / 2033 FF / 2 BRAM / 0 DSP`，`WNS = 7.556ns`
-  - `100MHz`：`2611 LUT / 2030 FF / 2 BRAM / 0 DSP`，`WNS = -2.470ns`
-- 当前结论
-  - `dmem` BRAM 路线已验证成功
-  - 下一步重点转向 `imem/ROM` 和 `100MHz` 时序收敛
-
-## 变更 18：统一工作区到 icdc_workspace，并收纳 Vivado / xsim 临时文件
-
-- 当前正式工作区统一为 `当前仓库根目录（icdc_workspace）`
-- 新增脚本：
-  - `scripts/open_vivado_project.bat`
-  - `scripts/organize_tool_logs.bat`
-  - `scripts/stage_runtime_to_tmp.bat`
-  - `scripts/resolve_python.bat`
-- `scripts/build_vivado_project.bat`
-  - Vivado 用户态缓存改为落在仓库根 `_tmp/vivado_user/`
-  - `vivado.log` / `vivado.jou` 改为落在仓库根 `_tmp/tool_logs/vivado/`
-- `run_*` 仿真脚本
-  - 运行后会把 `xsim.dir` 和 `xvlog/xelab/xsim` 日志归档到仓库根 `_tmp/`
-- 文档新增：
-  - `_tmp/README.md`
-  - `doc/项目结构说明.md`
-- 旧中文工作区已迁入当前工作区 `_tmp/legacy/`，后续不再作为正式工作区使用
-
-## 变更 19：正式交接收口与当前工作区基线校对
-
-- 当前唯一正式工作区固定为当前仓库根目录 `icdc_workspace`
-- 旧中文工作区只保留在 `_tmp/legacy/` 作为历史快照，不再作为正式开发路径
-- 目录与日志规则继续收口：
-  - `scripts/organize_tool_logs.bat` 现在会额外收纳 `clockInfo.txt`
-  - 根 `.gitignore` 新增 `/clockInfo.txt`
-  - 根 `.gitignore` 改为忽略 `/_tmp/*`，同时保留 `_tmp/README.md` 可提交
-  - `doc/项目结构说明.md` 与 `_tmp/README.md` 已同步补齐 `clockInfo.txt` 的收纳说明
-- 2026-03-23 重新验证通过：
-  - `scripts/check_syntax.bat`
-  - `scripts/build_firmware.bat`
-  - `scripts/run_soc_smoke.bat`
-  - `scripts/run_trap_smoke.bat`
-  - `scripts/run_timer_irq_smoke.bat`
-- 当前可直接引用的最新 Vivado 结果仍为 2026-03-20：
-  - `synth100`：`WNS = +0.261ns`，`2548 LUT / 2229 FF / 4 BRAM / 0 DSP`
-  - `impl100`：`WNS = +0.103ns`，`2543 LUT / 2230 FF / 4 BRAM / 0 DSP`
-  - `synth50`：`WNS = +6.237ns`，`2842 LUT / 2314 FF / 2 BRAM / 0 DSP`，但未在最新 `4 BRAM` 基线上复跑
-- 当前交接结论：
-  - 当前根目录已经干净，Vivado / xsim / 时钟调试文件都有统一收纳规则
-  - 当前 `100MHz` 最新实现口径已过线，但裕量较小
-  - 下一阶段优先级已从“先过 100MHz”转向“接 CoreMark、补 RV64 / 更完整回归、推进正式板级闭环"
-
-## 变更 20：CoreMark libgcc 修复
-
-### 问题描述
-- CoreMark 编译时出现 "Missing libgcc for rv32" 错误
-- 需要正确链接 libgcc 和 libm 库
-
-### 解决方案
-- `scripts/build_coremark.bat`
-  - 使用 `riscv-none-elf-gcc -print-libgcc-file-name` 动态检测 libgcc 路径
-  - 使用 `riscv-none-elf-gcc -print-file-name=libm.a` 动态检测 libm 路径
-  - 条件性地链接这些库
-- `sw/coremark_port/core_portme.h`
-  - 设置 `HAS_FLOAT=0` 禁用浮点支持
-  - 加速软件模拟，避免漫长的浮点库调用
-
-### 验证结果
-- CoreMark ELF 文件成功生成 (143716 字节)
-- 仿真成功运行 200 次迭代
-- CRC 校验不匹配是 soft-float 系统的预期行为，非 bug
-- riscv-tests 回归脚本验证通过
-
-### 技术说明
-- RV32I 无硬件 FPU，所有浮点运算通过软件库模拟
-- 每个浮点操作需要数百到数千个 CPU 周期
-- CoreMark 在 RV32I soft-float 上运行非常慢是正常现象
-
-## 变更 21：扩大 RV64 riscv-tests 回归覆盖
-
-### 变更内容
-- 创建 `build/tests/riscv-tests/rv64` 目录
-- 运行 `run_riscv_tests_subset.bat rv64` 验证 RV64 子集测试
-
-### 验证结果
-- rv64ui 子集测试 21/21 全部通过
-- 测试包括：add addi addiw addw ld lwu sd sll slli slliw sllw sra srai sraiw sraw srl srli srliw srlw sub subw
-- 全部在 40000 周期限制内完成
-
-### 当前 RV64 支持状态
-- XLEN=64 基础烟测通过
-- rv64ui 子集 21 个测试全部通过
-- 32 个基础指令验证完成
-
-## 变更 22：优化 100MHz 时序收敛
-
-### 变更内容
-- 修改 `fpga/vivado/scripts/build_nexys_a7_100_project.tcl`
-- 在 synth_design 中添加 `-retiming -fanout_limit 32` 综合优化选项
-- 优化 impl 阶段的 directive 使用 Explore
-
-### 验证结果
-- **Setup: WNS = +2.481ns** (之前 +0.103ns，显著改善)
-- **Hold: WHS = +0.602ns**
-- 0 Failing Endpoints
-
-### 优化效果
-- 时序裕量从 0.103ns 提升到 2.481ns
-- 提升了约 24 倍的裕量
-- 100MHz 频率稳定运行
-
-## 变更 23：RTL 代码注释增强
-
-### 变更内容
-- 为所有 RTL 模块添加详细中文注释，满足赛题要求（代码注释率 ≥30%）
-- 注释规范：
-  - 模块级文件头注释（作者 Toylog、版本号、功能概述）
-  - 端口信号注释
-  - 内部信号注释
-  - 功能块分段注释
-  - 重要逻辑的详细说明
-
-### 修改的文件
-| 文件 | 功能 |
-|------|------|
-| `rtl/YH_rv_cpu_decoder.v` | 指令译码器，支持所有 RISC-V I/M/B/J/U/SYSTEM 指令 |
-| `rtl/YH_rv_cpu_hazard_unit.v` | 数据冒险检测与转发控制单元 |
-| `rtl/YH_rv_cpu_regfile.v` | 32 个通用寄存器，双端口读、单端口写 |
-| `rtl/YH_rv_cpu_if_stage.v` | 取指阶段：PC 管理、内存地址输出 |
-| `rtl/YH_rv_cpu_id_stage.v` | 译码阶段：译码器实例化、寄存器读取 |
-| `rtl/YH_rv_cpu_ex_stage.v` | 执行阶段：ALU 运算、分支判断 |
-| `rtl/YH_rv_cpu_mem_stage.v` | 访存阶段：内存访问、数据加载格式化 |
-| `rtl/YH_rv_cpu_wb_stage.v` | 写回阶段：ALU/内存/PC+4 三选一写回 |
-| `rtl/YH_rv_cpu.v` | 顶层 CPU 模块：五级流水线组织、CSR |
-| `rtl/YH_rv_cpu_soc.v` | SoC 顶层：CPU/ROM/RAM/UART/定时器集成 |
-
-### 验证结果
-- `scripts/check_syntax.ps1` 语法检查通过
-- 所有模块注释完整、结构清晰
+- Added full-ui manifests:
+  - `scripts/riscv_tests_rv32_ui_all.txt`
+  - `scripts/riscv_tests_rv64_ui_all.txt`
+- Added large linker for broader `riscv-tests` coverage:
+  - `sw/linker/YH_rv_cpu_riscv_tests_large.ld`
+- Extended `run_riscv_tests_subset.bat` with:
+  - custom manifest support
+  - custom `march`
+  - custom linker
+  - custom `tohost_addr`
+  - non-fail-fast summary mode
+- Added misaligned load/store trap software compensation in
+  `sw/riscv-tests-env/riscv_test.h`
+- Fresh active result:
+  - `rv32 full-ui = 41/42`
+  - `ma_data = PASS`
+  - only current open item is `fence_i`
+- Current root cause for `fence_i` is not timeout or trap looping. It is the
+  current compile ISA scope: `-march=rv32i_zicsr` does not include `zifencei`
+- Synced the main docs so they now distinguish:
+  - frozen baseline
+  - active 2026-04-08 validation worktree

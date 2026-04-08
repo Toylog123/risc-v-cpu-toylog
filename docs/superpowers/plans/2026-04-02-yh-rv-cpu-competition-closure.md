@@ -10,6 +10,28 @@
 
 ---
 
+## 2026-04-08 Status Update
+
+- Phase A is effectively closed:
+  - CoreMark short path frozen
+  - strict `>=10s` path available
+  - command/report/doc split already in place
+- Phase B is partially closed:
+  - pre-board FPGA flow is frozen
+  - real-board closure remains externally blocked and is not the active priority
+- Phase C front-end quick-screen rounds are closed through `FQ-05`, all rejected
+  for no retainable gain or early guardrail failure
+- Current active closure task is no longer "invent another optimization"; it is
+  "expand `riscv-tests` coverage, close the `fence_i` ISA/march ambiguity, then
+  rerun fresh regression and sync docs"
+- Current fresh active evidence:
+  - `rv32 full-ui = 41/42`
+  - `ma_data = PASS`
+  - only current open item is `fence_i`, blocked by `zifencei` ISA/march scope
+
+Treat the rest of this plan as historical execution guidance plus a checklist
+for anything that still remains incomplete.
+
 ## Scope And Guardrails
 
 - The first phase is not "make the score look better"; it is "make the score reproducible, explainable, and submission-safe".
