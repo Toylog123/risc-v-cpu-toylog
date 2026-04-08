@@ -106,6 +106,7 @@
 - correctness guardrail：`run_fetch_redirect_reuse_diag.bat` 严格覆盖 `IMEM_OUTPUT_REG=0/1` 的 queue preserve 与 drop-accounting，均已通过
 - quick-screen gate：`require_prefetch` / `require_queue_fill` / redirect / memwait / smoke 全绿，但 CoreMark short 仍为 `11014885 / 0.912472`
 - 收口动作：实验 RTL 已回退，主线只保留更强的 prefetch 诊断和脚本 plusarg 归一化
+- fresh profile follow-up：`build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-08.log` 显示 `fetch_queue_empty_cycles = ex_fetch_redirect_valid_cycles = 1504970`，说明剩余大头是 redirect 代价，不是 request-side 缺口
 
 ## 6. 关键文档与命令
 
@@ -152,4 +153,5 @@ scripts\run_coremark_fpga.bat rv32
 - 当前主要不再是收口缺口，而是下一阶段优化工作：
   - freeze post-closure baseline
   - decide whether there is a genuinely new `FQ-06` hypothesis beyond the rejected bounded request-cursor slice
+  - do not reopen request/queue micro-tuning unless a new control-flow hypothesis justifies it
   - keep docs aligned if optimization resumes

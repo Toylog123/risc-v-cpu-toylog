@@ -175,3 +175,23 @@ Notes:
 - Keep the new `run_fetch_prefetch_diag.bat` plusarg normalization and the
   `require_queue_fill` guardrail in-tree; they are useful entry points for any
   future fetch/request experiment.
+
+## 2026-04-08 Post-FQ-06A Profile Follow-up
+
+After reverting the trial RTL, a fresh profile run was taken on the restored
+baseline via `scripts\run_coremark_profile.bat rv32 10 2000 100000000UL 20000000`.
+The log is archived at `build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-08.log`.
+
+| Counter | Value |
+|------|------|
+| `PROFILE: total_cycles` | `12516421` |
+| `PROFILE: stall_decode_cycles` | `207474` |
+| `PROFILE: mem_wait_cycles` | `553215` |
+| `PROFILE: ex_fetch_redirect_valid_cycles` | `1504970` |
+| `PROFILE: fetch_queue_empty_cycles` | `1504970` |
+
+Conclusion:
+
+- residual fetch starvation is aligned exactly with redirect windows
+- request-side decouple is no longer the main missing piece on the restored baseline
+- if optimization resumes, the next meaningful direction must attack control-flow redirect cost directly; repeating request/queue micro-tuning is likely redundant

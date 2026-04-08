@@ -90,6 +90,7 @@
 - 如继续进入下一轮优化，先冻结新的 post-closure baseline，再按单变量方式启动 `FQ-06`
 - `FQ-06A` 已完成：`IMEM_OUTPUT_REG=0` 路径上的 bounded request cursor 诊断全绿，但 short CoreMark 零收益，因此未保留
 - `IMEM_OUTPUT_REG=1` 本轮继续只做 correctness guardrail，严格 redirect/drop-accounting 诊断已通过
+- fresh profile 进一步表明 `fetch_queue_empty_cycles` 与 `ex_fetch_redirect_valid_cycles` 完全重合，剩余 fetch 空泡主要来自 redirect 窗口而不是 request-side 缺口
 - 文档、脚本、summary、handoff 必须继续同步更新，不能在下一阶段重新产生口径漂移
 
 ## 快速验证命令

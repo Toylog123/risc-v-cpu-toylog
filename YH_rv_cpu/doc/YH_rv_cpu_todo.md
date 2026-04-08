@@ -67,6 +67,7 @@
 - [x] `FQ-06A` 诊断全绿，但 short CoreMark 仍是 `11014885 / 0.912472`
 - [x] 主线 RTL 已回退到冻结基线，不携带无收益 fetch 改动
 - [x] 保留新的 `require_queue_fill` 诊断与 `run_fetch_prefetch_diag.bat` plusarg 归一化
+- [x] fresh profile 已确认 `fetch_queue_empty_cycles` 与 `ex_fetch_redirect_valid_cycles` 完全重合，request-side 不是当前主矛盾
 - [ ] 是否继续下一条更高侵入的 `FQ-06` 变体，需要先确认存在新的非重复假设
 
 ## 仅外部阻塞
