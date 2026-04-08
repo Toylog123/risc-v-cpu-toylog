@@ -14,8 +14,8 @@
 ## 2. 当前做到哪一步
 
 - 冻结基线仍然是 `2026-04-07` 的完整收口结果
-- 当前工作区正在做 `2026-04-08` 的 `riscv-tests` 扩展验证与全文档同步
-- 工作区不是 clean，存在未提交 RTL/脚本/manifest/linker 改动
+- `2026-04-08` 的 `riscv-tests` 扩展验证与全文档同步已经完成收口
+- 工作区已经回到 clean；`2026-04-08` 收口结果已拆成 focused commits
 - 当前最新 fresh 活跃证据是：
   - `build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt`
   - `rv32 full-ui = 42/42`
@@ -29,6 +29,8 @@
   - `build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt`
   - fresh `CoreMark short = 0.912472 CoreMark/MHz`
   - fresh `CoreMark smoke = 620530 cycles`
+  - `build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt`
+  - fresh `CoreMark strict = 0.912465 CoreMark/MHz`
 
 当前冻结结果：
 
@@ -74,8 +76,8 @@
 
 - `rv32 full-ui` 已闭环；当前 `fence_i` 处理策略是：扩展 UI 覆盖矩阵使用 `zifencei`，但冻结比赛 ISA 口径仍是 `RV32I + Zicsr`
 - 对当前无 I-cache、同步 ROM/RAM 的核，`fence.i` 作为 non-trapping nop 足以通过当前测试覆盖；这不等于完整 `Zifencei` signoff
-- fresh baseline 与 fresh CoreMark smoke/short 已补齐
-- `2026-04-08` fresh strict `>=10s` CoreMark 已启动；完成前仍以历史 strict summary 作为 authoritative strict evidence
+- fresh baseline 与 fresh CoreMark smoke/short/strict 已全部补齐
+- `2026-04-08` dated strict summary/log 已归档，并与冻结 strict 口径一致
 
 ### 外部阻塞
 
@@ -89,11 +91,11 @@
 
 ## 5. 下一步最值得做的 5 项
 
-1. 等待 fresh strict `>=10s` CoreMark 完成并归档 dated log/summary
-2. 把本轮 fresh baseline / CoreMark 结果继续同步进 README / regression / performance / submission report / todo
-3. 形成 focused git commit，先收口验证资产与 RTL 改动，再收口 docs
-4. 检查工作区与 handoff/todo 是否仍可随时接手
-5. 仅在 strict 和文档都闭环后，再决定是否启动 `FQ-06`
+1. 冻结新的 post-closure 优化前基线表
+2. 以 `FQ-06` 作为下一个单变量优化候选启动实验
+3. 每轮优化完整重跑 CoreMark / baseline / impl50 并同步日志
+4. 保持 handoff / todo / performance log 与实验结果实时同步
+5. 如新一轮优化无明确收益，及时关闭方向并回到 clean worktree
 
 ## 6. 关键文档与命令
 
@@ -126,6 +128,8 @@ scripts\run_coremark_fpga.bat rv32
 - CoreMark short summary: `build/sw/YH_rv_cpu_coremark_rv32_score.summary.txt`
 - CoreMark short dated summary: `build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt`
 - CoreMark strict summary: `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt`
+- CoreMark strict dated summary: `build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt`
+- CoreMark strict dated log: `build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.log`
 - `rv32` baseline current summary: `build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt`
 - `rv64` baseline current summary: `build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt`
 - `rv32 full-ui` current summary: `build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt`
@@ -135,8 +139,7 @@ scripts\run_coremark_fpga.bat rv32
 ## 7. 文档缺口与建议补齐项
 
 - 文档已同步到“冻结基线 + 2026-04-08 活跃验证”双层口径
-- 剩余缺口主要收敛到 fresh strict CoreMark 与 focused commit 收口：
-  - fresh strict rerun result
-  - dated strict log / summary archive
-  - focused verification / rtl / docs commits
-- 待 `fence_i` 策略明确后，需要再做一次 focused docs commit，避免 README / handoff / regression / performance 出现二次漂移
+- 当前主要不再是收口缺口，而是下一阶段优化工作：
+  - freeze post-closure baseline
+  - decide whether `FQ-06` is worth the next single-variable round
+  - keep docs aligned if optimization resumes

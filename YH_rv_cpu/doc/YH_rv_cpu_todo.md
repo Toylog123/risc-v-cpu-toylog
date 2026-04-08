@@ -31,9 +31,12 @@
 - [x] 重跑 fresh `rv32 baseline`：`33/33`，归档=`build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt`
 - [x] 重跑 fresh `rv64 baseline`：`21/21`，归档=`build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt`
 - [x] 补 fresh CoreMark smoke / short：`620530 cycles`，`0.912472 CoreMark/MHz`
-- [ ] 等待 fresh strict `>=10s` CoreMark 长跑完成并归档 dated summary/log
-- [ ] 对齐 README / 技术文档 / handoff / regression log / performance log / submission report
-- [ ] 做 focused git commit，只提交当前阶段直接相关成果
+- [x] 等待 fresh strict `>=10s` CoreMark 长跑完成并归档 dated summary/log
+- [x] 对齐 README / 技术文档 / handoff / regression log / performance log / submission report
+- [x] 做 focused git commit，只提交当前阶段直接相关成果
+- [ ] 冻结新的 post-closure 优化前基线
+- [ ] 启动 `FQ-06` 单变量实验并完整回归
+- [ ] 每轮优化继续同步 performance / regression / handoff / todo
 
 ## 当前事实
 
@@ -42,7 +45,8 @@
 - [x] `fence_i` 已在 `rv32i_zicsr_zifencei` 口径下通过
 - [x] fresh baseline 已闭环到 `33/33` / `21/21`
 - [x] fresh CoreMark smoke / short 已复现冻结短口径
-- [x] 当前问题已经收敛到 fresh strict CoreMark 与 commit 收口
+- [x] fresh CoreMark strict 已完成 dated rerun：`0.912465 CoreMark/MHz`
+- [x] 当前收口阶段已经结束，下一阶段转入 post-closure 优化
 
 ## 暂不推进
 
@@ -60,6 +64,6 @@
 
 1. `fence_i` 口径已经写清楚
 2. `rv32/rv64 full-ui` 已有 fresh 归档结果
-3. fresh baseline 与 fresh CoreMark smoke/short 已补齐，strict 长跑只剩结果落盘
+3. fresh baseline 与 fresh CoreMark smoke/short/strict 已全部补齐
 4. README / handoff / regression / performance / submission report 全部同步
 5. 当前阶段成果已做 focused git commit

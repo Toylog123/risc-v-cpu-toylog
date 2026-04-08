@@ -72,7 +72,12 @@ history instead of being treated as the current engineering truth.
   - `8e8719d` `test(infra): enable full rv32ui/rv64ui runs with custom manifest/linker/tohost`
   - `e8b22eb` `rtl: legalize misc-mem fence and fence.i decode`
   - `2897dea` `docs: sync fresh baseline and live handoff before strict closure`
-- Remaining local closure item:
-  - fresh strict `>=10s` CoreMark rerun is in progress; until it finishes,
-    `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt` remains the current
-    authoritative strict-valid evidence
+  - `841c47c` `docs: log fresh baseline progress and strict rerun status`
+- Fresh strict `>=10s` CoreMark rerun completed on `2026-04-08`:
+  - `0.912465 CoreMark/MHz`
+  - `1095991523 cycles`
+  - `10.959325s`
+  - dated evidence: `build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.log`
+    and `build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt`
+- The repository is now back to a clean post-closure baseline and ready for the
+  next optimization phase.

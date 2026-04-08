@@ -8,7 +8,7 @@
 
 - 本文档是设计背景与架构说明，不是当前结果口径的权威来源
 - 当前冻结结果请以 `README.md`、`doc/技术文档.md`、`doc/regression_test_log.md` 为准
-- 截至 `2026-04-08`，普遍 `riscv-tests` 扩展验证正在进行中；当前主要未闭环项是 `fence_i` 与 `zifencei` 的 ISA/march 口径
+- 截至 `2026-04-08`，普遍 `riscv-tests` 扩展验证已经闭环；`rv32 full-ui = 42/42`、`rv64 full-ui = 54/54`，`fence_i` 已在扩展 `zifencei` 覆盖矩阵下通过
 
 ## 2. 当前设计基线
 
@@ -91,5 +91,5 @@
   - RV64 baseline
   - impl50
   - FPGA-like probe
-- 当前工作区正在做更广覆盖的 `riscv-tests` 扩展验证
+- 更广覆盖的 `riscv-tests` 扩展验证已在 `2026-04-08` 完成收口
 - 当前设计边界仍然是 `RV32I + Zicsr`，因此任何 `zifencei` 相关结论都必须明确写清是否纳入口径

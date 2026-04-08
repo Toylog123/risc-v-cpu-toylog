@@ -142,6 +142,9 @@ Fresh CoreMark reruns in this worktree now include:
 - smoke rerun complete: `620530 cycles`
 - short rerun complete: `0.912472 CoreMark/MHz`, `11014885 cycles`
 - dated short summary: `build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt`
+- strict rerun complete: `0.912465 CoreMark/MHz`, `1095991523 cycles`, `10.959325s`
+- dated strict log: `build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.log`
+- dated strict summary: `build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt`
 
 Current active work also includes:
 
@@ -154,11 +157,11 @@ Important boundary:
 - no `fence` / `fence.i` opcode appears in the fresh short-run dump, so the
   current `fence_i` decode legalization is not part of the observed CoreMark
   hot path
-- fresh strict `>=10s` rerun has been launched on `2026-04-08`; until it
-  finishes, keep quoting `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt`
-  as the authoritative strict-valid evidence
-- do not claim a new strict timestamp until the dated strict log/summary are
-  actually produced
+- the fresh strict rerun completed on `2026-04-08` and matches the frozen
+  strict-valid baseline numerically
+- `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt` remains the frozen
+  canonical strict reference, while the dated `2026-04-08` files provide fresh
+  worktree-local evidence
 
 ## Notes
 

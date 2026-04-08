@@ -52,7 +52,7 @@
 
 | 项目 | 当前状态 |
 |------|------|
-| 工作区状态 | dirty，存在未提交 RTL/脚本/文档/manifest/linker 改动 |
+| 工作区状态 | clean，`2026-04-08` 收口结果已拆成 focused commits |
 | 扩展验证目标 | 从 baseline 子集扩展到更接近普遍 `rv32ui/rv64ui` 的真实矩阵 |
 | `rv32 full-ui` | fresh `42/42`，摘要见 `build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt` |
 | `fence_i` 处理策略 | 扩展 UI 覆盖矩阵采用 `rv32i_zicsr_zifencei` 编译口径，`fence_i` 已通过；冻结比赛口径仍维持 `RV32I + Zicsr` |
@@ -63,7 +63,7 @@
 | `rv64 baseline` | fresh `21/21`，归档=`build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt` |
 | CoreMark smoke | fresh `620530 cycles` |
 | CoreMark short | fresh `0.912472 CoreMark/MHz`，`11014885 cycles`，摘要=`build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt` |
-| CoreMark strict | `2026-04-08` fresh 长跑已启动；完成前仍以 `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt` 作为当前 authoritative strict evidence |
+| CoreMark strict | fresh `0.912465 CoreMark/MHz`，`1095991523 cycles`，`10.959325s`，摘要=`build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt` |
 | FPGA 实板计划 | 当前仅保留 pre-board 冻结状态；实板闭环继续视为外部阻塞且暂不优先推进 |
 
 当前扩展验证使用的新主线输入文件：
@@ -86,10 +86,9 @@
 
 ## 当前收口原则
 
-- `rv32/rv64 full-ui` 与 fresh baseline 已闭环；当前只剩 fresh CoreMark strict 长跑在收口
-- 在 fresh CoreMark strict 长跑没有形成新证据前，不要重启高侵入优化
-- `2026-04-08` 已完成 fresh CoreMark smoke/short 复核；在 strict 新结果落地前，不要更新时间戳或改写 strict 口径
-- 文档、脚本、summary、handoff 必须同步更新，不能只改代码不记记录
+- `2026-04-08` 的 `rv32/rv64 full-ui`、fresh baseline、fresh CoreMark smoke/short/strict 都已闭环
+- 如继续进入下一轮优化，先冻结新的 post-closure baseline，再按单变量方式启动 `FQ-06`
+- 文档、脚本、summary、handoff 必须继续同步更新，不能在下一阶段重新产生口径漂移
 
 ## 快速验证命令
 
@@ -135,9 +134,9 @@ scripts\run_riscv_tests_subset.bat rv64 - - 120000 YH_rv_cpu\scripts\riscv_tests
 
 ## 当前阻塞
 
-### 本机内待收口
+### 本机内待推进
 
-- fresh CoreMark strict 长跑仍在收口；其余本机验证缺口已明显缩小
+- 强制收口阶段已完成；当前如继续本机内工作，下一阶段是冻结新的优化前基线并启动 `FQ-06` 单变量实验
 
 ### 外部阻塞
 

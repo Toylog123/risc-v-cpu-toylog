@@ -30,7 +30,8 @@
   - `ma_data = PASS`
   - `fence_i = PASS` under `zifencei` coverage
   - fresh baseline reruns are complete: `33/33`, `21/21`
-  - fresh CoreMark smoke/short are complete; fresh strict long run is now the only remaining local closure item
+  - fresh CoreMark smoke/short/strict are complete
+  - pre-optimization closure is complete; the next local task is the post-closure optimization phase
 
 Treat the rest of this plan as historical execution guidance plus a checklist
 for anything that still remains incomplete.

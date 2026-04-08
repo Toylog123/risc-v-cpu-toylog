@@ -93,18 +93,19 @@ scripts\run_riscv_tests_subset.bat rv64 - - 120000 YH_rv_cpu\scripts\riscv_tests
 | `rv64 baseline` fresh rerun | `21/21` | 归档：`build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt` |
 | CoreMark smoke fresh rerun | PASS | `620530 cycles` |
 | CoreMark short fresh rerun | PASS | `11014885 cycles`，`0.912472 CoreMark/MHz`，摘要：`build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt` |
+| CoreMark strict fresh rerun | PASS | `1095991523 cycles`，`0.912465 CoreMark/MHz`，`10.959325s`，摘要：`build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt` |
 
 ### 解释
 
 - 这轮结果已经排除了“`ma_data` 只是跑得慢”的假设
 - `rv32 full-ui` 已在扩展 UI 覆盖矩阵下闭环
-- `rv64 full-ui`、fresh baseline、fresh CoreMark smoke/short 已闭环
-- 当前只剩 fresh strict `>=10s` CoreMark 长跑在收口
+- `rv64 full-ui`、fresh baseline、fresh CoreMark smoke/short/strict 已全部闭环
+- 当前预优化收口阶段已完成，后续如继续本机工作可转入 `FQ-06`
 
 ### 待补跑项
 
-- fresh strict `>=10s` CoreMark dated log / summary
-- 完成后再做 focused commit 与最终 docs diff 复核
+- freeze post-closure baseline table
+- 启动下一轮单变量优化并保持 docs / commit 同步
 
 ## 当前风险
 

@@ -119,14 +119,12 @@ the verification envelope before any higher-intrusion optimization work such as
 | RV64 baseline fresh rerun | `21/21` via `build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt` |
 | CoreMark smoke fresh rerun | `620530 cycles` |
 | CoreMark short fresh rerun | `0.912472` via `build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt` |
-| CoreMark strict fresh rerun | `in progress` on `2026-04-08`; until completion keep `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt` as authoritative strict evidence |
+| CoreMark strict fresh rerun | `0.912465` via `build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt` |
 
 ### Current decision gate
 
-Before optimization work resumes, the following must be closed:
+Pre-optimization closure is now complete. The next local batch is:
 
-1. wait for the fresh strict CoreMark rerun to complete and archive dated log/summary
-2. sync the final strict result into all status docs
-3. commit verification assets, RTL closure, and docs closure with focused boundaries
-
-Until those items are complete, `FQ-06` remains queued but not active.
+1. freeze the post-closure baseline table
+2. start `FQ-06` as the next single-variable optimization candidate
+3. keep docs and focused commits aligned with each retained/rejected experiment
