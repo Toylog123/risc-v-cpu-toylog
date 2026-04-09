@@ -1,11 +1,11 @@
 ﻿\begin{figure}[H]
     \centering
     \begin{tikzpicture}[node distance=9mm and 9mm, every node/.style={font=\small}]
-        \node[reportbox, minimum width=27mm] (rtl) {RTL / 脚本\\\scriptsize 主线工程输入};
+        \node[reportbox, minimum width=27mm] (rtl) {RTL / 脚本\\\scriptsize 设计输入};
         \node[reportbox, minimum width=27mm, right=of rtl] (impl) {Vivado impl50\\\scriptsize 50MHz 原型实现};
         \node[reportbox, minimum width=27mm, right=of impl] (rpt) {报告输出\\\scriptsize 资源 / 时序 / bit};
         \node[reportbox, minimum width=27mm, right=of rpt] (probe) {FPGA-like probe\\\scriptsize CoreMark 近板级观察};
-        \node[reportbox, fill=orange!10, minimum width=33mm, below=16mm of rpt] (closure) {pre-board closure\\\scriptsize 当前已完成状态};
+        \node[reportbox, fill=orange!10, minimum width=33mm, below=16mm of rpt] (closure) {pre-board 验证\\\scriptsize 已完成内容};
         \node[reportbox, fill=red!6, minimum width=34mm, below=16mm of probe] (board) {待外部条件\\\scriptsize 实体板卡 / I/O delay};
 
         \draw[reportline] (rtl) -- (impl);

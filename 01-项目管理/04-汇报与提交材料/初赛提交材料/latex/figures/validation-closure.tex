@@ -11,8 +11,8 @@
         \node[reportbox, fill=green!8, minimum width=32mm, right=of impl] (probe) {FPGA-like probe\\\scriptsize 近 FPGA 路径};
 
         \node[reportbox, fill=orange!10, minimum width=48mm, below=18mm of impl] (closure) {
-            \textbf{比赛提交基线}\\
-            \scriptsize 正式结果 + 扩展验证 + FPGA pre-board
+            \textbf{验证证据链}\\
+            \scriptsize 基础回归 + 性能结果 + FPGA 实现
         };
 
         \draw[reportline] (smoke) -- (base32);
@@ -25,5 +25,5 @@
         \draw[reportline] (impl.south) -- (closure.north);
         \draw[reportline] (probe.south) -- (closure.north east);
     \end{tikzpicture}
-    \caption{验证闭环与正式结果关系图}
+    \caption{验证闭环示意图}
 \end{figure}

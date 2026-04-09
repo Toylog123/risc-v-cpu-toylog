@@ -1,36 +1,26 @@
-﻿\section{总结与后续工作}
+﻿\section{结论}
 
-\subsection{阶段性总结}
+\subsection{综合结论}
 
-\texttt{YH\_rv\_cpu} 当前已经形成较完整的初赛工程形态：架构层面采用边界清晰的五级顺序流水，
+\texttt{YH\_rv\_cpu} 已经形成较完整的初赛工程形态：架构层面采用边界清晰的五级顺序流水，
 验证层面建立了从 smoke、baseline、扩展覆盖到 CoreMark、\texttt{impl50} 和 FPGA-like probe 的证据链，
-原型层面完成了可复现的 FPGA pre-board 适配。综合来看，本项目在初赛阶段具备三项较明确的优势：
+原型层面完成了可复现的 FPGA pre-board 适配。综合来看，本设计在初赛阶段具备三项较明确的特点：
 \begin{itemize}
     \item 方案结构清晰，能够较好地说明设计原理与工程取舍；
-    \item 验证矩阵完整，正式结果具备较强的可复核性；
+    \item 验证矩阵完整，实验结果具备较强的可复核性；
     \item 资源与时序结果能够支撑后续 FPGA 原型落地，而不是停留在概念设计阶段。
 \end{itemize}
 
-\subsection{当前边界}
+\subsection{待继续验证事项}
 
-本文也保持了对当前边界的如实说明：
+本文也对仍待继续验证的事项作出说明：
 \begin{itemize}
-    \item 正式提交主线仍以 \texttt{RV32I + Zicsr} 为核心口径；
-    \item 扩展 \texttt{full-ui} 结果用于说明工程覆盖范围，不改变主线提交边界；
+    \item 本文重点说明以 \texttt{RV32I + Zicsr} 为核心的软件运行路径和最小 SoC 实现；
+    \item 扩展 \texttt{full-ui} 与 RV64 验证结果用于补充说明设计覆盖范围和结构稳定性；
     \item FPGA 结果属于 pre-board 阶段结论，实体板卡验证仍需在后续阶段完成。
 \end{itemize}
 
-\subsection{后续工作}
-
-围绕当前基线，后续工作主要包括两条方向：
-\begin{enumerate}
-    \item \textbf{继续开展证据驱动的性能优化}：现有 profile 表明控制流 redirect 成本仍有分析空间，
-    后续可围绕该方向开展单变量实验；
-    \item \textbf{补完成体板级闭环}：在板卡与最终约束条件具备后，继续推进 UART、LED、
-    boot banner 和板级时序确认。
-\end{enumerate}
-
 \subsection{结语}
 
-总体而言，\texttt{YH\_rv\_cpu} 在当前阶段的价值，不在于追求极端复杂结构，
-而在于以清晰的设计边界、完整的验证矩阵和可复现的实现结果，建立了一套适合比赛提交和后续演进的工程基线。
+总体而言，\texttt{YH\_rv\_cpu} 的价值不在于追求极端复杂结构，
+而在于以清晰的设计边界、完整的验证矩阵和可复现的实现结果，建立了一套具备工程完整性的处理器方案。

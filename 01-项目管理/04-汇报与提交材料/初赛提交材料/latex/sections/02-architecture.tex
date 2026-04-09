@@ -16,9 +16,9 @@ FPGA 顶层负责将工程映射到 Nexys A7-100T 的原型实现路径。
         模块 & 作用 \\
         \midrule
         \texttt{YH\_rv\_cpu} & CPU 顶层，组织 IF/ID/EX/MEM/WB 五级流水、前递、redirect、CSR 与 trap \\
-        \texttt{YH\_rv\_cpu\_hazard\_unit} & 负责 load-use hazard 检测和前递选择，是主线停顿控制的关键模块 \\
+        \texttt{YH\_rv\_cpu\_hazard\_unit} & 负责 load-use hazard 检测和前递选择，是停顿控制的关键模块 \\
         \texttt{YH\_rv\_cpu\_soc} & SoC 封装层，连接同步指令存储、数据存储与最小 MMIO 外设 \\
-        \texttt{YH\_rv\_sync\_imem\_rom} & 服务同步取指路径，使 CPU 与 FPGA 原型口径保持一致 \\
+        \texttt{YH\_rv\_sync\_imem\_rom} & 服务同步取指路径，使 CPU 与 FPGA 原型实现保持一致 \\
         \texttt{YH\_rv\_dmem\_ram} & 负责 load/store 数据访问，并与 MMIO 共同组成访问路径 \\
         \texttt{YH\_rv\_cpu\_fpga\_top} & FPGA 原型顶层与综合参数入口，用于承接 \texttt{impl50} 等实现流程 \\
         \bottomrule
@@ -27,7 +27,7 @@ FPGA 顶层负责将工程映射到 Nexys A7-100T 的原型实现路径。
 
 \subsection{CPU 五级流水组织}
 
-当前 CPU 主线采用经典五级流水：
+处理器采用经典五级流水：
 \begin{enumerate}
     \item IF：同步取指、PC 更新与 redirect 接收；
     \item ID：译码、寄存器读、立即数生成和控制信号准备；
@@ -36,9 +36,9 @@ FPGA 顶层负责将工程映射到 Nexys A7-100T 的原型实现路径。
     \item WB：将 ALU、访存或 CSR 结果回写寄存器堆。
 \end{enumerate}
 
-这种结构的优势在于边界清楚、验证成本可控，并且足以支撑当前阶段的 CoreMark、
-\texttt{riscv-tests} 和最小 SoC 软件运行。项目在初赛版本中没有引入 cache、多发射或乱序机制，
-是因为当前目标更强调可验证性、可说明性和工程闭环，而不是在早期阶段叠加过高结构风险。
+这种结构的优势在于边界清楚、验证成本可控，并且足以支撑 CoreMark、
+\texttt{riscv-tests} 和最小 SoC 软件运行。初赛版本没有引入 cache、多发射或乱序机制，
+而是优先保证结构可说明、行为可验证、结果可复现。
 \input{figures/pipeline-control.tex}
 
 \subsection{数据相关处理}
@@ -47,7 +47,7 @@ FPGA 顶层负责将工程映射到 Nexys A7-100T 的原型实现路径。
 \begin{itemize}
     \item EX/MEM、MEM/WB 两级前递，降低普通 ALU 相关导致的停顿；
     \item 针对 \texttt{load-use} 场景设置专门检测逻辑，当结果尚未可用且后继指令立即消费时暂停译码级；
-    \item 当前主线采用 \texttt{stall\_decode = load\_use\_hazard} 策略，使停顿条件尽量收敛在必要场景内。
+    \item 译码级停顿条件采用 \texttt{stall\_decode = load\_use\_hazard} 策略，使停顿范围尽量收敛在必要场景内。
 \end{itemize}
 
 这一选择的直接效果是：对可前递场景尽量放行，对不可前递的 load-use 场景执行最小必要停顿，
@@ -55,20 +55,18 @@ FPGA 顶层负责将工程映射到 Nexys A7-100T 的原型实现路径。
 
 \subsection{控制相关与 redirect 机制}
 
-当前控制流处理主要在 EX 级完成决策：
+控制流处理主要在 EX 级完成决策：
 \begin{itemize}
     \item branch、jump 和 \texttt{jalr} 在 EX 级形成 redirect；
     \item \texttt{trap}、\texttt{mret} 与普通跳转共享控制流重定向框架；
     \item 当 \texttt{ex\_fetch\_redirect\_valid} 有效时，IF 级更新 PC 并清空错误路径气泡。
 \end{itemize}
 
-近期 profile 结果表明，CoreMark 中的主要控制流开销来自 taken branch，
-其中 \texttt{bne} 和 \texttt{beq} 占据了主要比例。这说明当前体系下的性能瓶颈更多集中在控制流重定向成本，
-也为后续进一步优化提供了明确方向。
+这种组织方式能够用统一框架处理普通跳转、异常进入和异常返回，既保持控制路径简洁，也便于验证 trap 与正常执行之间的切换关系。
 
 \subsection{CSR、异常与中断处理}
 
-项目当前实现的控制状态寄存器与异常处理，重点覆盖比赛阶段确有需求的机器态功能：
+本设计实现的控制状态寄存器与异常处理，重点覆盖比赛阶段确有需求的机器态功能：
 \begin{itemize}
     \item CSR 指令：\texttt{csrrw/csrrs/csrrc} 及其立即数变体；
     \item 关键机器态 CSR：\texttt{mstatus}、\texttt{mie}、\texttt{mtvec}、\texttt{mscratch}、
@@ -78,12 +76,12 @@ FPGA 顶层负责将工程映射到 Nexys A7-100T 的原型实现路径。
     \item 机器定时器中断：通过 \texttt{timer} 外设触发并进入 trap 流程。
 \end{itemize}
 
-这一边界满足当前软件运行和验证需要，也有利于在初赛阶段把实现重点放在主线稳定性和工程完整性上。
+这一范围能够满足现阶段软件运行和验证需要，也有利于将实现重点集中在基础执行链路、异常响应和工程完整性上。
 
 \subsection{SoC 存储与 MMIO 组织}
 
 SoC 采用“ROM + RAM + MMIO”的最小闭环结构。其中同步 ROM 负责取指，RAM 负责数据访问，
-MMIO 外设负责提供对外可观测接口和计时能力。当前已确认的关键地址组织如下：
+MMIO 外设负责提供对外可观测接口和计时能力。关键地址组织如下：
 \begin{table}[H]
     \centering
     \caption{SoC 关键地址映射}
@@ -96,8 +94,8 @@ MMIO 外设负责提供对外可观测接口和计时能力。当前已确认的
         RAM & \texttt{0x0000\_4000} & 数据存储基址 \\
         UART TX & \texttt{0x1000\_0000} & 串口发送寄存器 \\
         DONE & \texttt{0x1000\_0004} & 程序结束标志寄存器 \\
-        TIMER VALUE LO & \texttt{0x1000\_0008} & 当前计时值低 32 位 \\
-        TIMER VALUE HI & \texttt{0x1000\_000C} & 当前计时值高 32 位 \\
+        TIMER VALUE LO & \texttt{0x1000\_0008} & 计时值低 32 位 \\
+        TIMER VALUE HI & \texttt{0x1000\_000C} & 计时值高 32 位 \\
         TIMER CMP LO & \texttt{0x1000\_0010} & 比较寄存器低 32 位 \\
         TIMER CMP HI & \texttt{0x1000\_0014} & 比较寄存器高 32 位 \\
         TIMER CTRL & \texttt{0x1000\_0018} & 定时器控制与中断使能 \\
@@ -108,8 +106,8 @@ MMIO 外设负责提供对外可观测接口和计时能力。当前已确认的
 这种组织方式具有三方面优势：一是能够直接支撑仿真、CoreMark 和 \texttt{riscv-tests}；
 二是向 FPGA 原型迁移成本较低；三是 UART、timer 和 DONE 为后续 bring-up 提供了最小但有效的观测接口。
 
-\subsection{设计取舍}
+\subsection{架构取舍}
 
-本设计在初赛阶段坚持“主线稳定优先”的取舍原则，重点保留已经通过完整验证矩阵的结构与参数，
-避免将尚未证明收益的新机制直接写入正式主线。这样的取舍使得设计说明书中的每一项关键结论都可以被验证结果直接支撑，
-也为后续性能优化和实体板验证保留了清晰起点。
+本设计优先采用边界清晰、易于验证和便于复现的结构，重点保留已经通过验证矩阵的机制与参数，
+暂不引入 cache、多发射、乱序等更高风险的复杂结构。这样的取舍使得文中的关键结论能够被实验结果直接支撑，
+同时也为后续性能优化和实体板验证保留了清晰起点。
