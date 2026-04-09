@@ -1,0 +1,24 @@
+\section{关键结果汇总}
+
+\begin{table}[H]
+    \centering
+    \small
+    \caption{主线结果汇总}
+    \begin{tabularx}{0.95\textwidth}{L{0.28\textwidth} L{0.22\textwidth} Y}
+        \toprule
+        项目 & 结果 & 说明 \\
+        \midrule
+        RV32 baseline & \texttt{33/33} & 主线 RV32 基本集合 \\
+        RV64 baseline & \texttt{21/21} & 主线 RV64 基本集合 \\
+        RV32 full-ui & \texttt{42/42} & 扩展 RV32 用户态覆盖 \\
+        RV64 full-ui & \texttt{54/54} & 扩展 RV64 用户态覆盖 \\
+        CoreMark short & \texttt{0.912472 CoreMark/MHz} & 周期数 \texttt{11014885} \\
+        CoreMark strict & \texttt{0.912465 CoreMark/MHz} & 周期数 \texttt{1095991523}，满足 EEMBC 10s 口径 \\
+        FPGA-like probe & \texttt{7.728811 CoreMark/MHz} & 周期数 \texttt{156442} \\
+        Vivado \texttt{impl50} & \texttt{2556 LUT / 2170 FF / 4 BRAM / 0 DSP} & 当前主线实现结果 \\
+        时序结果 & \texttt{WNS = +5.822ns}, \texttt{WHS = +0.057ns} & 50MHz 目标下保持正裕量 \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+本文引用的详细日志、实现报告和回归摘要均保留在项目工程中，用于后续复核与继续演进。

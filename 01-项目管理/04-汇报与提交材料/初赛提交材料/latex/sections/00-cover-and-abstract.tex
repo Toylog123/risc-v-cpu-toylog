@@ -1,0 +1,52 @@
+\begin{titlepage}
+    \centering
+    \vspace*{2.8cm}
+
+    {\zihao{1}\bfseries \ReportTitle \par}
+    \vspace{1.2cm}
+    {\zihao{2}\bfseries 参赛作品：\ProjectName \par}
+    \vspace{0.6cm}
+    {\zihao{4}面向七星微赛题初赛评审的正式设计说明书\par}
+    \vspace{0.6cm}
+    {\zihao{4}版本：\ReportVersion \qquad 日期：\ReportDate \par}
+
+    \vspace{2.3cm}
+
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{>{\raggedleft\arraybackslash}p{0.24\textwidth} p{0.56\textwidth}}
+        文档性质： & 初赛提交设计说明书 \\
+        说明范围： & 设计目标、微架构方案、验证结果、FPGA 原型适配情况 \\
+        适用对象： & 七星微赛题初赛评审专家 \\
+    \end{tabular}
+
+    \vfill
+
+    {\zihao{5}
+    本文档基于 \texttt{YH\_rv\_cpu} 当前主线工程编写，重点说明设计目标、关键微架构、
+    验证方法、性能与资源结果，以及 FPGA 原型适配进展。正文采用已经完成复现和回归确认的结果，
+    并对当前尚未完成的实体板级验证边界做出如实说明。\par}
+\end{titlepage}
+
+\section*{摘要}
+\addcontentsline{toc}{section}{摘要}
+
+\texttt{YH\_rv\_cpu} 是一套面向七星微赛题的工程化 RISC-V CPU 方案。项目以五级顺序流水为核心，
+围绕 \texttt{RV32I + Zicsr} 主线构建了同步取指存储、数据存储、UART、定时器和 DONE 标志构成的最小 SoC，
+形成了从功能验证、性能评估到 FPGA 原型适配的完整工程闭环。本文围绕赛题理解、总体架构、关键机制、
+验证矩阵和阶段性结果，对当前方案进行正式说明。
+
+截至 2026 年 4 月，项目已完成主线结果的稳定收敛：CoreMark short 达到
+\texttt{0.912472 CoreMark/MHz}，strict \texttt{>=10s} 路径达到
+\texttt{0.912465 CoreMark/MHz}；\texttt{rv32 baseline} 与 \texttt{rv64 baseline}
+分别通过 \texttt{33/33} 与 \texttt{21/21}；扩展 \texttt{full-ui} 验证达到
+\texttt{rv32 42/42} 与 \texttt{rv64 54/54}；Vivado \texttt{impl50} 结果为
+\texttt{2556 LUT / 2170 FF / 4 BRAM / 0 DSP}，在 50MHz 目标频率下保持正时序裕量。
+
+本设计说明书重点体现三方面内容：第一，方案结构清晰，便于说明设计原理和工程取舍；
+第二，验证矩阵覆盖功能、性能与实现结果，能够支撑结论可信度；第三，项目已完成 FPGA pre-board
+阶段的大部分准备工作，为后续实体板验证和进一步优化保留了明确接口与路径。
+
+\section*{关键词}
+\addcontentsline{toc}{section}{关键词}
+
+RISC-V；五级流水；工程化验证；CoreMark；FPGA 原型

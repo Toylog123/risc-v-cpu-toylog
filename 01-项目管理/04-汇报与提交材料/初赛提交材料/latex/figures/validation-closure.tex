@@ -1,0 +1,29 @@
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[node distance=9mm and 11mm, every node/.style={font=\small}]
+        \node[reportbox, minimum width=26mm] (smoke) {Smoke\\\scriptsize 快速功能检查};
+        \node[reportbox, minimum width=30mm, right=of smoke] (base32) {RV32 baseline\\\scriptsize 33 / 33};
+        \node[reportbox, minimum width=30mm, right=of base32] (base64) {RV64 baseline\\\scriptsize 21 / 21};
+        \node[reportbox, minimum width=30mm, right=of base64] (fullui) {full-ui\\\scriptsize 42 / 42, 54 / 54};
+
+        \node[reportbox, fill=green!8, minimum width=30mm, below=16mm of base32] (coremark) {CoreMark\\\scriptsize smoke / short / strict};
+        \node[reportbox, fill=green!8, minimum width=30mm, right=of coremark] (impl) {Vivado impl50\\\scriptsize 资源 / 时序};
+        \node[reportbox, fill=green!8, minimum width=32mm, right=of impl] (probe) {FPGA-like probe\\\scriptsize 近 FPGA 路径};
+
+        \node[reportbox, fill=orange!10, minimum width=48mm, below=18mm of impl] (closure) {
+            \textbf{比赛提交基线}\\
+            \scriptsize 正式结果 + 扩展验证 + FPGA pre-board
+        };
+
+        \draw[reportline] (smoke) -- (base32);
+        \draw[reportline] (base32) -- (base64);
+        \draw[reportline] (base64) -- (fullui);
+        \draw[reportline] (base32.south) -- (coremark.north);
+        \draw[reportline] (base64.south) -- (impl.north);
+        \draw[reportline] (fullui.south) -- (probe.north);
+        \draw[reportline] (coremark.south) -- (closure.north west);
+        \draw[reportline] (impl.south) -- (closure.north);
+        \draw[reportline] (probe.south) -- (closure.north east);
+    \end{tikzpicture}
+    \caption{验证闭环与正式结果关系图}
+\end{figure}

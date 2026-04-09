@@ -1,0 +1,27 @@
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[node distance=7mm and 7mm, every node/.style={font=\small}]
+        \node[reportbox, minimum width=22mm, minimum height=12mm] (if) {IF\\\scriptsize PC / 取指};
+        \node[reportbox, minimum width=22mm, minimum height=12mm, right=of if] (id) {ID\\\scriptsize 译码 / 读寄存器};
+        \node[reportbox, minimum width=22mm, minimum height=12mm, right=of id] (ex) {EX\\\scriptsize ALU / 分支 / CSR};
+        \node[reportbox, minimum width=22mm, minimum height=12mm, right=of ex] (mem) {MEM\\\scriptsize Load / Store};
+        \node[reportbox, minimum width=22mm, minimum height=12mm, right=of mem] (wb) {WB\\\scriptsize 写回};
+
+        \draw[reportline] (if) -- (id);
+        \draw[reportline] (id) -- (ex);
+        \draw[reportline] (ex) -- (mem);
+        \draw[reportline] (mem) -- (wb);
+
+        \node[reportbox, fill=green!8, minimum width=42mm, minimum height=12mm, below=16mm of id] (haz) {
+            \textbf{Hazard / Forwarding}\\
+            \scriptsize load-use 检测与前递选择
+        };
+
+        \draw[reportdash] (haz.north) -- node[left, font=\scriptsize]{stall\_decode} (id.south);
+        \draw[reportdash] (haz.north west) to[out=130,in=-120] node[left, font=\scriptsize]{停顿控制} (if.south);
+        \draw[reportdash, blue!70!black] (mem.south) to[out=-110,in=-20] node[below, font=\scriptsize]{EX/MEM 前递} (ex.south);
+        \draw[reportdash, blue!70!black] (wb.south) to[out=-110,in=-10] node[below, font=\scriptsize]{MEM/WB 前递} ([yshift=-2mm]ex.south east);
+        \draw[reportline, red!75!black] (ex.north) to[out=105,in=70] node[above, font=\scriptsize]{redirect / trap / mret} (if.north);
+    \end{tikzpicture}
+    \caption{五级流水与关键控制通路示意图}
+\end{figure}

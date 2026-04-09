@@ -1,275 +1,97 @@
-# YH_rv_cpu
+# icdc_workspace
 
-## 作者
-Toylog
+本仓库根目录是当前七星微杯 `YH_rv_cpu` 比赛项目的统一工作区。
 
-## 版本
-v1.0
+这里不再把所有内容都堆在一个工程目录里，而是按“正式工程、项目管理、参考资料、工具链、验证材料、汇报入口、生成物”分层组织，方便多人协作、交接和材料维护。
 
-## 功能概述
-YH_rv_cpu 是一款面向七星微杯《基于 RISC-V 的高性能 CPU 设计及 FPGA 验证》竞赛的 RISC-V 处理器实现。项目基于 RV32I + Zicsr 架构，采用五级流水线设计，已完成最小 SoC 系统搭建、RTL 仿真验证和 Vivado FPGA 综合链路，目标实现 RV32/RV64 双架构共线演进。
+## 当前推荐入口
 
-## 目录结构
+- 正式工程入口：`YH_rv_cpu/README.md`
+- 技术交接入口：`YH_rv_cpu/doc/YH_rv_cpu_handoff.md`
+- 赛题与答疑入口：`01-项目管理/01-赛题要求/`
+- 项目管理入口：`01-项目管理/README.md`
+- 汇报与初赛提交入口：`01-项目管理/04-汇报与提交材料/`
 
-```
+## 当前目录结构
+
+```text
 icdc_workspace/
-├── YH_rv_cpu/                    # 正式比赛工程
-│   ├── rtl/                      # RTL 源代码
-│   │   ├── YH_rv_cpu.v           # CPU 顶层模块
-│   │   ├── YH_rv_cpu_defs.vh     # 宏定义（ISA/CSR/trap）
-│   │   ├── YH_rv_cpu_if_stage.v  # 取指级
-│   │   ├── YH_rv_cpu_id_stage.v  # 译码级
-│   │   ├── YH_rv_cpu_decoder.v   # 指令译码器
-│   │   ├── YH_rv_cpu_ex_stage.v  # 执行级
-│   │   ├── YH_rv_cpu_mem_stage.v  # 访存级
-│   │   ├── YH_rv_cpu_wb_stage.v  # 写回级
-│   │   ├── YH_rv_cpu_alu.v       # 算术逻辑单元
-│   │   ├── YH_rv_cpu_regfile.v   # 通用寄存器堆
-│   │   ├── YH_rv_cpu_hazard_unit.v  # 冒险检测与前递
-│   │   ├── YH_rv_cpu_soc.v       # SoC 顶层
-│   │   ├── YH_rv_dmem_ram.v      # 数据存储器（BRAM）
-│   │   ├── YH_rv_sync_imem_rom.v # 指令 ROM
-│   │   └── YH_rv_sync_rom32.v    # ROM 组件
-│   │
-│   ├── tb/                       # 测试平台
-│   │   ├── YH_rv_cpu_tb.v        # 基础 CPU 测试平台
-│   │   ├── YH_rv_cpu_soc_tb.v    # SoC 烟测
-│   │   ├── YH_rv_cpu_trap_tb.v   # trap 烟测
-│   │   ├── YH_rv_cpu_timer_irq_tb.v  # 定时器中断烟测
-│   │   ├── YH_rv_cpu_xlen64_tb.v # XLEN=64 烟测
-│   │   ├── YH_rv_cpu_riscv_tests*.v  # riscv-tests 平台
-│   │   └── YH_rv_cpu_coremark*.v    # CoreMark 平台
-│   │
-│   ├── sw/                       # 固件与软件
-│   │   ├── src/                  # 源代码
-│   │   │   ├── main.c            # 主程序
-│   │   │   ├── crt0.S            # 启动代码
-│   │   │   ├── trap_entry.S      # trap 入口
-│   │   │   └── timer_irq_entry.S # 定时器中断入口
-│   │   ├── linker/               # 链接脚本
-│   │   │   ├── YH_rv_cpu.ld
-│   │   │   ├── YH_rv_cpu_coremark.ld
-│   │   │   └── YH_rv_cpu_riscv_tests.ld
-│   │   └── coremark_port/        # CoreMark 移植
-│   │
-│   ├── scripts/                  # 构建与测试脚本
-│   │   ├── check_toolchain.bat   # 检查工具链
-│   │   ├── check_syntax.bat      # 语法检查
-│   │   ├── build_firmware.bat    # 构建固件
-│   │   ├── run_soc_smoke.bat     # SoC 烟测
-│   │   ├── run_trap_smoke.bat    # trap 烟测
-│   │   ├── run_timer_irq_smoke.bat  # 定时器中断烟测
-│   │   ├── run_xlen64_smoke.bat  # XLEN=64 烟测
-│   │   ├── run_riscv_tests_subset.bat  # riscv-tests 子集
-│   │   ├── build_vivado_project.bat  # Vivado 综合
-│   │   └── clean_vivado_project.bat   # 清理工程
-│   │
-│   ├── fpga/vivado/              # FPGA 相关
-│   │   ├── src/                  # FPGA 顶层
-│   │   │   ├── YH_rv_cpu_fpga_top.v
-│   │   │   └── YH_rv_uart_tx.v
-│   │   ├── constraints/          # 约束文件
-│   │   │   └── nexys_a7_100_template.xdc
-│   │   ├── scripts/              # Tcl 脚本
-│   │   │   └── build_nexys_a7_100_project.tcl
-│   │   └── README.md
-│   │
-│   └── doc/                      # 技术文档
-│       ├── 技术文档.md            # 整体设计总览
-│       ├── YH_rv_cpu_preliminary_design.md  # 初步设计
-│       ├── YH_rv_cpu_handoff.md  # 交接文档
-│       ├── YH_rv_cpu_change_log.md  # 变更日志
-│       ├── YH_rv_cpu_todo.md     # 任务清单
-│       └── 项目结构说明.md
-│
-├── 01-项目管理/                   # 项目管理文档
-│   ├── 01-赛题要求/
-│   ├── 02-项目规划/
-│   ├── 03-过程管理/
-│   └── 04-资料索引/
-│
-└── 04-工具链/                    # 工具链配置
-    └── YH_rv_cpu_toolchain/
+├── 01-项目管理/
+│   ├── 01-赛题要求/              # 赛题原文、答疑整理、规则口径
+│   ├── 02-执行管理/              # 总体规划、阶段计划、任务清单、工作记录、工作交接
+│   ├── 03-资料索引/              # 资料清单、链接索引、Git 约定
+│   └── 04-汇报与提交材料/         # 汇报摘要、阶段汇报、内部支撑材料、初赛提交材料
+├── 02-参考资料/                  # 外部参考资料与本地参考仓库
+├── 03-工具链/                    # 工具链安装与环境资料
+├── 04-验证测试/                  # 验证分类资料（性能基准 / 指令验证）
+├── YH_rv_cpu/                    # 正式比赛工程（RTL / TB / 脚本 / 文档）
+├── build/                        # 仓库级构建输出与归档结果
+├── project/                      # Vivado 工程与实现报告
+├── docs/                         # 计划、技能文档、辅助说明
+├── _tmp/                         # 运行时暂存、历史工作区、临时输出
+└── .Xil/                         # Vivado/XSim 本地缓存
 ```
 
-## 技术规格
+## 各目录怎么用
 
-### 处理器架构
-| 参数 | 值 |
-|------|-----|
-| ISA | RV32I + Zicsr |
-| 流水线 | 五级流水 (IF/ID/EX/MEM/WB) |
-| XLEN | 参数化 (32/64) |
-| 寄存器数量 | 32 个通用寄存器 |
-| CSR 数量 | 8 个机器态 CSR |
+### 1. `YH_rv_cpu/`
 
-### 已实现指令集
-- **整数计算指令**: ADD, SUB, SLT, SLTU, XOR, OR, AND, SLL, SRL, SRA
-- **访存指令**: LB, LBU, LH, LHU, LW, SB, SH, SW
-- **分支指令**: BEQ, BNE, BLT, BGE, BLTU, BGEU
-- **跳转指令**: JAL, JALR
-- **上位指令**: AUIPC, LUI
-- **CSR 指令**: CSRRW, CSRRS, CSRRC 及其立即数变体
-- **系统指令**: ECALL, EBREAK, MRET
+这是唯一的正式设计工程目录。所有 RTL、脚本、测试平台、软件、FPGA 顶层和工程内技术文档都在这里维护。
 
-### 已实现 CSR 寄存器
-| 地址 | 名称 | 描述 |
-|------|------|------|
-| 0x300 | mstatus | 机器状态寄存器 |
-| 0x304 | mie | 机器中断使能寄存器 |
-| 0x305 | mtvec | 机器陷阱向量寄存器 |
-| 0x340 | mscratch | 机器临时寄存器 |
-| 0x341 | mepc | 机器异常程序计数器 |
-| 0x342 | mcause | 机器异常原因寄存器 |
-| 0x344 | mip | 机器中断挂起寄存器 |
+如果要看当前真实技术状态，优先阅读：
 
-### SoC 地址映射
-| 地址范围 | 设备 | 描述 |
-|----------|------|------|
-| 0x0000_0000 | ROM | 指令存储器 |
-| 0x0000_4000 | RAM | 数据存储器 |
-| 0x1000_0000 | UART_TX | 串口发送 |
-| 0x1000_0004 | DONE | 完成标志 |
-| 0x1000_0008 ~ 0x1000_0018 | TIMER | 定时器 |
+- `YH_rv_cpu/README.md`
+- `YH_rv_cpu/doc/技术文档.md`
+- `YH_rv_cpu/doc/coremark_submission_report.md`
+- `YH_rv_cpu/doc/regression_test_log.md`
+- `YH_rv_cpu/doc/performance_experiment_log.md`
+- `YH_rv_cpu/doc/YH_rv_cpu_handoff.md`
 
-## 快速开始
+### 2. `01-项目管理/`
 
-### 环境要求
-- Windows 操作系统
-- Vivado (用于 FPGA 综合)
-- xPack RISC-V 工具链
-- Icarus Verilog (用于仿真)
-- Python 3.x
+这是围绕比赛项目展开的管理主目录。赛题理解、路线规划、过程记录、交接材料、汇报摘要和初赛提交物都应从这里进入。
 
-### 快速验证流程
+当前项目相关的“正式管理口径”已经集中在这里维护，不再建议把这些材料散落在别的顶层目录中长期维护。
 
-```bat
-:: 1. 检查工具链
-scripts\check_toolchain.bat
+### 3. `02-参考资料/`
 
-:: 2. 检查语法
-scripts\check_syntax.bat
+这里存放外部参考资料，例如 RISC-V 架构规范、本地参考仓库、论文或芯片资料。
 
-:: 3. 构建固件
-scripts\build_firmware.bat
+这类内容可能体积较大，也可能只是本地参考副本，因此不应默认混入正式主线提交。新增参考资料前，先判断它属于：
 
-:: 4. 运行烟测
-scripts\run_soc_smoke.bat
-scripts\run_trap_smoke.bat
-scripts\run_timer_irq_smoke.bat
+- 长期需要的资料索引
+- 仅本机使用的参考副本
+- 临时下载缓存
 
-:: 5. 运行 riscv-tests 子集
-scripts\run_riscv_tests_subset.bat rv32 add
-```
+### 4. `03-工具链/`
 
-### FPGA 综合流程
+这里用于保存工具链安装说明、环境配置资料和团队复现所需说明，不直接承载比赛主线源码。
 
-```bat
-:: 综合 (50MHz)
-scripts\build_vivado_project.bat synth50
+### 5. `04-验证测试/`
 
-:: 综合 (100MHz)
-scripts\build_vivado_project.bat synth100
+这里用于按主题收纳验证材料，目前已区分：
 
-:: 清理工程
-scripts\clean_vivado_project.bat
+- `01-性能基准/`
+- `02-指令验证/`
 
-:: 打开工程
-scripts\open_vivado_project.bat
-```
+如果后续继续细分验证资产，建议保持“按验证目的分类”，不要和 `YH_rv_cpu/build/` 的原始输出混在一起。
 
-## 验证结果
+### 6. `build/`、`project/`、`_tmp/`、`.Xil/`
 
-### 仿真测试
-| 测试项 | 状态 | 周期数 |
-|--------|------|--------|
-| SoC smoke | PASS | 102 cycles |
-| trap smoke | PASS | 79 cycles |
-| timer irq smoke | PASS | 125 cycles |
-| xlen64 smoke | PASS | 17 cycles |
-| riscv-tests rv32 (子集) | PASS | 495 cycles |
+这些目录主要承载生成物、Vivado 工程、本地缓存和临时输出：
 
-### FPGA 综合结果 (xc7a100tcsg324-1)
+- `build/`：脚本产生的构建结果、summary、log、归档文件
+- `project/`：Vivado 工程、报告、bitstream
+- `_tmp/`：临时文件、历史工作区、运行时杂项
+- `.Xil/`：Vivado/XSim 缓存
 
-| 频率 | LUT | FF | LUTRAM | BRAM | DSP | WNS |
-|------|-----|-----|--------|------|-----|-----|
-| 50MHz | 3692 | 2069 | 1024 | 2 | 0 | +7.553ns |
-| 100MHz | 3713 | 2066 | 1024 | 2 | 0 | -2.475ns |
+除非确认属于正式证据或必须纳入版本控制的资产，否则不要把这些目录里的运行时垃圾直接混入主线提交。
 
-> 注：50MHz 目标已满足，100MHz 正在优化中
+## 当前整理原则
 
-## 微架构详情
-
-### 五级流水线
-
-```
-┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
-│   IF    │───▶│   ID    │───▶│   EX    │───▶│   MEM   │───▶│   WB    │
-│ 取指级  │    │ 译码级  │    │ 执行级  │    │ 访存级  │    │ 写回级  │
-└─────────┘    └─────────┘    └─────────┘    └─────────┘    └─────────┘
-     │              │              │              │              │
-     ▼              ▼              ▼              ▼              ▼
-   PC更新        寄存器读       ALU运算       数据访存       写回寄存器
-   取指          立即数生成     分支判断      Load数据整理    选择结果
-                               访存地址                      (ALU/MEM/PC4)
-                               Store发送
-```
-
-### 冒险处理
-- **Load-Use 冒险**: 暂停流水线
-- **前递路径**: EX/MEM → ID, MEM/WB → ID
-- **分支冒险**:  Flush IF/ID
-
-### 中断与异常
-- 支持 machine timer interrupt
-- 支持 ecall/ebreak 异常
-- 支持 illegal instruction 异常
-- 支持 misaligned 地址异常
-
-## 项目路线图
-
-### 已完成
-- [x] 五级流水基线 (RV32I)
-- [x] XLEN 参数化骨架
-- [x] 最小 SoC (ROM/RAM/UART/DONE/timer)
-- [x] CSR/trap 机制
-- [x] machine timer interrupt
-- [x] riscv-tests 子集回归
-- [x] Vivado 综合链路 (50MHz)
-
-### 进行中
-- [ ] RV64 指令扩展
-- [ ] riscv-tests 全量回归
-- [ ] CoreMark 跑通
-- [ ] 100MHz 时序收敛
-
-### 待完成
-- [ ] FPGA 板级闭环
-- [ ] 性能优化
-- [ ] 完整文档
-
-## 协作规范
-
-### 提交前检查
-修改任何文件后，必须同步更新：
-- `doc/YH_rv_cpu_handoff.md` - 交接文档
-- `doc/YH_rv_cpu_change_log.md` - 变更日志
-- `doc/YH_rv_cpu_todo.md` - 任务清单
-
-### 代码规范
-- 源码注释使用中文
-- 模块名、信号名、脚本名保留英文
-- 代码注释率不低于 30%
-
-## 比赛信息
-
-- **赛事**: 七星微杯《基于 RISC-V 的高性能 CPU 设计及 FPGA 验证》
-- **报名截止**: 2026-03-31
-- **初赛提交**: 2026-05-07
-- **分赛区决赛**: 2026-06 ~ 2026-07
-- **全国总决赛**: 2026-07 下旬
-
-## 参考资料
-
-- 集创赛报名页: https://www.saikr.com/vse/univ/ciciec/10
-- RISC-V 官方规范: https://riscv.org/technical/specifications/
+1. 正式源码与技术口径只认 `YH_rv_cpu/`
+2. 比赛项目管理与提交材料只认 `01-项目管理/`
+3. 初赛真正提交的材料只放在 `01-项目管理/04-汇报与提交材料/初赛提交材料/`
+4. 证据索引、答辩口径和提交清单放在 `01-项目管理/04-汇报与提交材料/内部支撑材料/`
+5. 大体量参考资料默认视为本地参考资产，先分类再决定是否纳入版本控制
+6. 目录结构一旦调整，优先同步入口 README 和索引文档，避免“实际目录变了，入口说明还停在旧结构”

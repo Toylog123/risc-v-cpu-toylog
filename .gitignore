@@ -27,10 +27,13 @@ YH_rv_cpu/xsim_*.backup.log
 /vivado_*.backup.log
 /clockInfo.txt
 
-# 这些目录只在本地保留，不进入当前 Git 仓库。
+# 这些目录或外部资产只在本地保留，不进入当前 Git 仓库。
 /02-官方与规范/
 /03-参考实现/
 /05-验证测试/
+/02-参考资料/RISC-V架构规范/riscv-isa-manual/
+/04-验证测试/01-性能基准/coremark/
+/04-验证测试/02-指令验证/riscv-tests/
 /_tmp/*
 !/_tmp/README.md
 *.baiduyun.uploading.cfg

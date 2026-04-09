@@ -17,7 +17,7 @@
 - `doc/fpga_bringup_checklist.md`
 - `doc/YH_rv_cpu_handoff.md`
 - `../01-项目管理/01-赛题要求/七星微赛题答疑整理.md`
-- `../01-项目管理/05-汇报与提交材料/初赛提交材料/README.md`
+- `../01-项目管理/04-汇报与提交材料/README.md`
 
 ## 冻结基线
 
@@ -95,7 +95,7 @@
 - fresh profile 进一步表明 `fetch_queue_empty_cycles` 与 `ex_fetch_redirect_valid_cycles` 完全重合，剩余 fetch 空泡主要来自 redirect 窗口而不是 request-side 缺口
 - `2026-04-09` split profile 进一步表明 `branch redirect = 1235790`、`jal = 153354`、`jalr = 115826`，且 `fetch_redirect_reuse_cycles = 0`
 - `2026-04-09` 官方答疑已整理入 `../01-项目管理/01-赛题要求/七星微赛题答疑整理.md`，初赛硬交付口径已改为“设计/技术文档为主，性能/验证为增强材料”
-- `2026-04-09` 已将汇报材料集中到 `../01-项目管理/05-汇报与提交材料/`，提交清单、证据索引与答辩口径统一在该目录维护
+- `2026-04-09` 已将汇报材料集中到 `../01-项目管理/04-汇报与提交材料/`，初赛正式提交物和内部支撑材料统一在该目录维护
 - 文档、脚本、summary、handoff 必须继续同步更新，不能在下一阶段重新产生口径漂移
 
 ## 快速验证命令
@@ -140,7 +140,8 @@ scripts\run_riscv_tests_subset.bat rv64 - - 120000 YH_rv_cpu\scripts\riscv_tests
 - 当前任务板：`doc/YH_rv_cpu_todo.md`
 - Vivado 使用说明：`fpga/vivado/README.md`
 - 赛题答疑整理：`../01-项目管理/01-赛题要求/七星微赛题答疑整理.md`
-- 初赛提交材料：`../01-项目管理/05-汇报与提交材料/初赛提交材料/README.md`
+- 汇报与提交材料入口：`../01-项目管理/04-汇报与提交材料/README.md`
+- 初赛设计说明书：`../01-项目管理/04-汇报与提交材料/初赛提交材料/YH_rv_cpu初赛设计说明书.pdf`
 
 ## 当前阻塞
 

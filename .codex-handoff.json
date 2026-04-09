@@ -3,43 +3,48 @@
     "README.md",
     "YH_rv_cpu/doc/技术文档.md",
     "01-项目管理/01-赛题要求/七星微赛题要求.md",
-    "01-项目管理/01-赛题要求/七星微赛方答疑整理.md"
+    "01-项目管理/01-赛题要求/七星微赛题答疑整理.md",
+    "01-项目管理/README.md"
   ],
   "handoff_files": [
-    "01-项目管理/03-过程管理/工作交接.md",
+    "01-项目管理/02-执行管理/05-工作交接/工作交接.md",
     "YH_rv_cpu/doc/YH_rv_cpu_handoff.md"
   ],
   "task_files": [
-    "01-项目管理/03-过程管理/任务清单.md",
+    "01-项目管理/02-执行管理/03-任务清单.md",
     "YH_rv_cpu/doc/YH_rv_cpu_todo.md"
   ],
   "planning_files": [
-    "01-项目管理/02-项目规划/项目总体规划.md",
-    "YH_rv_cpu/doc/技术文档.md"
+    "01-项目管理/02-执行管理/01-总体规划.md",
+    "YH_rv_cpu/doc/技术文档.md",
+    "docs/superpowers/plans/2026-04-09-root-directory-reorg.md"
   ],
   "log_files": [
-    "01-项目管理/03-过程管理/工作记录.md",
+    "01-项目管理/02-执行管理/04-工作记录/工作记录.md",
     "YH_rv_cpu/doc/YH_rv_cpu_change_log.md"
   ],
   "toolchain_files": [
-    "04-工具链/YH_rv_cpu_toolchain/README.md",
-    "04-工具链/YH_rv_cpu_toolchain/队伍安装清单.md"
+    "03-工具链/YH_rv_cpu_toolchain/README.md",
+    "03-工具链/YH_rv_cpu_toolchain/队伍安装清单.md"
   ],
   "read_order": [
     "README.md",
     "YH_rv_cpu/doc/技术文档.md",
-    "01-项目管理/03-过程管理/工作交接.md",
-    "01-项目管理/03-过程管理/任务清单.md",
-    "01-项目管理/02-项目规划/项目总体规划.md",
+    "01-项目管理/README.md",
+    "01-项目管理/02-执行管理/05-工作交接/工作交接.md",
+    "01-项目管理/02-执行管理/03-任务清单.md",
+    "01-项目管理/02-执行管理/01-总体规划.md",
     "01-项目管理/01-赛题要求/七星微赛题要求.md",
-    "01-项目管理/01-赛题要求/七星微赛方答疑整理.md",
-    "04-工具链/YH_rv_cpu_toolchain/队伍安装清单.md",
+    "01-项目管理/01-赛题要求/七星微赛题答疑整理.md",
+    "03-工具链/YH_rv_cpu_toolchain/队伍安装清单.md",
     "YH_rv_cpu/doc/YH_rv_cpu_handoff.md",
     "YH_rv_cpu/doc/YH_rv_cpu_todo.md"
   ],
   "ignore_patterns": [
-    "02-官方与规范/**",
-    "03-参考实现/**",
-    "05-验证测试/**"
+    "02-参考资料/RISC-V架构规范/riscv-isa-manual/**",
+    "04-验证测试/01-性能基准/coremark/**",
+    "04-验证测试/02-指令验证/riscv-tests/**",
+    "_tmp/**",
+    ".Xil/**"
   ]
 }

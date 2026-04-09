@@ -15,7 +15,7 @@
 
 - 冻结基线仍然是 `2026-04-07` 的完整收口结果
 - `2026-04-08` 的 `riscv-tests` 扩展验证与全文档同步已经完成收口
-- 工作区已经回到 clean；`2026-04-08` 收口结果已拆成 focused commits
+- `2026-04-08` 的主线收口结果已拆成 focused commits；当前仓库还存在独立的目录整理/材料提交线与 profiling WIP，需分别按各自范围处理
 - 当前最新 fresh 活跃证据是：
   - `build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt`
   - `rv32 full-ui = 42/42`
@@ -55,7 +55,7 @@
 - `timer_irq_smoke` 已修复并纳入基线
 - Vivado `impl50` 默认 payload 已冻结为 `YH_rv_cpu_demo`
 - `redirect/flush/drop-accounting` 双变体 strict 诊断已补齐
-- `2026-04-09` 已整理赛方答疑，并把汇报/初赛提交材料集中到 `01-项目管理/05-汇报与提交材料/`
+- `2026-04-09` 已整理赛方答疑，并把汇报/初赛提交材料集中到 `01-项目管理/04-汇报与提交材料/`
 - 第一轮与第二轮单变量前端候选均已完成快速门禁并拒绝保留：
   - `request-cursor`
   - `pipe-hit`
@@ -128,7 +128,7 @@
 - `doc/fpga_bringup_checklist.md`
 - `fpga/vivado/README.md`
 - `../01-项目管理/01-赛题要求/七星微赛题答疑整理.md`
-- `../01-项目管理/05-汇报与提交材料/初赛提交材料/README.md`
+- `../01-项目管理/04-汇报与提交材料/README.md`
 
 关键命令：
 

@@ -1,0 +1,97 @@
+\documentclass[UTF8,a4paper,12pt]{ctexart}
+
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{lastpage}
+\usepackage{caption}
+\usepackage{ragged2e}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,shapes.geometric,shapes.misc,backgrounds}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!50!black,
+    urlcolor=blue!50!black,
+    pdftitle={七星微赛题初赛设计说明书},
+    pdfauthor={YH_rv_cpu Project}
+}
+
+\setlist[itemize]{leftmargin=2.2em}
+\setlist[enumerate]{leftmargin=2.4em}
+
+\titleformat{\section}{\Large\bfseries}{\thesection}{0.75em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.75em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries}{\thesubsubsection}{0.75em}{}
+
+\captionsetup{font=small,labelfont=bf}
+
+\newcommand{\ReportTitle}{七星微赛题初赛设计说明书}
+\newcommand{\ProjectName}{YH\_rv\_cpu}
+\newcommand{\ProjectNamePlain}{YH rv cpu}
+\newcommand{\ReportVersion}{v0.3}
+\newcommand{\ReportDate}{2026-04-09}
+
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\ProjectNamePlain}
+\rhead{\ReportTitle}
+\cfoot{\thepage/\pageref{LastPage}}
+
+\newcolumntype{Y}{>{\RaggedRight\arraybackslash}X}
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+\tikzset{
+    reportbox/.style={
+        draw=black!65,
+        rounded corners=2pt,
+        align=center,
+        fill=blue!3,
+        inner sep=4pt
+    },
+    reportline/.style={
+        -{Latex[length=2.2mm]},
+        semithick,
+        draw=black!70
+    },
+    reportdash/.style={
+        -{Latex[length=2.0mm]},
+        semithick,
+        dashed,
+        draw=black!65
+    },
+    reportgroup/.style={
+        draw=black!35,
+        rounded corners=3pt,
+        dashed,
+        inner sep=8pt
+    }
+}
+
+\begin{document}
+
+\input{sections/00-cover-and-abstract}
+
+\tableofcontents
+\clearpage
+
+\input{sections/01-project-scope}
+\input{sections/02-architecture}
+\input{sections/03-verification}
+\input{sections/04-fpga-and-delivery}
+\input{sections/05-risks-and-plan}
+
+\appendix
+\clearpage
+\input{sections/appendix-evidence}
+
+\end{document}

@@ -1,0 +1,55 @@
+\section{赛题理解与设计目标}
+
+\subsection{赛题理解}
+
+结合官方赛题描述与已公开答疑信息，本项目对题目的理解可以概括为以下几点：
+\begin{itemize}
+    \item 初赛阶段的核心交付物是设计说明书，评审重点在于方案是否完整、架构是否清楚、结果是否可信；
+    \item 题目鼓励在功能、性能、资源和工程可实现性之间做平衡，不要求单纯追求极限结构；
+    \item 程序存储与数据存储方式不受严格限制，FPGA 原型验证可采用仿真与实现报告作为阶段性证据；
+    \item 扩展能力和可演进性属于加分方向，但不应以牺牲当前主线的正确性和可验证性为代价。
+\end{itemize}
+
+基于上述理解，本项目选择以五级顺序流水作为主线结构，以 \texttt{RV32I + Zicsr} 为当前正式提交口径，
+围绕最小 SoC 和 FPGA 原型适配建立完整工程闭环。这样做的目标不是规避复杂度，而是在初赛阶段先建立一套
+能够稳定复现、便于说明且可继续优化的基线。
+
+\subsection{设计目标}
+
+本项目在初赛阶段设置了四项核心目标：
+\begin{enumerate}
+    \item \textbf{架构清晰}：构建层次分明、职责明确的 CPU 与 SoC 结构，便于说明微架构原理；
+    \item \textbf{验证充分}：建立从 smoke、baseline、扩展 ISA 覆盖到 CoreMark 和实现结果的验证矩阵；
+    \item \textbf{工程可复现}：使关键脚本、文档、RTL、测试平台和结果摘要保持一致；
+    \item \textbf{原型可延伸}：在保持实现约束可控的前提下，为 FPGA 原型和后续性能优化保留清晰路径。
+\end{enumerate}
+
+\begin{table}[H]
+    \centering
+    \small
+    \caption{初赛阶段目标完成情况}
+    \begin{tabularx}{0.95\textwidth}{L{0.20\textwidth} L{0.14\textwidth} Y}
+        \toprule
+        目标项 & 当前状态 & 说明 \\
+        \midrule
+        五级流水主线 & 已完成 & CPU、SoC、取指存储、数据存储和 MMIO 路径已形成稳定主线实现 \\
+        功能验证 & 已完成 & Smoke、\texttt{rv32 baseline 33/33}、\texttt{rv64 baseline 21/21} 已收敛 \\
+        扩展覆盖 & 已完成 & \texttt{rv32 full-ui 42/42}、\texttt{rv64 full-ui 54/54} 已完成，用于补充展示工程健壮性 \\
+        性能评估 & 已完成 & CoreMark short 与 strict \texttt{>=10s} 路径均已获得稳定结果 \\
+        FPGA pre-board & 已完成 & \texttt{impl50}、资源与时序报告、bring-up 路径已整理完毕 \\
+        实体板验证 & 待完成 & 受实体板卡与最终板级约束条件限制，留作后续阶段工作 \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\subsection{结果口径说明}
+
+为了避免评审中对结果边界产生误解，本文结果分为两类：
+\begin{itemize}
+    \item \textbf{主线结果}：指当前正式提交口径直接引用的结果，包括 CoreMark short/strict、
+    \texttt{rv32 baseline}、\texttt{rv64 baseline}、\texttt{impl50} 和 FPGA pre-board 数据；
+    \item \textbf{扩展验证结果}：指用于补充展示工程健壮性和覆盖面的结果，例如
+    \texttt{rv32/rv64 full-ui}。这类结果用于说明设计具备更强的稳定性，但不改变本文主线口径。
+\end{itemize}
+
+这种区分的目的，是让设计说明书既能体现工程完成度，又能保持表达边界准确，避免把阶段性探索结果与正式主线结果混为一谈。
