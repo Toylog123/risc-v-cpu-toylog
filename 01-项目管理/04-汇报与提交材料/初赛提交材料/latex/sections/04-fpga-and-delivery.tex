@@ -1,16 +1,17 @@
-﻿\section{FPGA 原型实现情况}
+﻿\section{FPGA 原型适配与实现结果}
 
 \subsection{原型目标与实现路径}
 
-赛题允许采用仿真与原型实现结果作为阶段性支撑，因此项目在初赛阶段将 FPGA 工作重点放在
-“pre-board 可实现性确认”上，即先完成综合、实现、时序、约束和 bring-up 路径整理，再进入实体板验证。
-本设计以 Nexys A7-100T 为目标平台，并以 Vivado \texttt{impl50} 流程作为 FPGA 原型实现的统一条件。
+为说明设计具备工程落地能力，本文进一步给出 FPGA 原型适配路径。
+当前工作重点是先完成综合、实现、时序、约束和 bring-up 路径整理，
+在此基础上确认该方案能够稳定映射到目标原型平台，再进入实体板验证。
+本设计以 Nexys A7-100T 为目标平台，并以 Vivado \texttt{impl50} 流程作为统一实现条件。
 
 \input{figures/fpga-preboard-flow.tex}
 
-\subsection{已完成内容}
+\subsection{实现内容}
 
-已经完成的 FPGA pre-board 工作包括：
+当前已经完成的 FPGA 原型适配工作包括：
 \begin{itemize}
     \item Vivado \texttt{impl50} 构建脚本、bitstream 路径和报告目录整理完毕；
     \item FPGA 顶层、XDC、bring-up checklist 和相关 README 已统一到同一实现配置；
@@ -23,28 +24,33 @@
 \begin{table}[H]
     \centering
     \small
-    \caption{FPGA pre-board 关键结果}
+    \caption{FPGA 原型适配结果}
     \begin{tabularx}{0.95\textwidth}{L{0.25\textwidth} L{0.22\textwidth} Y}
         \toprule
         项目 & 结果 & 说明 \\
         \midrule
         目标平台 & Nexys A7-100T & 原型验证目标板卡 \\
         实现条件 & \texttt{impl50} & 50MHz 目标频率下的综合实现流程 \\
-        资源结果 & \texttt{2556 LUT / 2170 FF / 4 BRAM / 0 DSP} & 综合实现后的资源统计 \\
-        时序结果 & \texttt{WNS = +5.822ns}, \texttt{WHS = +0.057ns} & pre-board 约束下保持正时序裕量 \\
-        原型观测结果 & \texttt{156442 cycles}, \texttt{7.728811 CoreMark/MHz} & 来自 FPGA-like probe \\
+        Slice LUTs & \texttt{2556} & 综合实现后的逻辑资源占用 \\
+        Slice Registers & \texttt{2170} & 综合实现后的寄存器资源占用 \\
+        Block RAM Tile & \texttt{4} & 片上存储资源占用 \\
+        DSP & \texttt{0} & 未依赖 DSP 资源 \\
+        WNS & \texttt{+5.822ns} & 50MHz 目标下保持正建立时间裕量 \\
+        WHS & \texttt{+0.057ns} & 保持正保持时间裕量 \\
+        原型观测周期 & \texttt{156442 cycles} & 来自 FPGA-like probe 的近板级路径观测 \\
+        原型观测 Score (CoreMark/MHz) & \texttt{7.728811} & 用于辅助观察原型路径下的相对效率 \\
         \bottomrule
     \end{tabularx}
 \end{table}
 
-\subsection{待验证事项}
+\subsection{实体板相关工作}
 
-这里给出的 FPGA 结果属于 pre-board 阶段结论，主要用于说明设计具备原型实现能力。
+这里给出的 FPGA 结果属于原型适配阶段结论，主要用于说明设计具备原型实现能力。
 尚未完成的内容包括 UART/LED 实体连线验证、boot banner 现场观测以及最终板级 I/O 约束确认。
 这些工作依赖实体板卡与现场条件，因此被保留为后续阶段任务。
 
 \subsection{小结}
 
-从现有结果看，\texttt{YH\_rv\_cpu} 已经完成 FPGA 原型实现的关键前置工作，
+从现有结果看，\texttt{YH\_rv\_cpu} 已经完成 FPGA 原型适配的关键前置工作，
 具备继续进入实体板 bring-up 的工程基础。对于初赛阶段而言，这说明该方案不仅完成了 RTL 设计，
-也已经具备面向原型实现的明确落地路径。
+也具备明确的原型实现路径。

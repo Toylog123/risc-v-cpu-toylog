@@ -17,16 +17,16 @@
 
 \texttt{YH\_rv\_cpu} 是一套面向七星微赛题的 RISC-V 处理器方案。设计采用五级顺序流水结构，
 围绕 \texttt{RV32I + Zicsr} 构建同步指令存储、数据存储、UART、定时器和 DONE 标志构成的最小 SoC，
-形成了从功能验证、性能评估到 FPGA 原型实现的完整工程链路。下文将对该设计的目标、总体架构、
-关键机制、验证结果和原型实现情况进行介绍。
+形成了覆盖功能验证、性能评估和 FPGA 原型适配的完整工程实现。
 
-截至 2026 年 4 月，本设计已完成基础回归、扩展用户态验证、CoreMark short 与 strict 长跑测试，
+当前实现已完成基础回归、扩展用户态验证、CoreMark short 与 strict 长跑测试，
 以及 Vivado \texttt{impl50} 综合实现。关键结果包括：CoreMark short
 \texttt{0.912472 CoreMark/MHz}、CoreMark strict \texttt{0.912465 CoreMark/MHz}、
 \texttt{rv32 baseline 33/33}、\texttt{rv64 baseline 21/21}、\texttt{rv32 full-ui 42/42}、
 \texttt{rv64 full-ui 54/54}，以及 \texttt{2556 LUT / 2170 FF / 4 BRAM / 0 DSP} 的实现结果。
 
-本设计的特点在于结构边界清晰、验证证据完整、工程结果可复核，并已具备继续开展 FPGA 实体板验证的基础。
+实验结果表明，该设计具备结构边界清晰、验证证据完整、工程结果可复核等特点，
+并为后续 FPGA 实体板验证与进一步性能优化保留了明确扩展路径。
 
 \section*{关键词}
 \addcontentsline{toc}{section}{关键词}

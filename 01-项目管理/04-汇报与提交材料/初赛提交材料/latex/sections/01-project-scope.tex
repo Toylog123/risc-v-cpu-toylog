@@ -27,20 +27,20 @@
 \begin{table}[H]
     \centering
     \small
-    \caption{初赛阶段实现内容概览}
-    \begin{tabularx}{0.95\textwidth}{L{0.20\textwidth} L{0.14\textwidth} Y}
+    \caption{设计范围概览}
+    \begin{tabularx}{0.95\textwidth}{L{0.22\textwidth} Y}
         \toprule
-        目标项 & 实现状态 & 说明 \\
+        设计内容 & 方案说明 \\
         \midrule
-        五级流水实现 & 已完成 & CPU、SoC、取指存储、数据存储和 MMIO 路径已形成稳定实现 \\
-        功能验证 & 已完成 & Smoke、\texttt{rv32 baseline 33/33}、\texttt{rv64 baseline 21/21} 已完成 \\
-        扩展覆盖 & 已完成 & \texttt{rv32 full-ui 42/42}、\texttt{rv64 full-ui 54/54} 已完成，用于补充展示设计健壮性 \\
-        性能评估 & 已完成 & CoreMark short 与 strict \texttt{>=10s} 路径均已获得稳定结果 \\
-        FPGA pre-board & 已完成 & \texttt{impl50}、资源与时序报告、bring-up 路径已整理完毕 \\
-        实体板验证 & 待完成 & 受实体板卡与最终板级约束条件限制，留作后续阶段工作 \\
+        处理器内核 & 采用 IF/ID/EX/MEM/WB 五级顺序流水，覆盖 hazard、redirect、CSR 与 trap 关键机制 \\
+        最小 SoC & 由同步指令存储、数据存储、UART、timer 和 DONE 构成，用于承接软件运行与对外观测 \\
+        功能验证 & 给出 smoke、\texttt{rv32 baseline 33/33}、\texttt{rv64 baseline 21/21} 以及扩展 \texttt{full-ui} 验证结果 \\
+        性能评估 & 给出 CoreMark short、strict \texttt{>=10s} 与 FPGA-like probe 的结果，用于说明性能与稳定性 \\
+        FPGA 原型适配 & 给出 Vivado \texttt{impl50} 的资源、时序和原型路径配置结果，用于说明原型实现可行性 \\
+        后续工作 & 实体板连线验证、现场观测和最终板级 I/O 约束确认需在外部条件具备后继续开展 \\
         \bottomrule
     \end{tabularx}
 \end{table}
 
-本设计重点覆盖 \texttt{RV32I + Zicsr} 处理器及其最小 SoC 实现；同时列出扩展 \texttt{full-ui}
-和 RV64 相关验证结果，用于展示该设计在更广测试范围下的稳定性与可复用性。
+本文重点说明 \texttt{RV32I + Zicsr} 处理器及其最小 SoC 实现；
+扩展 \texttt{full-ui} 与 RV64 结果用于补充展示该设计在更广测试范围下的稳定性与可复用性。

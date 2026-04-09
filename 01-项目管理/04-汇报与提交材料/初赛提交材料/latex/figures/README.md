@@ -7,7 +7,7 @@
 - `system-architecture.tex`：系统总体架构示意图
 - `pipeline-control.tex`：五级流水与关键控制通路示意图
 - `validation-closure.tex`：验证闭环与正式结果关系图
-- `fpga-preboard-flow.tex`：FPGA pre-board 实现与板级边界示意图
+- `fpga-preboard-flow.tex`：FPGA 原型适配路径与板级边界示意图
 
 ## 维护建议
 

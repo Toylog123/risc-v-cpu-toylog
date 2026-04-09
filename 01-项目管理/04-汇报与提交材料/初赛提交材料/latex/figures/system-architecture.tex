@@ -53,7 +53,7 @@
         }
 
         \node[archcore] (cpu) {
-            \textbf{CPU Core}\\
+            \textbf{处理器内核}\\
             \scriptsize \texttt{YH\_rv\_cpu}\\
             \scriptsize IF / ID / EX / MEM / WB\\
             \scriptsize Hazard / Forwarding\\
@@ -61,32 +61,32 @@
         };
 
         \node[archif, right=28mm of cpu, yshift=14mm] (imem) {
-            \textbf{Instruction ROM}\\
+            \textbf{同步指令存储}\\
             \scriptsize \texttt{YH\_rv\_sync\_imem\_rom}\\
-            \scriptsize Sync ifetch path
+            \scriptsize 同步取指路径
         };
 
         \node[archfabric, right=10mm of cpu, yshift=-12mm] (fabric) {
-            \textbf{Address Decode}\\
-            \scriptsize load/store dispatch\\
-            \scriptsize MMIO routing
+            \textbf{地址译码与路由}\\
+            \scriptsize 访存分发\\
+            \scriptsize MMIO 路由
         };
 
         \node[archmem, right=14mm of fabric, yshift=8mm] (dmem) {
-            \textbf{Data RAM}\\
+            \textbf{数据存储}\\
             \scriptsize \texttt{YH\_rv\_dmem\_ram}\\
-            \scriptsize Load / Store path
+            \scriptsize Load / Store 路径
         };
 
         \node[archmmio, right=14mm of fabric, yshift=-11mm] (mmio) {
-            \textbf{MMIO Peripherals}\\
+            \textbf{最小 MMIO 外设}\\
             \scriptsize UART / TIMER / DONE
         };
 
-        \draw[archlink] ([yshift=10mm]cpu.east) -- node[above, font=\scriptsize]{ifetch interface} (imem.west);
-        \draw[archlink] ([yshift=-9mm]cpu.east) -- node[above, font=\scriptsize]{load / store / mmio} (fabric.west);
-        \draw[archlink] (fabric.east |- dmem.west) -- node[above, font=\scriptsize]{data memory} (dmem.west);
-        \draw[archlink] (fabric.east |- mmio.west) -- node[below, font=\scriptsize]{peripheral access} (mmio.west);
+        \draw[archlink] ([yshift=10mm]cpu.east) -- node[above, font=\scriptsize]{取指接口} (imem.west);
+        \draw[archlink] ([yshift=-9mm]cpu.east) -- node[above, font=\scriptsize]{load/store 与 MMIO 访问} (fabric.west);
+        \draw[archlink] (fabric.east |- dmem.west) -- node[above, font=\scriptsize]{数据存储访问} (dmem.west);
+        \draw[archlink] (fabric.east |- mmio.west) -- node[below, font=\scriptsize]{外设访问} (mmio.west);
 
         \node[archgroup, fit=(cpu)(imem)(fabric)(dmem)(mmio),
               label={[font=\small]above:SoC 封装（\texttt{YH\_rv\_cpu\_soc}）}] (soc) {};

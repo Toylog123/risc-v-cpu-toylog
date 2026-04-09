@@ -1,23 +1,23 @@
-﻿\section{结论}
+﻿\section{结论与后续工作}
 
 \subsection{综合结论}
 
 \texttt{YH\_rv\_cpu} 已经形成较完整的初赛工程形态：架构层面采用边界清晰的五级顺序流水，
 验证层面建立了从 smoke、baseline、扩展覆盖到 CoreMark、\texttt{impl50} 和 FPGA-like probe 的证据链，
-原型层面完成了可复现的 FPGA pre-board 适配。综合来看，本设计在初赛阶段具备三项较明确的特点：
+原型层面完成了可复现的 FPGA 原型适配。综合来看，本设计在初赛阶段具备三项较明确的特点：
 \begin{itemize}
     \item 方案结构清晰，能够较好地说明设计原理与工程取舍；
     \item 验证矩阵完整，实验结果具备较强的可复核性；
     \item 资源与时序结果能够支撑后续 FPGA 原型落地，而不是停留在概念设计阶段。
 \end{itemize}
 
-\subsection{待继续验证事项}
+\subsection{后续工作}
 
-仍待继续验证的事项包括：
+后续工作主要包括：
 \begin{itemize}
-    \item 设计重点说明以 \texttt{RV32I + Zicsr} 为核心的软件运行路径和最小 SoC 实现；
-    \item 扩展 \texttt{full-ui} 与 RV64 验证结果用于补充说明设计覆盖范围和结构稳定性；
-    \item FPGA 结果属于 pre-board 阶段结论，实体板卡验证仍需在后续阶段完成。
+    \item 在实体板卡到位后完成 UART/LED 连线、boot banner 观测和最终板级 I/O 约束确认；
+    \item 在保持当前验证基线稳定的前提下，继续开展控制流 redirect 成本分析与性能优化实验；
+    \item 结合后续赛程需要，评估是否引入更多扩展指令或进一步增强原型系统能力。
 \end{itemize}
 
 \subsection{结语}

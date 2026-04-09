@@ -5,8 +5,8 @@
         \node[reportbox, minimum width=27mm, right=of rtl] (impl) {Vivado impl50\\\scriptsize 50MHz 原型实现};
         \node[reportbox, minimum width=27mm, right=of impl] (rpt) {报告输出\\\scriptsize 资源 / 时序 / bit};
         \node[reportbox, minimum width=27mm, right=of rpt] (probe) {FPGA-like probe\\\scriptsize CoreMark 近板级观察};
-        \node[reportbox, fill=orange!10, minimum width=33mm, below=16mm of rpt] (closure) {pre-board 验证\\\scriptsize 已完成内容};
-        \node[reportbox, fill=red!6, minimum width=34mm, below=16mm of probe] (board) {待外部条件\\\scriptsize 实体板卡 / I/O delay};
+        \node[reportbox, fill=orange!10, minimum width=36mm, below=16mm of rpt] (closure) {原型适配阶段\\\scriptsize 适配结果};
+        \node[reportbox, fill=red!6, minimum width=36mm, below=16mm of probe] (board) {后续板级验证\\\scriptsize 实体板卡 / I/O 约束};
 
         \draw[reportline] (rtl) -- (impl);
         \draw[reportline] (impl) -- (rpt);
@@ -15,5 +15,5 @@
         \draw[reportline] (rpt.south) -- (closure.north east);
         \draw[reportdash] (probe.south) -- (board.north);
     \end{tikzpicture}
-    \caption{FPGA pre-board 实现与板级边界示意图}
+    \caption{FPGA 原型适配路径与板级边界示意图}
 \end{figure}

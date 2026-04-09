@@ -53,13 +53,13 @@ CoreMark 采用“short + strict”两条路径记录性能：
     \centering
     \small
     \caption{CoreMark 结果汇总}
-    \begin{tabularx}{0.95\textwidth}{L{0.25\textwidth} L{0.22\textwidth} L{0.22\textwidth} Y}
+    \begin{tabularx}{0.95\textwidth}{L{0.24\textwidth} L{0.18\textwidth} L{0.22\textwidth} Y}
         \toprule
-        路径 & Score & 周期数 & 说明 \\
+        路径 & Score (CoreMark/MHz) & 周期数 & 说明 \\
         \midrule
-        CoreMark short & \texttt{0.912472 CoreMark/MHz} & \texttt{11014885} & 快速性能评估结果 \\
-        CoreMark strict \texttt{>=10s} & \texttt{0.912465 CoreMark/MHz} & \texttt{1095991523} & 长时间运行结果，满足 EEMBC 10s 条件 \\
-        FPGA-like probe & \texttt{7.728811 CoreMark/MHz} & \texttt{156442} & 用于观察近 FPGA 路径下的相对效率 \\
+        CoreMark short & \texttt{0.912472} & \texttt{11014885} & 快速性能评估结果 \\
+        CoreMark strict \texttt{>=10s} & \texttt{0.912465} & \texttt{1095991523} & 长时间运行结果，满足 EEMBC 10s 条件 \\
+        FPGA-like probe & \texttt{7.728811} & \texttt{156442} & 用于观察近 FPGA 路径下的相对效率 \\
         \bottomrule
     \end{tabularx}
 \end{table}
