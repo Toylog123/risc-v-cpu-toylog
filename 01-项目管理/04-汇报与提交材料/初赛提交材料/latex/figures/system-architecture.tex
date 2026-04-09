@@ -1,33 +1,97 @@
 ﻿\begin{figure}[H]
     \centering
     \begin{tikzpicture}[node distance=8mm and 10mm, every node/.style={font=\small}]
-        \node[reportbox, minimum width=38mm, minimum height=43mm] (cpu) {
-            \textbf{CPU Core}\\[0.4em]
-            IF / ID / EX / MEM / WB\\
-            Hazard / Forwarding\\
-            CSR / Trap / Redirect
+        \tikzset{
+            archblock/.style={
+                draw=black!70,
+                rounded corners=2pt,
+                fill=white,
+                align=center,
+                inner sep=4pt
+            },
+            archcore/.style={
+                archblock,
+                fill=blue!5,
+                minimum width=43mm,
+                minimum height=38mm
+            },
+            archif/.style={
+                archblock,
+                fill=green!5,
+                minimum width=39mm,
+                minimum height=15mm
+            },
+            archfabric/.style={
+                archblock,
+                fill=gray!10,
+                minimum width=24mm,
+                minimum height=36mm
+            },
+            archmem/.style={
+                archblock,
+                fill=green!5,
+                minimum width=39mm,
+                minimum height=15mm
+            },
+            archmmio/.style={
+                archblock,
+                fill=orange!8,
+                minimum width=39mm,
+                minimum height=15mm
+            },
+            archlink/.style={
+                <->,
+                >=Latex,
+                semithick,
+                draw=black!75
+            },
+            archgroup/.style={
+                draw=black!40,
+                rounded corners=3pt,
+                inner sep=8pt
+            }
+        }
+
+        \node[archcore] (cpu) {
+            \textbf{CPU Core}\\
+            \scriptsize \texttt{YH\_rv\_cpu}\\
+            \scriptsize IF / ID / EX / MEM / WB\\
+            \scriptsize Hazard / Forwarding\\
+            \scriptsize CSR / Trap / Redirect
         };
-        \node[reportbox, minimum width=31mm, right=24mm of cpu, yshift=14mm] (imem) {
+
+        \node[archif, right=28mm of cpu, yshift=14mm] (imem) {
             \textbf{Instruction ROM}\\
-            Sync IMEM path
+            \scriptsize \texttt{YH\_rv\_sync\_imem\_rom}\\
+            \scriptsize Sync ifetch path
         };
-        \node[reportbox, minimum width=31mm, right=24mm of cpu] (dmem) {
+
+        \node[archfabric, right=10mm of cpu, yshift=-12mm] (fabric) {
+            \textbf{Address Decode}\\
+            \scriptsize load/store dispatch\\
+            \scriptsize MMIO routing
+        };
+
+        \node[archmem, right=14mm of fabric, yshift=8mm] (dmem) {
             \textbf{Data RAM}\\
-            Load / Store path
-        };
-        \node[reportbox, minimum width=31mm, right=24mm of cpu, yshift=-14mm] (mmio) {
-            \textbf{MMIO}\\
-            UART / TIMER / DONE
+            \scriptsize \texttt{YH\_rv\_dmem\_ram}\\
+            \scriptsize Load / Store path
         };
 
-        \draw[reportline] (imem.west) -- node[above, font=\scriptsize]{同步取指} (cpu.east);
-        \draw[reportline] (cpu.east) -- node[above, font=\scriptsize]{load / store} (dmem.west);
-        \draw[reportline] (dmem.west) -- ++(-7mm,0) |- ([xshift=2mm]cpu.east);
-        \draw[reportline] (cpu.east) -- node[below, font=\scriptsize]{外设访问} (mmio.west);
-        \draw[reportline] (mmio.west) -- ++(-7mm,0) |- ([xshift=2mm]cpu.east);
+        \node[archmmio, right=14mm of fabric, yshift=-11mm] (mmio) {
+            \textbf{MMIO Peripherals}\\
+            \scriptsize UART / TIMER / DONE
+        };
 
-        \node[reportgroup, fit=(cpu)(imem)(dmem)(mmio), label=above:{\small SoC 封装}] (soc) {};
-        \node[reportgroup, thick, inner sep=16pt, fit=(soc), label=above:{\small FPGA 原型顶层}] (fpga) {};
+        \draw[archlink] ([yshift=10mm]cpu.east) -- node[above, font=\scriptsize]{ifetch interface} (imem.west);
+        \draw[archlink] ([yshift=-9mm]cpu.east) -- node[above, font=\scriptsize]{load / store / mmio} (fabric.west);
+        \draw[archlink] (fabric.east |- dmem.west) -- node[above, font=\scriptsize]{data memory} (dmem.west);
+        \draw[archlink] (fabric.east |- mmio.west) -- node[below, font=\scriptsize]{peripheral access} (mmio.west);
+
+        \node[archgroup, fit=(cpu)(imem)(fabric)(dmem)(mmio),
+              label={[font=\small]above:SoC 封装（\texttt{YH\_rv\_cpu\_soc}）}] (soc) {};
+        \node[archgroup, thick, inner sep=16pt, fit=(soc),
+              label={[font=\small]above:FPGA 原型顶层（\texttt{YH\_rv\_cpu\_fpga\_top}）}] (fpga) {};
     \end{tikzpicture}
-    \caption{系统总体架构示意图}
+    \caption{系统总体模块框图}
 \end{figure}
