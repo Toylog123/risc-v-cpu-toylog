@@ -1,0 +1,94 @@
+\section{FPGA 原型与交付材料说明}
+
+\subsection{FPGA 原型路线}
+
+虽然赛方已经明确初赛阶段可以以文档和仿真为主，但本项目仍保留了完整的 FPGA pre-board 路线，
+以证明方案具备原型实现可行性。当前原型目标平台为 Nexys A7-100T，主构建入口为
+\texttt{impl50}，即 50MHz 冻结路径。
+
+\subsection{当前 pre-board 已完成项}
+
+截至当前版本，以下内容已经收口：
+
+\begin{itemize}
+    \item Vivado \texttt{impl50} 构建脚本、bitstream 路径和报告目录已冻结；
+    \item 串口口径固定为 \texttt{115200 8N1}；
+    \item 默认 payload 已与主工程脚本口径对齐；
+    \item \texttt{IMEM\_OUTPUT\_REG=0} / \texttt{DMEM\_OUTPUT\_REG=0} 的近 FPGA 路径
+    已通过 FPGA-like CoreMark probe 验证。
+\end{itemize}
+
+\begin{table}[H]
+    \centering
+    \caption{FPGA pre-board 当前可引用结论}
+    \begin{tabular}{p{0.28\textwidth} p{0.52\textwidth}}
+        \toprule
+        项目 & 当前状态 \\
+        \midrule
+        bitstream 路径 & \texttt{project/YH\_rv\_cpu\_nexys\_a7\_100\_20p000.bit} \\
+        报告目录 & \texttt{project/reports/clk\_20p000ns/} \\
+        impl50 利用率 & \texttt{2556 LUT / 2170 FF / 4 BRAM / 0 DSP} \\
+        impl50 时序 & \texttt{WNS = +5.599ns, WHS = +0.025ns} \\
+        FPGA-like probe & \texttt{156442 cycles, 7.728811 CoreMark/MHz} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{当前未完成项及其性质}
+
+需要明确的是，当前未完成内容属于外部硬件条件阻塞，而不是设计说明书本身的缺口：
+
+\begin{enumerate}
+    \item 实体板卡尚未到位，无法完成 UART/LED 实板闭环；
+    \item 当前 XDC 仍是 pre-board 约束口径，缺最终板级 I/O delay signoff；
+    \item 因此项目可以诚实地宣称 ``pre-board closure 已完成''，但不能宣称
+    ``real-board signoff 已完成''。
+\end{enumerate}
+
+\FigurePlaceholder{FPGA pre-board 流程与证据路径图占位}
+
+\subsection{为什么当前阶段不优先推进上板}
+
+结合赛方答疑和项目主线状态，可以得出明确结论：初赛阶段的硬交付重点是设计/技术文档，
+而不是强行把所有外部依赖都压缩到当前窗口内完成。因此，本项目采取的策略是：
+
+\begin{itemize}
+    \item 先把源码、文档、性能与验证口径收敛成可提交、可答辩的工程基线；
+    \item 将 FPGA pre-board 结果作为增强支撑材料保留；
+    \item 等实体板卡到位后，再执行 UART、LED、boot banner 和板级约束闭环。
+\end{itemize}
+
+\subsection{初赛提交材料组织方式}
+
+当前比赛相关材料已经统一迁入 \texttt{01-项目管理/05-汇报与提交材料/}，
+避免出现源码主线、汇报材料和赛题要求三套口径分别维护的问题。初赛目录中的主要文件分工如下：
+
+\begin{table}[H]
+    \centering
+    \caption{初赛材料目录分工}
+    \begin{tabular}{p{0.30\textwidth} p{0.48\textwidth}}
+        \toprule
+        文件/目录 & 作用 \\
+        \midrule
+        \texttt{README.md} & 初赛材料入口与统一说明 \\
+        \texttt{初赛提交清单.md} & 标识哪些材料 ready、哪些仍 blocked \\
+        \texttt{冻结基线与证据索引.md} & 对外引用结果与证据路径索引 \\
+        \texttt{答辩汇报口径.md} & 汇报、PPT、答辩可直接复用的话术 \\
+        \texttt{latex/} & 本文档的 LaTeX 源码与后续插图接口 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{当前交付建议}
+
+对于初赛阶段，建议将本说明书作为主交付文档之一，同时配合以下材料共同组成提交包：
+
+\begin{itemize}
+    \item \texttt{YH\_rv\_cpu/doc/技术文档.md}
+    \item \texttt{YH\_rv\_cpu/README.md}
+    \item \texttt{YH\_rv\_cpu/doc/YH\_rv\_cpu\_handoff.md}
+    \item \texttt{01-项目管理/01-赛题要求/七星微赛题答疑整理.md}
+    \item 当前目录中的提交清单、证据索引和答辩口径文件
+\end{itemize}
+
+\clearpage

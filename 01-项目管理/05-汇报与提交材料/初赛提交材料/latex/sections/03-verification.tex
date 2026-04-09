@@ -1,0 +1,126 @@
+\section{验证方案与结果}
+
+\subsection{验证思路}
+
+项目的验证目标不是单一跑分，而是建立一套从功能正确性到性能结果、再到 FPGA 原型实现的多层闭环。
+当前主要覆盖四类验证：
+
+\begin{itemize}
+    \item 基础功能 Smoke：快速检查 SoC、trap、timer IRQ 和 RV64 宽度路径；
+    \item 基线 \texttt{riscv-tests}：验证当前冻结比赛主线的基本 ISA 正确性；
+    \item 扩展 \texttt{full-ui}：检验设计是否能够承受更接近普遍用户态测试的矩阵；
+    \item CoreMark、Vivado \texttt{impl50} 与 FPGA-like probe：验证性能、综合实现与近 FPGA 路径行为。
+\end{itemize}
+
+\subsection{CoreMark 结果}
+
+当前项目保留 short 与 strict 两条 CoreMark 口径：
+
+\begin{table}[H]
+    \centering
+    \caption{CoreMark 当前正式结果}
+    \begin{tabular}{p{0.22\textwidth} p{0.28\textwidth} p{0.33\textwidth}}
+        \toprule
+        项目 & 结果 & 说明 \\
+        \midrule
+        Smoke & \texttt{620530 cycles} & 日常快速回归入口 \\
+        Short score & \texttt{0.912472 CoreMark/MHz} & \texttt{11014885 cycles}，用于快速比较 \\
+        Strict score & \texttt{0.912465 CoreMark/MHz} & \texttt{1095991523 cycles}，\texttt{10.959325s} \\
+        Strict 结论 & \texttt{strict\_eembc\_10s\_compliant=yes} & 可作为正式 \texttt{>=10s} 结果引用 \\
+        FPGA-like probe & \texttt{7.728811 CoreMark/MHz} & \texttt{156442 cycles}，用于近 FPGA 路径评估 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+这里需要特别说明：
+
+\begin{itemize}
+    \item short 口径适合频繁比较不同实验之间的变化；
+    \item strict 口径是正式的 EEMBC \texttt{>=10s} 引用结果；
+    \item FPGA-like probe 是调优入口，不替代正式比赛提交口径。
+\end{itemize}
+
+\subsection{\texttt{riscv-tests} 回归结果}
+
+冻结主线 baseline 已经完成 fresh 收口：
+
+\begin{table}[H]
+    \centering
+    \caption{冻结主线 baseline 回归}
+    \begin{tabular}{p{0.25\textwidth} p{0.23\textwidth} p{0.34\textwidth}}
+        \toprule
+        项目 & 结果 & 说明 \\
+        \midrule
+        \texttt{rv32 baseline} & \texttt{33/33} & 当前比赛主线 RV32 基本集合 \\
+        \texttt{rv64 baseline} & \texttt{21/21} & 共线 RV64 回归，增强主线可信度 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+在 baseline 之外，项目还额外完成了更接近普遍用户态测试的扩展验证：
+
+\begin{table}[H]
+    \centering
+    \caption{扩展 \texttt{full-ui} 验证结果}
+    \begin{tabular}{p{0.25\textwidth} p{0.23\textwidth} p{0.34\textwidth}}
+        \toprule
+        项目 & 结果 & 说明 \\
+        \midrule
+        \texttt{rv32 full-ui} & \texttt{42/42} & 使用 \texttt{rv32i\_zicsr\_zifencei} 扩展覆盖矩阵 \\
+        \texttt{rv64 full-ui} & \texttt{54/54} & 使用 \texttt{rv64i\_zicsr\_zifencei} 扩展覆盖矩阵 \\
+        \texttt{ma\_data} & PASS & 说明 misaligned trap 软件补偿链路有效 \\
+        \texttt{fence\_i} & PASS & 当前仅说明在扩展覆盖矩阵下可通过，不等于冻结 ISA 升级 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{扩展验证的边界说明}
+
+\texttt{full-ui} 的价值在于证明当前设计不只经得住一小组 baseline 子集，还能经得住更普遍的用户态测试。
+但在文档口径上必须保持严格：
+
+\begin{itemize}
+    \item 冻结比赛 ISA 仍然是 \texttt{RV32I + Zicsr}；
+    \item \texttt{fence.i} 的通过结论只用于说明当前无 I-cache、同步 ROM/RAM 的核在扩展覆盖矩阵下
+    可以以 non-trapping nop 方式通过测试；
+    \item 这不等于当前项目已经完成完整 \texttt{Zifencei} signoff。
+\end{itemize}
+
+\subsection{综合与实现结果}
+
+为了支撑比赛中的 FPGA 原型与资源口径，项目已经完成 \texttt{impl50} 的 fresh 收口：
+
+\begin{table}[H]
+    \centering
+    \caption{\texttt{impl50} 当前结果}
+    \begin{tabular}{p{0.25\textwidth} p{0.28\textwidth} p{0.28\textwidth}}
+        \toprule
+        项目 & 结果 & 说明 \\
+        \midrule
+        Slice LUTs & \texttt{2556} & 当前冻结资源口径 \\
+        Slice Registers & \texttt{2170} & 当前冻结资源口径 \\
+        BRAM & \texttt{4} & 同步存储主路径 \\
+        DSP & \texttt{0} & 未依赖 DSP 资源 \\
+        Setup WNS & \texttt{+5.599ns} & 50MHz 路径有正裕量 \\
+        Hold WHS & \texttt{+0.025ns} & Hold 仍为正值 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+该结果说明当前主线并未为了追求性能而牺牲资源和时序闭环，
+也说明 \texttt{IMEM\_OUTPUT\_REG=0} 与 \texttt{DMEM\_OUTPUT\_REG=0}
+ 的 FPGA 默认参数在当前工程中是可保留的。
+
+\subsection{验证方法的工程化特点}
+
+相比只给出一组跑分截图，\texttt{YH\_rv\_cpu} 的验证方法有三个更适合比赛工程交付的特点：
+
+\begin{enumerate}
+    \item 所有主线验证都有统一脚本入口，降低重复执行成本；
+    \item 每项正式结论都能对应到 dated summary/log，便于交接和复核；
+    \item 任何优化实验都必须先过 guardrail，再进入完整回归，避免把局部提分误当成全局收益。
+\end{enumerate}
+
+\FigurePlaceholder{验证矩阵与证据归档关系图占位}
+
+\clearpage
