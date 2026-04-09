@@ -24,8 +24,16 @@ wire               timer_irq;
 
 wire stall_decode;
 wire mem_wait;
+wire ex_trap_valid;
+wire ex_mret_valid;
+wire ex_redirect_valid;
 wire ex_fetch_redirect_valid;
 wire fetch_queue_empty;
+wire id_ex_jump;
+wire id_ex_jalr;
+wire fetch_redirect_reuse_valid;
+wire fetch_redirect_buf0_hit;
+wire fetch_redirect_buf1_hit;
 
 reg [7:0] valid_msg [0:VALID_MSG_LEN-1];
 reg [7:0] score_msg [0:SCORE_MSG_LEN-1];
@@ -36,8 +44,17 @@ integer valid_match_idx;
 integer score_match_idx;
 integer stall_decode_cycles;
 integer mem_wait_cycles;
+integer ex_trap_valid_cycles;
+integer ex_mret_valid_cycles;
+integer ex_branch_redirect_cycles;
+integer ex_jal_redirect_cycles;
+integer ex_jalr_redirect_cycles;
 integer ex_fetch_redirect_valid_cycles;
 integer fetch_queue_empty_cycles;
+integer fetch_redirect_reuse_cycles;
+integer fetch_redirect_reuse_miss_cycles;
+integer fetch_redirect_buf0_hit_cycles;
+integer fetch_redirect_buf1_hit_cycles;
 reg     valid_found;
 reg     score_found;
 
@@ -65,8 +82,16 @@ YH_rv_cpu_soc #(
 
 assign stall_decode = dut.u_cpu.stall_decode;
 assign mem_wait = dut.u_cpu.mem_wait;
+assign ex_trap_valid = dut.u_cpu.ex_trap_valid;
+assign ex_mret_valid = dut.u_cpu.ex_mret_valid;
+assign ex_redirect_valid = dut.u_cpu.ex_redirect_valid;
 assign ex_fetch_redirect_valid = dut.u_cpu.ex_fetch_redirect_valid;
 assign fetch_queue_empty = !dut.u_cpu.fetch_queue_valid;
+assign id_ex_jump = dut.u_cpu.id_ex_jump_r;
+assign id_ex_jalr = dut.u_cpu.id_ex_jalr_r;
+assign fetch_redirect_reuse_valid = dut.u_cpu.fetch_redirect_reuse_valid;
+assign fetch_redirect_buf0_hit = dut.u_cpu.fetch_redirect_buf0_hit;
+assign fetch_redirect_buf1_hit = dut.u_cpu.fetch_redirect_buf1_hit;
 
 always #5 clk = ~clk;
 
@@ -113,8 +138,40 @@ always @(posedge clk) begin
             mem_wait_cycles <= mem_wait_cycles + 1;
         end
 
+        if (ex_trap_valid) begin
+            ex_trap_valid_cycles <= ex_trap_valid_cycles + 1;
+        end
+
+        if (ex_mret_valid) begin
+            ex_mret_valid_cycles <= ex_mret_valid_cycles + 1;
+        end
+
         if (ex_fetch_redirect_valid) begin
             ex_fetch_redirect_valid_cycles <= ex_fetch_redirect_valid_cycles + 1;
+        end
+
+        if (ex_redirect_valid) begin
+            if (id_ex_jump) begin
+                if (id_ex_jalr) begin
+                    ex_jalr_redirect_cycles <= ex_jalr_redirect_cycles + 1;
+                end else begin
+                    ex_jal_redirect_cycles <= ex_jal_redirect_cycles + 1;
+                end
+            end else begin
+                ex_branch_redirect_cycles <= ex_branch_redirect_cycles + 1;
+            end
+
+            if (fetch_redirect_reuse_valid) begin
+                fetch_redirect_reuse_cycles <= fetch_redirect_reuse_cycles + 1;
+                if (fetch_redirect_buf0_hit) begin
+                    fetch_redirect_buf0_hit_cycles <= fetch_redirect_buf0_hit_cycles + 1;
+                end
+                if (fetch_redirect_buf1_hit) begin
+                    fetch_redirect_buf1_hit_cycles <= fetch_redirect_buf1_hit_cycles + 1;
+                end
+            end else begin
+                fetch_redirect_reuse_miss_cycles <= fetch_redirect_reuse_miss_cycles + 1;
+            end
         end
 
         if (fetch_queue_empty) begin
@@ -142,8 +199,17 @@ always @(posedge clk) begin
             $display("PROFILE: total_cycles=%0d", cycle);
             $display("PROFILE: stall_decode_cycles=%0d", stall_decode_cycles);
             $display("PROFILE: mem_wait_cycles=%0d", mem_wait_cycles);
+            $display("PROFILE: ex_trap_valid_cycles=%0d", ex_trap_valid_cycles);
+            $display("PROFILE: ex_mret_valid_cycles=%0d", ex_mret_valid_cycles);
+            $display("PROFILE: ex_branch_redirect_cycles=%0d", ex_branch_redirect_cycles);
+            $display("PROFILE: ex_jal_redirect_cycles=%0d", ex_jal_redirect_cycles);
+            $display("PROFILE: ex_jalr_redirect_cycles=%0d", ex_jalr_redirect_cycles);
             $display("PROFILE: ex_fetch_redirect_valid_cycles=%0d", ex_fetch_redirect_valid_cycles);
             $display("PROFILE: fetch_queue_empty_cycles=%0d", fetch_queue_empty_cycles);
+            $display("PROFILE: fetch_redirect_reuse_cycles=%0d", fetch_redirect_reuse_cycles);
+            $display("PROFILE: fetch_redirect_reuse_miss_cycles=%0d", fetch_redirect_reuse_miss_cycles);
+            $display("PROFILE: fetch_redirect_buf0_hit_cycles=%0d", fetch_redirect_buf0_hit_cycles);
+            $display("PROFILE: fetch_redirect_buf1_hit_cycles=%0d", fetch_redirect_buf1_hit_cycles);
             $finish;
         end
 
@@ -164,8 +230,17 @@ initial begin
     score_match_idx = 0;
     stall_decode_cycles = 0;
     mem_wait_cycles = 0;
+    ex_trap_valid_cycles = 0;
+    ex_mret_valid_cycles = 0;
+    ex_branch_redirect_cycles = 0;
+    ex_jal_redirect_cycles = 0;
+    ex_jalr_redirect_cycles = 0;
     ex_fetch_redirect_valid_cycles = 0;
     fetch_queue_empty_cycles = 0;
+    fetch_redirect_reuse_cycles = 0;
+    fetch_redirect_reuse_miss_cycles = 0;
+    fetch_redirect_buf0_hit_cycles = 0;
+    fetch_redirect_buf1_hit_cycles = 0;
     valid_found = 1'b0;
     score_found = 1'b0;
 

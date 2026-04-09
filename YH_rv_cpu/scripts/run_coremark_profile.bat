@@ -117,8 +117,17 @@ echo Profile summary:
 findstr /c:"PROFILE: total_cycles=" "%LOG_FILE%"
 findstr /c:"PROFILE: stall_decode_cycles=" "%LOG_FILE%"
 findstr /c:"PROFILE: mem_wait_cycles=" "%LOG_FILE%"
+findstr /c:"PROFILE: ex_trap_valid_cycles=" "%LOG_FILE%"
+findstr /c:"PROFILE: ex_mret_valid_cycles=" "%LOG_FILE%"
+findstr /c:"PROFILE: ex_branch_redirect_cycles=" "%LOG_FILE%"
+findstr /c:"PROFILE: ex_jal_redirect_cycles=" "%LOG_FILE%"
+findstr /c:"PROFILE: ex_jalr_redirect_cycles=" "%LOG_FILE%"
 findstr /c:"PROFILE: ex_fetch_redirect_valid_cycles=" "%LOG_FILE%"
 findstr /c:"PROFILE: fetch_queue_empty_cycles=" "%LOG_FILE%"
+findstr /c:"PROFILE: fetch_redirect_reuse_cycles=" "%LOG_FILE%"
+findstr /c:"PROFILE: fetch_redirect_reuse_miss_cycles=" "%LOG_FILE%"
+findstr /c:"PROFILE: fetch_redirect_buf0_hit_cycles=" "%LOG_FILE%"
+findstr /c:"PROFILE: fetch_redirect_buf1_hit_cycles=" "%LOG_FILE%"
 
 echo.
 echo PASS: coremark profile completed.

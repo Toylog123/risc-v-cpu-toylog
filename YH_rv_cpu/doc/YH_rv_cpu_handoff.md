@@ -108,6 +108,13 @@
 - quick-screen gate：`require_prefetch` / `require_queue_fill` / redirect / memwait / smoke 全绿，但 CoreMark short 仍为 `11014885 / 0.912472`
 - 收口动作：实验 RTL 已回退，主线只保留更强的 prefetch 诊断和脚本 plusarg 归一化
 - fresh profile follow-up：`build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-08.log` 显示 `fetch_queue_empty_cycles = ex_fetch_redirect_valid_cycles = 1504970`，说明剩余大头是 redirect 代价，不是 request-side 缺口
+- `2026-04-09` split profile：`build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-09.log` 显示
+  - `ex_branch_redirect_cycles = 1235790`
+  - `ex_jal_redirect_cycles = 153354`
+  - `ex_jalr_redirect_cycles = 115826`
+  - `fetch_redirect_reuse_cycles = 0`
+  - `fetch_redirect_reuse_miss_cycles = 1504970`
+- 这说明 CoreMark 的 redirect 开销是“taken branch 主导 + reuse 完全不起作用”，下一轮若继续，应优先试更早的控制流 redirect，而不是重复 queue/reuse 微调
 
 ## 6. 关键文档与命令
 
@@ -129,6 +136,7 @@
 scripts\run_coremark_smoke.bat rv32
 scripts\run_coremark_score.bat rv32 10 2000 100000000UL 20000000
 scripts\run_coremark_score.bat rv32 1000 2000 100000000UL 1500000000 build\sw\YH_rv_cpu_coremark_rv32_strict.summary.txt
+scripts\run_coremark_profile.bat rv32 10 2000 100000000UL 20000000
 scripts\run_riscv_tests_subset.bat rv32
 scripts\run_riscv_tests_subset.bat rv64
 scripts\run_riscv_tests_subset.bat rv32 - - 120000 YH_rv_cpu\scripts\riscv_tests_rv32_ui_all.txt rv32i_zicsr_zifencei continue YH_rv_cpu\sw\linker\YH_rv_cpu_riscv_tests_large.ld 0x00008000
@@ -144,6 +152,7 @@ scripts\run_coremark_fpga.bat rv32
 - CoreMark strict summary: `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt`
 - CoreMark strict dated summary: `build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt`
 - CoreMark strict dated log: `build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.log`
+- CoreMark profile split log: `build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-09.log`
 - `rv32` baseline current summary: `build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt`
 - `rv64` baseline current summary: `build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt`
 - `rv32 full-ui` current summary: `build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt`
@@ -157,6 +166,6 @@ scripts\run_coremark_fpga.bat rv32
 - 初赛提交材料目录已迁入项目管理目录，但仍需在后续新结果出现时持续同步
 - 当前主要不再是收口缺口，而是下一阶段优化工作：
   - freeze post-closure baseline
-  - decide whether there is a genuinely new `FQ-06` hypothesis beyond the rejected bounded request-cursor slice
+  - start from a control-flow-first hypothesis backed by the `2026-04-09` split profile
   - do not reopen request/queue micro-tuning unless a new control-flow hypothesis justifies it
   - keep docs aligned if optimization resumes

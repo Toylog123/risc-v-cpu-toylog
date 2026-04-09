@@ -195,3 +195,44 @@ Conclusion:
 - residual fetch starvation is aligned exactly with redirect windows
 - request-side decouple is no longer the main missing piece on the restored baseline
 - if optimization resumes, the next meaningful direction must attack control-flow redirect cost directly; repeating request/queue micro-tuning is likely redundant
+
+## 2026-04-09 Redirect Breakdown Profile
+
+To avoid restarting optimization from a vague "redirect cost" label, the
+profile testbench was extended to split redirect windows by source class and
+reuse outcome. A fresh run was taken via:
+
+```bat
+scripts\run_coremark_profile.bat rv32 10 2000 100000000UL 20000000
+```
+
+The log is archived at `build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-09.log`.
+
+| Counter | Value |
+|------|------|
+| `PROFILE: total_cycles` | `12516421` |
+| `PROFILE: stall_decode_cycles` | `207474` |
+| `PROFILE: mem_wait_cycles` | `553215` |
+| `PROFILE: ex_trap_valid_cycles` | `0` |
+| `PROFILE: ex_mret_valid_cycles` | `0` |
+| `PROFILE: ex_branch_redirect_cycles` | `1235790` |
+| `PROFILE: ex_jal_redirect_cycles` | `153354` |
+| `PROFILE: ex_jalr_redirect_cycles` | `115826` |
+| `PROFILE: ex_fetch_redirect_valid_cycles` | `1504970` |
+| `PROFILE: fetch_queue_empty_cycles` | `1504970` |
+| `PROFILE: fetch_redirect_reuse_cycles` | `0` |
+| `PROFILE: fetch_redirect_reuse_miss_cycles` | `1504970` |
+| `PROFILE: fetch_redirect_buf0_hit_cycles` | `0` |
+| `PROFILE: fetch_redirect_buf1_hit_cycles` | `0` |
+
+Conclusion:
+
+- redirect windows are still the dominant fetch starvation source, but they are
+  now clearly branch-heavy rather than trap-heavy or reuse-heavy
+- taken branches account for `1235790 / 1504970` redirect cycles, so any
+  jal-only or jalr-only change has a capped upside
+- `fetch_redirect_reuse` is effectively dead on CoreMark (`0` hits), so
+  repeating buffer-reuse/request-side experiments is not justified
+- the next non-redundant optimization hypothesis should attack taken
+  control-flow latency directly; the lowest-risk first slice is an earlier
+  unconditional control redirect rather than another queue/reuse tweak
