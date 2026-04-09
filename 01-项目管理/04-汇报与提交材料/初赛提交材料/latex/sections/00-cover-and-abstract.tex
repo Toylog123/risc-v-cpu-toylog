@@ -9,12 +9,7 @@
     {\zihao{4}RISC-V 处理器与最小 SoC 设计说明\par}
     \vspace{0.6cm}
     {\zihao{4}版本：\ReportVersion \qquad 日期：\ReportDate \par}
-
-    \vfill
-
-    {\zihao{5}
-    本文档说明 \texttt{YH\_rv\_cpu} 的设计目标、总体架构、关键微架构、
-    验证结果以及 FPGA 原型实现情况，并对仍待实体板验证的事项作出说明。\par}
+\vfill
 \end{titlepage}
 
 \section*{摘要}
@@ -22,8 +17,8 @@
 
 \texttt{YH\_rv\_cpu} 是一套面向七星微赛题的 RISC-V 处理器方案。设计采用五级顺序流水结构，
 围绕 \texttt{RV32I + Zicsr} 构建同步指令存储、数据存储、UART、定时器和 DONE 标志构成的最小 SoC，
-形成了从功能验证、性能评估到 FPGA 原型实现的完整工程链路。本文对该设计的目标、总体架构、
-关键机制、验证结果和原型实现情况进行说明。
+形成了从功能验证、性能评估到 FPGA 原型实现的完整工程链路。下文将对该设计的目标、总体架构、
+关键机制、验证结果和原型实现情况进行介绍。
 
 截至 2026 年 4 月，本设计已完成基础回归、扩展用户态验证、CoreMark short 与 strict 长跑测试，
 以及 Vivado \texttt{impl50} 综合实现。关键结果包括：CoreMark short
