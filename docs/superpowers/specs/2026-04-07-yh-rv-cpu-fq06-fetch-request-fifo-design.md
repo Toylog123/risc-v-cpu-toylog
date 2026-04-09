@@ -1,4 +1,4 @@
-# YH_rv_cpu FQ-06 Fetch-Request FIFO Decouple Design
+﻿# YH_rv_cpu FQ-06 Fetch-Request FIFO Decouple Design
 
 **Date:** 2026-04-07  
 **Status:** Executed 2026-04-08, first slice rejected

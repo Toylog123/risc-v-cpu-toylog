@@ -1,4 +1,4 @@
-# YH_rv_cpu FQ-01 Queue-Decouple Implementation Plan
+﻿# YH_rv_cpu FQ-01 Queue-Decouple Implementation Plan
 
 **Goal:** Execute one single-variable queue-decouple trial (FQ-01), decide retain/reject by fresh evidence, and sync docs.
 

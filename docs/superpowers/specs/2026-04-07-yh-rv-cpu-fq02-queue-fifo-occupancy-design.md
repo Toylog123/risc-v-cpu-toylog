@@ -1,4 +1,4 @@
-# YH_rv_cpu FQ-02 Queue FIFO Occupancy Design
+﻿# YH_rv_cpu FQ-02 Queue FIFO Occupancy Design
 
 **Date:** 2026-04-07  
 **Status:** Executed and rejected  

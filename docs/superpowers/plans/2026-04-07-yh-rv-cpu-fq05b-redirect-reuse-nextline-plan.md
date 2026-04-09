@@ -1,4 +1,4 @@
-# YH_rv_cpu FQ-05B Redirect-Reuse Next-Line Prefetch Plan
+﻿# YH_rv_cpu FQ-05B Redirect-Reuse Next-Line Prefetch Plan
 
 **Goal:** Execute one single-variable redirect-reuse next-line prefetch trial,
 and retain only if short score improves.

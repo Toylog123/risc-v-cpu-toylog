@@ -1,4 +1,4 @@
-# Full rv32ui manifest mirrored from upstream riscv-tests isa/rv32ui/*.S
+﻿# Full rv32ui manifest mirrored from upstream riscv-tests isa/rv32ui/*.S
 add
 addi
 and

@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 setlocal
 
 set PHYSICAL_SCRIPT_DIR=%~dp0

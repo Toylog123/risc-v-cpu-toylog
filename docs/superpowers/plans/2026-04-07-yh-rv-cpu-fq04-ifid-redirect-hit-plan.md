@@ -1,4 +1,4 @@
-# YH_rv_cpu FQ-04 IF/ID Redirect-Hit Bubble Bypass Implementation Plan
+﻿# YH_rv_cpu FQ-04 IF/ID Redirect-Hit Bubble Bypass Implementation Plan
 
 **Goal:** Execute the FQ-04 single-variable trial, keep only evidence-backed
 changes, and roll back immediately if the bypass shows no gain.

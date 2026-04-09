@@ -1,4 +1,4 @@
-# YH_rv_cpu FQ-03 Single-Variable Boundary Implementation Plan
+﻿# YH_rv_cpu FQ-03 Single-Variable Boundary Implementation Plan
 
 **Goal:** Execute the FQ-03 single-variable boundary trial, stop at the quick
 screen if there is no gain, and keep only evidence-backed changes.

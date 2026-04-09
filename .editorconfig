@@ -1,0 +1,16 @@
+root = true
+
+[*]
+charset = utf-8
+
+[*.md]
+charset = utf-8-bom
+
+[*.txt]
+charset = utf-8-bom
+
+[*.tex]
+charset = utf-8-bom
+
+[*.bat]
+charset = utf-8-bom

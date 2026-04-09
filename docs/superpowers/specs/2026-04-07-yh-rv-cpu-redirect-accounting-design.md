@@ -1,4 +1,4 @@
-# YH_rv_cpu Redirect Accounting Diagnostic Design
+﻿# YH_rv_cpu Redirect Accounting Diagnostic Design
 
 **Date:** 2026-04-07  
 **Status:** Implemented and verified  

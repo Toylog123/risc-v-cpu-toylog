@@ -1,4 +1,4 @@
-# YH_rv_cpu FQ-04 IF/ID Redirect-Hit Bubble Bypass Design
+﻿# YH_rv_cpu FQ-04 IF/ID Redirect-Hit Bubble Bypass Design
 
 **Date:** 2026-04-07  
 **Status:** Executed (Rejected)  

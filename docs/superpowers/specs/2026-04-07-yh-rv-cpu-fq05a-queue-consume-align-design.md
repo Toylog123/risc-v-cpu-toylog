@@ -1,4 +1,4 @@
-# YH_rv_cpu FQ-05A Queue-Consume/Data-Write Align Design
+﻿# YH_rv_cpu FQ-05A Queue-Consume/Data-Write Align Design
 
 **Date:** 2026-04-07  
 **Status:** Executed (Rejected)  

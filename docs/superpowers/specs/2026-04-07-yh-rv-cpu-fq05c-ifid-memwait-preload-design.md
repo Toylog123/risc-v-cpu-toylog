@@ -1,4 +1,4 @@
-# YH_rv_cpu FQ-05C IF/ID Mem-Wait Preload Design
+﻿# YH_rv_cpu FQ-05C IF/ID Mem-Wait Preload Design
 
 **Date:** 2026-04-07  
 **Status:** Executed (Rejected)  

@@ -1,4 +1,4 @@
-# YH_rv_cpu FQ-05C IF/ID Mem-Wait Preload Plan
+﻿# YH_rv_cpu FQ-05C IF/ID Mem-Wait Preload Plan
 
 **Goal:** Execute one conservative IF/ID preload trial with strict early-exit
 guardrails.

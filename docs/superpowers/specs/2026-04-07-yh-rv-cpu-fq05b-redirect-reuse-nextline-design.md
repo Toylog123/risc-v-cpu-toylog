@@ -1,4 +1,4 @@
-# YH_rv_cpu FQ-05B Redirect-Reuse Next-Line Prefetch Design
+﻿# YH_rv_cpu FQ-05B Redirect-Reuse Next-Line Prefetch Design
 
 **Date:** 2026-04-07  
 **Status:** Executed (Rejected)  

@@ -1,4 +1,4 @@
-# icdc_workspace
+﻿# icdc_workspace
 
 本仓库根目录是当前七星微杯 `YH_rv_cpu` 比赛项目的统一工作区。
 

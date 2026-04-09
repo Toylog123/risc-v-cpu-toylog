@@ -1,4 +1,4 @@
-# Preliminary Design Report Judge-Oriented Redesign
+﻿# Preliminary Design Report Judge-Oriented Redesign
 
 ## Goal
 

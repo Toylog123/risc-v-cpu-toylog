@@ -1,4 +1,4 @@
-# YH_rv_cpu FQ-05A Queue-Consume/Data-Write Align Plan
+﻿# YH_rv_cpu FQ-05A Queue-Consume/Data-Write Align Plan
 
 **Goal:** Execute one single-variable handshake-alignment trial, keep only
 evidence-backed changes, and revert immediately if short score does not

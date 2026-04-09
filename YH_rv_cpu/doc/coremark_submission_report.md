@@ -1,4 +1,4 @@
-# CoreMark Submission Report
+﻿# CoreMark Submission Report
 
 ## Scope
 

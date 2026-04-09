@@ -1,4 +1,4 @@
-# YH_rv_cpu FQ-02 Queue FIFO Occupancy Plan
+﻿# YH_rv_cpu FQ-02 Queue FIFO Occupancy Plan
 
 **Goal:** Implement and evaluate FQ-02 queue-structure trial, then close as retain/reject with evidence.
 

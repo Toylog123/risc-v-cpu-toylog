@@ -1,4 +1,4 @@
-# YH_rv_cpu FQ-01 Queue-Decouple Design
+﻿# YH_rv_cpu FQ-01 Queue-Decouple Design
 
 **Date:** 2026-04-07  
 **Status:** Ready for implementation  

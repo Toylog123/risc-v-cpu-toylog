@@ -1,4 +1,4 @@
-# FPGA Bring-Up Checklist
+﻿# FPGA Bring-Up Checklist
 
 Scope: `YH_rv_cpu` pre-board closure on the frozen `50 MHz` path.
 
