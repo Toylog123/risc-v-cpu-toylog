@@ -55,6 +55,7 @@
 - `timer_irq_smoke` 已修复并纳入基线
 - Vivado `impl50` 默认 payload 已冻结为 `YH_rv_cpu_demo`
 - `redirect/flush/drop-accounting` 双变体 strict 诊断已补齐
+- `2026-04-09` 已建立 `06-汇报材料/初赛提交材料/` 目录，并补齐提交清单、证据索引与答辩口径
 - 第一轮与第二轮单变量前端候选均已完成快速门禁并拒绝保留：
   - `request-cursor`
   - `pipe-hit`
@@ -119,6 +120,7 @@
 - `doc/regression_test_log.md`
 - `doc/fpga_bringup_checklist.md`
 - `fpga/vivado/README.md`
+- `../06-汇报材料/初赛提交材料/README.md`
 
 关键命令：
 
@@ -150,6 +152,7 @@ scripts\run_coremark_fpga.bat rv32
 ## 7. 文档缺口与建议补齐项
 
 - 文档已同步到“冻结基线 + 2026-04-08 活跃验证”双层口径
+- 初赛提交材料目录已建立，但仍需在后续新结果出现时持续同步
 - 当前主要不再是收口缺口，而是下一阶段优化工作：
   - freeze post-closure baseline
   - decide whether there is a genuinely new `FQ-06` hypothesis beyond the rejected bounded request-cursor slice

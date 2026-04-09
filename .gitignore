@@ -33,3 +33,4 @@ YH_rv_cpu/xsim_*.backup.log
 /05-验证测试/
 /_tmp/*
 !/_tmp/README.md
+*.baiduyun.uploading.cfg

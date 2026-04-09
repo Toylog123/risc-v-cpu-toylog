@@ -22,6 +22,7 @@
   - custom `tohost_addr`
   - misaligned trap 软件补偿
 - [x] 用 fresh `rv32 full-ui` 证明 `ma_data` 已通过，不再是 trap 回到 `0x0` 的旧问题
+- [x] 创建 `06-汇报材料/初赛提交材料/` 并补齐提交清单、证据索引、答辩口径
 
 ## 正在进行
 
@@ -36,7 +37,7 @@
 - [x] 做 focused git commit，只提交当前阶段直接相关成果
 - [x] 冻结新的 post-closure 优化前基线
 - [x] 启动 `FQ-06A` 单变量实验并完成 quick-screen
-- [ ] 每轮优化继续同步 performance / regression / handoff / todo
+- [ ] 每轮优化继续同步 performance / regression / handoff / todo / 初赛提交材料
 
 ## 当前事实
 
