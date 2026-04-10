@@ -1,19 +1,5 @@
-﻿\begin{figure}[H]
+\begin{figure}[H]
     \centering
-    \begin{tikzpicture}[node distance=9mm and 9mm, every node/.style={font=\small}]
-        \node[reportbox, minimum width=27mm] (rtl) {RTL / 脚本\\\scriptsize 设计输入};
-        \node[reportbox, minimum width=27mm, right=of rtl] (impl) {Vivado impl50\\\scriptsize 50MHz 原型实现};
-        \node[reportbox, minimum width=27mm, right=of impl] (rpt) {报告输出\\\scriptsize 资源 / 时序 / bit};
-        \node[reportbox, minimum width=27mm, right=of rpt] (probe) {FPGA-like probe\\\scriptsize CoreMark 近板级观察};
-        \node[reportbox, fill=orange!10, minimum width=36mm, below=16mm of rpt] (closure) {原型适配阶段\\\scriptsize 适配结果};
-        \node[reportbox, fill=red!6, minimum width=36mm, below=16mm of probe] (board) {后续板级验证\\\scriptsize 实体板卡 / I/O 约束};
-
-        \draw[reportline] (rtl) -- (impl);
-        \draw[reportline] (impl) -- (rpt);
-        \draw[reportline] (rpt) -- (probe);
-        \draw[reportline] (impl.south) -- (closure.north west);
-        \draw[reportline] (rpt.south) -- (closure.north east);
-        \draw[reportdash] (probe.south) -- (board.north);
-    \end{tikzpicture}
+    \includegraphics[width=0.96\textwidth]{figures/fpga-prototype-flow-ai.png}
     \caption{FPGA 原型适配路径与板级边界示意图}
 \end{figure}
