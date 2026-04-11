@@ -55,6 +55,8 @@
 
 - Resume optimization from a new single-variable, branch-first redirect
   hypothesis.
+- Execution plan:
+  - `docs/superpowers/plans/2026-04-11-yh-rv-cpu-branch-first-redirect-plan.md`
 - Keep queue/reuse micro-tuning frozen unless a new control-flow result proves
   it matters again.
 - Before keeping any new RTL trial, rerun at least:
