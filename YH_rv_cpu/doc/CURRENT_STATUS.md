@@ -3,13 +3,14 @@
 > Updated: `2026-04-11`
 > Branch: `main`
 > Workspace: clean
-> Ahead of `origin/main`: `59`
+> Ahead of `origin/main`: `62`
 
 ## Latest commits
 
+- `be00ecf` `test/docs: add branch-first redirect diag and reject pipe-hit slice`
+- `506120a` `docs: plan branch-first redirect experiment`
+- `c7c35d8` `docs: add current status entry point`
 - `1f3ff2a` `scripts: drop bom noise and ignore conflict backups`
-- `4bf658b` `profiling/handoff: record branch-dominant redirect evidence`
-- `feb53b6` `docs: snapshot preliminary submission materials`
 
 ## Frozen engineering baseline
 
@@ -48,17 +49,24 @@
   - `fetch_redirect_reuse_miss_cycles = 1504970`
 - `2026-04-11` rerun reproduced the same branch-breakdown counters in
   `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile.log`.
+- `2026-04-11` branch-first `BEQ/BNE` pipe-hit trial was executed and rejected:
+  - the strengthened branch diagnostic now distinguishes baseline `FAIL` from
+    trial `PASS`
+  - `fetch_redirect_reuse_cycles` moved to `305277`
+  - `fetch_queue_empty_cycles` stayed `1504970`
+  - short CoreMark stayed `11014885 cycles`, `0.912472 CoreMark/MHz`
+  - mainline RTL was reverted in the same round
 - `decode-stage early JAL redirect` was rejected; do not reopen the
   `jal-only` shortcut path as the next experiment.
 
 ## Recommended next step
 
-- Resume optimization from a new single-variable, branch-first redirect
-  hypothesis.
+- Resume optimization only from a hypothesis stronger than `BEQ/BNE` pipe-hit
+  activation alone.
 - Execution plan:
   - `docs/superpowers/plans/2026-04-11-yh-rv-cpu-branch-first-redirect-plan.md`
 - Keep queue/reuse micro-tuning frozen unless a new control-flow result proves
-  it matters again.
+  it reduces `fetch_queue_empty_cycles`, not just reuse counters.
 - Before keeping any new RTL trial, rerun at least:
   - `scripts\run_riscv_tests_subset.bat rv32`
   - `scripts\run_coremark_profile.bat rv32 10 2000 100000000UL 20000000`
