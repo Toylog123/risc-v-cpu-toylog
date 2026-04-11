@@ -120,6 +120,7 @@
 
 关键文档：
 
+- `doc/CURRENT_STATUS.md`
 - `README.md`
 - `doc/技术文档.md`
 - `doc/coremark_submission_report.md`
