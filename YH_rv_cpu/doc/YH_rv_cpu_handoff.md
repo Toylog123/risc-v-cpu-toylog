@@ -17,19 +17,19 @@
 - `2026-04-08` 的 `riscv-tests` 扩展验证与全文档同步已经完成收口
 - `2026-04-08` 的主线收口结果已拆成 focused commits；当前仓库还存在独立的目录整理/材料提交线与 profiling WIP，需分别按各自范围处理
 - 当前最新 fresh 活跃证据是：
-  - `build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt`
+  - `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt`
   - `rv32 full-ui = 42/42`
-  - `build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-08.txt`
+  - `YH_rv_cpu/build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-08.txt`
   - `rv64 full-ui = 54/54`
   - `fence_i` 已在 `rv32i_zicsr_zifencei` 口径下通过
-  - `build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt`
+  - `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt`
   - `rv32 baseline = 33/33`
-  - `build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt`
+  - `YH_rv_cpu/build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt`
   - `rv64 baseline = 21/21`
-  - `build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt`
+  - `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt`
   - fresh `CoreMark short = 0.912472 CoreMark/MHz`
   - fresh `CoreMark smoke = 620530 cycles`
-  - `build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt`
+  - `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt`
   - fresh `CoreMark strict = 0.912465 CoreMark/MHz`
 
 当前冻结结果：
@@ -92,10 +92,10 @@
 
 ## 5. 下一步最值得做的 5 项
 
-1. 冻结新的 post-closure 优化前基线表
-2. 以 `FQ-06` 作为下一个单变量优化候选启动实验
-3. 每轮优化完整重跑 CoreMark / baseline / impl50 并同步日志
-4. 保持 handoff / todo / performance log 与实验结果实时同步
+1. 先把当前 profiling / docs WIP 收口成 focused commit
+2. 单独清理脚本 BOM / 换行差异与冲突备份文件
+3. 如果继续优化，围绕 branch-dominant redirect 成本设计新的单变量假设
+4. 每轮优化完整重跑 CoreMark / baseline / impl50 并同步日志
 5. 如新一轮优化无明确收益，及时关闭方向并回到 clean worktree
 
 `FQ-06A` 已在 `2026-04-08` 执行完 quick-screen，并已收口为 rejected。
@@ -107,14 +107,14 @@
 - correctness guardrail：`run_fetch_redirect_reuse_diag.bat` 严格覆盖 `IMEM_OUTPUT_REG=0/1` 的 queue preserve 与 drop-accounting，均已通过
 - quick-screen gate：`require_prefetch` / `require_queue_fill` / redirect / memwait / smoke 全绿，但 CoreMark short 仍为 `11014885 / 0.912472`
 - 收口动作：实验 RTL 已回退，主线只保留更强的 prefetch 诊断和脚本 plusarg 归一化
-- fresh profile follow-up：`build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-08.log` 显示 `fetch_queue_empty_cycles = ex_fetch_redirect_valid_cycles = 1504970`，说明剩余大头是 redirect 代价，不是 request-side 缺口
-- `2026-04-09` split profile：`build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-09.log` 显示
+- fresh profile follow-up：`YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-08.log` 显示 `fetch_queue_empty_cycles = ex_fetch_redirect_valid_cycles = 1504970`，说明剩余大头是 redirect 代价，不是 request-side 缺口
+- `2026-04-09` split profile：`YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-09.log` 显示
   - `ex_branch_redirect_cycles = 1235790`
   - `ex_jal_redirect_cycles = 153354`
   - `ex_jalr_redirect_cycles = 115826`
   - `fetch_redirect_reuse_cycles = 0`
   - `fetch_redirect_reuse_miss_cycles = 1504970`
-- 这说明 CoreMark 的 redirect 开销是“taken branch 主导 + reuse 完全不起作用”，下一轮若继续，应优先试更早的控制流 redirect，而不是重复 queue/reuse 微调
+- 这说明 CoreMark 的 redirect 开销是“taken branch 主导 + reuse 完全不起作用”，下一轮若继续，应优先围绕 branch-dominant redirect 代价做新假设，而不是重复 queue/reuse 微调或重开 `jal-only` 快捷路径
 
 ## 6. 关键文档与命令
 
@@ -147,16 +147,16 @@ scripts\run_coremark_fpga.bat rv32
 
 关键证据位置：
 
-- CoreMark short summary: `build/sw/YH_rv_cpu_coremark_rv32_score.summary.txt`
-- CoreMark short dated summary: `build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt`
-- CoreMark strict summary: `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt`
-- CoreMark strict dated summary: `build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt`
-- CoreMark strict dated log: `build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.log`
-- CoreMark profile split log: `build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-09.log`
-- `rv32` baseline current summary: `build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt`
-- `rv64` baseline current summary: `build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt`
-- `rv32 full-ui` current summary: `build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt`
-- `rv64 full-ui` current summary: `build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-08.txt`
+- CoreMark short summary: `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_score.summary.txt`
+- CoreMark short dated summary: `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt`
+- CoreMark strict summary: `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt`
+- CoreMark strict dated summary: `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt`
+- CoreMark strict dated log: `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.log`
+- CoreMark profile split log: `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-09.log`
+- `rv32` baseline current summary: `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt`
+- `rv64` baseline current summary: `YH_rv_cpu/build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt`
+- `rv32 full-ui` current summary: `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt`
+- `rv64 full-ui` current summary: `YH_rv_cpu/build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-08.txt`
 - FPGA reports: `project/reports/clk_20p000ns/`
 
 ## 7. 文档缺口与建议补齐项
@@ -169,3 +169,81 @@ scripts\run_coremark_fpga.bat rv32
   - start from a control-flow-first hypothesis backed by the `2026-04-09` split profile
   - do not reopen request/queue micro-tuning unless a new control-flow hypothesis justifies it
   - keep docs aligned if optimization resumes
+
+## 2026-04-10 当前工作区补充（交接必读）
+
+### 当前环境与分支
+
+- 主机：`Toylog_desktop`
+- 系统 / shell：`Windows + PowerShell 5.1`
+- 仓库根目录：`D:\BaiduSyncdisk\icdc_workspace`
+- 当前分支：`main`
+- push 状态：未推送；当前分支相对 `origin/main` 显示 `ahead 57`
+
+### 当前工作区真实状态
+
+- 当前工程主线不是新的性能收益版本，而是“冻结基线已稳定，后续优化仍停留在 profiling / hypothesis 筛选阶段”。
+- 最新有实质内容的本地未提交改动集中在：
+  - `doc/performance_experiment_log.md`
+  - `scripts/run_coremark_profile.bat`
+  - `tb/YH_rv_cpu_coremark_profile_tb.v`
+  - `doc/2026-04-09_optimization_status_addendum.md`（未跟踪）
+- 这些改动的真实目的不是改主线 RTL 行为，而是继续细化 redirect profiling，并把 `decode-stage early JAL redirect` 的拒绝结论写入文档。
+- 当前还存在两类应单独处理的工作区噪声：
+  - `scripts/build_coremark.bat`、`scripts/open_vivado_project.bat` 的 BOM / 换行差异
+  - `scripts/build_coremark_冲突文件_佟亚龙_20260409225716.bat`
+  - `scripts/open_vivado_project_冲突文件_佟亚龙_20260409225716.bat`
+
+### 当前最新可复核结论
+
+- `rv32 full-ui` 真实证据路径应为：
+  - `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt`
+  - 结果：`42/42`
+- `rv64 full-ui` 真实证据路径应为：
+  - `YH_rv_cpu/build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-08.txt`
+  - 结果：`54/54`
+- `rv32 baseline` 真实证据路径应为：
+  - `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt`
+  - 结果：`33/33`
+- `rv64 baseline` 真实证据路径应为：
+  - `YH_rv_cpu/build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt`
+  - 结果：`21/21`
+- strict CoreMark dated 证据路径应为：
+  - `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt`
+  - `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.log`
+- `2026-04-09` split profile 真实证据路径应为：
+  - `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-09.log`
+- 当前 branch-dominant redirect 结论已被该 profile 支撑：
+  - `ex_branch_redirect_cycles = 1235790`
+  - `ex_jal_redirect_cycles = 153354`
+  - `ex_jalr_redirect_cycles = 115826`
+  - `fetch_redirect_reuse_cycles = 0`
+  - `fetch_redirect_reuse_miss_cycles = 1504970`
+- 新增的 branch breakdown 证据路径是：
+  - `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile_branch_breakdown_2026-04-09.log`
+  - 当前可直接读到：
+    - `ex_beq_redirect_cycles = 329513`
+    - `ex_bne_redirect_cycles = 849894`
+    - `ex_blt_redirect_cycles = 3863`
+    - `ex_bge_redirect_cycles = 10573`
+    - `ex_bltu_redirect_cycles = 13963`
+    - `ex_bgeu_redirect_cycles = 27984`
+- `2026-04-11` 已用同一命令在当前工作区复核：
+  - 工作日志：`YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile.log`
+  - 与 `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile_branch_breakdown_2026-04-09.log` 的文本差异仅剩时间戳与仿真运行时行
+  - 关键计数保持一致，说明 branch-dominant redirect 结论在当前工作区仍成立
+- `decode-stage early JAL redirect` 已经拒绝保留，最小 guardrail 失败证据为：
+  - `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_jal_early_redirect_debug_2026-04-09.txt`
+  - `YH_rv_cpu/build/tests/riscv-tests/rv32/jal_early_redirect_debug_2026-04-09.log`
+  - 失败摘要：`jal -> FAIL`，最终 `tohost=5`
+
+### 当前最值得直接接手的动作
+
+1. 先把 profiling / docs WIP 收口成 focused commit：
+   - `tb/YH_rv_cpu_coremark_profile_tb.v`
+   - `scripts/run_coremark_profile.bat`
+   - `doc/performance_experiment_log.md`
+   - `doc/2026-04-09_optimization_status_addendum.md`
+2. 单独清理 BOM / 换行差异与冲突备份脚本，不要和 profiling 结论混在同一个 commit。
+3. 如果继续优化，下一轮不要再试 `jal-only` 快捷路径，而要直接围绕 branch-dominant redirect 代价设计新的单变量假设。
+4. 后续所有文档引用 build 证据时，统一使用 `YH_rv_cpu/build/...`，不要再误写成仓库根目录 `build/...`。

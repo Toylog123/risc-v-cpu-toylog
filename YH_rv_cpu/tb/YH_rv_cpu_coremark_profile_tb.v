@@ -31,6 +31,7 @@ wire ex_fetch_redirect_valid;
 wire fetch_queue_empty;
 wire id_ex_jump;
 wire id_ex_jalr;
+wire [2:0] id_ex_branch_funct3;
 wire fetch_redirect_reuse_valid;
 wire fetch_redirect_buf0_hit;
 wire fetch_redirect_buf1_hit;
@@ -47,6 +48,12 @@ integer mem_wait_cycles;
 integer ex_trap_valid_cycles;
 integer ex_mret_valid_cycles;
 integer ex_branch_redirect_cycles;
+integer ex_beq_redirect_cycles;
+integer ex_bne_redirect_cycles;
+integer ex_blt_redirect_cycles;
+integer ex_bge_redirect_cycles;
+integer ex_bltu_redirect_cycles;
+integer ex_bgeu_redirect_cycles;
 integer ex_jal_redirect_cycles;
 integer ex_jalr_redirect_cycles;
 integer ex_fetch_redirect_valid_cycles;
@@ -89,6 +96,7 @@ assign ex_fetch_redirect_valid = dut.u_cpu.ex_fetch_redirect_valid;
 assign fetch_queue_empty = !dut.u_cpu.fetch_queue_valid;
 assign id_ex_jump = dut.u_cpu.id_ex_jump_r;
 assign id_ex_jalr = dut.u_cpu.id_ex_jalr_r;
+assign id_ex_branch_funct3 = dut.u_cpu.id_ex_branch_funct3_r;
 assign fetch_redirect_reuse_valid = dut.u_cpu.fetch_redirect_reuse_valid;
 assign fetch_redirect_buf0_hit = dut.u_cpu.fetch_redirect_buf0_hit;
 assign fetch_redirect_buf1_hit = dut.u_cpu.fetch_redirect_buf1_hit;
@@ -159,6 +167,16 @@ always @(posedge clk) begin
                 end
             end else begin
                 ex_branch_redirect_cycles <= ex_branch_redirect_cycles + 1;
+                case (id_ex_branch_funct3)
+                    3'b000: ex_beq_redirect_cycles <= ex_beq_redirect_cycles + 1;
+                    3'b001: ex_bne_redirect_cycles <= ex_bne_redirect_cycles + 1;
+                    3'b100: ex_blt_redirect_cycles <= ex_blt_redirect_cycles + 1;
+                    3'b101: ex_bge_redirect_cycles <= ex_bge_redirect_cycles + 1;
+                    3'b110: ex_bltu_redirect_cycles <= ex_bltu_redirect_cycles + 1;
+                    3'b111: ex_bgeu_redirect_cycles <= ex_bgeu_redirect_cycles + 1;
+                    default: begin
+                    end
+                endcase
             end
 
             if (fetch_redirect_reuse_valid) begin
@@ -202,6 +220,12 @@ always @(posedge clk) begin
             $display("PROFILE: ex_trap_valid_cycles=%0d", ex_trap_valid_cycles);
             $display("PROFILE: ex_mret_valid_cycles=%0d", ex_mret_valid_cycles);
             $display("PROFILE: ex_branch_redirect_cycles=%0d", ex_branch_redirect_cycles);
+            $display("PROFILE: ex_beq_redirect_cycles=%0d", ex_beq_redirect_cycles);
+            $display("PROFILE: ex_bne_redirect_cycles=%0d", ex_bne_redirect_cycles);
+            $display("PROFILE: ex_blt_redirect_cycles=%0d", ex_blt_redirect_cycles);
+            $display("PROFILE: ex_bge_redirect_cycles=%0d", ex_bge_redirect_cycles);
+            $display("PROFILE: ex_bltu_redirect_cycles=%0d", ex_bltu_redirect_cycles);
+            $display("PROFILE: ex_bgeu_redirect_cycles=%0d", ex_bgeu_redirect_cycles);
             $display("PROFILE: ex_jal_redirect_cycles=%0d", ex_jal_redirect_cycles);
             $display("PROFILE: ex_jalr_redirect_cycles=%0d", ex_jalr_redirect_cycles);
             $display("PROFILE: ex_fetch_redirect_valid_cycles=%0d", ex_fetch_redirect_valid_cycles);
@@ -233,6 +257,12 @@ initial begin
     ex_trap_valid_cycles = 0;
     ex_mret_valid_cycles = 0;
     ex_branch_redirect_cycles = 0;
+    ex_beq_redirect_cycles = 0;
+    ex_bne_redirect_cycles = 0;
+    ex_blt_redirect_cycles = 0;
+    ex_bge_redirect_cycles = 0;
+    ex_bltu_redirect_cycles = 0;
+    ex_bgeu_redirect_cycles = 0;
     ex_jal_redirect_cycles = 0;
     ex_jalr_redirect_cycles = 0;
     ex_fetch_redirect_valid_cycles = 0;

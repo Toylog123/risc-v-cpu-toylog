@@ -28,10 +28,10 @@
 ## 正在进行
 
 - [x] 明确 `fence_i` 的处理策略：扩展 UI 覆盖矩阵采用 `zifencei` 并已通过；冻结比赛口径仍维持 `RV32I + Zicsr`
-- [x] 重跑并归档 `rv32 full-ui`：`42/42`，归档=`build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt`
-- [x] 重跑并归档 `rv64 full-ui`：`54/54`，归档=`build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-08.txt`
-- [x] 重跑 fresh `rv32 baseline`：`33/33`，归档=`build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt`
-- [x] 重跑 fresh `rv64 baseline`：`21/21`，归档=`build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt`
+- [x] 重跑并归档 `rv32 full-ui`：`42/42`，归档=`YH_rv_cpu/build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt`
+- [x] 重跑并归档 `rv64 full-ui`：`54/54`，归档=`YH_rv_cpu/build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-08.txt`
+- [x] 重跑 fresh `rv32 baseline`：`33/33`，归档=`YH_rv_cpu/build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt`
+- [x] 重跑 fresh `rv64 baseline`：`21/21`，归档=`YH_rv_cpu/build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt`
 - [x] 补 fresh CoreMark smoke / short：`620530 cycles`，`0.912472 CoreMark/MHz`
 - [x] 等待 fresh strict `>=10s` CoreMark 长跑完成并归档 dated summary/log
 - [x] 对齐 README / 技术文档 / handoff / regression log / performance log / submission report
@@ -71,7 +71,7 @@
 - [x] 保留新的 `require_queue_fill` 诊断与 `run_fetch_prefetch_diag.bat` plusarg 归一化
 - [x] fresh profile 已确认 `fetch_queue_empty_cycles` 与 `ex_fetch_redirect_valid_cycles` 完全重合，request-side 不是当前主矛盾
 - [x] `2026-04-09` split profile 已确认 `branch redirect = 1235790`、`jal = 153354`、`jalr = 115826`、`reuse hit = 0`
-- [ ] 下一条非重复假设应直接攻击控制流 redirect，优先考虑更早的无条件 redirect 切片
+- [ ] 下一条非重复假设应直接攻击 branch-dominant redirect 成本，而不是重开 `jal-only` 或 queue/reuse 微调
 
 ## 仅外部阻塞
 

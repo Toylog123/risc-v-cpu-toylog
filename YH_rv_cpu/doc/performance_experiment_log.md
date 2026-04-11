@@ -9,11 +9,11 @@ Use this baseline before starting any competition-facing optimization work.
 | Item | Value |
 |------|------|
 | Command | `scripts\run_coremark_score.bat rv32 10 2000 100000000UL 20000000` |
-| Raw log | `build/sw/YH_rv_cpu_coremark_rv32_score.log` |
-| Summary | `build/sw/YH_rv_cpu_coremark_rv32_score.summary.txt` |
+| Raw log | `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_score.log` |
+| Summary | `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_score.summary.txt` |
 | Result | `CoreMark/MHz = 0.912472` |
 | Short completion cycles | `11014885` |
-| Strict-valid companion | `build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt` -> `0.912465`, `1095991523 cycles`, `10.959325s` |
+| Strict-valid companion | `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt` -> `0.912465`, `1095991523 cycles`, `10.959325s` |
 
 ### riscv-tests baseline
 
@@ -110,16 +110,16 @@ the verification envelope before any higher-intrusion optimization work such as
 |------|------|
 | Command | `scripts\run_riscv_tests_subset.bat rv32 - - 120000 YH_rv_cpu\scripts\riscv_tests_rv32_ui_all.txt rv32i_zicsr_zifencei continue YH_rv_cpu\sw\linker\YH_rv_cpu_riscv_tests_large.ld 0x00008000` |
 | Overall result | `42/42` |
-| Summary | `build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt` |
-| RV64 full-ui | `54/54` via `build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-08.txt` |
+| Summary | `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt` |
+| RV64 full-ui | `54/54` via `YH_rv_cpu/build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-08.txt` |
 | Newly important pass | `ma_data` |
 | `fence_i` handling | `PASS` under `rv32i_zicsr_zifencei` |
 | Coverage statement | expanded UI coverage matrix now includes `zifencei`; frozen competition baseline remains `RV32I + Zicsr` |
-| RV32 baseline fresh rerun | `33/33` via `build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt` |
-| RV64 baseline fresh rerun | `21/21` via `build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt` |
+| RV32 baseline fresh rerun | `33/33` via `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt` |
+| RV64 baseline fresh rerun | `21/21` via `YH_rv_cpu/build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt` |
 | CoreMark smoke fresh rerun | `620530 cycles` |
-| CoreMark short fresh rerun | `0.912472` via `build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt` |
-| CoreMark strict fresh rerun | `0.912465` via `build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt` |
+| CoreMark short fresh rerun | `0.912472` via `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt` |
+| CoreMark strict fresh rerun | `0.912465` via `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt` |
 
 ### Current decision gate
 
@@ -163,7 +163,7 @@ while keeping `IMEM_OUTPUT_REG=1` as a strict correctness guardrail only.
 | Memwait guardrail | `scripts\run_memwait_overlap_diag.bat` -> `PASS` |
 | CoreMark smoke on trial RTL | `620530 cycles` |
 | CoreMark short on trial RTL | `11014885 cycles`, `0.912472 CoreMark/MHz` |
-| Trial evidence archive | `build/sw/YH_rv_cpu_coremark_rv32_score_fq06_request_cursor_2026-04-08.log`, `build/sw/YH_rv_cpu_coremark_rv32_score_fq06_request_cursor_2026-04-08.summary.txt` |
+| Trial evidence archive | `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_score_fq06_request_cursor_2026-04-08.log`, `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_score_fq06_request_cursor_2026-04-08.summary.txt` |
 | Keep? | `no` |
 
 Notes:
@@ -180,7 +180,7 @@ Notes:
 
 After reverting the trial RTL, a fresh profile run was taken on the restored
 baseline via `scripts\run_coremark_profile.bat rv32 10 2000 100000000UL 20000000`.
-The log is archived at `build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-08.log`.
+The log is archived at `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-08.log`.
 
 | Counter | Value |
 |------|------|
@@ -206,7 +206,7 @@ reuse outcome. A fresh run was taken via:
 scripts\run_coremark_profile.bat rv32 10 2000 100000000UL 20000000
 ```
 
-The log is archived at `build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-09.log`.
+The log is archived at `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-09.log`.
 
 | Counter | Value |
 |------|------|
@@ -236,3 +236,79 @@ Conclusion:
 - the next non-redundant optimization hypothesis should attack taken
   control-flow latency directly; the lowest-risk first slice is an earlier
   unconditional control redirect rather than another queue/reuse tweak
+
+## 2026-04-09 Decode-Stage Early JAL Redirect Trial (Rejected Before CoreMark Re-run)
+
+This round tested a narrower follow-up hypothesis after the split redirect
+profile: allow `JAL` to redirect the fetch PC one stage earlier in decode
+while leaving branch and `JALR` on the existing EX redirect path.
+
+### Trial scope
+
+| Item | Value |
+|------|------|
+| Goal | reduce unconditional redirect bubbles without reopening queue/reuse tuning |
+| Intended change | decode-stage early fetch redirect for `JAL` only |
+| First guardrail | `scripts\run_riscv_tests_subset.bat rv32 jal - 120000` |
+| Failure evidence | `YH_rv_cpu/build/tests/riscv-tests/rv32/jal_early_redirect_debug_2026-04-09.log` |
+| Debug summary | `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_jal_early_redirect_debug_2026-04-09.txt` |
+| Keep? | `no` |
+
+### Fresh evidence
+
+- The first cut failed the minimal `rv32 jal` guardrail immediately and wrote
+  `tohost=7`, which proved the change was not CoreMark-specific.
+- A minimal follow-up restoration of EX-stage decode flush changed the failure
+  from `tohost=7` to `tohost=5`, showing that missing wrong-path flush was one
+  real issue but not the only issue.
+- Additional debug trace showed that the trial was consuming an implicit
+  control bubble and exposing deeper control/operand timing coupling in the
+  existing pipeline.
+- After reverting the trial RTL, a fresh rerun of
+  `scripts\run_riscv_tests_subset.bat rv32 jal - 120000` returned to `PASS`.
+
+### Conclusion
+
+- This is not a low-intrusion optimization anymore; keeping it would require
+  structural work on control/forwarding timing rather than a single-variable
+  tweak.
+- Because the gain was still unproven and the first guardrail already failed,
+  the trial was rejected before spending more time on CoreMark reruns.
+- The next optimization entry should stay aligned with the `2026-04-09`
+  split-profile conclusion: prioritize branch-dominant redirect cost analysis,
+  not a jal-only speculative shortcut.
+
+## 2026-04-11 Split Redirect Profile Re-Verification
+
+The current worktree was re-run via:
+
+```bat
+scripts\run_coremark_profile.bat rv32 10 2000 100000000UL 20000000
+```
+
+The working log is `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile.log`.
+It was diffed against the archived
+`YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile_branch_breakdown_2026-04-09.log`.
+The only textual differences were the session timestamp and total simulation
+runtime lines.
+
+| Counter | Value |
+|------|------|
+| `PROFILE: ex_branch_redirect_cycles` | `1235790` |
+| `PROFILE: ex_beq_redirect_cycles` | `329513` |
+| `PROFILE: ex_bne_redirect_cycles` | `849894` |
+| `PROFILE: ex_blt_redirect_cycles` | `3863` |
+| `PROFILE: ex_bge_redirect_cycles` | `10573` |
+| `PROFILE: ex_bltu_redirect_cycles` | `13963` |
+| `PROFILE: ex_bgeu_redirect_cycles` | `27984` |
+| `PROFILE: ex_jal_redirect_cycles` | `153354` |
+| `PROFILE: ex_jalr_redirect_cycles` | `115826` |
+| `PROFILE: fetch_redirect_reuse_cycles` | `0` |
+| `PROFILE: fetch_redirect_reuse_miss_cycles` | `1504970` |
+
+Conclusion:
+
+- the current worktree still reproduces the same branch-dominant redirect
+  profile seen on `2026-04-09`
+- `BEQ/BNE` remain the overwhelming majority of taken-branch redirect cost
+- no evidence suggests queue/reuse work has become newly useful on CoreMark

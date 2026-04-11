@@ -77,7 +77,29 @@ history instead of being treated as the current engineering truth.
   - `0.912465 CoreMark/MHz`
   - `1095991523 cycles`
   - `10.959325s`
-  - dated evidence: `build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.log`
-    and `build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt`
+  - dated evidence: `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.log`
+    and `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt`
 - The repository is now back to a clean post-closure baseline and ready for the
   next optimization phase.
+
+## 2026-04-09 - Confirm Branch-Dominant Redirect Cost And Reject Early `JAL`
+
+- Fresh split profile evidence:
+  - `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-09.log`
+- Confirmed redirect cost breakdown:
+  - `ex_branch_redirect_cycles = 1235790`
+  - `ex_jal_redirect_cycles = 153354`
+  - `ex_jalr_redirect_cycles = 115826`
+  - `fetch_redirect_reuse_cycles = 0`
+  - `fetch_redirect_reuse_miss_cycles = 1504970`
+- A follow-up `decode-stage early JAL redirect` trial was attempted and rejected
+  before any new CoreMark comparison run because the first minimal guardrail
+  already failed:
+  - `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_jal_early_redirect_debug_2026-04-09.txt`
+  - `YH_rv_cpu/build/tests/riscv-tests/rv32/jal_early_redirect_debug_2026-04-09.log`
+- The trial changed the `jal` debug failure to `tohost=5`, which means this was
+  not a safe single-variable optimization anymore.
+- Current recommendation changed accordingly:
+  - do not reopen `jal-only` shortcut work
+  - if optimization resumes, prioritize branch-dominant redirect reduction
+    rather than queue / reuse or narrow `jal` speculation
