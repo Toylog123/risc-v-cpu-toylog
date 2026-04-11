@@ -103,3 +103,23 @@ history instead of being treated as the current engineering truth.
   - do not reopen `jal-only` shortcut work
   - if optimization resumes, prioritize branch-dominant redirect reduction
     rather than queue / reuse or narrow `jal` speculation
+
+## 2026-04-11 - Reject Branch-First `BEQ/BNE` Pipe-Hit Slice
+
+- Added a stronger branch-first redirect diagnostic entry:
+  - `scripts\run_fetch_redirect_reuse_diag.bat require_branch_reuse timeout_cycles=80`
+- Verified the strengthened diagnostic behaves as intended:
+  - reverted baseline prints `FAIL`
+  - trial RTL prints `PASS`
+- Quick-screen evidence was archived under:
+  - `YH_rv_cpu/build/tests/branch-first/`
+- CoreMark profile changed meaningfully:
+  - `fetch_redirect_reuse_cycles = 305277`
+  - `fetch_redirect_reuse_miss_cycles = 1199693`
+- But the retained score did not improve:
+  - `fetch_queue_empty_cycles = 1504970`
+  - short CoreMark stayed `11014885 cycles`, `0.912472 CoreMark/MHz`
+- Final decision:
+  - reject the branch-only pipe-hit slice
+  - revert RTL in the same round
+  - keep only the stronger branch-first diagnostic support

@@ -312,3 +312,51 @@ Conclusion:
   profile seen on `2026-04-09`
 - `BEQ/BNE` remain the overwhelming majority of taken-branch redirect cost
 - no evidence suggests queue/reuse work has become newly useful on CoreMark
+
+## 2026-04-11 Branch-First `BEQ/BNE` Pipe-Hit Trial (Rejected)
+
+This round executed the first post-profile branch-first slice:
+allow the active `IMEM_OUTPUT_REG=0` path to treat same-cycle redirect-target
+responses as reusable only for taken `BEQ/BNE`, while leaving EX-stage
+redirect/flush authority unchanged.
+
+### Trial scope
+
+| Item | Value |
+|------|------|
+| Goal | activate useful redirect reuse on the branch-dominant CoreMark path without reopening `jal-only` or queue-depth tuning |
+| Intended RTL slice | `fetch_redirect_pipe_hit` gated to taken `BEQ/BNE` on `IMEM_OUTPUT_REG=0` |
+| New red/green entry | `scripts\run_fetch_redirect_reuse_diag.bat require_branch_reuse timeout_cycles=80` |
+| Baseline fail evidence | `YH_rv_cpu/build/tests/branch-first/branch_reuse_beqbne_baseline_fail_2026-04-11.log` |
+| Trial pass evidence | `YH_rv_cpu/build/tests/branch-first/branch_reuse_beqbne_diag_2026-04-11.log` |
+| `rv32 beq` guardrail | `YH_rv_cpu/build/tests/branch-first/summary_beq_branch_pipehit_beqbne_2026-04-11.txt` |
+| `rv32 bne` guardrail | `YH_rv_cpu/build/tests/branch-first/summary_bne_branch_pipehit_beqbne_2026-04-11.txt` |
+| Profile evidence | `YH_rv_cpu/build/tests/branch-first/YH_rv_cpu_coremark_rv32_profile_branch_pipehit_beqbne_2026-04-11.log` |
+| Short-score evidence | `YH_rv_cpu/build/tests/branch-first/YH_rv_cpu_coremark_rv32_score_branch_pipehit_beqbne_2026-04-11.summary.txt` |
+| Keep? | `no` |
+
+### Quick-screen results
+
+| Check | Result |
+|------|------|
+| branch-first diag | `PASS` on trial RTL, `FAIL` on reverted baseline |
+| redirect diag default | `PASS` |
+| redirect accounting strict (`IMEM_OUTPUT_REG=0`) | `PASS` |
+| redirect accounting strict (`IMEM_OUTPUT_REG=1`) | `PASS` |
+| `rv32 beq` | `PASS` |
+| `rv32 bne` | `PASS` |
+| CoreMark smoke | `620530 cycles` |
+| CoreMark profile | `fetch_redirect_reuse_cycles = 305277`, `fetch_redirect_reuse_miss_cycles = 1199693` |
+| CoreMark profile | `fetch_queue_empty_cycles = 1504970` |
+| CoreMark short | `11014885 cycles`, `0.912472 CoreMark/MHz` |
+
+### Conclusion
+
+- the branch-only pipe-hit slice did activate redirect reuse on CoreMark, but
+  it did not reduce the dominant fetch-empty window
+- `fetch_queue_empty_cycles` remained exactly `1504970`, so the reuse activity
+  did not translate into less starvation at the scoreboard level
+- short CoreMark remained exactly unchanged, so the trial failed the retention
+  bar even though the new counter moved
+- the mainline RTL was reverted in the same round; the retained artifact from
+  this batch is the stronger `require_branch_reuse` diagnostic path

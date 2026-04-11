@@ -198,3 +198,27 @@ round easy to hand off whether it was retained or rejected.
 - Current evidence also says `fetch_redirect_reuse_cycles = 0`, so the trial
   must prove that the reuse path becomes active on real workload traffic.
 - Do not reopen the old `jal-only` early redirect line in this round.
+
+## Execution Summary
+
+- The first cut was executed on `2026-04-11` as a branch-only `BEQ/BNE`
+  pipe-hit activation on `IMEM_OUTPUT_REG=0`.
+- The strengthened branch-first diagnostic behaved correctly:
+  - reverted baseline produced `FAIL`
+  - trial RTL produced `PASS`
+- Quick-screen guardrails stayed green:
+  - redirect diag default and strict `imem_output_reg=0/1`
+  - `rv32 beq`
+  - `rv32 bne`
+  - CoreMark smoke
+- CoreMark profile changed but not enough:
+  - `fetch_redirect_reuse_cycles = 305277`
+  - `fetch_redirect_reuse_miss_cycles = 1199693`
+  - `fetch_queue_empty_cycles = 1504970`
+- Short CoreMark stayed exactly flat:
+  - `11014885 cycles`
+  - `0.912472 CoreMark/MHz`
+- Final decision:
+  - reject the branch-only pipe-hit slice
+  - revert RTL in the same round
+  - keep the stronger `require_branch_reuse` diagnostic for future trials

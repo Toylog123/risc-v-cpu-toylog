@@ -71,7 +71,8 @@
 - [x] 保留新的 `require_queue_fill` 诊断与 `run_fetch_prefetch_diag.bat` plusarg 归一化
 - [x] fresh profile 已确认 `fetch_queue_empty_cycles` 与 `ex_fetch_redirect_valid_cycles` 完全重合，request-side 不是当前主矛盾
 - [x] `2026-04-09` split profile 已确认 `branch redirect = 1235790`、`jal = 153354`、`jalr = 115826`、`reuse hit = 0`
-- [ ] 下一条非重复假设应直接攻击 branch-dominant redirect 成本，而不是重开 `jal-only` 或 queue/reuse 微调
+- [x] `2026-04-11` branch-first `BEQ/BNE` pipe-hit 试验已让 `fetch_redirect_reuse_cycles` 变成 `305277`，但 `fetch_queue_empty_cycles` 仍是 `1504970`，short CoreMark 仍是 `11014885 / 0.912472`，因此已拒绝保留并回退 RTL
+- [ ] 下一条非重复假设必须超过“只点亮 branch pipe-hit 计数器”这个层级，而不是重开 `jal-only`、queue/reuse 微调，或重复 `BEQ/BNE pipe-hit-only` 切片
 
 ## 仅外部阻塞
 

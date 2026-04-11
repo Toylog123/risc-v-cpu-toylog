@@ -39,17 +39,23 @@ reg     debug_trace;
 reg     require_pipe_hit;
 reg     require_queue_preserve;
 reg     require_drop_accounting;
+reg     require_branch_reuse;
 reg     stall_seen;
 reg     redirect_seen;
 reg     reuse_seen;
 reg     pipe_hit_seen;
 reg     overlap_seen;
+reg     branch_redirect_seen;
+reg     branch_overlap_seen;
+reg     branch_reuse_seen;
+reg     branch_pipe_hit_seen;
 reg     queue_preserve_seen;
 reg     queue_consumed_seen;
 reg     queue_instruction_seen;
 reg     drop_count_loaded_seen;
 reg     drop_count_decrement_seen;
 reg     drop_count_cleared_seen;
+integer branch_overlap_cycle;
 reg [31:0] overlap_redirect_pc;
 reg [31:0] overlap_expected_instruction;
 localparam [1:0] IMEM_DROP_COUNT = (IMEM_OUTPUT_REG != 0) ? 2'd1 : 2'd0;
@@ -160,6 +166,9 @@ always @(posedge clk) begin
         if (dut.ex_fetch_redirect_valid) begin
             redirect_seen <= 1'b1;
             redirect_count <= redirect_count + 1;
+            if (!dut.id_ex_jump_r) begin
+                branch_redirect_seen <= 1'b1;
+            end
         end
 
         if (dut.stall_decode) begin
@@ -172,14 +181,27 @@ always @(posedge clk) begin
             reuse_count <= reuse_count + 1;
         end
 
+        if (fetch_reuse_hit && dut.ex_fetch_redirect_valid && !dut.id_ex_jump_r) begin
+            branch_reuse_seen <= 1'b1;
+        end
+
         if (dut.fetch_redirect_pipe_hit) begin
             pipe_hit_seen <= 1'b1;
             pipe_hit_count <= pipe_hit_count + 1;
+            if (dut.ex_fetch_redirect_valid && !dut.id_ex_jump_r) begin
+                branch_pipe_hit_seen <= 1'b1;
+            end
         end
 
         if (fetch_response_overlap) begin
             overlap_seen <= 1'b1;
             overlap_count <= overlap_count + 1;
+            if (!dut.id_ex_jump_r) begin
+                branch_overlap_seen <= 1'b1;
+                if (branch_overlap_cycle == 0) begin
+                    branch_overlap_cycle <= cycle;
+                end
+            end
             if (require_queue_preserve) begin
                 if (dut.fetch_queue_valid) begin
                     if (dut.fetch_queue_pc !== dut.ex_redirect_pc) begin
@@ -266,6 +288,17 @@ always @(posedge clk) begin
             end
         end
 
+        if (require_branch_reuse) begin
+            if ((branch_overlap_cycle != 0) && (cycle > (branch_overlap_cycle + 2)) && !branch_reuse_seen) begin
+                $fatal(1,
+                    "FAIL: require_branch_reuse set but branch overlap never produced reuse within 2 cycles (branch_overlap_cycle=%0d pipe_hit=%0d redirects=%0d reuse_hits=%0d)",
+                    branch_overlap_cycle,
+                    branch_pipe_hit_seen,
+                    redirect_count,
+                    reuse_count);
+            end
+        end
+
         if (require_drop_accounting && (IMEM_OUTPUT_REG != 0) && overlap_seen && (overlap_cycle != 0)) begin
             if (dut.fetch_drop_response && dut.fetch_pipe_valid) begin
                 $fatal(1,
@@ -349,12 +382,20 @@ always @(posedge clk) begin
                 $fatal(1, "FAIL: strict plusarg require_pipe_hit set but fetch_redirect_pipe_hit never asserted");
             end
 
+            if (require_branch_reuse && !branch_overlap_seen) begin
+                // Keep running until timeout so branch-only mode can prove
+                // whether a taken branch overlap ever happened in this setup.
+            end else if (require_branch_reuse && !branch_reuse_seen) begin
+                // Keep running until the bounded branch window above either
+                // sees reuse or trips the explicit failure.
+            end
+
             if (require_queue_preserve && (!queue_preserve_seen || !queue_instruction_seen)) begin
                 // Keep running until the bounded window either proves the queue
                 // payload or trips the timeout/fatal checks above.
             end else begin
                 $display(
-                    "PASS: fetch redirect reuse diagnostic completed at PC=%h in %0d cycles (stall_cycles=%0d redirects=%0d reuse_hits=%0d pipe_hits=%0d overlaps=%0d require_pipe_hit=%0d require_queue_preserve=%0d require_drop_accounting=%0d IMEM_OUTPUT_REG=%0d)",
+                    "PASS: fetch redirect reuse diagnostic completed at PC=%h in %0d cycles (stall_cycles=%0d redirects=%0d reuse_hits=%0d pipe_hits=%0d overlaps=%0d require_pipe_hit=%0d require_queue_preserve=%0d require_drop_accounting=%0d require_branch_reuse=%0d IMEM_OUTPUT_REG=%0d)",
                     debug_pc,
                     cycle,
                     stall_cycles,
@@ -365,6 +406,7 @@ always @(posedge clk) begin
                     require_pipe_hit,
                     require_queue_preserve,
                     require_drop_accounting,
+                    require_branch_reuse,
                     IMEM_OUTPUT_REG);
                 $finish;
             end
@@ -372,7 +414,7 @@ always @(posedge clk) begin
 
         if (cycle > timeout_cycles) begin
             $fatal(1,
-                "FAIL: timeout at PC=%h cycle=%0d stall_cycles=%0d redirects=%0d reuse_hits=%0d pipe_hits=%0d overlaps=%0d q_pres=%0d q_insn=%0d q_cons=%0d drop_loaded=%0d drop_dec=%0d drop_zero=%0d IMEM_OUTPUT_REG=%0d",
+                "FAIL: timeout at PC=%h cycle=%0d stall_cycles=%0d redirects=%0d reuse_hits=%0d pipe_hits=%0d overlaps=%0d branch_redir=%0d branch_overlap=%0d branch_reuse=%0d branch_pipe=%0d q_pres=%0d q_insn=%0d q_cons=%0d drop_loaded=%0d drop_dec=%0d drop_zero=%0d IMEM_OUTPUT_REG=%0d",
                 debug_pc,
                 cycle,
                 stall_cycles,
@@ -380,6 +422,10 @@ always @(posedge clk) begin
                 reuse_count,
                 pipe_hit_count,
                 overlap_count,
+                branch_redirect_seen,
+                branch_overlap_seen,
+                branch_reuse_seen,
+                branch_pipe_hit_seen,
                 queue_preserve_seen,
                 queue_instruction_seen,
                 queue_consumed_seen,
@@ -403,11 +449,16 @@ initial begin
     overlap_count = 0;
     overlap_cycle = 0;
     overlap_window_end_cycle = 0;
+    branch_overlap_cycle = 0;
     stall_seen = 1'b0;
     redirect_seen = 1'b0;
     reuse_seen = 1'b0;
     pipe_hit_seen = 1'b0;
     overlap_seen = 1'b0;
+    branch_redirect_seen = 1'b0;
+    branch_overlap_seen = 1'b0;
+    branch_reuse_seen = 1'b0;
+    branch_pipe_hit_seen = 1'b0;
     queue_preserve_seen = 1'b0;
     queue_consumed_seen = 1'b0;
     queue_instruction_seen = 1'b0;
@@ -420,6 +471,7 @@ initial begin
     require_pipe_hit = 1'b0;
     require_queue_preserve = 1'b0;
     require_drop_accounting = 1'b0;
+    require_branch_reuse = 1'b0;
 
     if ($test$plusargs("debug_trace")) begin
         debug_trace = 1'b1;
@@ -435,6 +487,10 @@ initial begin
 
     if ($test$plusargs("require_drop_accounting")) begin
         require_drop_accounting = 1'b1;
+    end
+
+    if ($test$plusargs("require_branch_reuse")) begin
+        require_branch_reuse = 1'b1;
     end
 
     if (!$value$plusargs("timeout_cycles=%d", timeout_cycles)) begin
@@ -473,7 +529,7 @@ initial begin
     // nop
     imem[9]  = rv32_i(12'sd0, 5'd0, 3'b000, 5'd0, 7'b0010011);
 
-    dmem[0] = 8'h01;
+    dmem[0] = require_branch_reuse ? 8'h00 : 8'h01;
 
     #20;
     rst_n = 1'b1;

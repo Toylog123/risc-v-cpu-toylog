@@ -233,6 +233,20 @@ scripts\run_coremark_fpga.bat rv32
   - 工作日志：`YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile.log`
   - 与 `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile_branch_breakdown_2026-04-09.log` 的文本差异仅剩时间戳与仿真运行时行
   - 关键计数保持一致，说明 branch-dominant redirect 结论在当前工作区仍成立
+- `2026-04-11` branch-first `BEQ/BNE` pipe-hit quick-screen 已执行并归档：
+  - 基线失败日志：`YH_rv_cpu/build/tests/branch-first/branch_reuse_beqbne_baseline_fail_2026-04-11.log`
+  - 试验通过日志：`YH_rv_cpu/build/tests/branch-first/branch_reuse_beqbne_diag_2026-04-11.log`
+  - `rv32 beq` / `rv32 bne` guardrail：
+    - `YH_rv_cpu/build/tests/branch-first/summary_beq_branch_pipehit_beqbne_2026-04-11.txt`
+    - `YH_rv_cpu/build/tests/branch-first/summary_bne_branch_pipehit_beqbne_2026-04-11.txt`
+  - CoreMark profile：
+    - `YH_rv_cpu/build/tests/branch-first/YH_rv_cpu_coremark_rv32_profile_branch_pipehit_beqbne_2026-04-11.log`
+    - 关键信号变化：`fetch_redirect_reuse_cycles = 305277`，`fetch_redirect_reuse_miss_cycles = 1199693`
+    - 但 `fetch_queue_empty_cycles` 仍为 `1504970`
+  - CoreMark short：
+    - `YH_rv_cpu/build/tests/branch-first/YH_rv_cpu_coremark_rv32_score_branch_pipehit_beqbne_2026-04-11.summary.txt`
+    - 结果仍为 `11014885 cycles`，`0.912472 CoreMark/MHz`
+  - 结论：主线 RTL 已在同轮回退；本轮保留的是更强的 `require_branch_reuse` 诊断，而不是新的性能收益 RTL
 - `decode-stage early JAL redirect` 已经拒绝保留，最小 guardrail 失败证据为：
   - `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_jal_early_redirect_debug_2026-04-09.txt`
   - `YH_rv_cpu/build/tests/riscv-tests/rv32/jal_early_redirect_debug_2026-04-09.log`
@@ -246,5 +260,5 @@ scripts\run_coremark_fpga.bat rv32
    - `doc/performance_experiment_log.md`
    - `doc/2026-04-09_optimization_status_addendum.md`
 2. 单独清理 BOM / 换行差异与冲突备份脚本，不要和 profiling 结论混在同一个 commit。
-3. 如果继续优化，下一轮不要再试 `jal-only` 快捷路径，而要直接围绕 branch-dominant redirect 代价设计新的单变量假设。
+3. 如果继续优化，下一轮不要再试 `jal-only` 快捷路径，也不要重复 `BEQ/BNE pipe-hit-only` 切片，而要直接围绕 branch-dominant redirect 代价设计更强的新假设。
 4. 后续所有文档引用 build 证据时，统一使用 `YH_rv_cpu/build/...`，不要再误写成仓库根目录 `build/...`。
