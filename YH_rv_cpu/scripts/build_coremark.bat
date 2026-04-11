@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 setlocal EnableDelayedExpansion
 
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
