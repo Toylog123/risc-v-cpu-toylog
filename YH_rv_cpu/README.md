@@ -9,6 +9,10 @@
 - 冻结基线：`2026-04-07` 完整收口的比赛提交级基线
 - 活跃工作区：`2026-04-08` strict / `full-ui` / baseline fresh 收口已完成；第一轮 `FQ-06A` quick-screen 已执行并拒绝保留
 
+当前赛题题面允许 CPU 基于 `RV32I` 或 `RV64I`。当前工程已经具备
+`RV32/RV64` 双 XLEN 验证能力，但冻结提交中的性能统计与主叙述口径仍以
+`RV32I + Zicsr` 路径为主。
+
 主文档入口：
 
 - `doc/coremark_submission_report.md`

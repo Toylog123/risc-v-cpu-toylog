@@ -19,7 +19,8 @@
 
 ## 当前结论
 
-- 冻结比赛口径仍是 `RV32I + Zicsr`
+- 赛题题面允许 `RV32I` 或 `RV64I`；当前工程验证已覆盖 `RV32/RV64` 双 XLEN
+- 冻结比赛口径与性能主叙述仍以 `RV32I + Zicsr` 为主
 - CoreMark short / strict、`rv32/rv64 baseline`、`impl50` 与 FPGA-like probe 均已完成 fresh 收口
 - `2026-04-08` 额外完成 `rv32 full-ui 42/42` 与 `rv64 full-ui 54/54`
 - `FQ-06A` 已完成 quick-screen 并拒绝保留，主线 RTL 仍是冻结基线

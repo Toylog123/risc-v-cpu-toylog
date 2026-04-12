@@ -6,10 +6,11 @@
 
 本文件按 live handoff 维护。每完成一个阶段，都应先把这里同步到可接手状态，再继续下一阶段。
 
-当前主线 ISA 口径仍是：
+当前赛题与工程 ISA 口径是：
 
-- `RV32I + Zicsr`
-- `RV64` baseline regression 作为共线验证
+- 赛题题面允许 CPU 基于 `RV32I` 或 `RV64I`
+- 当前冻结性能/提交主口径仍以 `RV32I + Zicsr` 为主
+- 当前工程验证能力已覆盖 `RV32/RV64` 双 XLEN，且 `baseline` / `full-ui` 都有 fresh 结果
 
 ## 2. 当前做到哪一步
 
@@ -94,7 +95,7 @@
 
 1. 先把当前 profiling / docs WIP 收口成 focused commit
 2. 单独清理脚本 BOM / 换行差异与冲突备份文件
-3. 如果继续优化，围绕 branch-dominant redirect 成本设计新的单变量假设
+3. 如果继续优化，优先试做 taken `BEQ/BNE` 的 decode-stage early redirect，并保持 operand-ready gating 与完整 wrong-path flush
 4. 每轮优化完整重跑 CoreMark / baseline / impl50 并同步日志
 5. 如新一轮优化无明确收益，及时关闭方向并回到 clean worktree
 
@@ -260,5 +261,5 @@ scripts\run_coremark_fpga.bat rv32
    - `doc/performance_experiment_log.md`
    - `doc/2026-04-09_optimization_status_addendum.md`
 2. 单独清理 BOM / 换行差异与冲突备份脚本，不要和 profiling 结论混在同一个 commit。
-3. 如果继续优化，下一轮不要再试 `jal-only` 快捷路径，也不要重复 `BEQ/BNE pipe-hit-only` 切片，而要直接围绕 branch-dominant redirect 代价设计更强的新假设。
+3. 如果继续优化，下一轮不要再试 `jal-only` 快捷路径，也不要重复 `BEQ/BNE pipe-hit-only` 切片；优先执行 `docs/superpowers/plans/2026-04-12-yh-rv-cpu-beqbne-early-redirect-plan.md` 中的 taken `BEQ/BNE` decode-stage early redirect 试验。
 4. 后续所有文档引用 build 证据时，统一使用 `YH_rv_cpu/build/...`，不要再误写成仓库根目录 `build/...`。

@@ -12,8 +12,9 @@
 
 ## 2. 当前设计基线
 
-- 当前主线 ISA：`RV32I + Zicsr`
-- 当前共线验证：`RV64` baseline regression
+- 赛题 ISA 口径：`RV32I` 或 `RV64I`
+- 当前冻结性能/提交主口径：`RV32I + Zicsr`
+- 当前工程验证能力：`RV32/RV64` 双 XLEN baseline 与扩展 `full-ui` 已闭环
 - 当前微架构：五级流水
 - 当前 SoC：最小可运行系统
 - 当前异常与中断：最小 machine-mode trap + machine timer interrupt
@@ -92,4 +93,4 @@
   - impl50
   - FPGA-like probe
 - 更广覆盖的 `riscv-tests` 扩展验证已在 `2026-04-08` 完成收口
-- 当前设计边界仍然是 `RV32I + Zicsr`，因此任何 `zifencei` 相关结论都必须明确写清是否纳入口径
+- 当前冻结性能/提交边界仍以 `RV32I + Zicsr` 为主，因此任何 `zifencei` 相关结论都必须明确写清是否纳入口径

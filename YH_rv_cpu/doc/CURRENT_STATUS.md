@@ -1,16 +1,16 @@
 # CURRENT_STATUS
 
-> Updated: `2026-04-11`
+> Updated: `2026-04-12`
 > Branch: `main`
 > Workspace: clean
-> Ahead of `origin/main`: `62`
+> Ahead of `origin/main`: `63`
 
 ## Latest commits
 
+- `5c2d612` `docs: refresh current status after branch trial`
 - `be00ecf` `test/docs: add branch-first redirect diag and reject pipe-hit slice`
 - `506120a` `docs: plan branch-first redirect experiment`
 - `c7c35d8` `docs: add current status entry point`
-- `1f3ff2a` `scripts: drop bom noise and ignore conflict backups`
 
 ## Frozen engineering baseline
 
@@ -36,6 +36,14 @@
   - `WNS=+5.599ns`
   - `WHS=+0.025ns`
   - `project/reports/clk_20p000ns/`
+
+## ISA positioning
+
+- Competition spec allows CPU baseline on `RV32I` or `RV64I`.
+- Current engineering validation already covers `RV32/RV64` dual-XLEN
+  baseline and `full-ui`.
+- Frozen performance/reportable path still stays on the `RV32I + Zicsr`
+  build and CoreMark flow.
 
 ## Current optimization status
 
@@ -63,12 +71,15 @@
 
 - Resume optimization only from a hypothesis stronger than `BEQ/BNE` pipe-hit
   activation alone.
+- Preferred next slice: decode-stage early redirect for taken `BEQ/BNE`, with
+  explicit operand-ready gating and full wrong-path flush.
 - Execution plan:
-  - `docs/superpowers/plans/2026-04-11-yh-rv-cpu-branch-first-redirect-plan.md`
+  - `docs/superpowers/plans/2026-04-12-yh-rv-cpu-beqbne-early-redirect-plan.md`
 - Keep queue/reuse micro-tuning frozen unless a new control-flow result proves
   it reduces `fetch_queue_empty_cycles`, not just reuse counters.
 - Before keeping any new RTL trial, rerun at least:
   - `scripts\run_riscv_tests_subset.bat rv32`
+  - `scripts\run_riscv_tests_subset.bat rv64`
   - `scripts\run_coremark_profile.bat rv32 10 2000 100000000UL 20000000`
   - the relevant focused guardrails for the chosen redirect slice
 
