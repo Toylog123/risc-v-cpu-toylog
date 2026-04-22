@@ -1,0 +1,121 @@
+\section{Verilog/VHDL 建模规范}
+
+\subsection{本章对应的赛题要求}
+
+本章对应赛题中的“Verilog/VHDL 建模与模块实现”，重点说明以下内容：
+\begin{itemize}
+    \item 模块化、层次化建模方式以及 IF/ID/EX/MEM/WB 分层实现；
+    \item 组合逻辑、时序逻辑、参数化与接口定义的统一规范；
+    \item 关键模块交互信号组与 TestBench 协同规则；
+    \item 说明书如何对应评分项中的“模块交互信号列表清晰”和“各模块 RTL 代码文件完整”。
+\end{itemize}
+
+\subsection{建模口径说明}
+
+赛题明确要求设计文档包含“Verilog/VHDL 建模规范”。本项目当前实现主体采用
+\texttt{Verilog/SystemVerilog} 兼容写法，未单独维护 VHDL 版本 RTL；因此本节按照
+“与 HDL 语言无关的建模规则 + 当前工程实际采用的 Verilog 写法”两层进行说明，
+既满足赛题对建模规范的要求，也保证与现有源码完全一致。
+
+\subsection{模块划分规则}
+
+当前工程遵循“单模块单职责、顶层统一装配”的建模方式。核心模块组织如下：
+\begin{table}[H]
+    \centering
+    \small
+    \caption{RTL 模块划分与职责}
+    \begin{tabularx}{0.95\textwidth}{L{0.28\textwidth} Y}
+        \toprule
+        模块/文件 & 主要职责 \\
+        \midrule
+        \path{rtl/YH_rv_cpu.v} & CPU 顶层，组织流水级、前递、redirect、CSR 与异常控制 \\
+        \path{rtl/YH_rv_cpu_if_stage.v} & IF 级取指、PC 更新与取指侧控制 \\
+        \path{rtl/YH_rv_cpu_id_stage.v} & ID 级译码、寄存器读、立即数生成与控制准备 \\
+        \path{rtl/YH_rv_cpu_ex_stage.v} & EX 级运算、分支判断、CSR 访问与 trap/\texttt{mret} 决策 \\
+        \path{rtl/YH_rv_cpu_mem_stage.v} & MEM 级 load/store 与 MMIO 访问 \\
+        \path{rtl/YH_rv_cpu_wb_stage.v} & WB 级结果选择与寄存器回写 \\
+        \path{rtl/YH_rv_cpu_hazard_unit.v} & load-use 检测、前递选择与停顿控制 \\
+        \path{rtl/YH_rv_cpu_decoder.v} & 指令译码与控制语义拆解 \\
+        \path{rtl/YH_rv_cpu_regfile.v} & 32 个通用寄存器实现 \\
+        \path{rtl/YH_rv_cpu_alu.v} & 算术逻辑与比较操作 \\
+        \path{rtl/YH_rv_cpu_soc.v} & SoC 封装，连接 ROM、RAM 与 MMIO 外设 \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+这种划分方式对应赛题中“IF/ID/EX/MEM/WB + 核心子模块”的要求，能够保证：
+\begin{itemize}
+    \item 模块边界清晰，便于逐模块验证；
+    \item 流水控制与功能单元分离，便于定位冒险与控制流问题；
+    \item CPU、SoC、FPGA 顶层三层边界稳定，便于原型适配与后续扩展。
+\end{itemize}
+
+\subsection{组合逻辑与时序逻辑规则}
+
+当前工程遵循以下基本建模约束：
+\begin{enumerate}
+    \item 组合逻辑优先使用连续赋值或组合 \texttt{always} 块表达，避免隐式锁存器；
+    \item 时序逻辑统一挂接系统时钟，在同步块内更新寄存器与流水级状态；
+    \item 流水寄存器、CSR 状态与控制标志只在时序块中更新，保证状态转移单一可追踪；
+    \item 数据通路宽度与符号扩展在模块边界显式定义，避免跨模块位宽歧义；
+    \item 冒险处理、redirect 与写回优先级在顶层或专用控制模块统一仲裁，避免分散在多处重复判定。
+\end{enumerate}
+
+\subsection{参数化与可扩展性规则}
+
+赛题要求设计支持参数化与扩展。本项目采用以下规则保证这一点：
+\begin{itemize}
+    \item 通过顶层参数控制 \texttt{XLEN}，使同一套工程能够完成 \texttt{RV32/RV64} 双 XLEN 验证；
+    \item 同步存储器模块与 FPGA 原型顶层通过参数控制 \texttt{IMEM\_OUTPUT\_REG}、
+    \texttt{DMEM\_OUTPUT\_REG} 等关键实现选项；
+    \item 测试平台和构建脚本以目标名、摘要路径和 manifest 清单驱动，不把验证路径写死在单个脚本内；
+    \item SoC 层通过固定 MMIO 映射承接 UART、timer、DONE 等外设，为后续扩展更多外设保留接口位置。
+\end{itemize}
+
+\subsection{接口与命名规范}
+
+为了满足赛题中“模块交互信号列表清晰”的要求，当前工程遵循以下接口规范：
+\begin{enumerate}
+    \item 模块命名统一以 \texttt{YH\_rv\_cpu\_*} 或 \texttt{YH\_rv\_*} 前缀区分层次与职责；
+    \item 流水级之间使用显式信号传递数据与控制，不使用隐式全局状态；
+    \item 存储接口统一区分地址、写使能、写数据和读数据等基本语义；
+    \item MMIO 访问通过 SoC 层集中解码，CPU 内核不直接感知外设细节；
+    \item 测试平台命名与 DUT 目标一一对应，例如 \texttt{*\_tb.v} 用于承接特定场景回归。
+\end{enumerate}
+
+\begin{table}[H]
+    \centering
+    \small
+    \caption{关键模块交互信号组}
+    \begin{tabularx}{0.95\textwidth}{L{0.20\textwidth} L{0.36\textwidth} Y}
+        \toprule
+        交互边界 & 代表性信号组 & 作用说明 \\
+        \midrule
+        IF $\rightarrow$ IF/ID & \texttt{if\_id\_pc\_r / if\_id\_instruction\_r / if\_id\_valid\_r} & 传递当前取指 PC、指令字与有效位，承接同步取指结果 \\
+        ID $\rightarrow$ ID/EX & \texttt{id\_ex\_rs1\_value\_r / id\_ex\_rs2\_value\_r / id\_ex\_imm\_r / id\_ex\_alu\_op\_r / id\_ex\_wb\_sel\_r} & 传递操作数、立即数和主要控制包，形成 EX 级输入 \\
+        Hazard $\rightarrow$ pipeline & \texttt{stall\_decode / forward\_a\_sel / forward\_b\_sel / id\_ex\_stall\_bubble\_local} & 控制前递选择和 load-use 最小停顿，避免错误相关传播 \\
+        EX $\rightarrow$ IF & \texttt{ex\_fetch\_redirect\_valid / ex\_control\_redirect\_pc} & 统一 branch、jump、trap、\texttt{mret} 的控制流重定向 \\
+        MEM $\rightarrow$ WB & \texttt{mem\_wb\_exec\_result\_r / mem\_wb\_load\_data\_r / mem\_wb\_wb\_sel\_r / mem\_wb\_rd\_addr\_r} & 传递写回阶段的结果源、目标寄存器与写回选择 \\
+        CPU $\leftrightarrow$ SoC & \texttt{imem\_req / imem\_addr / dmem\_addr / dmem\_wdata / dmem\_wstrb / timer\_irq} & 承接取指、访存、MMIO 和定时器中断接口，是 RTL 与原型系统的主要边界 \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+上表用于把赛题和评分标准中“各个子模块交互信号列表清晰”的要求落实到说明书正文，
+避免只给结构图而缺少可追踪的接口语义说明。
+
+\subsection{测试平台协同规范}
+
+赛题要求建模规范中同时体现 TestBench 框架能力，因此当前工程把测试平台视为建模规范的一部分：
+\begin{itemize}
+    \item 模块级 TestBench 用于覆盖 ALU、redirect、hazard 等重点功能单元；
+    \item 系统级 TestBench 统一承接 SoC 固件运行、\texttt{riscv-tests} 与 CoreMark；
+    \item 构建脚本负责把软件二进制转换为 ROM 初始化文件，保证软件输入与 RTL 路径一致；
+    \item 结果摘要统一写入 \texttt{build/} 目录，便于文档、日志和实现报告之间相互引用。
+\end{itemize}
+
+\subsection{本节结论}
+
+综合来看，当前工程的 HDL 建模方式已经满足赛题中对“模块化设计、层次化建模、参数化实现、测试平台支撑”的基本要求。
+说明书在此单列建模规范章节，一方面是为了与赛题交付结构逐项对齐，另一方面也是为了让源码组织方式、
+验证方法和后续扩展边界能够被评审直接读懂。

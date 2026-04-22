@@ -3,11 +3,13 @@ setlocal
 
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
 set BUILD_DIR=%PROJECT_DIR%\build\sim
+rem This smoke bench checks the RV64/RV32 parameterization at the CPU level.
 set XVLOG=
 set XELAB=
 set XSIM=
 set XSIM_RUN_DIR=
 
+rem Resolve simulator tools from PATH.
 for %%T in (xvlog.bat xvlog) do (
     where %%T >nul 2>nul
     if not errorlevel 1 (
@@ -52,11 +54,13 @@ if not defined XSIM (
 
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
+rem Use a dedicated runtime directory so xsim state does not leak between runs.
 call "%~dp0prepare_xsim_runtime.bat" xlen64_smoke XSIM_RUN_DIR
 if not defined XSIM_RUN_DIR exit /b 1
 
 pushd "%XSIM_RUN_DIR%"
 
+rem Compile the XLEN-focused bench against the shared pipeline RTL only.
 call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_xlen64_tb.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu.v" ^

@@ -1,4 +1,4 @@
-﻿\section{关键结果汇总}
+\section{关键结果与证据索引}
 
 \begin{table}[H]
     \centering
@@ -16,7 +16,28 @@
         CoreMark strict Score (CoreMark/MHz) & \texttt{0.912465} & 周期数 \texttt{1095991523}，满足 EEMBC 10s 条件 \\
         FPGA-like probe Score (CoreMark/MHz) & \texttt{7.728811} & 周期数 \texttt{156442} \\
         Vivado \texttt{impl50} & \texttt{2556 LUT / 2170 FF / 4 BRAM / 0 DSP} & 综合实现结果 \\
-        时序结果 & \texttt{WNS = +5.822ns}, \texttt{WHS = +0.057ns} & 50MHz 目标下保持正裕量 \\
+        时序结果 & \texttt{WNS = +5.599ns}, \texttt{WHS = +0.025ns} & 50MHz 目标下保持正裕量 \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \small
+    \caption{关键证据位置}
+    \begin{tabularx}{0.95\textwidth}{L{0.24\textwidth} Y}
+        \toprule
+        证据类型 & 主要文件 \\
+        \midrule
+        CoreMark short 摘要 & \path{YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_score.summary.txt} \\
+        CoreMark strict 摘要 & \path{YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt} \\
+        RV32 baseline 摘要 & \path{YH_rv_cpu/build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt} \\
+        RV64 baseline 摘要 & \path{YH_rv_cpu/build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt} \\
+        RV32 full-ui 摘要 & \path{YH_rv_cpu/build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt} \\
+        RV64 full-ui 摘要 & \path{YH_rv_cpu/build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-08.txt} \\
+        FPGA 资源报告 & \path{project/reports/clk_20p000ns/impl_utilization.rpt} \\
+        FPGA 时序报告 & \path{project/reports/clk_20p000ns/impl_timing_summary.rpt} \\
+        FPGA-like probe 摘要 & \path{YH_rv_cpu/build/sw/fpga_probe_i0d0.summary.txt} \\
         \bottomrule
     \end{tabularx}
 \end{table}

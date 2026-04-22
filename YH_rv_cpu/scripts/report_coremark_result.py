@@ -4,6 +4,7 @@ import sys
 
 
 def parse_clock_hz(raw: str) -> int:
+    # Accept inputs such as "100000000UL" passed straight from batch files.
     digits = re.sub(r"[^0-9]", "", raw)
     if not digits:
         raise ValueError(f"unable to parse clock from {raw!r}")
@@ -11,6 +12,7 @@ def parse_clock_hz(raw: str) -> int:
 
 
 def require(pattern: str, text: str, name: str) -> str:
+    # Fail fast when the log shape changes so we never write a misleading summary.
     match = re.search(pattern, text, re.MULTILINE)
     if not match:
         raise ValueError(f"missing {name}")
@@ -22,6 +24,7 @@ def yes_no(flag: bool) -> str:
 
 
 def main() -> int:
+    # The summary path is optional so short and strict wrappers can share this parser.
     if len(sys.argv) not in (3, 4):
         print(
             "usage: report_coremark_result.py <log_path> <clock_hz> [summary_path]",
@@ -37,6 +40,7 @@ def main() -> int:
         else log_path.with_suffix(".summary.txt")
     )
 
+    # Parse directly from the simulator log rather than relying on target-side formatting.
     text = log_path.read_text(encoding="utf-8", errors="replace")
 
     coremark_size = int(require(r"^CoreMark Size\s*:\s*(\d+)\s*$", text, "CoreMark Size"))
@@ -59,6 +63,7 @@ def main() -> int:
         )
     )
 
+    # Distinguish a clean EEMBC-valid run from the intentionally short reportable path.
     validation_clean = "Correct operation validated." in text
     full_workload = all(
         token in text for token in ("[0]crclist", "[0]crcmatrix", "[0]crcstate")
@@ -81,6 +86,7 @@ def main() -> int:
         and not validation_clean
     )
 
+    # Host-side float math keeps score precision even when the target path truncates seconds.
     total_seconds = total_ticks / float(clock_hz)
     iterations_per_sec = iterations / total_seconds if total_seconds > 0 else 0.0
     coremark_per_mhz = iterations_per_sec / (clock_hz / 1_000_000.0)
@@ -99,6 +105,7 @@ def main() -> int:
     else:
         validation_mode = "unknown"
 
+    # The output is flat key=value text so both humans and batch scripts can consume it.
     report_lines = [
         f"log_path={log_path}",
         f"clock_hz={clock_hz}",
@@ -142,4 +149,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    # Preserve shell-friendly exit codes for the surrounding batch wrappers.
     raise SystemExit(main())

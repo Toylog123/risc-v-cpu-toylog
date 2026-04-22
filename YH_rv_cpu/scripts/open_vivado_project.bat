@@ -2,6 +2,7 @@
 setlocal
 
 set PHYSICAL_SCRIPT_DIR=%~dp0
+rem flow_hint is only echoed for operator context; it does not change the project that opens.
 set MODE_HINT=%~1
 if /I "%MODE_HINT%"=="-h" goto :usage
 if /I "%MODE_HINT%"=="--help" goto :usage
@@ -21,6 +22,7 @@ set MAP_DRIVE=
 set MAPPED_ROOT=
 set MAP_DRIVES=V: W: X: Y: Z:
 
+rem Vivado GUI creates user-local state, so redirect it into an ASCII-only temporary tree.
 if not exist "%VIVADO_LOG_ROOT%" mkdir "%VIVADO_LOG_ROOT%"
 if not exist "%USERDATA_ROOT%\profile" mkdir "%USERDATA_ROOT%\profile"
 if not exist "%USERDATA_ROOT%\AppData\Roaming" mkdir "%USERDATA_ROOT%\AppData\Roaming"
@@ -34,6 +36,7 @@ set LOCALAPPDATA=%USERDATA_ROOT%\AppData\Local
 set TEMP=%USERDATA_ROOT%\Temp
 set TMP=%USERDATA_ROOT%\Temp
 
+rem Map the repo to a spare ASCII drive letter so Vivado GUI avoids Unicode path issues.
 for %%D in (%MAP_DRIVES%) do (
     subst %%D "%REPO_ROOT%" >nul 2>nul
     if not errorlevel 1 (
@@ -49,6 +52,7 @@ if not defined MAPPED_ROOT (
     exit /b 1
 )
 
+rem Prefer Vivado from PATH, then fall back to common Windows install locations.
 where vivado >nul 2>nul
 if not errorlevel 1 (
     for /f "delims=" %%I in ('where vivado') do (
@@ -80,6 +84,7 @@ if not exist "%PROJECT_FILE%" (
     if errorlevel 1 exit /b 1
 )
 
+rem Repoint the project file to the mapped ASCII drive before launching the GUI.
 set PROJECT_FILE=%MAPPED_ROOT%project\%PROJECT_NAME%.xpr
 if not exist "%PROJECT_FILE%" (
     echo Missing Vivado project file: %PROJECT_FILE%
@@ -88,6 +93,7 @@ if not exist "%PROJECT_FILE%" (
 
 call "%PHYSICAL_SCRIPT_DIR%organize_tool_logs.bat"
 
+rem Launch the GUI from the mapped project directory so relative log paths stay consistent.
 pushd "%MAPPED_ROOT%project"
 start "Vivado GUI" "%VIVADO_CMD%" -log "%VIVADO_LOG_FILE%" -journal "%VIVADO_JOU_FILE%" "%PROJECT_FILE%"
 popd

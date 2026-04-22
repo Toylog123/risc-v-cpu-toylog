@@ -4,6 +4,7 @@ setlocal
 set SCRIPT_DIR=%~dp0
 for %%I in ("%SCRIPT_DIR%..") do set PROJECT_DIR=%%~fI
 set BUILD_DIR=%PROJECT_DIR%\build\sim
+rem Raw plusargs are forwarded directly into xsim so the bench can be parameterized from the CLI.
 set XVLOG=
 set XELAB=
 set XSIM=
@@ -22,6 +23,7 @@ shift
 goto :parse_args
 :args_done
 
+rem Resolve xsim tools from PATH to avoid hard-coded Vivado locations.
 for %%T in (xvlog.bat xvlog) do (
     where %%T >nul 2>nul
     if not errorlevel 1 (
@@ -66,11 +68,13 @@ if not defined XSIM (
 
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
+rem Keep each diagnostic in its own disposable runtime directory.
 call "%SCRIPT_DIR%prepare_xsim_runtime.bat" fetch_prefetch_diag XSIM_RUN_DIR
 if not defined XSIM_RUN_DIR exit /b 1
 
 pushd "%XSIM_RUN_DIR%"
 
+rem Expand space-separated plusargs into xsim's repeated argument format.
 for /f "usebackq delims=" %%A in (`
     powershell -NoProfile -Command ^
         "$raw = $env:RAW_TESTPLUSARGS; " ^
@@ -80,6 +84,7 @@ for /f "usebackq delims=" %%A in (`
         "$out -join ' '"
 `) do set XSIM_TESTPLUSARGS=%%A
 
+rem Compile the fetch/prefetch diagnostic against the shared pipeline RTL.
 call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_fetch_prefetch_tb.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu.v" ^
@@ -97,6 +102,7 @@ if errorlevel 1 goto :fail
 call %XELAB% YH_rv_cpu_fetch_prefetch_tb -s YH_rv_cpu_fetch_prefetch_tb_snapshot
 if errorlevel 1 goto :fail
 
+rem Forward the generated plusarg list unchanged so external experiments stay reproducible.
 call %XSIM% YH_rv_cpu_fetch_prefetch_tb_snapshot -runall %XSIM_TESTPLUSARGS%
 set RUN_STATUS=%ERRORLEVEL%
 goto :done

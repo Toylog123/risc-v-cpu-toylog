@@ -1,6 +1,10 @@
 ﻿@echo off
 setlocal
 
+rem Wrapper around the batch-mode Vivado flow used for frozen synth/impl artifacts.
+rem It normalizes mode aliases, maps the repo to a short ASCII path, and prepares
+rem the ROM image overrides expected by the Tcl flow.
+
 set MODE=%~1
 if "%MODE%"=="" set MODE=synth
 if /I "%MODE%"=="-h" goto :usage
@@ -18,6 +22,7 @@ if /I "%MODE%"=="impl50" set MODE_OK=1
 if /I "%MODE%"=="impl100" set MODE_OK=1
 if not defined MODE_OK goto :usage_invalid
 
+rem Short aliases keep the common 50 MHz and 100 MHz modes easy to invoke.
 if /I "%MODE%"=="synth50" (
     set MODE=synth
     if not defined CLOCK_PERIOD_NS_OVERRIDE set CLOCK_PERIOD_NS_OVERRIDE=20.000
@@ -41,6 +46,7 @@ if /I "%MODE%"=="impl100" (
 echo Vivado build mode: %MODE%
 if defined CLOCK_PERIOD_NS_OVERRIDE echo Clock period override: %CLOCK_PERIOD_NS_OVERRIDE% ns
 
+rem Vivado is more reliable on short ASCII-only paths than deep localized paths.
 set VIVADO_CMD=
 set PHYSICAL_SCRIPT_DIR=%~dp0
 set SCRIPT_DIR=%PHYSICAL_SCRIPT_DIR%
@@ -80,6 +86,7 @@ set LOCALAPPDATA=%USERDATA_ROOT%\AppData\Local
 set TEMP=%USERDATA_ROOT%\Temp
 set TMP=%USERDATA_ROOT%\Temp
 
+rem Use a private HOME/AppData tree so repeated runs do not pollute the user profile.
 if not exist "%PROJECT_DIR%" mkdir "%PROJECT_DIR%"
 if not exist "%TMP_ROOT%" mkdir "%TMP_ROOT%"
 if not exist "%VIVADO_LOG_ROOT%" mkdir "%VIVADO_LOG_ROOT%"
@@ -127,6 +134,7 @@ set DEFAULT_DEMO_MEM32_HEX=%SCRIPT_DIR%..\build\sw\YH_rv_cpu_demo.mem32.hex
 set ROM_BYTES_OVERRIDE=
 set RAM_BYTES_OVERRIDE=
 
+rem Pre-board synth/impl defaults to the frozen demo image unless the caller overrides it.
 if not defined ROM_INIT_HEX_OVERRIDE (
     if not exist "%DEFAULT_DEMO_HEX%" (
         echo Demo firmware image missing. Building frozen demo payload...
@@ -180,12 +188,14 @@ if not defined ROM_INIT_MEM32_HEX_OVERRIDE if exist "%SCRIPT_DIR%..\build\tests\
     set ROM_INIT_MEM32_HEX_OVERRIDE=%SCRIPT_DIR%..\build\tests\riscv-tests\rv32\simple.mem32.hex
 )
 
+rem Echo the resolved inputs because these strings are the first place to debug wrong payload selection.
 echo Using mapped repo root: %MAPPED_ROOT%
 if defined ROM_INIT_HEX_OVERRIDE echo Using ROM_INIT_HEX_OVERRIDE=%ROM_INIT_HEX_OVERRIDE%
 if defined ROM_INIT_MEM32_HEX_OVERRIDE echo Using ROM_INIT_MEM32_HEX_OVERRIDE=%ROM_INIT_MEM32_HEX_OVERRIDE%
 
 if exist "%SCRIPT_DIR%organize_tool_logs.bat" call "%SCRIPT_DIR%organize_tool_logs.bat"
 
+rem The Tcl script owns the actual synth/impl logic; this wrapper only prepares the environment.
 pushd "%PROJECT_DIR%"
 call "%VIVADO_CMD%" -mode batch -notrace -log "%VIVADO_LOG_FILE%" -journal "%VIVADO_JOU_FILE%" -source "%TCL_PATH%" -tclargs %MODE%
 set EC=%ERRORLEVEL%
@@ -194,6 +204,7 @@ if defined CREATED_MAP subst %MAP_DRIVE% /d >nul 2>nul
 exit /b %EC%
 
 :usage
+rem synth50/impl50 are the frozen competition baselines; 100 MHz is reference-only.
 echo Usage: %~nx0 [project^|synth^|synth50^|synth100^|impl^|impl50^|impl100] [clock_period_ns_override]
 echo.
 echo project    Generate the Vivado project skeleton only.

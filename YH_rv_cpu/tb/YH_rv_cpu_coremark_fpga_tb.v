@@ -13,6 +13,7 @@ module YH_rv_cpu_coremark_fpga_tb #(
 localparam integer VALID_MSG_LEN = 13;
 localparam integer SCORE_MSG_LEN = 16;
 
+// This bench mirrors the FPGA-oriented SoC configuration but still runs under xsim.
 reg                clk;
 reg                rst_n;
 wire               trap;
@@ -32,6 +33,7 @@ integer score_match_idx;
 reg     valid_found;
 reg     score_found;
 
+// Reuse the full SoC wrapper so UART and done behavior match board bring-up.
 YH_rv_cpu_soc #(
     .XLEN(XLEN),
     .SYNC_IMEM(1),
@@ -61,6 +63,7 @@ always @(posedge clk) begin
         cycle <= cycle + 1;
 
         if (uart_tx_valid) begin
+            // Look for the same UART banners used by the score flow to validate completion.
             uart_count <= uart_count + 1;
             $write("%c", uart_tx_data);
 
@@ -95,6 +98,7 @@ always @(posedge clk) begin
             $display("CYCLE=%0d PC=%h", cycle, debug_pc);
         end
 
+        // Trap and timeout stay fatal so the FPGA-like probe is still CI-friendly.
         if (trap) begin
             $fatal(1, "\nFAIL: coremark trap asserted at PC=%h cycle=%0d", debug_pc, cycle);
         end
@@ -120,6 +124,7 @@ always @(posedge clk) begin
 end
 
 initial begin
+    // Initialize expected UART signatures and optional runtime overrides before reset release.
     clk = 1'b0;
     rst_n = 1'b0;
     cycle = 0;

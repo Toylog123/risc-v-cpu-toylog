@@ -2,6 +2,7 @@
 
 module YH_rv_cpu_coremark_rv32_tb;
 
+// Thin RV32 wrapper around the shared CoreMark bench.
 localparam string ROM_HEX = "build/sw/YH_rv_cpu_coremark_rv32.hex";
 
 YH_rv_cpu_coremark_tb #(

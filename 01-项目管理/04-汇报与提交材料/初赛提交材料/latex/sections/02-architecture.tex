@@ -1,4 +1,14 @@
-﻿\section{总体方案与微架构设计}
+\section{CPU 架构设计说明书}
+
+\subsection{本章对应的赛题要求}
+
+本章直接对应赛题中的“CPU 架构详细设计”和“CPU 架构设计说明书”，重点覆盖以下内容：
+\begin{itemize}
+    \item 五级流水结构、流水寄存器接口与控制信号组织；
+    \item IF/ID/EX/MEM/WB 五级功能划分，以及寄存器堆、ALU、访存、写回等核心模块职责；
+    \item 数据冒险、控制冒险、结构冒险的当前实现路径与工程边界；
+    \item 参数化与扩展性设计，含 \texttt{XLEN}、同步存储路径和最小 SoC 承接方式。
+\end{itemize}
 
 \subsection{系统总体架构}
 
@@ -6,6 +16,10 @@
 控制流处理和异常响应；SoC 层负责连接同步指令存储、数据存储和最小 MMIO 外设；
 FPGA 顶层负责将工程映射到 Nexys A7-100T 的原型实现路径。
 \input{figures/system-architecture.tex}
+
+图~1 强调了三层边界关系：CPU 内核承接执行语义，SoC 层负责可运行的软件系统环境，
+FPGA Top 负责将同一套工程映射到原型平台。这种组织方式避免了“单独为说明书维护一套结构、
+单独为原型实现再维护另一套结构”的割裂问题，有利于保证设计说明、RTL、验证和实现报告之间的一致性。
 
 \begin{table}[H]
     \centering
@@ -31,7 +45,7 @@ FPGA 顶层负责将工程映射到 Nexys A7-100T 的原型实现路径。
 \begin{enumerate}
     \item IF：同步取指、PC 更新与 redirect 接收；
     \item ID：译码、寄存器读、立即数生成和控制信号准备；
-    \item EX：ALU 运算、分支跳转判断、CSR 访问以及 trap/mret 决策；
+    \item EX：ALU 运算、分支跳转判断、CSR 访问以及 trap/\texttt{mret} 决策；
     \item MEM：load/store 与 MMIO 访问；
     \item WB：将 ALU、访存或 CSR 结果回写寄存器堆。
 \end{enumerate}
@@ -40,6 +54,10 @@ FPGA 顶层负责将工程映射到 Nexys A7-100T 的原型实现路径。
 \texttt{riscv-tests} 和最小 SoC 软件运行。初赛版本没有引入 cache、多发射或乱序机制，
 而是优先保证结构可说明、行为可验证、结果可复现。
 \input{figures/pipeline-control.tex}
+
+图~2 突出展示了两类关键通路：一类是 EX 级返回 IF 的控制流重定向路径，
+用于统一处理 branch、jump、trap 和 \texttt{mret}；另一类是围绕 EX 的前递和停顿控制路径，
+用于在保持顺序流水结构清晰的前提下收敛性能损失。
 
 \subsection{数据相关处理}
 
@@ -62,7 +80,11 @@ FPGA 顶层负责将工程映射到 Nexys A7-100T 的原型实现路径。
     \item 当 \texttt{ex\_fetch\_redirect\_valid} 有效时，IF 级更新 PC 并清空错误路径气泡。
 \end{itemize}
 
-这种组织方式能够用统一框架处理普通跳转、异常进入和异常返回，既保持控制路径简洁，也便于验证 trap 与正常执行之间的切换关系。
+这种组织方式能够用统一框架处理普通跳转、异常进入和异常返回，既保持控制路径简洁，
+也便于验证 trap 与正常执行之间的切换关系。
+赛题在 IF 级还提出了预取缓冲、BTB、分支预测器等更积极的前端机制。
+当前正式实现采用 redirect/flush 与译码早重定向框架作为稳定基线，优先保证功能闭环、验证收敛和 FPGA 路径一致；
+更完整的预取、BTB 与分支预测仍属于后续继续对齐赛题的增强方向，本文在此明确保留这一边界，而不对未实现能力作超额宣称。
 
 \subsection{CSR、异常与中断处理}
 
@@ -105,6 +127,16 @@ MMIO 外设负责提供对外可观测接口和计时能力。关键地址组织
 
 这种组织方式具有三方面优势：一是能够直接支撑仿真、CoreMark 和 \texttt{riscv-tests}；
 二是向 FPGA 原型迁移成本较低；三是 UART、timer 和 DONE 为后续 bring-up 提供了最小但有效的观测接口。
+
+\subsection{参数化与扩展验证支撑}
+
+虽然冻结提交口径以 \texttt{RV32I + Zicsr} 为主，但当前工程并没有把结构边界固化为单一 XLEN。
+CPU 顶层、测试脚本和回归清单已经具备参数化与多清单组织能力，使项目能够在保持提交主口径稳定的同时，
+完成 \texttt{RV32/RV64} 双 XLEN baseline 与扩展 \texttt{full-ui} 验证。这样的工程组织有两项直接收益：
+\begin{itemize}
+    \item 一方面，它说明当前设计不是“只能跑单一路径”的一次性实验实现，而是具备继续扩展和继续验证的基础；
+    \item 另一方面，它使冻结口径、扩展验证口径和后续优化工作能够被清晰地区分，避免结果口径漂移。
+\end{itemize}
 
 \subsection{架构取舍}
 

@@ -1,6 +1,8 @@
 @echo off
 setlocal EnableDelayedExpansion
 
+rem Build the CoreMark payload once and emit all derivative artifacts used by simulation and FPGA flows.
+
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
 set TARGET=%~1
 set ITERATIONS=%~2
@@ -15,6 +17,7 @@ if "%DATA_SIZE%"=="" set DATA_SIZE=2000
 if "%TIMER_HZ%"=="" set TIMER_HZ=1000UL
 if "%EXEC_MASK%"=="" set EXEC_MASK=0
 
+rem Ensure the upstream CoreMark source tree is present before resolving paths below.
 call "%~dp0prepare_coremark.bat"
 if errorlevel 1 exit /b 1
 
@@ -32,6 +35,7 @@ set PORT_DIR=%PROJECT_DIR%\sw\coremark_port
 set BUILD_DIR=%PROJECT_DIR%\build\sw
 if "%OUTPUT_NAME%"=="" set OUTPUT_NAME=YH_rv_cpu_coremark_%TARGET%
 
+rem rv32 and rv64 share the same recipe; only ISA and ABI flags change.
 if /I "%TARGET%"=="rv64" (
     set MARCH=rv64i_zicsr
     set MABI=lp64
@@ -58,6 +62,7 @@ if not defined GCC (
 )
 :gcc_resolved
 
+rem objdump provides the disassembly artifact used during debug and handoff.
 for %%T in (riscv-none-elf-objdump riscv32-unknown-elf-objdump riscv64-unknown-elf-objdump) do (
     where %%T >nul 2>nul
     if not errorlevel 1 (
@@ -76,6 +81,7 @@ if not defined OBJDUMP (
 )
 :objdump_resolved
 
+rem objcopy generates the raw binary and verilog-friendly memory images.
 for %%T in (riscv-none-elf-objcopy riscv32-unknown-elf-objcopy riscv64-unknown-elf-objcopy) do (
     where %%T >nul 2>nul
     if not errorlevel 1 (
@@ -115,6 +121,7 @@ if not defined PYTHON_CMD (
     exit /b 1
 )
 
+rem CoreMark is linked freestanding against explicit multilib archives for deterministic builds.
 set LIBGCC_REF=
 set LIBM_REF=
 set MULTIDIR=
@@ -161,6 +168,7 @@ echo DEBUG: LIBM_REF=!LIBM_REF!
 
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
+rem Build the ELF once, then derive dump/bin/hex/mem32 from the same image.
 %GCC% -march=%MARCH% -mabi=%MABI% -msmall-data-limit=0 -O2 -ffreestanding -fno-builtin -nostdlib ^
     -Wl,--gc-sections ^
     -I "%PORT_DIR%" ^
@@ -195,6 +203,7 @@ if errorlevel 1 exit /b 1
 %PYTHON_CMD% "%WORD_HEX_PY%" "%BUILD_DIR%\%OUTPUT_NAME%.bin" "%BUILD_DIR%\%OUTPUT_NAME%.mem32.hex"
 if errorlevel 1 exit /b 1
 
+rem Keep the final echo block stable because downstream wrappers parse it during failures.
 echo Built:
 echo   %BUILD_DIR%\%OUTPUT_NAME%.elf
 echo   %BUILD_DIR%\%OUTPUT_NAME%.dump

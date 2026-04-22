@@ -4,6 +4,7 @@ setlocal
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
 set SCRIPT_DIR=%~dp0
 set BUILD_DIR=%PROJECT_DIR%\build\sim
+rem Collect optional plusargs while allowing an explicit IMEM output register mode toggle.
 set XVLOG=
 set XELAB=
 set XSIM=
@@ -47,6 +48,7 @@ shift
 goto :parse_args
 :args_done
 
+rem Resolve xsim tools from PATH so the script stays machine-independent.
 for %%T in (xvlog.bat xvlog) do (
     where %%T >nul 2>nul
     if not errorlevel 1 (
@@ -91,11 +93,13 @@ if not defined XSIM (
 
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
+rem Run each diagnostic inside its own prepared xsim runtime directory.
 call "%SCRIPT_DIR%prepare_xsim_runtime.bat" fetch_redirect_reuse_diag XSIM_RUN_DIR
 if not defined XSIM_RUN_DIR exit /b 1
 
 pushd "%XSIM_RUN_DIR%"
 
+rem Expand raw plusargs into xsim's repeated --testplusarg form.
 for /f "usebackq delims=" %%A in (`
     powershell -NoProfile -Command ^
         "$raw = $env:RAW_TESTPLUSARGS; " ^
@@ -105,6 +109,7 @@ for /f "usebackq delims=" %%A in (`
         "$out -join ' '"
 `) do set XSIM_TESTPLUSARGS=%%A
 
+rem Compile the focused redirect-reuse bench against the shared core RTL.
 call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_fetch_redirect_reuse_tb.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu.v" ^
@@ -122,6 +127,7 @@ if errorlevel 1 goto :fail
 call %XELAB% YH_rv_cpu_fetch_redirect_reuse_tb -generic_top "IMEM_OUTPUT_REG=%IMEM_OUTPUT_REG%" -s YH_rv_cpu_fetch_redirect_reuse_tb_snapshot
 if errorlevel 1 goto :fail
 
+rem Pass through any extra plusargs so the diagnostic can sweep corner cases without script edits.
 call %XSIM% YH_rv_cpu_fetch_redirect_reuse_tb_snapshot -runall %XSIM_TESTPLUSARGS%
 set RUN_STATUS=%ERRORLEVEL%
 goto :done

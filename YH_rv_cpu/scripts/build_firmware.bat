@@ -3,6 +3,7 @@ setlocal
 
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
 set BUILD_DIR=%PROJECT_DIR%\build\sw
+rem The default target is the simple banner/demo image.
 set TARGET=%~1
 set OUTPUT_NAME=YH_rv_cpu_demo
 set SOURCES="%PROJECT_DIR%\sw\src\crt0.S" "%PROJECT_DIR%\sw\src\main.c"
@@ -14,6 +15,7 @@ set PYTHON_CMD=
 set USER_HOME=%USERPROFILE%
 set RISCV_XPACK_ROOT=%USER_HOME%\AppData\Roaming\xPacks\@xpack-dev-tools\riscv-none-elf-gcc
 
+rem Named targets switch in alternate entry code and C payloads for focused smoke cases.
 if /I "%TARGET%"=="trap_smoke" (
     set OUTPUT_NAME=YH_rv_cpu_trap_smoke
     set SOURCES="%PROJECT_DIR%\sw\src\crt0.S" "%PROJECT_DIR%\sw\src\trap_entry.S" "%PROJECT_DIR%\sw\src\trap_smoke.c"
@@ -24,6 +26,7 @@ if /I "%TARGET%"=="timer_irq_smoke" (
     set SOURCES="%PROJECT_DIR%\sw\src\crt0.S" "%PROJECT_DIR%\sw\src\timer_irq_entry.S" "%PROJECT_DIR%\sw\src\timer_irq_smoke.c"
 )
 
+rem Prefer toolchain binaries from PATH, then fall back to the xPack install tree.
 for %%T in (riscv-none-elf-gcc riscv32-unknown-elf-gcc riscv64-unknown-elf-gcc) do (
     where %%T >nul 2>nul
     if not errorlevel 1 (
@@ -99,6 +102,7 @@ if not defined PYTHON_CMD (
     exit /b 1
 )
 
+rem Emit ELF, disassembly, flat binary, byte-hex, and 32-bit word-hex from one compile step.
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
 %GCC% -march=rv32i_zicsr -mabi=ilp32 -nostdlib -ffreestanding -Os ^

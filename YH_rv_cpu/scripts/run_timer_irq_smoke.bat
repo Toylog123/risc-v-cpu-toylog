@@ -2,14 +2,17 @@
 setlocal
 
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
+rem This smoke run validates timer interrupt delivery and handler return sequencing.
 set XVLOG=
 set XELAB=
 set XSIM=
 set XSIM_RUN_DIR=
 
+rem Rebuild the timer-IRQ firmware first so the simulation image is fresh.
 call "%~dp0build_firmware.bat" timer_irq_smoke
 if errorlevel 1 exit /b 1
 
+rem Resolve simulator tools from the active PATH configuration.
 for %%T in (xvlog.bat xvlog) do (
     where %%T >nul 2>nul
     if not errorlevel 1 (
@@ -55,12 +58,14 @@ if not defined XSIM (
 call "%~dp0prepare_xsim_runtime.bat" timer_irq_smoke XSIM_RUN_DIR
 if not defined XSIM_RUN_DIR exit /b 1
 
+rem Stage the timer-IRQ image into the disposable xsim runtime tree.
 if not exist "%XSIM_RUN_DIR%\build\sw" mkdir "%XSIM_RUN_DIR%\build\sw"
 copy /y "%PROJECT_DIR%\build\sw\YH_rv_cpu_timer_irq_smoke.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_timer_irq_smoke.hex" >nul
 if errorlevel 1 exit /b 1
 
 pushd "%XSIM_RUN_DIR%"
 
+rem Compile the timer-IRQ bench with the same SoC RTL used by the other smoke tests.
 call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_timer_irq_tb.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_soc.v" ^

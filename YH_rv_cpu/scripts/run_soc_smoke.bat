@@ -3,14 +3,17 @@ setlocal
 
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
 set BUILD_DIR=%PROJECT_DIR%\build\sim
+rem This smoke run exercises the minimal demo firmware on the SoC-level testbench.
 set XVLOG=
 set XELAB=
 set XSIM=
 set XSIM_RUN_DIR=
 
+rem Build the default demo firmware before simulation so the image stays fresh.
 call "%~dp0build_firmware.bat"
 if errorlevel 1 exit /b 1
 
+rem Resolve simulator tools from PATH.
 for %%T in (xvlog.bat xvlog) do (
     where %%T >nul 2>nul
     if not errorlevel 1 (
@@ -55,9 +58,11 @@ if not defined XSIM (
 
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
+rem Use a prepared runtime directory so xsim outputs stay contained.
 call "%~dp0prepare_xsim_runtime.bat" soc_smoke XSIM_RUN_DIR
 if not defined XSIM_RUN_DIR exit /b 1
 
+rem Copy both byte-addressed and word-addressed images expected by the SoC bench.
 if not exist "%XSIM_RUN_DIR%\build\sw" mkdir "%XSIM_RUN_DIR%\build\sw"
 copy /y "%PROJECT_DIR%\build\sw\YH_rv_cpu_demo.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_demo.hex" >nul
 if errorlevel 1 exit /b 1
@@ -66,6 +71,7 @@ if errorlevel 1 exit /b 1
 
 pushd "%XSIM_RUN_DIR%"
 
+rem Compile the SoC smoke bench with the top-level memory models and pipeline RTL.
 call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_soc_tb.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_soc.v" ^

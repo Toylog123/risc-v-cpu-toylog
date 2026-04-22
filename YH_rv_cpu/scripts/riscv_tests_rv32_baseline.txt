@@ -1,4 +1,4 @@
-﻿# Frozen from the rv32 default subset in run_riscv_tests_subset.bat
+# Frozen from the rv32 default subset in run_riscv_tests_subset.bat
 add
 addi
 and

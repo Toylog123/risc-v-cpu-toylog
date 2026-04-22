@@ -2,6 +2,7 @@
 
 module YH_rv_cpu_memwait_overlap_tb;
 
+// Minimal direct-CPU bench that checks fetch can still make progress around mem_wait windows.
 reg         clk;
 reg         rst_n;
 wire        imem_req;
@@ -33,6 +34,7 @@ reg     debug_trace;
 reg     require_overlap;
 reg     mem_wait_seen;
 
+// The bench supplies simple synchronous instruction/data memories around the raw CPU core.
 assign imem_rdata = imem_rdata_r;
 assign imem_rvalid = imem_rvalid_r;
 assign dmem_rdata = dmem_rdata_r;
@@ -72,6 +74,7 @@ function [31:0] rv32_i;
     end
 endfunction
 
+// Helper for the self-looping tail instruction used by the diagnostic program.
 function [31:0] rv32_j;
     input signed [20:0] imm;
     input [4:0] rd;
@@ -103,6 +106,7 @@ always @(posedge clk or negedge rst_n) begin
             dmem[word_index + 0]
         };
 
+        // Keep stores byte-addressable so the testbench matches the SoC-side RAM contract.
         if (dmem_wstrb[0]) dmem[word_index + 0] <= dmem_wdata[7:0];
         if (dmem_wstrb[1]) dmem[word_index + 1] <= dmem_wdata[15:8];
         if (dmem_wstrb[2]) dmem[word_index + 2] <= dmem_wdata[23:16];
@@ -114,6 +118,7 @@ always @(posedge clk) begin
     if (rst_n) begin
         cycle <= cycle + 1;
 
+        // The overlap metric counts cycles where mem_wait is active but fetch is still allowed to request.
         if (trap) begin
             $fatal(1, "FAIL: trap asserted at PC=%h cycle=%0d", debug_pc, cycle);
         end
@@ -146,6 +151,7 @@ always @(posedge clk) begin
             );
         end
 
+        // Success is defined by the expected load value landing while mem_wait was observed on the path.
         if ((cycle > 20) &&
             (dut.u_regfile.regs[3] == 32'd42) &&
             (dut.u_regfile.regs[6] == 32'd42)) begin
@@ -179,6 +185,7 @@ always @(posedge clk) begin
 end
 
 initial begin
+    // Initialize memories with a tiny hand-assembled program that forces a load-use overlap window.
     clk = 1'b0;
     rst_n = 1'b0;
     cycle = 0;
