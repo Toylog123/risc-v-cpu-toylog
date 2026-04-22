@@ -202,6 +202,13 @@ wire            id_ebreak;
 wire            id_mret;
 wire [XLEN-1:0] id_rs1_value;
 wire [XLEN-1:0] id_rs2_value;
+wire            id_branch_beq_bne;
+wire            id_branch_decode_rs1_pending;
+wire            id_branch_decode_rs2_pending;
+wire            id_branch_decode_operands_ready;
+wire            id_branch_decode_taken;
+wire            id_branch_decode_redirect_valid;
+wire [XLEN-1:0] id_branch_decode_redirect_pc;
 
     // 寄存器堆信号
 wire [XLEN-1:0] rs1_rdata;
@@ -246,6 +253,9 @@ wire            ex_control_redirect_valid;
 (* max_fanout = 8 *) wire ex_decode_flush_valid;
 wire [XLEN-1:0] ex_control_redirect_pc;
 wire [XLEN-1:0] csr_mip_value;
+wire            fetch_control_redirect_valid;
+wire [XLEN-1:0] fetch_control_redirect_pc;
+wire            decode_flush_valid;
 
     // 访存阶段输出
 wire [XLEN-1:0] mem_load_data;
@@ -343,7 +353,7 @@ assign debug_pc = pc_r;
     // ================================================================
     // 取指请求逻辑
     // ================================================================
-assign imem_req = (IMEM_SYNC != 0) && !trap_r && !mem_wait && !stall_decode && !ex_fetch_redirect_valid;
+assign imem_req = (IMEM_SYNC != 0) && !trap_r && !mem_wait && !stall_decode && !fetch_control_redirect_valid;
 
     // ================================================================
     // 执行阶段前递数据选择
@@ -440,6 +450,47 @@ assign ex_fetch_redirect_valid = ex_control_redirect_valid;
 assign ex_decode_flush_valid = ex_control_redirect_valid;
 
     // ================================================================
+    // ID 阶段早分支重定向
+    // 仅覆盖 operand-ready 的 taken BEQ/BNE，其他控制流仍走 EX backstop
+    // ================================================================
+assign id_branch_beq_bne =
+    if_id_valid_r &&
+    id_branch &&
+    ((id_branch_funct3 == 3'b000) || (id_branch_funct3 == 3'b001));
+assign id_branch_decode_rs1_pending =
+    id_rs1_en &&
+    (
+        (id_ex_valid_r && id_ex_rd_en_r && (id_ex_rd_addr_r != 5'd0) && (id_ex_rd_addr_r == id_rs1_addr)) ||
+        (ex_mem_valid_r && ex_mem_rd_en_r && (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == id_rs1_addr))
+    );
+assign id_branch_decode_rs2_pending =
+    id_rs2_en &&
+    (
+        (id_ex_valid_r && id_ex_rd_en_r && (id_ex_rd_addr_r != 5'd0) && (id_ex_rd_addr_r == id_rs2_addr)) ||
+        (ex_mem_valid_r && ex_mem_rd_en_r && (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == id_rs2_addr))
+    );
+assign id_branch_decode_operands_ready =
+    !id_branch_decode_rs1_pending &&
+    !id_branch_decode_rs2_pending;
+assign id_branch_decode_taken =
+    id_branch_beq_bne &&
+    id_branch_decode_operands_ready &&
+    (
+        ((id_branch_funct3 == 3'b000) && (id_rs1_value == id_rs2_value)) ||
+        ((id_branch_funct3 == 3'b001) && (id_rs1_value != id_rs2_value))
+    );
+assign id_branch_decode_redirect_valid =
+    pipeline_run &&
+    !ex_fetch_redirect_valid &&
+    !stall_decode &&
+    id_branch_decode_taken;
+assign id_branch_decode_redirect_pc = if_id_pc_r + id_imm;
+assign fetch_control_redirect_valid = ex_fetch_redirect_valid || id_branch_decode_redirect_valid;
+assign fetch_control_redirect_pc =
+    ex_fetch_redirect_valid ? ex_control_redirect_pc : id_branch_decode_redirect_pc;
+assign decode_flush_valid = ex_decode_flush_valid || id_branch_decode_redirect_valid;
+
+    // ================================================================
     // 取指缓冲重用逻辑
     // ================================================================
 assign fetch_reuse_redirect_valid = ex_redirect_valid;
@@ -533,15 +584,15 @@ assign fetch_redirect_reuse_valid =
     // IF/ID 流水线控制
     // ================================================================
 assign if_id_fetch_valid = (IMEM_SYNC != 0) ? fetch_queue_valid : 1'b1;
-assign if_id_write_en = pipeline_run && (!stall_decode || ex_decode_flush_valid);
-assign if_id_load_bubble = ex_decode_flush_valid || !if_id_fetch_valid;
+assign if_id_write_en = pipeline_run && (!stall_decode || decode_flush_valid);
+assign if_id_load_bubble = decode_flush_valid || !if_id_fetch_valid;
 assign if_id_next_valid = if_id_load_bubble ? 1'b0 : 1'b1;
 assign if_id_data_write_en =
     (IMEM_SYNC != 0) ?
     (pipeline_run && !stall_decode && if_id_fetch_valid) :
     (pipeline_run && !stall_decode);
 
-assign id_ex_flush_valid_local = ex_decode_flush_valid;
+assign id_ex_flush_valid_local = decode_flush_valid;
 assign id_ex_stall_bubble_local = stall_decode;
 
     // ================================================================
@@ -627,7 +678,7 @@ always @* begin
     fetch_buf1_valid_next_state = fetch_buf1_valid_r;
 
     if (IMEM_SYNC != 0) begin
-        if (ex_fetch_redirect_valid) begin
+        if (fetch_control_redirect_valid) begin
             if (fetch_redirect_reuse_valid) begin
                 fetch_drop_count_next_state = 2'd0;
                 if (fetch_redirect_buf1_hit) begin
@@ -674,7 +725,7 @@ always @* begin
     fetch_buf1_instruction_next_data = fetch_buf1_instruction_r;
 
     if (IMEM_SYNC != 0) begin
-        if (ex_fetch_redirect_valid) begin
+        if (fetch_control_redirect_valid) begin
             if (fetch_redirect_pipe_hit) begin
                 fetch_buf0_pc_next_data = fetch_rsp_pc;
                 fetch_buf0_instruction_next_data = imem_rdata;
@@ -721,8 +772,8 @@ YH_rv_cpu_if_stage #(
     .XLEN(XLEN)
 ) u_if_stage (
     .pc_current  (pc_r),
-    .redirect_en (ex_fetch_redirect_valid),
-    .redirect_pc (ex_control_redirect_pc),
+    .redirect_en (fetch_control_redirect_valid),
+    .redirect_pc (fetch_control_redirect_pc),
     .imem_addr   (imem_addr),
     .pc_next     (if_pc_next),
     .pc_plus_4   ()
@@ -1027,7 +1078,7 @@ always @(posedge clk or negedge rst_n) begin
                 id_ex_ebreak_r <= id_ex_ebreak_r;
                 id_ex_mret_r <= id_ex_mret_r;
             end else begin
-                if (ex_fetch_redirect_valid || !stall_decode) begin
+                if (fetch_control_redirect_valid || !stall_decode) begin
                     pc_r <= if_pc_next;
                 end
 

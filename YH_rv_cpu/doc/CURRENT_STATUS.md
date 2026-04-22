@@ -2,15 +2,16 @@
 
 > Updated: `2026-04-12`
 > Branch: `main`
-> Workspace: clean
-> Ahead of `origin/main`: `63`
+> Live repo state: verify with `git status --short --branch` and
+> `git log -4 --oneline` before take-over
 
-## Latest commits
+## Live repo note
 
-- `5c2d612` `docs: refresh current status after branch trial`
-- `be00ecf` `test/docs: add branch-first redirect diag and reject pipe-hit slice`
-- `506120a` `docs: plan branch-first redirect experiment`
-- `c7c35d8` `docs: add current status entry point`
+- This file tracks the currently trusted engineering state, not the exact
+  moving commit tip.
+- Before take-over, always re-run:
+  - `git status --short --branch`
+  - `git log -4 --oneline`
 
 ## Frozen engineering baseline
 
@@ -47,41 +48,60 @@
 
 ## Current optimization status
 
-- Mainline RTL is still the frozen baseline; current retained changes are
-  observability and handoff improvements, not a new performance win.
-- `2026-04-09` split profile confirmed redirect cost is branch-dominant:
-  - `ex_branch_redirect_cycles = 1235790`
-  - `ex_jal_redirect_cycles = 153354`
-  - `ex_jalr_redirect_cycles = 115826`
-  - `fetch_redirect_reuse_cycles = 0`
-  - `fetch_redirect_reuse_miss_cycles = 1504970`
-- `2026-04-11` rerun reproduced the same branch-breakdown counters in
-  `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile.log`.
-- `2026-04-11` branch-first `BEQ/BNE` pipe-hit trial was executed and rejected:
-  - the strengthened branch diagnostic now distinguishes baseline `FAIL` from
-    trial `PASS`
-  - `fetch_redirect_reuse_cycles` moved to `305277`
-  - `fetch_queue_empty_cycles` stayed `1504970`
-  - short CoreMark stayed `11014885 cycles`, `0.912472 CoreMark/MHz`
-  - mainline RTL was reverted in the same round
-- `decode-stage early JAL redirect` was rejected; do not reopen the
-  `jal-only` shortcut path as the next experiment.
+- Frozen competition baseline is still the `2026-04-08` closure set.
+- Current retained worktree change is:
+  - decode-stage early redirect for taken `BEQ/BNE`
+  - gated by operand-ready checks against pending `ID/EX` and `EX/MEM` writes
+- Fresh red/green evidence:
+  - baseline `FAIL`: `YH_rv_cpu/build/tests/branch-first/branch_decode_kill_baseline_2026-04-12.log`
+  - trial `PASS`: `YH_rv_cpu/build/tests/branch-first/branch_decode_kill_trial_2026-04-12.log`
+  - default redirect diag `PASS`: `YH_rv_cpu/build/tests/branch-first/redirect_diag_default_trial_2026-04-12.log`
+- Fresh `2026-04-12` validation on the retained RTL:
+  - `rv32 full-ui = 42/42`
+    - `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-12.txt`
+  - `rv64 full-ui = 54/54`
+    - `YH_rv_cpu/build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-12.txt`
+  - `rv32 baseline = 33/33`
+    - `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_baseline_2026-04-12.txt`
+  - `rv64 baseline = 21/21`
+    - `YH_rv_cpu/build/tests/riscv-tests/rv64/summary_baseline_2026-04-12.txt`
+  - CoreMark short `= 10862713 cycles`, `0.925186 CoreMark/MHz`
+    - `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-12.summary.txt`
+    - repeated rerun matched exactly:
+      `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_score_rerun_2026-04-12.summary.txt`
+  - CoreMark profile `= 12364249 cycles`
+    - `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-12.log`
+- Measured delta versus the frozen baseline:
+  - short cycles: `11014885 -> 10862713` (`-152172`, `-1.3815%`)
+  - short score: `0.912472 -> 0.925186` (`+0.012714`, `+1.3934%`)
+  - `ex_branch_redirect_cycles`: `1235790 -> 1081457`
+  - `ex_fetch_redirect_valid_cycles`: `1504970 -> 1350637`
+  - `fetch_queue_empty_cycles`: unchanged at `1504970`
+- Interpretation:
+  - the retained gain comes from shrinking branch redirect windows
+  - the win does not come from reuse activation or lower queue-empty windows
+  - `BEQ/BNE pipe-hit-only` and `jal-only` remain historical rejected paths
+- Tooling closure from this round:
+  - `scripts/run_coremark_score.bat` now derives artifact names from the
+    summary path, so short/strict runs no longer clobber each other's
+    `score.log` and `score.*`
+- Still pending before refreshing the frozen competition tables:
+  - fresh strict CoreMark long run
+  - fresh `impl50`
+  - fresh FPGA-like probe
 
 ## Recommended next step
 
-- Resume optimization only from a hypothesis stronger than `BEQ/BNE` pipe-hit
-  activation alone.
-- Preferred next slice: decode-stage early redirect for taken `BEQ/BNE`, with
-  explicit operand-ready gating and full wrong-path flush.
-- Execution plan:
-  - `docs/superpowers/plans/2026-04-12-yh-rv-cpu-beqbne-early-redirect-plan.md`
-- Keep queue/reuse micro-tuning frozen unless a new control-flow result proves
-  it reduces `fetch_queue_empty_cycles`, not just reuse counters.
-- Before keeping any new RTL trial, rerun at least:
-  - `scripts\run_riscv_tests_subset.bat rv32`
-  - `scripts\run_riscv_tests_subset.bat rv64`
-  - `scripts\run_coremark_profile.bat rv32 10 2000 100000000UL 20000000`
-  - the relevant focused guardrails for the chosen redirect slice
+- First finish freeze-refresh on the retained RTL:
+  - fresh strict CoreMark long run
+  - `scripts\build_vivado_project.bat impl50`
+  - `scripts\run_coremark_fpga.bat rv32`
+- Only after those stay green, refresh the frozen competition tables/docs.
+- If another optimization round is started later:
+  - do not reopen `jal-only` or `BEQ/BNE pipe-hit-only`
+  - add the smallest missing directed tests first
+  - keep queue/reuse micro-tuning frozen unless a new result proves it lowers
+    `fetch_queue_empty_cycles`
 
 ## Primary entry docs
 

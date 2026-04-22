@@ -360,3 +360,67 @@ redirect/flush authority unchanged.
   bar even though the new counter moved
 - the mainline RTL was reverted in the same round; the retained artifact from
   this batch is the stronger `require_branch_reuse` diagnostic path
+
+## 2026-04-12 Taken `BEQ/BNE` Decode-Stage Early Redirect with Operand-Ready Gating (Retained in Worktree)
+
+This round revisited the branch-dominant redirect problem after rejecting the
+`pipe-hit-only` slice. The retained cut does not try to revive reuse. Instead,
+it lets decode redirect taken `BEQ/BNE` one stage earlier, but only when both
+branch operands are provably ready and not still pending in `ID/EX` or
+`EX/MEM`.
+
+### Trial scope
+
+| Item | Value |
+|------|------|
+| Goal | shrink taken-branch redirect windows directly, without reopening queue/reuse tuning or the rejected `jal-only` path |
+| Root-cause evidence | ungated decode-stage trial failed `rv32 beq` / `rv32 bne` immediately because decode was comparing stale regfile values |
+| Early fail evidence | `YH_rv_cpu/build/tests/branch-first/rv32_beq_decode_redirect_2026-04-12.log`, `YH_rv_cpu/build/tests/branch-first/rv32_bne_decode_redirect_2026-04-12.log` |
+| Retained RTL slice | `rtl/YH_rv_cpu.v`: decode-stage taken `BEQ/BNE` redirect with operand-ready gating; EX redirect path remains the authority for the rest of control flow |
+| Directed TB support | `tb/YH_rv_cpu_fetch_redirect_reuse_tb.v`: add `require_branch_decode_kill` red/green and safer branch-kill program shape |
+| Test harness support | `scripts/run_coremark_score.bat` now derives build/log artifact names from the summary path to avoid short/strict clobbering; `scripts/riscv_tests_*` manifests were normalized for the batch loader |
+| Keep? | `yes` in the active worktree; frozen competition tables are not refreshed yet |
+
+### Fresh evidence
+
+| Item | Result |
+|------|------|
+| branch-kill baseline fail | `YH_rv_cpu/build/tests/branch-first/branch_decode_kill_baseline_2026-04-12.log` |
+| branch-kill trial pass | `YH_rv_cpu/build/tests/branch-first/branch_decode_kill_trial_2026-04-12.log` |
+| redirect diag default | `PASS` via `YH_rv_cpu/build/tests/branch-first/redirect_diag_default_trial_2026-04-12.log` |
+| `rv32 baseline` | `33/33` via `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_baseline_2026-04-12.txt` |
+| `rv64 baseline` | `21/21` via `YH_rv_cpu/build/tests/riscv-tests/rv64/summary_baseline_2026-04-12.txt` |
+| `rv32 full-ui` | `42/42` via `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-12.txt` |
+| `rv64 full-ui` | `54/54` via `YH_rv_cpu/build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-12.txt` |
+| CoreMark short | `10862713 cycles`, `0.925186 CoreMark/MHz` via `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-12.summary.txt` |
+| CoreMark short rerun | identical `10862713 cycles`, `0.925186 CoreMark/MHz` via `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_score_rerun_2026-04-12.summary.txt` |
+| CoreMark profile | `12364249 cycles` via `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-12.log` |
+| Fresh strict / impl / probe | deferred in this round; last archived long-run / implementation references remain the `2026-04-08` frozen set |
+
+### Measured delta vs frozen baseline
+
+| Metric | Frozen baseline | Retained worktree | Delta |
+|------|------|------|------|
+| CoreMark short cycles | `11014885` | `10862713` | `-152172` (`-1.3815%`) |
+| CoreMark short score | `0.912472` | `0.925186` | `+0.012714` (`+1.3934%`) |
+| Profile total cycles | `12516421` | `12364249` | `-152172` (`-1.2158%`) |
+| `ex_branch_redirect_cycles` | `1235790` | `1081457` | `-154333` (`-12.4886%`) |
+| `ex_beq_redirect_cycles` | `329513` | `317843` | `-11670` (`-3.5416%`) |
+| `ex_bne_redirect_cycles` | `849894` | `707231` | `-142663` (`-16.7860%`) |
+| `ex_fetch_redirect_valid_cycles` | `1504970` | `1350637` | `-154333` (`-10.2549%`) |
+| `fetch_queue_empty_cycles` | `1504970` | `1504970` | `0` |
+| `fetch_redirect_reuse_cycles` | `0` | `0` | `0` |
+
+### Conclusion
+
+- The retained gain is real and repeatable on the short CoreMark path.
+- The profile improvement lines up with the design intent: fewer branch
+  redirect window cycles, especially on `BNE`.
+- `fetch_queue_empty_cycles` staying flat means this is not a queue/reuse win;
+  it is a control-flow timing win.
+- This retained slice supersedes the rejected `BEQ/BNE pipe-hit-only` idea.
+  Do not reopen `pipe-hit-only` or `jal-only`.
+- Before declaring a new frozen competition baseline, still rerun:
+  - strict CoreMark long run
+  - `impl50`
+  - FPGA-like probe

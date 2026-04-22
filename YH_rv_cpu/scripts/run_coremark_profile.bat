@@ -3,6 +3,7 @@ setlocal EnableDelayedExpansion
 
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
 set TARGET=%~1
+rem The optional exec mask lets us keep profiling scenarios reproducible.
 set ITERATIONS=%~2
 set DATA_SIZE=%~3
 set TIMER_HZ=%~4
@@ -18,6 +19,7 @@ if "%MAX_CYCLES%"=="" set MAX_CYCLES=20000000
 if "%EXEC_MASK%"=="" set EXEC_MASK=0
 set BUILD_OUTPUT_NAME=YH_rv_cpu_coremark_%TARGET%_profile
 
+rem Generate a dedicated image so profile logs never overwrite score runs.
 call "%~dp0build_coremark.bat" %TARGET% %ITERATIONS% %DATA_SIZE% %TIMER_HZ% %EXEC_MASK% %BUILD_OUTPUT_NAME%
 if errorlevel 1 exit /b 1
 
@@ -30,6 +32,7 @@ set XSIM_RUN_DIR=
 
 if /I "%TARGET%"=="rv64" set TEST_TOP=YH_rv_cpu_coremark_profile_rv64_tb
 
+rem Resolve simulator tools dynamically to avoid hard-coded Vivado install paths.
 for %%T in (xvlog.bat xvlog) do (
     where %%T >nul 2>nul
     if not errorlevel 1 (
@@ -75,6 +78,7 @@ if not defined XSIM (
 call "%~dp0prepare_xsim_runtime.bat" coremark_profile XSIM_RUN_DIR
 if not defined XSIM_RUN_DIR exit /b 1
 
+rem Copy the program image into the throwaway runtime directory expected by the testbench.
 if not exist "%XSIM_RUN_DIR%\build\sw" mkdir "%XSIM_RUN_DIR%\build\sw"
 copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%.hex" >nul
 if errorlevel 1 exit /b 1
@@ -85,6 +89,7 @@ if exist "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.mem32.hex" (
 
 pushd "%XSIM_RUN_DIR%"
 
+rem Compile the profile bench with the same RTL set used by the score flow.
 call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_profile_tb.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_soc.v" ^
@@ -109,6 +114,7 @@ if errorlevel 1 goto :fail
 call %XSIM% %TEST_TOP%_snapshot -testplusarg "max_cycles=%MAX_CYCLES%" -runall > "%LOG_FILE%" 2>&1
 type "%LOG_FILE%"
 
+rem Keep the report explicit so bottleneck breakdowns are easy to lift into docs.
 findstr /c:"PASS: coremark profile completed" "%LOG_FILE%" >nul
 if errorlevel 1 goto :fail
 

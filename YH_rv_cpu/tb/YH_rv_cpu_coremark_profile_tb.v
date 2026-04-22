@@ -13,6 +13,7 @@ module YH_rv_cpu_coremark_profile_tb #(
 localparam integer VALID_MSG_LEN = 13;
 localparam integer SCORE_MSG_LEN = 16;
 
+// Observe the SoC's UART banner and a set of internal pipeline counters in one run.
 reg                clk;
 reg                rst_n;
 wire               trap;
@@ -65,6 +66,7 @@ integer fetch_redirect_buf1_hit_cycles;
 reg     valid_found;
 reg     score_found;
 
+// Profile runs reuse the same SoC wrapper as the score flow so comparisons stay fair.
 YH_rv_cpu_soc #(
     .XLEN(XLEN),
     .SYNC_IMEM(1),
@@ -108,6 +110,7 @@ always @(posedge clk) begin
         cycle <= cycle + 1;
 
         if (uart_tx_valid) begin
+            // Match the key CoreMark UART banners without buffering the full stream.
             uart_count <= uart_count + 1;
             $write("%c", uart_tx_data);
 
@@ -158,6 +161,7 @@ always @(posedge clk) begin
             ex_fetch_redirect_valid_cycles <= ex_fetch_redirect_valid_cycles + 1;
         end
 
+        // Track redirect composition so branch/jump behavior can be correlated with score changes.
         if (ex_redirect_valid) begin
             if (id_ex_jump) begin
                 if (id_ex_jalr) begin
@@ -196,6 +200,7 @@ always @(posedge clk) begin
             fetch_queue_empty_cycles <= fetch_queue_empty_cycles + 1;
         end
 
+        // Emit coarse progress for very long profile runs.
         if (cycle > 0 && cycle % 10000000 == 0) begin
             $display("CYCLE=%0d PC=%h", cycle, debug_pc);
         end
@@ -237,6 +242,7 @@ always @(posedge clk) begin
             $finish;
         end
 
+        // Timeout remains fatal so CI logs do not silently pass partial runs.
         if (cycle > max_cycles_runtime) begin
             $display("\nFAIL: coremark timeout at PC=%h after %0d cycles", debug_pc, cycle);
             $fatal(1, "\nFAIL: coremark timeout");
@@ -245,6 +251,7 @@ always @(posedge clk) begin
 end
 
 initial begin
+    // Initialize counters and expected UART signatures before releasing reset.
     clk = 1'b0;
     rst_n = 1'b0;
     cycle = 0;

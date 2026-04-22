@@ -3,6 +3,7 @@ setlocal EnableDelayedExpansion
 
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
 set TARGET=%~1
+rem Positional arguments keep the wrapper easy to call from docs and CI notes.
 set ITERATIONS=%~2
 set DATA_SIZE=%~3
 set TIMER_HZ=%~4
@@ -10,18 +11,29 @@ set MAX_CYCLES=%~5
 set SUMMARY_FILE=%~6
 set EXEC_MASK=0
 set BUILD_OUTPUT_NAME=
+set OUTPUT_DIR=
+set OUTPUT_STEM=
 
 if "%TARGET%"=="" set TARGET=rv32
 if "%ITERATIONS%"=="" set ITERATIONS=10
 if "%DATA_SIZE%"=="" set DATA_SIZE=2000
 if "%TIMER_HZ%"=="" set TIMER_HZ=100000000UL
 if "%MAX_CYCLES%"=="" set MAX_CYCLES=20000000
-set BUILD_OUTPUT_NAME=YH_rv_cpu_coremark_%TARGET%_score
 
+rem Default summary lives beside the software build outputs unless overridden.
 if "%SUMMARY_FILE%"=="" (
     set SUMMARY_FILE=%PROJECT_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%_score.summary.txt
 )
+for %%I in ("%SUMMARY_FILE%") do (
+    set SUMMARY_FILE=%%~fI
+    set OUTPUT_DIR=%%~dpI
+    set OUTPUT_STEM=%%~nI
+)
+if /I "!OUTPUT_STEM:~-8!"==".summary" set OUTPUT_STEM=!OUTPUT_STEM:~0,-8!
+if not defined OUTPUT_STEM set OUTPUT_STEM=YH_rv_cpu_coremark_%TARGET%_score
+set BUILD_OUTPUT_NAME=!OUTPUT_STEM!
 
+rem Reuse the shared CoreMark build path so score/profile/fpga-style runs stay aligned.
 call "%~dp0build_coremark.bat" %TARGET% %ITERATIONS% %DATA_SIZE% %TIMER_HZ% %EXEC_MASK% %BUILD_OUTPUT_NAME%
 if errorlevel 1 exit /b 1
 
@@ -30,11 +42,12 @@ set XELAB=
 set XSIM=
 set PYTHON_CMD=
 set TEST_TOP=YH_rv_cpu_coremark_rv32_tb
-set LOG_FILE=%PROJECT_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%_score.log
+set LOG_FILE=!OUTPUT_DIR!!OUTPUT_STEM!.log
 set XSIM_RUN_DIR=
 
 if /I "%TARGET%"=="rv64" set TEST_TOP=YH_rv_cpu_coremark_rv64_tb
 
+rem Resolve simulator tools from PATH to keep the script portable across lab machines.
 for %%T in (xvlog.bat xvlog) do (
     where %%T >nul 2>nul
     if not errorlevel 1 (
@@ -86,12 +99,14 @@ if not defined PYTHON_CMD (
 call "%~dp0prepare_xsim_runtime.bat" coremark_score XSIM_RUN_DIR
 if not defined XSIM_RUN_DIR exit /b 1
 
+rem Mirror the generated image into an isolated xsim runtime directory.
 if not exist "%XSIM_RUN_DIR%\build\sw" mkdir "%XSIM_RUN_DIR%\build\sw"
 copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%.hex" >nul
 if errorlevel 1 exit /b 1
 
 pushd "%XSIM_RUN_DIR%"
 
+rem Compile the shared SoC/CPU stack together with the score-specific testbench.
 call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_tb.v" ^
@@ -118,6 +133,7 @@ if errorlevel 1 goto :fail
 call %XSIM% %TEST_TOP%_score_snapshot -testplusarg "max_cycles=%MAX_CYCLES%" -runall > "%LOG_FILE%" 2>&1
 type "%LOG_FILE%"
 
+rem The score flow only succeeds if both the simulation and the post-processed summary are reportable.
 findstr /c:"PASS: coremark completed" "%LOG_FILE%" >nul
 if errorlevel 1 goto :fail
 
