@@ -23,6 +23,7 @@ module YH_rv_cpu #(
     parameter integer IMEM_SYNC = 0,        // 指令存储器同步模式
     parameter integer IMEM_OUTPUT_REG = 0,  // 指令存储器输出寄存器
     parameter integer DMEM_SYNC = 0,        // 数据存储器同步模式
+    parameter integer C_EXT = 0,            // C扩展 (压缩指令) 支持: 0=禁用, 1=启用 (预留)
     parameter [XLEN-1:0] RESET_VECTOR = {XLEN{1'b0}}  // 复位向量地址
 ) (
     // ------------------------------------------------------------
@@ -107,7 +108,7 @@ reg            id_ex_illegal_r;                     // 非法指令
 reg [XLEN-1:0] id_ex_rs1_value_r;                  // rs1 值
 reg [XLEN-1:0] id_ex_rs2_value_r;                  // rs2 值
 reg [XLEN-1:0] id_ex_imm_r;                       // 立即数
-(* max_fanout = 16 *) reg [3:0]      id_ex_alu_op_r;   // ALU 操作码
+(* max_fanout = 16 *) reg [4:0]      id_ex_alu_op_r;   // ALU 操作码
 reg            id_ex_alu_src1_pc_r;                  // ALU 源 1 选择
 reg            id_ex_alu_src2_imm_r;                 // ALU 源 2 选择
 reg            id_ex_branch_r;                       // 分支标志
@@ -177,7 +178,7 @@ wire            id_rs2_en;
 wire            id_rd_en;
 wire            id_illegal;
 wire [XLEN-1:0] id_imm;
-wire [3:0]      id_alu_op;
+wire [4:0]      id_alu_op;
 wire            id_alu_src1_pc;
 wire            id_alu_src2_imm;
 wire            id_branch;
@@ -769,14 +770,18 @@ end
 
     // 取指阶段
 YH_rv_cpu_if_stage #(
-    .XLEN(XLEN)
+    .XLEN(XLEN),
+    .C_EXT(C_EXT)
 ) u_if_stage (
     .pc_current  (pc_r),
     .redirect_en (fetch_control_redirect_valid),
     .redirect_pc (fetch_control_redirect_pc),
+    .instr_raw   (imem_rdata[15:0]),       // C扩展预留: 用于判断压缩指令
     .imem_addr   (imem_addr),
     .pc_next     (if_pc_next),
-    .pc_plus_4   ()
+    .pc_plus_4   (),
+    .pc_plus_2   (),                       // C扩展预留
+    .instr_is_compressed ()               // C扩展预留
 );
 
     // 寄存器堆

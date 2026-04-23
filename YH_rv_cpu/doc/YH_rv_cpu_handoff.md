@@ -129,7 +129,7 @@
 - `doc/regression_test_log.md`
 - `doc/fpga_bringup_checklist.md`
 - `fpga/vivado/README.md`
-- `../01-项目管理/01-赛题要求/七星微赛题答疑整理.md`
+- `../01-项目管理/01-赛题要求/七星微赛题要求.md`
 - `../01-项目管理/04-汇报与提交材料/README.md`
 
 关键命令：
@@ -263,3 +263,110 @@ scripts\run_coremark_fpga.bat rv32
 2. 单独清理 BOM / 换行差异与冲突备份脚本，不要和 profiling 结论混在同一个 commit。
 3. 如果继续优化，下一轮不要再试 `jal-only` 快捷路径，也不要重复 `BEQ/BNE pipe-hit-only` 切片；优先执行 `docs/superpowers/plans/2026-04-12-yh-rv-cpu-beqbne-early-redirect-plan.md` 中的 taken `BEQ/BNE` decode-stage early redirect 试验。
 4. 后续所有文档引用 build 证据时，统一使用 `YH_rv_cpu/build/...`，不要再误写成仓库根目录 `build/...`。
+
+## 2026-04-12 当前工作区补充（优先阅读）
+
+### 当前结论
+
+- 当前 active worktree 已保留新的前端优化：
+  - taken `BEQ/BNE` decode-stage early redirect
+  - 显式 operand-ready gating
+- 这不是新的 frozen competition baseline；本轮还没有 fresh 完成：
+  - strict CoreMark long run
+  - `impl50`
+  - FPGA-like probe
+
+### 本轮 fresh 证据
+
+- 定向 red/green：
+  - baseline `FAIL`：
+    `YH_rv_cpu/build/tests/branch-first/branch_decode_kill_baseline_2026-04-12.log`
+  - trial `PASS`：
+    `YH_rv_cpu/build/tests/branch-first/branch_decode_kill_trial_2026-04-12.log`
+  - default redirect diag `PASS`：
+    `YH_rv_cpu/build/tests/branch-first/redirect_diag_default_trial_2026-04-12.log`
+- `rv32 full-ui = 42/42`
+  - `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-12.txt`
+- `rv64 full-ui = 54/54`
+  - `YH_rv_cpu/build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-12.txt`
+- `rv32 baseline = 33/33`
+  - `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_baseline_2026-04-12.txt`
+- `rv64 baseline = 21/21`
+  - `YH_rv_cpu/build/tests/riscv-tests/rv64/summary_baseline_2026-04-12.txt`
+- CoreMark short 两次独立摘要完全一致：
+  - `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-12.summary.txt`
+  - `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_score_rerun_2026-04-12.summary.txt`
+  - 结果：`10862713 cycles`，`0.925186 CoreMark/MHz`
+- fresh profile：
+  - `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-12.log`
+  - `total_cycles = 12364249`
+  - `ex_branch_redirect_cycles = 1081457`
+  - `ex_fetch_redirect_valid_cycles = 1350637`
+  - `fetch_queue_empty_cycles = 1504970`
+
+### 这轮的真实解释
+
+- 相比 frozen short baseline `11014885 / 0.912472`，当前 retained worktree
+  已经稳定改善到 `10862713 / 0.925186`
+- 这个收益来源是 branch redirect 窗口缩短，不是 queue/reuse 路径起效：
+  - `ex_branch_redirect_cycles 1235790 -> 1081457`
+  - `fetch_queue_empty_cycles` 保持 `1504970`
+- 所以不要把这轮写成“fetch queue 优化成功”；更准确的口径是
+  “branch-dominant redirect timing 优化成功”
+
+### 工具链补充
+
+- `scripts/run_coremark_score.bat` 已在本轮修成：
+  - 从 summary 路径自动派生产物名前缀
+  - short / strict 后续不再互相覆盖 `score.log` 与 `score.*`
+
+### 下一步接手动作
+
+1. 在 retained RTL 上补 fresh strict CoreMark long run。
+2. 在 retained RTL 上补 `impl50` 与 FPGA-like probe。
+3. 如果上述仍然为正向结果，再刷新 README / CURRENT_STATUS /
+   CoreMark report 里的 frozen competition tables。
+4. freeze refresh 完成前，不要把 `2026-04-12` 结果直接写成新的
+   frozen implementation baseline。
+
+## 2026-04-23 当前工作区补充（M扩展测试 + C扩展预留）
+
+### 本次完成的工作
+
+1. **M扩展指令测试 11/11 全部通过**
+   - 修复了 `YH_rv_cpu_m_extension_tb.v` 中的指令编码错误
+   - ADDI指令rd字段编码错误：原为x17，应为x1/x2
+   - MULHSU指令编码错误：使用了MULHU的funct3编码
+   - 测试覆盖：MUL, MULH, MULHU, MULHSU, DIV, DIVU, REM, REMU 及除零特殊处理
+
+2. **C扩展预留接口已添加**
+   - `YH_rv_cpu_if_stage.v` 添加 `C_EXT` 参数（默认0=禁用）
+   - 新增信号：`pc_plus_2`（压缩指令PC增量）、`instr_is_compressed`（压缩指令判断）
+   - `YH_rv_cpu.v` 透传 `C_EXT` 参数到 if_stage
+   - 条件编译：`C_EXT=1` 时根据指令低两位判断是否压缩
+
+3. **dcache错误修复**
+   - `YH_rv_cpu_dcache.v` 添加 `cache_line_idx` 声明
+   - 修复 `hit_way` 在always @*中procedural assignment问题
+   - 改为使用连续赋值 `assign hit_way = ...`
+
+### 本次修改的文件
+
+| 文件 | 状态 | 说明 |
+|------|------|------|
+| `tb/YH_rv_cpu_m_extension_tb.v` | 修改 | 修复ADDI/MULHSU编码 |
+| `rtl/YH_rv_cpu_if_stage.v` | 修改 | 添加C_EXT参数和预留信号 |
+| `rtl/YH_rv_cpu.v` | 修改 | 透传C_EXT参数 |
+| `rtl/YH_rv_cpu_dcache.v` | 修改 | 修复编译错误 |
+
+### 测试验证
+
+M扩展测试在 `D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/build/tests/m_extension_fresh` 目录下验证通过：
+- `xvlog` + `xelab` + `xsim m_final` 验证 11/11 PASS
+- 测试文件：`tb/YH_rv_cpu_m_extension_tb.v`
+
+### 下一步建议
+
+1. 更新 README.md 中的扩展支持状态说明
+2. 考虑将C扩展预留接口写入设计文档
+3. 如继续优化性能，可参考 2026-04-12 的 branch redirect 优化方向
