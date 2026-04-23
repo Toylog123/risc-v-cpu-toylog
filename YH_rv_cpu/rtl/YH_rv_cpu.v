@@ -1,3 +1,4 @@
+`timescale 1ns / 1ps
 // ============================================================
 // YH_rv_cpu.v
 // Author: Toylog
@@ -23,6 +24,7 @@ module YH_rv_cpu #(
     parameter integer IMEM_SYNC = 0,        // 指令存储器同步模式
     parameter integer IMEM_OUTPUT_REG = 0,  // 指令存储器输出寄存器
     parameter integer DMEM_SYNC = 0,        // 数据存储器同步模式
+    parameter integer DCACHE_EN = 0,        // 数据缓存使能: 0=禁用, 1=启用
     parameter integer C_EXT = 0,            // C扩展 (压缩指令) 支持: 0=禁用, 1=启用 (预留)
     parameter [XLEN-1:0] RESET_VECTOR = {XLEN{1'b0}}  // 复位向量地址
 ) (
@@ -498,11 +500,99 @@ assign fetch_reuse_redirect_valid = ex_redirect_valid;
 assign fetch_reuse_redirect_pc = ex_redirect_pc;
 
     // ================================================================
-    // 内存等待信号 (同步内存访问)
+    // 访存阶段输出信号 (中间变量，避免多驱动)
     // ================================================================
-assign mem_wait = (DMEM_SYNC != 0) && ex_mem_valid_r && ex_mem_load_r && !dmem_rvalid;
+wire [XLEN-1:0] mem_stage_dmem_addr;
+wire            mem_stage_dmem_read_req;
+wire [XLEN-1:0] mem_stage_dmem_wdata;
+wire [XLEN/8-1:0] mem_stage_dmem_wstrb;
+wire [XLEN-1:0] mem_stage_dmem_rdata;
+wire [XLEN-1:0] mem_stage_load_data;
 
+// ================================================================
+    // 数据缓存接口信号 (DCACHE_EN=1时使用)
     // ================================================================
+wire [XLEN-1:0] dcache_cpu_addr;
+wire            dcache_cpu_req;
+wire            dcache_cpu_we;
+wire [XLEN-1:0] dcache_cpu_wdata;
+wire [XLEN/8-1:0] dcache_cpu_wstrb;
+wire [1:0]      dcache_cpu_size;
+wire [XLEN-1:0] dcache_cpu_rdata;
+wire            dcache_cpu_rvalid;
+wire            dcache_cpu_wait;
+
+wire [XLEN-1:0] dcache_mem_addr;
+wire            dcache_mem_req;
+wire            dcache_mem_we;
+wire [31:0]     dcache_mem_wdata;
+wire [3:0]      dcache_mem_wstrb;
+wire [31:0]     dcache_mem_rdata;
+wire            dcache_mem_rvalid;
+wire            dcache_mem_ready;
+
+// ================================================================
+    // 数据缓存模块 (可选)
+    // ================================================================
+generate
+    if (DCACHE_EN == 1) begin : gen_dcache
+        YH_rv_cpu_dcache #(
+            .XLEN(XLEN),
+            .CACHE_SIZE(4096),
+            .BLOCK_SIZE(32),
+            .ASSOC(1),
+            .WRITE_POLICY(0)
+        ) u_dcache (
+            .clk            (clk),
+            .rst_n          (rst_n),
+            .cpu_addr       (dcache_cpu_addr),
+            .cpu_req        (dcache_cpu_req),
+            .cpu_we         (dcache_cpu_we),
+            .cpu_wdata      (dcache_cpu_wdata),
+            .cpu_wstrb      (dcache_cpu_wstrb),
+            .cpu_size       (dcache_cpu_size),
+            .cpu_rdata      (dcache_cpu_rdata),
+            .cpu_rvalid     (dcache_cpu_rvalid),
+            .cpu_wait       (dcache_cpu_wait),
+            .mem_addr       (dcache_mem_addr),
+            .mem_req        (dcache_mem_req),
+            .mem_we         (dcache_mem_we),
+            .mem_wdata      (dcache_mem_wdata),
+            .mem_wstrb      (dcache_mem_wstrb),
+            .mem_rdata      (dcache_mem_rdata),
+            .mem_rvalid     (dcache_mem_rvalid),
+            .mem_ready      (dcache_mem_ready)
+        );
+
+        // DCache CPU侧连接 - 来自mem_stage输出
+        assign dcache_cpu_addr  = mem_stage_dmem_addr;
+        assign dcache_cpu_req   = mem_stage_dmem_read_req;
+        assign dcache_cpu_we    = ex_mem_store_r;
+        assign dcache_cpu_wdata = mem_stage_dmem_wdata;
+        assign dcache_cpu_wstrb = mem_stage_dmem_wstrb;
+        assign dcache_cpu_size  = ex_mem_mem_size_r;
+
+        // DCache返回数据给mem_stage
+        assign mem_stage_load_data = dcache_cpu_rvalid ? dcache_cpu_rdata : {XLEN{1'b0}};
+
+        // 外部dmem信号由dcache的mem接口驱动
+        assign dmem_addr     = dcache_mem_addr[XLEN-1:0];
+        assign dmem_read_req = dcache_mem_req;
+        assign dmem_we       = dcache_mem_we;
+        assign dmem_wdata    = dcache_mem_wdata;
+        assign dmem_wstrb    = dcache_mem_wstrb;
+        assign dcache_mem_rdata  = dmem_rdata;
+        assign dcache_mem_rvalid = dmem_rvalid;
+        assign dcache_mem_ready  = 1'b1;
+
+        // mem_wait由dcache_cpu_wait驱动
+        wire mem_wait_base;
+        assign mem_wait_base = (DMEM_SYNC != 0) && ex_mem_valid_r && ex_mem_load_r && !dmem_rvalid;
+        assign mem_wait = mem_wait_base || dcache_cpu_wait;
+    end
+endgenerate
+
+// ================================================================
     // 取指响应 PC 和有效信号
     // ================================================================
 assign fetch_rsp_pc = (IMEM_OUTPUT_REG != 0) ? fetch_pc_d1_r : fetch_pc_r;
@@ -930,13 +1020,28 @@ YH_rv_cpu_mem_stage #(
     .store_wstrb_in(ex_mem_store_wstrb_r),
     .mem_size      (ex_mem_mem_size_r),
     .mem_unsigned  (ex_mem_mem_unsigned_r),
-    .dmem_rdata    (dmem_rdata),
-    .dmem_addr     (dmem_addr),
-    .dmem_read_req (dmem_read_req),
-    .dmem_wdata    (dmem_wdata),
-    .dmem_wstrb    (dmem_wstrb),
-    .load_data     (mem_load_data)
+    .dmem_rdata    (mem_stage_dmem_rdata),
+    .dmem_addr     (mem_stage_dmem_addr),
+    .dmem_read_req (mem_stage_dmem_read_req),
+    .dmem_wdata    (mem_stage_dmem_wdata),
+    .dmem_wstrb    (mem_stage_dmem_wstrb),
+    .load_data     (mem_stage_load_data)
 );
+
+    // ================================================================
+    // 当DCACHE禁用时，直接连接mem_stage到外部dmem
+    // ================================================================
+generate
+    if (DCACHE_EN == 0) begin : gen_no_dcache
+        assign dmem_addr     = mem_stage_dmem_addr;
+        assign dmem_read_req = mem_stage_dmem_read_req;
+        assign dmem_wdata    = mem_stage_dmem_wdata;
+        assign dmem_wstrb    = mem_stage_dmem_wstrb;
+        assign mem_stage_dmem_rdata = dmem_rdata;
+        assign mem_stage_load_data  = dmem_rvalid ? dmem_rdata : {XLEN{1'b0}};
+        assign mem_wait = (DMEM_SYNC != 0) && ex_mem_valid_r && ex_mem_load_r && !dmem_rvalid;
+    end
+endgenerate
 
     // 写回阶段
 YH_rv_cpu_wb_stage #(

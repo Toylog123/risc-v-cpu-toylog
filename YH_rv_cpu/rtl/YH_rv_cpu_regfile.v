@@ -1,3 +1,4 @@
+`timescale 1ns / 1ps
 // ============================================================
 // YH_rv_cpu_regfile.v
 // Author: Toylog

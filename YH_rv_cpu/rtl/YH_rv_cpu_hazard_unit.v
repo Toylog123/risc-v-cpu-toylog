@@ -1,3 +1,4 @@
+`timescale 1ns / 1ps
 // ============================================================
 // YH_rv_cpu_hazard_unit.v
 // Author: Toylog

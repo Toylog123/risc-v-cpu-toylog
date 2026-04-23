@@ -370,3 +370,73 @@ M扩展测试在 `D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/build/tests/m_ext
 1. 更新 README.md 中的扩展支持状态说明
 2. 考虑将C扩展预留接口写入设计文档
 3. 如继续优化性能，可参考 2026-04-12 的 branch redirect 优化方向
+
+## 2026-04-23 下午补充（dcache集成修复）
+
+### 本次完成的工作
+
+1. **dcache集成到CPU核**
+   - `YH_rv_cpu.v` 添加 `DCACHE_EN` 参数（默认0=禁用，1=启用）
+   - 当 `DCACHE_EN=1` 时实例化 dcache 模块，插入到 mem_stage 和外部 dmem 之间
+   - 当 `DCACHE_EN=0` 时保持原有直连模式（向后兼容）
+
+2. **修复dcache集成bug**
+   - 问题：M扩展测试 0/11 通过，寄存器显示 'z'（高阻抗）
+   - 根因：`DCACHE_EN == 1` 分支中 dcache 未正确驱动外部 `dmem_*` 信号
+   - 修复：添加 `dmem_read_req`、`dmem_we`、`dmem_wdata`、`dmem_wstrb` 的赋值
+
+### 关键代码变更
+
+```verilog
+// DCACHE_EN=1 分支中添加了缺失的信号赋值
+assign dmem_read_req = dcache_mem_req;
+assign dmem_we       = dcache_mem_we;
+assign dmem_wdata    = dcache_mem_wdata;
+assign dmem_wstrb    = dcache_mem_wstrb;
+```
+
+### 本次修改的文件
+
+| 文件 | 状态 | 说明 |
+|------|------|------|
+| `rtl/YH_rv_cpu.v` | 修改 | 添加DCACHE_EN参数、dcache实例化、信号连接 |
+| `rtl/YH_rv_cpu_alu.v` | 修改 | 添加`timescale |
+| `rtl/YH_rv_cpu_decoder.v` | 修改 | 添加`timescale |
+| `rtl/YH_rv_cpu_defs.vh` | 修改 | 添加`timescale |
+| `rtl/YH_rv_cpu_ex_stage.v` | 修改 | 添加`timescale |
+| `rtl/YH_rv_cpu_hazard_unit.v` | 修改 | 添加`timescale |
+| `rtl/YH_rv_cpu_id_stage.v` | 修改 | 添加`timescale |
+| `rtl/YH_rv_cpu_if_stage.v` | 修改 | 添加`timescale |
+| `rtl/YH_rv_cpu_mem_stage.v` | 修改 | 添加`timescale |
+| `rtl/YH_rv_cpu_regfile.v` | 修改 | 添加`timescale |
+| `rtl/YH_rv_cpu_wb_stage.v` | 修改 | 添加`timescale |
+| `rtl/YH_rv_cpu_dcache.v` | 新增 | 数据缓存模块 |
+| `rtl/YH_rv_cpu_icache.v` | 新增 | 指令缓存模块（预留） |
+| `rtl/YH_rv_cpu_axi_lite_if.v` | 新增 | AXI-Lite接口模块 |
+| `tb/YH_rv_cpu_m_extension_tb.v` | 新增 | M扩展测试平台 |
+| `scripts/run_m_extension_test.bat` | 新增 | M扩展测试脚本 |
+
+### 测试验证
+
+在 `D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/build/tests/dcache_clean3` 目录下验证：
+- `xelab` 编译成功，无错误
+- M扩展测试 **11/11 通过** ✓
+- DCACHE_EN=1（dcache启用）和 DCACHE_EN=0（直连模式）均正常工作
+
+### 架构说明
+
+```
+                    DCACHE_EN=0                 DCACHE_EN=1
+                    ==========                 ==========
+mem_stage.dmem_*  ──────────────────────────►  mem_stage.dmem_*
+                                               │
+                                               ▼
+                                          ┌─────────┐
+                                          │  dcache │
+                                          └─────────┘
+                                               │
+                                               ▼
+                                          外部dmem信号
+```
+
+当 DCACHE_EN=1 时，dcache 驱动所有外部 dmem 信号（dmem_addr, dmem_read_req, dmem_we, dmem_wdata, dmem_wstrb），mem_stage 通过中间变量与 dcache 通信。

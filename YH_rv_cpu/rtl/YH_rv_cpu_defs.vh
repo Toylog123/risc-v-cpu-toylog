@@ -64,6 +64,19 @@
 `define YH_rv_cpu_ALU_SRA   4'd9   // 算术右移: result = lhs >>> rhs[4:0], 保留符号位 (sra, srai)
 
 // ------------------------------------------------------------
+// M扩展操作码定义 (5位)
+// RISC-V M扩展: 乘法、除法、取余
+// ------------------------------------------------------------
+`define YH_rv_cpu_ALU_MUL   5'd10  // 乘法: result = lhs * rhs
+`define YH_rv_cpu_ALU_MULH  5'd11  // 有符号乘法高位: result = ({1'b0, lhs} * {1'b0, rhs})[2*XLEN-1:XLEN]
+`define YH_rv_cpu_ALU_MULHU 5'd12  // 无符号乘法高位: result = lhs[XLEN-1:0] * rhs[XLEN-1:0]的高位
+`define YH_rv_cpu_ALU_MULHSU 5'd13  // 混合乘法高位: lhs有符号 * rhs无符号
+`define YH_rv_cpu_ALU_DIV   5'd14  // 有符号除法: result = lhs / rhs
+`define YH_rv_cpu_ALU_DIVU  5'd15  // 无符号除法
+`define YH_rv_cpu_ALU_REM   5'd16  // 有符号余数: result = lhs % rhs
+`define YH_rv_cpu_ALU_REMU  5'd17  // 无符号余数
+
+// ------------------------------------------------------------
 // 写回来源控制 (2位)
 // 选择写回寄存器的数据来源
 // ------------------------------------------------------------

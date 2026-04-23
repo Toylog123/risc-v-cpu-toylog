@@ -90,6 +90,29 @@
   - fresh `impl50`
   - fresh FPGA-like probe
 
+## 2026-04-23 更新
+
+### dcache 集成完成
+
+- `DCACHE_EN=1` 时 dcache 模块正确插入到 mem_stage 和外部 dmem 之间
+- M 扩展测试 **11/11 通过** ✓
+  - `YH_rv_cpu/build/tests/dcache_clean3/xsim.log`
+- 测试覆盖：MUL, MULH, MULHU, MULHSU, DIV, DIVU, REM, REMU 及除零特殊处理
+
+### 关键修复
+
+- 修复 `DCACHE_EN == 1` 分支中 dcache 未正确驱动外部 `dmem_*` 信号的问题
+- 添加 `dmem_read_req`、`dmem_we`、`dmem_wdata`、`dmem_wstrb` 赋值
+
+### 模块新增
+
+| 模块 | 文件 | 状态 |
+|------|------|------|
+| 数据缓存 | `rtl/YH_rv_cpu_dcache.v` | 新增 |
+| 指令缓存 | `rtl/YH_rv_cpu_icache.v` | 新增（预留） |
+| AXI-Lite接口 | `rtl/YH_rv_cpu_axi_lite_if.v` | 新增 |
+| M扩展测试 | `tb/YH_rv_cpu_m_extension_tb.v` | 新增 |
+
 ## Recommended next step
 
 - First finish freeze-refresh on the retained RTL:

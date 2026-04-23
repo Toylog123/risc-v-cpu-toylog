@@ -1,10 +1,12 @@
+`timescale 1ns / 1ps
 // ============================================================
 // YH_rv_cpu_decoder.v
 // Author: Toylog
-// Version: v1.1
+// Version: v1.2
 // Function: RISC-V 指令译码器 (Instruction Decoder)
 // Description: 译码阶段的核心模块，负责将 32 位指令字解析为控制信号
 //   支持 RV32I 和 RV64I 指令集
+//   支持RISC-V M扩展：乘法、除法、取余指令
 //   输出包括：寄存器地址、操作数选择、ALU 控制、内存访问控制、分支跳转控制
 // ============================================================
 
@@ -45,7 +47,7 @@ module YH_rv_cpu_decoder #(
     // ------------------------------------------------------------
     // ALU 控制信号
     // ------------------------------------------------------------
-    output reg  [3:0]      alu_op,          // ALU 操作码
+    output reg  [4:0]      alu_op,          // ALU 操作码
     output reg             alu_src1_pc,     // ALU 源操作数 1 选择: 0=rs1, 1=PC
     output reg             alu_src2_imm,     // ALU 源操作数 2 选择: 0=rs2, 1=imm
 
@@ -370,6 +372,7 @@ always @* begin
         // ============================================================
         // OP: 寄存器运算指令
         // 支持: add, sub, sll, slt, sltu, xor, srl, sra, or, and
+        // M扩展: mul, mulh, mulhu, mulhsu, div, divu, rem, remu
         // ============================================================
         `YH_rv_cpu_OPCODE_OP: begin
             rd_en  = 1'b1;
@@ -377,57 +380,79 @@ always @* begin
             rs2_en = 1'b1;
 
             case (funct3)
-                3'b000: begin                           // add/sub
+                3'b000: begin                           // add/sub 或 MUL
                     if (funct7 == 7'b0000000) begin
                         alu_op = `YH_rv_cpu_ALU_ADD;    // add
                     end else if (funct7 == 7'b0100000) begin
                         alu_op = `YH_rv_cpu_ALU_SUB;    // sub
+                    end else if (funct7 == 7'b0000001) begin
+                        alu_op = `YH_rv_cpu_ALU_MUL;    // mul (M扩展)
                     end else begin
                         illegal = 1'b1;
                     end
                 end
-                3'b001: begin                           // sll
-                    alu_op = `YH_rv_cpu_ALU_SLL;
-                    if (funct7 != 7'b0000000) begin
-                        illegal = 1'b1;
-                    end
-                end
-                3'b010: begin                           // slt
-                    alu_op = `YH_rv_cpu_ALU_SLT;
-                    if (funct7 != 7'b0000000) begin
-                        illegal = 1'b1;
-                    end
-                end
-                3'b011: begin                           // sltu
-                    alu_op = `YH_rv_cpu_ALU_SLTU;
-                    if (funct7 != 7'b0000000) begin
-                        illegal = 1'b1;
-                    end
-                end
-                3'b100: begin                           // xor
-                    alu_op = `YH_rv_cpu_ALU_XOR;
-                    if (funct7 != 7'b0000000) begin
-                        illegal = 1'b1;
-                    end
-                end
-                3'b101: begin                           // srl/sra
+                3'b001: begin                           // sll 或 MULH
                     if (funct7 == 7'b0000000) begin
-                        alu_op = `YH_rv_cpu_ALU_SRL;
-                    end else if (funct7 == 7'b0100000) begin
-                        alu_op = `YH_rv_cpu_ALU_SRA;
+                        alu_op = `YH_rv_cpu_ALU_SLL;   // sll
+                    end else if (funct7 == 7'b0000001) begin
+                        alu_op = `YH_rv_cpu_ALU_MULH;   // mulh (M扩展)
                     end else begin
                         illegal = 1'b1;
                     end
                 end
-                3'b110: begin                           // or
-                    alu_op = `YH_rv_cpu_ALU_OR;
-                    if (funct7 != 7'b0000000) begin
+                3'b010: begin                           // slt 或 MULHSU (修正)
+                    if (funct7 == 7'b0000000) begin
+                        alu_op = `YH_rv_cpu_ALU_SLT;   // slt
+                    end else if (funct7 == 7'b0000001) begin
+                        alu_op = `YH_rv_cpu_ALU_MULHSU; // mulhsu (M扩展)
+                    end else begin
                         illegal = 1'b1;
                     end
                 end
-                3'b111: begin                           // and
-                    alu_op = `YH_rv_cpu_ALU_AND;
-                    if (funct7 != 7'b0000000) begin
+                3'b011: begin                           // sltu 或 MULHU (修正)
+                    if (funct7 == 7'b0000000) begin
+                        alu_op = `YH_rv_cpu_ALU_SLTU;  // sltu
+                    end else if (funct7 == 7'b0000001) begin
+                        alu_op = `YH_rv_cpu_ALU_MULHU; // mulhu (M扩展)
+                    end else begin
+                        illegal = 1'b1;
+                    end
+                end
+                3'b100: begin                           // xor 或 DIV
+                    if (funct7 == 7'b0000000) begin
+                        alu_op = `YH_rv_cpu_ALU_XOR;   // xor
+                    end else if (funct7 == 7'b0000001) begin
+                        alu_op = `YH_rv_cpu_ALU_DIV;   // div (M扩展)
+                    end else begin
+                        illegal = 1'b1;
+                    end
+                end
+                3'b101: begin                           // srl/sra 或 DIVU
+                    if (funct7 == 7'b0000000) begin
+                        alu_op = `YH_rv_cpu_ALU_SRL;   // srl
+                    end else if (funct7 == 7'b0100000) begin
+                        alu_op = `YH_rv_cpu_ALU_SRA;   // sra
+                    end else if (funct7 == 7'b0000001) begin
+                        alu_op = `YH_rv_cpu_ALU_DIVU;  // divu (M扩展)
+                    end else begin
+                        illegal = 1'b1;
+                    end
+                end
+                3'b110: begin                           // or 或 REM
+                    if (funct7 == 7'b0000000) begin
+                        alu_op = `YH_rv_cpu_ALU_OR;    // or
+                    end else if (funct7 == 7'b0000001) begin
+                        alu_op = `YH_rv_cpu_ALU_REM;   // rem (M扩展)
+                    end else begin
+                        illegal = 1'b1;
+                    end
+                end
+                3'b111: begin                           // and 或 REMU
+                    if (funct7 == 7'b0000000) begin
+                        alu_op = `YH_rv_cpu_ALU_AND;   // and
+                    end else if (funct7 == 7'b0000001) begin
+                        alu_op = `YH_rv_cpu_ALU_REMU;  // remu (M扩展)
+                    end else begin
                         illegal = 1'b1;
                     end
                 end
