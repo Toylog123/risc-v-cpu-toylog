@@ -411,7 +411,7 @@ assign dmem_wstrb    = dcache_mem_wstrb;
 | `rtl/YH_rv_cpu_regfile.v` | 修改 | 添加`timescale |
 | `rtl/YH_rv_cpu_wb_stage.v` | 修改 | 添加`timescale |
 | `rtl/YH_rv_cpu_dcache.v` | 新增 | 数据缓存模块 |
-| `rtl/YH_rv_cpu_icache.v` | 新增 | 指令缓存模块（预留） |
+| `rtl/YH_rv_cpu_icache.v` | 新增 | 指令缓存模块（已集成） |
 | `rtl/YH_rv_cpu_axi_lite_if.v` | 新增 | AXI-Lite接口模块 |
 | `tb/YH_rv_cpu_m_extension_tb.v` | 新增 | M扩展测试平台 |
 | `scripts/run_m_extension_test.bat` | 新增 | M扩展测试脚本 |

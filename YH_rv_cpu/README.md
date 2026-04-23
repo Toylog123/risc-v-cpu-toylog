@@ -78,7 +78,8 @@
 ## 2026-04-23 更新
 
 - dcache 集成完成：`DCACHE_EN=1` 时 dcache 模块正确插入，M 扩展测试 **11/11 通过** ✓
-- 新增模块：`rtl/YH_rv_cpu_dcache.v`、`rtl/YH_rv_cpu_icache.v`（预留）、`rtl/YH_rv_cpu_axi_lite_if.v`
+- **icache 集成完成**：`ICACHE_EN=1` 时 icache 模块正确插入，riscv-tests 验证通过 ✓
+- 新增模块：`rtl/YH_rv_cpu_dcache.v`、`rtl/YH_rv_cpu_icache.v`、`rtl/YH_rv_cpu_axi_lite_if.v`
 - C扩展预留：`rtl/YH_rv_cpu_if_stage.v` 添加 `C_EXT` 参数
 
 当前扩展验证使用的新主线输入文件：

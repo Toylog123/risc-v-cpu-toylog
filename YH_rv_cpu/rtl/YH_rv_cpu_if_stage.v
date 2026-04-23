@@ -11,7 +11,8 @@
 
 module YH_rv_cpu_if_stage #(
     parameter integer XLEN = 32,  // 数据通路宽度: 32 (RV32) 或 64 (RV64)
-    parameter C_EXT = 0           // C扩展 (压缩指令) 支持: 0=禁用, 1=启用 (预留)
+    parameter C_EXT = 0,         // C扩展 (压缩指令) 支持: 0=禁用, 1=启用 (预留)
+    parameter ICACHE_EN = 0      // 指令缓存使能: 0=禁用, 1=启用
 ) (
     // ------------------------------------------------------------
     // PC 控制信号
@@ -28,7 +29,14 @@ module YH_rv_cpu_if_stage #(
     output wire [XLEN-1:0] pc_next,          // 下一 PC 值
     output wire [XLEN-1:0] pc_plus_4,        // PC + 4 (顺序执行下一地址)
     output wire [XLEN-1:0] pc_plus_2,        // PC + 2 (压缩指令下一地址, C扩展预留)
-    output wire            instr_is_compressed  // 指令是否为压缩格式 (C扩展预留)
+    output wire            instr_is_compressed,  // 指令是否为压缩格式 (C扩展预留)
+
+    // ------------------------------------------------------------
+    // ICache接口 (ICACHE_EN=1时使用)
+    // ------------------------------------------------------------
+    input  wire [31:0]     icache_rdata,      // ICache返回指令
+    input  wire            icache_rvalid,      // ICache返回有效
+    output wire            icache_req         // ICache请求
 );
 
     // ------------------------------------------------------------
@@ -57,8 +65,17 @@ endgenerate
 
     // ------------------------------------------------------------
     // 指令存储器地址 = 当前 PC
+    // ICACHE_EN=1时地址送往icache
     // ------------------------------------------------------------
-assign imem_addr = pc_current;
+generate
+    if (ICACHE_EN == 1) begin : gen_icache_addr
+        assign imem_addr = pc_current;  // 地址送往icache
+        assign icache_req = 1'b1;       // 始终请求 (icache内部处理)
+    end else begin : gen_no_icache_addr
+        assign imem_addr = pc_current;  // 地址直接送往外部内存
+        assign icache_req = 1'b0;       // 不使用icache
+    end
+endgenerate
 
     // ------------------------------------------------------------
     // PC + 4 计算
