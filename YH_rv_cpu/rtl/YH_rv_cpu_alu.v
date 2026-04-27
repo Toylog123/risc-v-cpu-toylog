@@ -82,11 +82,11 @@ always @* begin
         // MUL: 有符号乘法 (32x32=64, 取低32位)
         `YH_rv_cpu_ALU_MUL:  result = $signed(lhs) * $signed(rhs);
         // MULH: 有符号乘法高位
-        `YH_rv_cpu_ALU_MULH: result = ($signed(lhs) * $signed(rhs)) >> 32;
+        `YH_rv_cpu_ALU_MULH: result = $signed({{32{lhs[31]}}, lhs}) * $signed({{32{rhs[31]}}, rhs}) >> 32;
         // MULHSU: 混合乘法高位 (lhs有符号, rhs无符号)
-        `YH_rv_cpu_ALU_MULHSU: result = ($signed(lhs) * rhs) >> 32;
+        `YH_rv_cpu_ALU_MULHSU: result = $signed({{32{lhs[31]}}, lhs}) * {32'b0, rhs} >> 32;
         // MULHU: 无符号乘法高位
-        `YH_rv_cpu_ALU_MULHU: result = (lhs * rhs) >> 32;
+        `YH_rv_cpu_ALU_MULHU: result = {32'b0, lhs} * {32'b0, rhs} >> 32;
         // DIV: 有符号除法
         `YH_rv_cpu_ALU_DIV:  result = (rhs == 0) ? {XLEN{1'b1}} : $signed(lhs) / $signed(rhs);
         // DIVU: 无符号除法
