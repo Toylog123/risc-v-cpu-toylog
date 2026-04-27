@@ -366,7 +366,7 @@ always @(posedge clk or negedge rst_n) begin
             
             STATE_REFILL: begin
                 wait_r <= 1'b1;
-                if (mem_rvalid && (refill_offset_r == addr_offset)) begin
+                if (mem_rvalid && (refill_offset_r == miss_addr_r[OFFSET_W-1:2])) begin
                     rdata_r <= mem_rdata;
                     rvalid_r <= 1'b1;
                     wait_r <= 1'b0;
