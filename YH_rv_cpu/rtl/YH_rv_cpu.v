@@ -24,6 +24,7 @@ module YH_rv_cpu #(
     parameter integer IMEM_OUTPUT_REG = 0,  // 指令存储器输出寄存器
     parameter integer DMEM_SYNC = 0,        // 数据存储器同步模式
     parameter integer DCACHE_EN = 0,         // 数据缓存使能: 0=禁用, 1=启用
+    parameter integer ICACHE_EN = 0,         // 指令缓存使能: 0=禁用, 1=启用
     parameter [XLEN-1:0] RESET_VECTOR = {XLEN{1'b0}}  // 复位向量地址
 ) (
     // ------------------------------------------------------------
@@ -292,6 +293,23 @@ wire [3:0]      dcache_mem_wstrb;
 wire [31:0]     dcache_mem_rdata;
 wire            dcache_mem_rvalid;
 wire            dcache_mem_ready;
+
+    // Icache中间信号 (当ICACHE_EN=1时，if_stage连接到此，icache再连接到imem)
+wire            icache_cpu_req;
+wire [XLEN-1:0] icache_cpu_addr;
+wire [31:0]     icache_cpu_rdata;
+wire            icache_cpu_rvalid;
+wire            icache_cpu_wait;
+
+    // Icache Mem接口信号
+wire [XLEN-1:0] icache_mem_addr;
+wire            icache_mem_req;
+wire            icache_mem_we;
+wire [31:0]     icache_mem_wdata;
+wire [3:0]      icache_mem_wstrb;
+wire [31:0]     icache_mem_rdata;
+wire            icache_mem_rvalid;
+
     // 写回阶段输出
 wire [XLEN-1:0] wb_data;
 
@@ -381,10 +399,13 @@ localparam [1:0] IMEM_DROP_COUNT = (IMEM_OUTPUT_REG != 0) ? 2'd1 : 2'd0;
 assign trap = trap_r;
 assign debug_pc = pc_r;
 
+    // ICache中间信号
+wire [XLEN-1:0] ifetch_addr;          // 取指地址中间信号
+
     // ================================================================
     // 取指请求逻辑
     // ================================================================
-assign imem_req = (IMEM_SYNC != 0) && !trap_r && !mem_wait && !stall_decode && !fetch_control_redirect_valid;
+assign imem_req = (ICACHE_EN ? !icache_cpu_wait : 1'b1) && (IMEM_SYNC != 0) && !trap_r && !mem_wait && !stall_decode && !fetch_control_redirect_valid;
 
     // ================================================================
     // 执行阶段前递数据选择
@@ -807,7 +828,7 @@ YH_rv_cpu_if_stage #(
     .pc_current  (pc_r),
     .redirect_en (fetch_control_redirect_valid),
     .redirect_pc (fetch_control_redirect_pc),
-    .imem_addr   (imem_addr),
+    .imem_addr   (ifetch_addr),
     .pc_next     (if_pc_next),
     .pc_plus_4   ()
 );
@@ -1013,6 +1034,51 @@ YH_rv_cpu_ex_stage #(
                 .mem_rdata      (dmem_rdata),
                 .mem_rvalid     (dmem_rvalid),
                 .mem_ready      (dmem_ready)
+            );
+        end
+    endgenerate
+
+    // ================================================================
+    // 取指阶段 - 带ICache支持
+    // ================================================================
+    generate
+        if (ICACHE_EN == 0) begin : gen_icache_bypass
+            // ICACHE_EN=0: 直接连接ifetch_addr到imem_addr
+            assign imem_addr = ifetch_addr;
+            assign imem_req = (IMEM_SYNC != 0) && !trap_r && !mem_wait && !stall_decode && !fetch_control_redirect_valid;
+        end else begin : gen_icache
+            // ICACHE_EN=1: 通过icache连接
+            // ifetch_addr连接到icache CPU接口，icache再连接到实际imem
+
+            // ifetch信号连接到icache CPU接口
+            assign icache_cpu_addr = ifetch_addr;
+            assign icache_cpu_req = (IMEM_SYNC != 0) && !trap_r && !mem_wait && !stall_decode && !fetch_control_redirect_valid;
+
+            // icache输出到外部内存接口
+            assign imem_addr = icache_mem_addr;
+            assign imem_req = icache_mem_req;
+
+            // icache实例
+            YH_rv_cpu_icache #(
+                .XLEN(XLEN),
+                .CACHE_SIZE(4096),
+                .BLOCK_SIZE(32),
+                .ASSOC(1)
+            ) u_icache (
+                .clk        (clk),
+                .rst_n      (rst_n),
+                .cpu_addr   (icache_cpu_addr),
+                .cpu_req    (icache_cpu_req),
+                .cpu_rdata  (icache_cpu_rdata),
+                .cpu_rvalid (icache_cpu_rvalid),
+                .cpu_wait   (icache_cpu_wait),
+                .mem_addr   (icache_mem_addr),
+                .mem_req    (icache_mem_req),
+                .mem_we     (icache_mem_we),
+                .mem_wdata  (icache_mem_wdata),
+                .mem_wstrb  (icache_mem_wstrb),
+                .mem_rdata  (imem_rdata),
+                .mem_rvalid (imem_rvalid)
             );
         end
     endgenerate
