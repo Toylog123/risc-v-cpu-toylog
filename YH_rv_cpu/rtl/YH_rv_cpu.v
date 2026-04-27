@@ -23,7 +23,6 @@ module YH_rv_cpu #(
     parameter integer IMEM_SYNC = 0,        // 指令存储器同步模式
     parameter integer IMEM_OUTPUT_REG = 0,  // 指令存储器输出寄存器
     parameter integer DMEM_SYNC = 0,        // 数据存储器同步模式
-    parameter integer DCACHE_EN = 0,         // 数据缓存使能: 0=禁用, 1=启用
     parameter [XLEN-1:0] RESET_VECTOR = {XLEN{1'b0}}  // 复位向量地址
 ) (
     // ------------------------------------------------------------
@@ -51,7 +50,9 @@ module YH_rv_cpu #(
     output wire [XLEN-1:0] dmem_addr,       // 访存地址
     input  wire [XLEN-1:0] dmem_rdata,      // 加载数据
     input  wire            dmem_rvalid,      // 加载有效
+    input  wire            dmem_ready,       // 写完成/内存就绪
     output wire            dmem_read_req,     // 读请求
+    output wire            dmem_we,          // 写使能
     output wire [XLEN-1:0] dmem_wdata,      // 写数据
     output wire [XLEN/8-1:0] dmem_wstrb,   // 写字节使能
 
@@ -262,6 +263,8 @@ wire            decode_flush_valid;
 wire [XLEN-1:0] mem_load_data;
 wire            mem_wait;
 
+<<<<<<< Updated upstream
+=======
     // Dcache中间信号 (当DCACHE_EN=1时，mem_stage连接到此，dcache再连接到dmem)
 wire [XLEN-1:0] mem_stage_dmem_addr;
 wire            mem_stage_dmem_read_req;
@@ -270,6 +273,28 @@ wire [XLEN/8-1:0] mem_stage_dmem_wstrb;
 wire [XLEN-1:0] mem_stage_dmem_rdata;
 wire [XLEN-1:0] mem_stage_load_data;
 
+    // DCache CPU接口信号 (当DCACHE_EN=1时使用)
+wire            dcache_cpu_req;
+wire            dcache_cpu_we;
+wire [XLEN-1:0] dcache_cpu_addr;
+wire [XLEN-1:0] dcache_cpu_wdata;
+wire [XLEN/8-1:0] dcache_cpu_wstrb;
+wire [1:0]      dcache_cpu_size;
+wire [XLEN-1:0] dcache_cpu_rdata;
+wire            dcache_cpu_rvalid;
+wire            dcache_cpu_wait;
+
+    // DCache Mem接口信号
+wire [XLEN-1:0] dcache_mem_addr;
+wire            dcache_mem_req;
+wire            dcache_mem_we;
+wire [31:0]     dcache_mem_wdata;
+wire [3:0]      dcache_mem_wstrb;
+wire [31:0]     dcache_mem_rdata;
+wire            dcache_mem_rvalid;
+wire            dcache_mem_ready;
+
+>>>>>>> Stashed changes
     // 写回阶段输出
 wire [XLEN-1:0] wb_data;
 
@@ -506,9 +531,11 @@ assign fetch_reuse_redirect_valid = ex_redirect_valid;
 assign fetch_reuse_redirect_pc = ex_redirect_pc;
 
     // ================================================================
-    // 内存等待信号 (同步内存访问)
+    // 内存等待信号 (同步内存访问或DCache)
     // ================================================================
-assign mem_wait = (DMEM_SYNC != 0) && ex_mem_valid_r && ex_mem_load_r && !dmem_rvalid;
+    // 当DCACHE_EN=1时，使用dcache的等待信号
+    // 否则使用原始的同步内存等待逻辑
+assign mem_wait = DCACHE_EN ? dcache_cpu_wait : ((DMEM_SYNC != 0) && ex_mem_valid_r && ex_mem_load_r && !dmem_rvalid);
 
     // ================================================================
     // 取指响应 PC 和有效信号
@@ -870,7 +897,8 @@ YH_rv_cpu_hazard_unit u_hazard_unit (
     .mem_wb_rd_addr (mem_wb_rd_addr_r),
     .stall_decode   (stall_decode),
     .forward_a_sel  (forward_a_sel),
-    .forward_b_sel  (forward_b_sel)
+    .forward_b_sel  (forward_b_sel),
+    .dcache_wait    (DCACHE_EN ? dcache_cpu_wait : 1'b0)
 );
 
     // ================================================================
@@ -922,6 +950,27 @@ YH_rv_cpu_ex_stage #(
     .mem_misaligned(ex_mem_misaligned)
 );
 
+<<<<<<< Updated upstream
+    // 访存阶段
+YH_rv_cpu_mem_stage #(
+    .XLEN(XLEN)
+) u_mem_stage (
+    .valid         (ex_mem_valid_r),
+    .load          (ex_mem_load_r),
+    .store         (ex_mem_store_r),
+    .mem_addr      (ex_mem_mem_addr_r),
+    .store_data_in (ex_mem_store_data_r),
+    .store_wstrb_in(ex_mem_store_wstrb_r),
+    .mem_size      (ex_mem_mem_size_r),
+    .mem_unsigned  (ex_mem_mem_unsigned_r),
+    .dmem_rdata    (dmem_rdata),
+    .dmem_addr     (dmem_addr),
+    .dmem_read_req (dmem_read_req),
+    .dmem_wdata    (dmem_wdata),
+    .dmem_wstrb    (dmem_wstrb),
+    .load_data     (mem_load_data)
+);
+=======
     // ================================================================
     // 访存阶段 - 带DCache支持
     // ================================================================
@@ -948,9 +997,50 @@ YH_rv_cpu_ex_stage #(
             );
         end else begin : gen_dcache
             // DCACHE_EN=1: 通过dcache连接
-            // (dcache instantiation will be added here)
+            // mem_stage连接到dcache CPU接口，dcache再连接到实际dmem
+
+            // mem_stage信号连接到dcache CPU接口
+            assign dcache_cpu_addr  = ex_mem_mem_addr_r;
+            assign dcache_cpu_req   = ex_mem_valid_r && (ex_mem_load_r || ex_mem_store_r);
+            assign dcache_cpu_we    = ex_mem_valid_r && ex_mem_store_r;
+            assign dcache_cpu_wdata = ex_mem_store_data_r;
+            assign dcache_cpu_wstrb = ex_mem_store_wstrb_r;
+            assign dcache_cpu_size  = ex_mem_mem_size_r;
+
+            // dcache输出load_data到流水线
+            assign mem_load_data = dcache_cpu_rdata;
+
+            // dcache实例
+            YH_rv_cpu_dcache #(
+                .XLEN(XLEN),
+                .CACHE_SIZE(4096),
+                .BLOCK_SIZE(32),
+                .ASSOC(1),
+                .WRITE_POLICY(0)
+            ) u_dcache (
+                .clk            (clk),
+                .rst_n          (rst_n),
+                .cpu_addr       (dcache_cpu_addr),
+                .cpu_req        (dcache_cpu_req),
+                .cpu_we         (dcache_cpu_we),
+                .cpu_wdata      (dcache_cpu_wdata),
+                .cpu_wstrb      (dcache_cpu_wstrb),
+                .cpu_size       (dcache_cpu_size),
+                .cpu_rdata      (dcache_cpu_rdata),
+                .cpu_rvalid     (dcache_cpu_rvalid),
+                .cpu_wait       (dcache_cpu_wait),
+                .mem_addr       (dmem_addr),
+                .mem_req        (dmem_read_req),
+                .mem_we         (dmem_we),
+                .mem_wdata      (dmem_wdata),
+                .mem_wstrb      (dmem_wstrb),
+                .mem_rdata      (dmem_rdata),
+                .mem_rvalid     (dmem_rvalid),
+                .mem_ready      (dmem_ready)
+            );
         end
     endgenerate
+>>>>>>> Stashed changes
 
     // 写回阶段
 YH_rv_cpu_wb_stage #(

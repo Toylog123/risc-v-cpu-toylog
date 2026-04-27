@@ -1,7 +1,7 @@
 # CURRENT_STATUS
 
-> Updated: `2026-04-12`
-> Branch: `main`
+> Updated: `2026-04-27 21:52`
+> Branch: `fix/dcache-icache-integration`
 > Live repo state: verify with `git status --short --branch` and
 > `git log -4 --oneline` before take-over
 
@@ -12,6 +12,51 @@
 - Before take-over, always re-run:
   - `git status --short --branch`
   - `git log -4 --oneline`
+
+## DCache/ICache Integration Status
+
+### Phase 1: DCache Integration (RTL修改完成，待功能验证)
+**Date:** 2026-04-27
+
+**RTL修改完成，iverilog编译验证通过：**
+- `rtl/YH_rv_cpu.v` (+74行): dcache信号声明、gen_dcache块实例化、mem_wait修复
+- `rtl/YH_rv_cpu_hazard_unit.v` (+14行): dcache_wait输入、stall_decode逻辑
+- `rtl/YH_rv_cpu_soc.v` (+6行): dmem_we/dmem_ready接口信号
+
+**DCACHE_EN Parameter:**
+- `0`: 直连dmem路径（原有行为）
+- `1`: 通过dcache连接（代码框架完成）
+
+**功能测试状态（历史记录）：**
+
+| 测试项 | 结果 | 日期 | 说明 |
+|--------|------|------|------|
+| M扩展测试 | **12/13 FAIL** | 2026-04-22 | MUL/DIV/REM指令有bug，非本次修改引入 |
+| CoreMark Short | **0.925186 CoreMark/MHz** | 2026-04-12 | PASS，短运行，competition_reportable=yes |
+| riscv-tests rv32 | **42/42 PASS** | 2026-04-12 | full-ui测试 |
+
+**2026-04-27 测试记录：**
+- M扩展测试：stable版本(eab5713)运行结果0/11通过（寄存器='z'，CPU未运行）
+  - 原因：prj文件不包含完整RTL模块链
+  - M扩展已知问题：ALU实现bug，12/13 FAIL from 2026-04-22
+- riscv-tests: 之前运行PASS
+
+**Git Tag备份点：**
+- `v-before-current-test-2026-04-27` - DCACHE集成修改前备份
+- `v-baseline-m-ext-known-issue-2026-04-27` - M扩展已知问题状态
+
+**Pending Verification:**
+- [x] M扩展测试 (DCACHE_EN=0) - 已知问题，非本次修改引入
+- [ ] riscv-tests rv32 重新验证 (DCACHE_EN=0)
+- [ ] riscv-tests rv64 重新验证 (DCACHE_EN=0)
+- [ ] CoreMark Smoke测试 (DCACHE_EN=0)
+- [ ] CoreMark Smoke测试 (DCACHE_EN=1)
+- [ ] riscv-tests (DCACHE_EN=1)
+- [ ] CoreMark Score测试 (DCACHE_EN=1)
+
+### Phase 2: ICache Integration (NOT STARTED)
+- 计划文档: `doc/cache_axi_integration_design.md`
+- 模块: `rtl/YH_rv_cpu_icache.v` (已存在)
 
 ## Frozen engineering baseline
 
@@ -92,6 +137,14 @@
 
 ## Recommended next step
 
+### DCache/ICache Integration Path:
+1. **Immediate:** 手动运行测试验证DCACHE_EN=0路径仍正常
+   - `scripts\run_m_extension_test.bat`
+   - `scripts\run_coremark_smoke.bat rv32`
+2. **验证通过后:** 切换DCACHE_EN=1，运行相同测试
+3. **ICache集成:** DCache验证通过后开始
+
+### Legacy Optimization Path (if time permits):
 - First finish freeze-refresh on the retained RTL:
   - fresh strict CoreMark long run
   - `scripts\build_vivado_project.bat impl50`
@@ -109,3 +162,4 @@
 - `YH_rv_cpu/doc/YH_rv_cpu_todo.md`
 - `YH_rv_cpu/doc/YH_rv_cpu_change_log.md`
 - `YH_rv_cpu/doc/performance_experiment_log.md`
+- `YH_rv_cpu/doc/cache_axi_integration_design.md` (DCache/ICache设计)

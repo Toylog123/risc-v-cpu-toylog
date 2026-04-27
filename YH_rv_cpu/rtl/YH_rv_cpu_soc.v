@@ -74,6 +74,8 @@ wire [XLEN-1:0] dmem_addr;     // 数据存储器地址
 wire [XLEN-1:0] dmem_rdata;    // 数据存储器读数据
 wire            dmem_rvalid;    // 数据读取有效
 wire            dmem_read_req;   // 数据读取请求
+wire            dmem_we;        // 数据写使能
+wire            dmem_ready;     // 写完成/内存就绪
 wire [XLEN-1:0] dmem_wdata;    // 数据写入数据
 wire [XLEN/8-1:0] dmem_wstrb; // 写字节使能
 
@@ -189,6 +191,8 @@ assign dmem_addr32 = dmem_addr[31:0];
 assign dmem_wdata_ext = {{(64-XLEN){1'b0}}, dmem_wdata};
 assign dmem_wstrb_ext = {{(8-STRB_W){1'b0}}, dmem_wstrb};
 assign dmem_write_en = |dmem_wstrb;
+assign dmem_we = dmem_write_en;  // 写使能信号
+assign dmem_ready = 1'b1;        // 同步内存始终就绪
 
     // ================================================================
     // 总线地址对齐
@@ -402,7 +406,9 @@ YH_rv_cpu #(
     .dmem_addr (dmem_addr),
     .dmem_rdata(dmem_rdata),
     .dmem_rvalid(dmem_rvalid),
+    .dmem_ready(dmem_ready),
     .dmem_read_req(dmem_read_req),
+    .dmem_we   (dmem_we),
     .dmem_wdata(dmem_wdata),
     .dmem_wstrb(dmem_wstrb),
     .trap      (trap),

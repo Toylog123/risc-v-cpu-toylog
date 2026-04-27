@@ -1,0 +1,36 @@
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/tb/YH_rv_cpu_soc_tb.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_soc_tb
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/tb/YH_rv_cpu_tb.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_tb
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_soc.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_soc
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_sync_imem_rom.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_sync_imem_rom
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_sync_rom32.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_sync_rom32
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_dmem_ram.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_dmem_ram
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_if_stage.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_if_stage
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_id_stage.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_id_stage
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_ex_stage.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_ex_stage
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_mem_stage.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_mem_stage
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_wb_stage.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_wb_stage
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_hazard_unit.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_hazard_unit
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_decoder.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_decoder
+WARNING: [VRFC 10-8497] literal value 'd16 truncated to fit in 4 bits [D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_decoder.v:444]
+WARNING: [VRFC 10-8497] literal value 'd17 truncated to fit in 4 bits [D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_decoder.v:453]
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_regfile.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_regfile
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_alu.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_alu
+WARNING: [VRFC 10-8497] literal value 'd16 truncated to fit in 4 bits [D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_alu.v:194]
+WARNING: [VRFC 10-8497] literal value 'd17 truncated to fit in 4 bits [D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_alu.v:206]

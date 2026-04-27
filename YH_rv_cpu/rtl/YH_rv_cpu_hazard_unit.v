@@ -49,7 +49,12 @@ module YH_rv_cpu_hazard_unit (
     // ------------------------------------------------------------
     output wire        stall_decode,        // 译码阶段暂停信号
     output reg  [1:0]  forward_a_sel,      // rs1 数据转发选择
-    output reg  [1:0]  forward_b_sel       // rs2 数据转发选择
+    output reg  [1:0]  forward_b_sel,       // rs2 数据转发选择
+
+    // ------------------------------------------------------------
+    // DCache 等待信号 (DCACHE_EN=1时使用)
+    // ------------------------------------------------------------
+    input  wire        dcache_wait          // DCache busy信号，阻止流水线前进
 );
 
     // ------------------------------------------------------------
@@ -71,9 +76,10 @@ assign load_use_hazard =
         (if_id_rs2_en && (if_id_rs2_addr == id_ex_rd_addr))
     );
 
-    // 同步数据存储器路径下，额外等待周期由 mem_wait 冻住流水线，
-    // 因此这里只保留真正的 ID/EX load-use 冒险停顿。
-assign stall_decode = load_use_hazard;
+    // 停顿条件: load-use冒险 或 DCache等待
+    // DCACHE_EN=0时dcache_wait=0，不影响
+    // DCACHE_EN=1时dcache_wait会阻止流水线直到dcache完成访问
+assign stall_decode = load_use_hazard || dcache_wait;
 
     // ------------------------------------------------------------
     // 数据转发选择逻辑

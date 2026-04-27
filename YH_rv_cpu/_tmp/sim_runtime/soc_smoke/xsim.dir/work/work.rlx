@@ -1,0 +1,21 @@
+0.7
+2020.2
+Nov 14 2025
+19:37:27
+D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu.v,1775983104,systemVerilog,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_if_stage.v,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_defs.vh,YH_rv_cpu,,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl,,,,,
+D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_alu.v,1776865032,systemVerilog,,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_defs.vh,YH_rv_cpu_alu,,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl,,,,,
+D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_decoder.v,1776858860,systemVerilog,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_regfile.v,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_defs.vh,YH_rv_cpu_decoder,,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl,,,,,
+D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_defs.vh,1776858612,verilog,,,,,,,,,,,,
+D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_ex_stage.v,1775030543,systemVerilog,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_mem_stage.v,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_defs.vh,YH_rv_cpu_ex_stage,,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl,,,,,
+D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_hazard_unit.v,1775220392,systemVerilog,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_decoder.v,,YH_rv_cpu_hazard_unit,,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl,,,,,
+D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_id_stage.v,1775030470,systemVerilog,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_ex_stage.v,,YH_rv_cpu_id_stage,,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl,,,,,
+D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_if_stage.v,1775030432,systemVerilog,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_id_stage.v,,YH_rv_cpu_if_stage,,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl,,,,,
+D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_mem_stage.v,1775030589,systemVerilog,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_wb_stage.v,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_defs.vh,YH_rv_cpu_mem_stage,,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl,,,,,
+D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_regfile.v,1775030423,systemVerilog,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_alu.v,,YH_rv_cpu_regfile,,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl,,,,,
+D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_soc.v,1775543797,systemVerilog,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_sync_imem_rom.v,,YH_rv_cpu_soc,,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl,,,,,
+D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_wb_stage.v,1775030601,systemVerilog,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_hazard_unit.v,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_defs.vh,YH_rv_cpu_wb_stage,,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl,,,,,
+D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_dmem_ram.v,1776589380,systemVerilog,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu.v,,YH_rv_dmem_ram,,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl,,,,,
+D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_sync_imem_rom.v,1776589482,systemVerilog,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_sync_rom32.v,,YH_rv_sync_imem_rom,,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl,,,,,
+D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_sync_rom32.v,1776589482,systemVerilog,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_dmem_ram.v,,YH_rv_sync_rom32,,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl,,,,,
+D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/tb/YH_rv_cpu_soc_tb.v,1773798783,systemVerilog,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/tb/YH_rv_cpu_tb.v,,YH_rv_cpu_soc_tb,,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl,,,,,
+D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/tb/YH_rv_cpu_tb.v,1773798869,systemVerilog,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl/YH_rv_cpu_soc.v,,YH_rv_cpu_tb,,,D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/rtl,,,,,

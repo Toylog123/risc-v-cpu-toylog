@@ -1,0 +1,80 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Wed Apr 22 21:42:34 2026
+# Process ID         : 42868
+# Current directory  : D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/_tmp/sim_runtime/m_extension
+# Command line       : xsim.exe -mode tcl -source {xsim.dir/m_extension_snapshot/xsim_script.tcl}
+# Log file           : D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/_tmp/sim_runtime/m_extension/xsim.log
+# Journal file       : D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/_tmp/sim_runtime/m_extension\xsim.jou
+# Running On         : Toylog_desktop
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26200
+# Processor Detail   : AMD Ryzen 7 7435H
+# CPU Frequency      : 3094 MHz
+# CPU Physical cores : 8
+# CPU Logical cores  : 16
+# Host memory        : 34082 MB
+# Swap memory        : 2147 MB
+# Total Virtual      : 36230 MB
+# Available Virtual  : 12227 MB
+#-----------------------------------------------------------
+source xsim.dir/m_extension_snapshot/xsim_script.tcl
+# xsim {m_extension_snapshot} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+========================================
+RISC-V M扩展指令测试开始
+========================================
+
+[TEST 1] MUL: 5 * 3
+  PASS: x3 = 15 (expected 15)
+
+[TEST 2] MULH: (-2) * (-3) 高位
+  FAIL: x3 = 15 (expected 0)
+
+[TEST 3] MULHU: 0x80000000 * 2 高位
+  FAIL: x3 = 15 (expected 1)
+
+[TEST 4] MULHSU: (-1) * 2 高位
+  FAIL: x3 = 0x0000000f (expected 0xFFFFFFFF)
+
+[TEST 5] DIV: 10 / 3
+  FAIL: x3 = 15 (expected 3)
+
+[TEST 6] DIV: (-10) / 3
+  FAIL: x3 = 15 (expected -3)
+
+[TEST 7] DIVU: 10 / 3 (unsigned)
+  FAIL: x3 = 15 (expected 3)
+
+[TEST 8] REM: 10 % 3
+  FAIL: x3 = 15 (expected 1)
+
+[TEST 9] REM: (-10) % 3
+  FAIL: x3 = 15 (expected -1)
+
+[TEST 10] REMU: 10 % 3 (unsigned)
+  FAIL: x3 = 15 (expected 1)
+
+[TEST 11] DIV: 10 / 0 (division by zero)
+  FAIL: x3 = 0x0000000f (expected 0xFFFFFFFF, -1)
+
+[TEST 12] DIVU: 10 / 0 (division by zero unsigned)
+  FAIL: x3 = 0x0000000f (expected 0xFFFFFFFF)
+
+[TEST 13] REM: 10 % 0 (division by zero)
+  FAIL: x3 = 15 (expected 10)
+
+========================================
+测试完成
+总测试数: 13
+通过: 1
+失败: 12
+结果: 有测试失败
+========================================
+$finish called at time : 9320 ns : File "D:/BaiduSyncdisk/02_icdc_workspace/YH_rv_cpu/tb/YH_rv_cpu_m_extension_tb.v" Line 526
+exit
+INFO: [Common 17-206] Exiting xsim at Wed Apr 22 21:42:35 2026...
