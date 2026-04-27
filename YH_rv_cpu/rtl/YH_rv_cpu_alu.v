@@ -64,8 +64,8 @@ assign lhs_ext_signed = {{32{lhs[31]}}, lhs};
 assign lhs_ext_unsigned = {32'b0, lhs};
 assign rhs_ext_signed = {{32{rhs[31]}}, rhs};
 assign rhs_ext_unsigned = {32'b0, rhs};
-assign mul_signed = lhs_ext_signed * rhs_ext_signed;
-assign mul_mix = lhs_ext_signed * rhs_ext_unsigned;
+assign mul_signed = $signed({{32{lhs[31]}}, lhs}) * $signed({{32{rhs[31]}}, rhs});
+assign mul_mix = $signed({{32{lhs[31]}}, lhs}) * {32'b0, rhs};
 
 // ------------------------------------------------------------
 // 主运算单元 (组合逻辑)
@@ -101,7 +101,7 @@ always @* begin
         // MULHSU: 混合乘法高位 (lhs有符号, rhs无符号)
         `YH_rv_cpu_ALU_MULHSU: result = mul_mix[63:32];
         // MULHU: 无符号乘法高位
-        `YH_rv_cpu_ALU_MULHU: result = mul_mix[63:32];
+        `YH_rv_cpu_ALU_MULHU: result = {32'b0, lhs} * {32'b0, rhs};
         // DIV: 有符号除法
         `YH_rv_cpu_ALU_DIV:  result = (rhs == 0) ? {XLEN{1'b1}} : $signed(lhs) / $signed(rhs);
         // DIVU: 无符号除法
