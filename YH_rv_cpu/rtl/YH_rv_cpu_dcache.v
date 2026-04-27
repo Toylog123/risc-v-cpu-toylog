@@ -326,14 +326,26 @@ end
 assign cache_we = (state_r == STATE_REFILL && mem_rvalid) ||
                   (state_r == STATE_WRITE && cache_hit);
 
+wire [31:0] cache_rdata_q;
+assign cache_rdata_q = cache_data[cache_line_idx + write_word_offset_r];
+
 always @(posedge clk) begin
     if (cache_we) begin
         for (way = 0; way < ASSOC; way = way + 1) begin
             if (write_way_oh_r[way]) begin
                 cache_line_idx = write_index_r * ASSOC + way;
                 if ((state_r == STATE_WRITE) && cache_hit) begin
-                    // 写入单个字
-                    cache_data[cache_line_idx + write_word_offset_r] <= cpu_wdata;
+                    // 根据byte_strb执行部分写入
+                    if (byte_strb == 4'b1111) begin
+                        cache_data[cache_line_idx + write_word_offset_r] <= cpu_wdata;
+                    end else begin
+                        // 字节使能的部分写入 - 读-修改-写
+                        cache_data[cache_line_idx + write_word_offset_r] <=
+                            (byte_strb[0] ? cpu_wdata[7:0] : cache_rdata_q[7:0]) |
+                            (byte_strb[1] ? {cpu_wdata[15:8], 8'h0} : {cache_rdata_q[15:8], 8'h0}) |
+                            (byte_strb[2] ? {cpu_wdata[23:16], 16'h0} : {cache_rdata_q[23:16], 16'h0}) |
+                            (byte_strb[3] ? {cpu_wdata[31:24], 24'h0} : {cache_rdata_q[31:24], 24'h0});
+                    end
                     cache_dirty[cache_line_idx] <= 1'b1;
                 end else begin
                     // 填充整个块
@@ -341,7 +353,7 @@ always @(posedge clk) begin
                 end
             end
         end
-        
+
         if (state_r == STATE_REFILL && refill_offset_r == BLOCK_WORDS - 1) begin
             for (way = 0; way < ASSOC; way = way + 1) begin
                 if (write_way_oh_r[way]) begin
