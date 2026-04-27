@@ -12,7 +12,6 @@ module YH_rv_cpu_coremark_tb #(
 localparam integer VALID_MSG_LEN = 13;
 localparam integer SCORE_MSG_LEN = 16;
 
-// Baseline CoreMark bench that validates completion from UART output and done/trap flags.
 reg                clk;
 reg                rst_n;
 wire               trap;
@@ -32,7 +31,6 @@ integer score_match_idx;
 reg     valid_found;
 reg     score_found;
 
-// The score bench runs through the SoC wrapper so it exercises ROM, RAM, UART, and done wiring.
 YH_rv_cpu_soc #(
     .XLEN(XLEN),
     .SYNC_DMEM(1),
@@ -58,7 +56,6 @@ always @(posedge clk) begin
         cycle <= cycle + 1;
 
         if (uart_tx_valid) begin
-            // Track the banner strings directly from UART bytes to avoid a software-side parser.
             uart_count <= uart_count + 1;
             $write("%c", uart_tx_data);
 
@@ -93,7 +90,6 @@ always @(posedge clk) begin
             $display("CYCLE=%0d PC=%h", cycle, debug_pc);
         end
 
-        // Treat trap and timeout as immediate failures so long runs fail loud in CI.
         if (trap) begin
             $fatal(1, "\nFAIL: coremark trap asserted at PC=%h cycle=%0d", debug_pc, cycle);
         end
@@ -119,7 +115,6 @@ always @(posedge clk) begin
 end
 
 initial begin
-    // Initialize clocks, reset, counters, and the two banner matchers before releasing reset.
     clk = 1'b0;
     rst_n = 1'b0;
     cycle = 0;

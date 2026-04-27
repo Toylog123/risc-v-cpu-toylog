@@ -1,4 +1,3 @@
-`timescale 1ns / 1ps
 // ============================================================
 // YH_rv_cpu.v
 // Author: Toylog
@@ -24,9 +23,6 @@ module YH_rv_cpu #(
     parameter integer IMEM_SYNC = 0,        // 指令存储器同步模式
     parameter integer IMEM_OUTPUT_REG = 0,  // 指令存储器输出寄存器
     parameter integer DMEM_SYNC = 0,        // 数据存储器同步模式
-    parameter integer DCACHE_EN = 0,        // 数据缓存使能: 0=禁用, 1=启用
-    parameter integer ICACHE_EN = 0,        // 指令缓存使能: 0=禁用, 1=启用
-    parameter integer C_EXT = 0,            // C扩展 (压缩指令) 支持: 0=禁用, 1=启用 (预留)
     parameter [XLEN-1:0] RESET_VECTOR = {XLEN{1'b0}}  // 复位向量地址
 ) (
     // ------------------------------------------------------------
@@ -47,6 +43,7 @@ module YH_rv_cpu #(
     output wire [XLEN-1:0] imem_addr,       // 取指地址
     input  wire [31:0]     imem_rdata,      // 指令数据
     input  wire            imem_rvalid,      // 取指有效
+
     // ------------------------------------------------------------
     // 数据存储器接口
     // ------------------------------------------------------------
@@ -64,15 +61,9 @@ module YH_rv_cpu #(
     output wire [XLEN-1:0] debug_pc         // 调试 PC 值
 );
 
-// ================================================================
-// 内部信号: if_stage输出到icache或直接到外部内存
-// ================================================================
-wire [XLEN-1:0] if_imem_addr;
-wire            if_imem_req;
-
-// ================================================================
-// 流水线寄存器定义
-// ================================================================
+    // ================================================================
+    // 流水线寄存器定义
+    // ================================================================
 
     // ------------------------------------------------------------
     // PC 和取指阶段相关寄存器
@@ -116,7 +107,7 @@ reg            id_ex_illegal_r;                     // 非法指令
 reg [XLEN-1:0] id_ex_rs1_value_r;                  // rs1 值
 reg [XLEN-1:0] id_ex_rs2_value_r;                  // rs2 值
 reg [XLEN-1:0] id_ex_imm_r;                       // 立即数
-(* max_fanout = 16 *) reg [4:0]      id_ex_alu_op_r;   // ALU 操作码
+(* max_fanout = 16 *) reg [3:0]      id_ex_alu_op_r;   // ALU 操作码
 reg            id_ex_alu_src1_pc_r;                  // ALU 源 1 选择
 reg            id_ex_alu_src2_imm_r;                 // ALU 源 2 选择
 reg            id_ex_branch_r;                       // 分支标志
@@ -186,7 +177,7 @@ wire            id_rs2_en;
 wire            id_rd_en;
 wire            id_illegal;
 wire [XLEN-1:0] id_imm;
-wire [4:0]      id_alu_op;
+wire [3:0]      id_alu_op;
 wire            id_alu_src1_pc;
 wire            id_alu_src2_imm;
 wire            id_branch;
@@ -362,7 +353,7 @@ assign debug_pc = pc_r;
     // ================================================================
     // 取指请求逻辑
     // ================================================================
-assign if_imem_req = (IMEM_SYNC != 0) && !trap_r && !mem_wait && !stall_decode && !fetch_control_redirect_valid;
+assign imem_req = (IMEM_SYNC != 0) && !trap_r && !mem_wait && !stall_decode && !fetch_control_redirect_valid;
 
     // ================================================================
     // 执行阶段前递数据选择
@@ -506,183 +497,11 @@ assign fetch_reuse_redirect_valid = ex_redirect_valid;
 assign fetch_reuse_redirect_pc = ex_redirect_pc;
 
     // ================================================================
-    // 访存阶段输出信号 (中间变量，避免多驱动)
+    // 内存等待信号 (同步内存访问)
     // ================================================================
-wire [XLEN-1:0] mem_stage_dmem_addr;
-wire            mem_stage_dmem_read_req;
-wire [XLEN-1:0] mem_stage_dmem_wdata;
-wire [XLEN/8-1:0] mem_stage_dmem_wstrb;
-wire [XLEN-1:0] mem_stage_dmem_rdata;
-wire [XLEN-1:0] mem_stage_load_data;
+assign mem_wait = (DMEM_SYNC != 0) && ex_mem_valid_r && ex_mem_load_r && !dmem_rvalid;
 
-// ================================================================
-    // 数据缓存接口信号 (DCACHE_EN=1时使用)
     // ================================================================
-wire [XLEN-1:0] dcache_cpu_addr;
-wire            dcache_cpu_req;
-wire            dcache_cpu_we;
-wire [XLEN-1:0] dcache_cpu_wdata;
-wire [XLEN/8-1:0] dcache_cpu_wstrb;
-wire [1:0]      dcache_cpu_size;
-wire [XLEN-1:0] dcache_cpu_rdata;
-wire            dcache_cpu_rvalid;
-wire            dcache_cpu_wait;
-
-wire [XLEN-1:0] dcache_mem_addr;
-wire            dcache_mem_req;
-wire            dcache_mem_we;
-wire [31:0]     dcache_mem_wdata;
-wire [3:0]      dcache_mem_wstrb;
-wire [31:0]     dcache_mem_rdata;
-wire            dcache_mem_rvalid;
-wire            dcache_mem_ready;
-
-// ================================================================
-// 指令缓存接口信号 (ICACHE_EN=1时使用)
-// ================================================================
-wire [XLEN-1:0] icache_cpu_addr;
-wire            icache_cpu_req;
-wire [31:0]    icache_cpu_rdata;
-wire            icache_cpu_rvalid;
-wire            icache_cpu_wait;
-
-wire [XLEN-1:0] icache_mem_addr;
-wire            icache_mem_req;
-wire            icache_mem_we;
-wire [31:0]     icache_mem_wdata;
-wire [3:0]      icache_mem_wstrb;
-wire [31:0]     icache_mem_rdata;
-wire            icache_mem_rvalid;
-
-// ICache muxed signals (between icache and external memory when ICACHE_EN=1)
-wire [31:0]     icache_en_rdata;      // Muxed instruction data
-wire            icache_en_rvalid;     // Muxed instruction valid
-wire [XLEN-1:0] if_imem_addr_out;    // Muxed address output
-wire            if_imem_req_out;       // Muxed request output
-wire            if_wait;              // ICache wait signal
-
-// ================================================================
-    // 数据缓存模块 (可选)
-    // ================================================================
-generate
-    if (DCACHE_EN == 1) begin : gen_dcache
-        YH_rv_cpu_dcache #(
-            .XLEN(XLEN),
-            .CACHE_SIZE(4096),
-            .BLOCK_SIZE(32),
-            .ASSOC(1),
-            .WRITE_POLICY(0)
-        ) u_dcache (
-            .clk            (clk),
-            .rst_n          (rst_n),
-            .cpu_addr       (dcache_cpu_addr),
-            .cpu_req        (dcache_cpu_req),
-            .cpu_we         (dcache_cpu_we),
-            .cpu_wdata      (dcache_cpu_wdata),
-            .cpu_wstrb      (dcache_cpu_wstrb),
-            .cpu_size       (dcache_cpu_size),
-            .cpu_rdata      (dcache_cpu_rdata),
-            .cpu_rvalid     (dcache_cpu_rvalid),
-            .cpu_wait       (dcache_cpu_wait),
-            .mem_addr       (dcache_mem_addr),
-            .mem_req        (dcache_mem_req),
-            .mem_we         (dcache_mem_we),
-            .mem_wdata      (dcache_mem_wdata),
-            .mem_wstrb      (dcache_mem_wstrb),
-            .mem_rdata      (dcache_mem_rdata),
-            .mem_rvalid     (dcache_mem_rvalid),
-            .mem_ready      (dcache_mem_ready)
-        );
-
-        // DCache CPU侧连接 - 来自mem_stage输出
-        assign dcache_cpu_addr  = mem_stage_dmem_addr;
-        assign dcache_cpu_req   = mem_stage_dmem_read_req;
-        assign dcache_cpu_we    = ex_mem_store_r;
-        assign dcache_cpu_wdata = mem_stage_dmem_wdata;
-        assign dcache_cpu_wstrb = mem_stage_dmem_wstrb;
-        assign dcache_cpu_size  = ex_mem_mem_size_r;
-
-        // DCache返回数据给mem_stage
-        assign mem_stage_load_data = dcache_cpu_rvalid ? dcache_cpu_rdata : {XLEN{1'b0}};
-
-        // 外部dmem信号由dcache的mem接口驱动
-        assign dmem_addr     = dcache_mem_addr[XLEN-1:0];
-        assign dmem_read_req = dcache_mem_req;
-        assign dmem_we       = dcache_mem_we;
-        assign dmem_wdata    = dcache_mem_wdata;
-        assign dmem_wstrb    = dcache_mem_wstrb;
-        assign dcache_mem_rdata  = dmem_rdata;
-        assign dcache_mem_rvalid = dmem_rvalid;
-        assign dcache_mem_ready  = 1'b1;
-
-        // mem_wait由dcache_cpu_wait驱动
-        wire mem_wait_base;
-        assign mem_wait_base = (DMEM_SYNC != 0) && ex_mem_valid_r && ex_mem_load_r && !dmem_rvalid;
-        assign mem_wait = mem_wait_base || dcache_cpu_wait;
-    end
-endgenerate
-
-// ================================================================
-// 指令缓存模块 (可选)
-// ================================================================
-generate
-    if (ICACHE_EN == 1) begin : gen_icache
-        YH_rv_cpu_icache #(
-            .XLEN(XLEN),
-            .CACHE_SIZE(4096),
-            .BLOCK_SIZE(32),
-            .ASSOC(1),
-            .CACHE_ID(0)
-        ) u_icache (
-            .clk            (clk),
-            .rst_n          (rst_n),
-            .cpu_addr       (icache_cpu_addr),
-            .cpu_req        (icache_cpu_req),
-            .cpu_rdata      (icache_cpu_rdata),
-            .cpu_rvalid     (icache_cpu_rvalid),
-            .cpu_wait       (icache_cpu_wait),
-            .mem_addr       (icache_mem_addr),
-            .mem_req        (icache_mem_req),
-            .mem_we         (icache_mem_we),
-            .mem_wdata      (icache_mem_wdata),
-            .mem_wstrb      (icache_mem_wstrb),
-            .mem_rdata      (icache_mem_rdata),
-            .mem_rvalid     (icache_mem_rvalid)
-        );
-
-        // ICache CPU侧连接 - 来自if_stage输出
-        assign icache_cpu_addr = if_imem_addr;     // 来自if_stage的地址
-        assign icache_cpu_req = if_imem_req;       // 使用流水线请求信号
-
-        // ICache返回数据给流水线 - 通过mux选择
-        assign icache_en_rdata = icache_cpu_rdata;
-        assign icache_en_rvalid = icache_cpu_rvalid;
-
-        // 外部imem信号由icache的mem接口驱动
-        assign if_imem_addr_out = icache_mem_addr[XLEN-1:0];
-        assign if_imem_req_out = icache_mem_req;
-        assign icache_mem_rdata = imem_rdata;
-        assign icache_mem_rvalid = imem_rvalid;
-
-        // if_wait由icache_cpu_wait驱动
-        assign if_wait = icache_cpu_wait;
-    end else begin : gen_no_icache
-        // 无icache时，使用直接连接
-        assign icache_en_rdata = imem_rdata;
-        assign icache_en_rvalid = imem_rvalid;
-        assign if_imem_addr_out = if_imem_addr;
-        assign if_imem_req_out = if_imem_req;
-        assign if_wait = 1'b0;
-    end
-endgenerate
-
-// ================================================================
-// 顶层端口赋值
-// ================================================================
-assign imem_addr = if_imem_addr_out;
-assign imem_req = if_imem_req_out;
-
-// ================================================================
     // 取指响应 PC 和有效信号
     // ================================================================
 assign fetch_rsp_pc = (IMEM_OUTPUT_REG != 0) ? fetch_pc_d1_r : fetch_pc_r;
@@ -799,7 +618,7 @@ assign ex_exec_result_final = id_ex_csr_valid_r ? csr_rdata_ex : ex_exec_result;
     // ================================================================
     // 流水线运行条件
     // ================================================================
-assign pipeline_run = !trap_r && !mem_wait && !if_wait;
+assign pipeline_run = !trap_r && !mem_wait;
 
     // ================================================================
     // CSR 写操作触发
@@ -950,19 +769,14 @@ end
 
     // 取指阶段
 YH_rv_cpu_if_stage #(
-    .XLEN(XLEN),
-    .C_EXT(C_EXT),
-    .ICACHE_EN(ICACHE_EN)
+    .XLEN(XLEN)
 ) u_if_stage (
     .pc_current  (pc_r),
     .redirect_en (fetch_control_redirect_valid),
     .redirect_pc (fetch_control_redirect_pc),
-    .instr_raw   (icache_en_rdata[15:0]),       // C扩展预留: 用于判断压缩指令
-    .imem_addr   (if_imem_addr),
+    .imem_addr   (imem_addr),
     .pc_next     (if_pc_next),
-    .pc_plus_4   (),
-    .pc_plus_2   (),                       // C扩展预留
-    .instr_is_compressed ()               // C扩展预留
+    .pc_plus_4   ()
 );
 
     // 寄存器堆
@@ -1111,28 +925,13 @@ YH_rv_cpu_mem_stage #(
     .store_wstrb_in(ex_mem_store_wstrb_r),
     .mem_size      (ex_mem_mem_size_r),
     .mem_unsigned  (ex_mem_mem_unsigned_r),
-    .dmem_rdata    (mem_stage_dmem_rdata),
-    .dmem_addr     (mem_stage_dmem_addr),
-    .dmem_read_req (mem_stage_dmem_read_req),
-    .dmem_wdata    (mem_stage_dmem_wdata),
-    .dmem_wstrb    (mem_stage_dmem_wstrb),
-    .load_data     (mem_stage_load_data)
+    .dmem_rdata    (dmem_rdata),
+    .dmem_addr     (dmem_addr),
+    .dmem_read_req (dmem_read_req),
+    .dmem_wdata    (dmem_wdata),
+    .dmem_wstrb    (dmem_wstrb),
+    .load_data     (mem_load_data)
 );
-
-    // ================================================================
-    // 当DCACHE禁用时，直接连接mem_stage到外部dmem
-    // ================================================================
-generate
-    if (DCACHE_EN == 0) begin : gen_no_dcache
-        assign dmem_addr     = mem_stage_dmem_addr;
-        assign dmem_read_req = mem_stage_dmem_read_req;
-        assign dmem_wdata    = mem_stage_dmem_wdata;
-        assign dmem_wstrb    = mem_stage_dmem_wstrb;
-        assign mem_stage_dmem_rdata = dmem_rdata;
-        assign mem_stage_load_data  = dmem_rvalid ? dmem_rdata : {XLEN{1'b0}};
-        assign mem_wait = (DMEM_SYNC != 0) && ex_mem_valid_r && ex_mem_load_r && !dmem_rvalid;
-    end
-endgenerate
 
     // 写回阶段
 YH_rv_cpu_wb_stage #(

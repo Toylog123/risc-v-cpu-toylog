@@ -2,17 +2,14 @@
 setlocal
 
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
-rem This smoke run checks trap entry/return wiring with a dedicated firmware image.
 set XVLOG=
 set XELAB=
 set XSIM=
 set XSIM_RUN_DIR=
 
-rem Rebuild the trap-focused firmware before launching simulation.
 call "%~dp0build_firmware.bat" trap_smoke
 if errorlevel 1 exit /b 1
 
-rem Resolve simulator tools from PATH so the script works across lab machines.
 for %%T in (xvlog.bat xvlog) do (
     where %%T >nul 2>nul
     if not errorlevel 1 (
@@ -58,14 +55,12 @@ if not defined XSIM (
 call "%~dp0prepare_xsim_runtime.bat" trap_smoke XSIM_RUN_DIR
 if not defined XSIM_RUN_DIR exit /b 1
 
-rem Stage the trap firmware image inside the isolated runtime tree.
 if not exist "%XSIM_RUN_DIR%\build\sw" mkdir "%XSIM_RUN_DIR%\build\sw"
 copy /y "%PROJECT_DIR%\build\sw\YH_rv_cpu_trap_smoke.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_trap_smoke.hex" >nul
 if errorlevel 1 exit /b 1
 
 pushd "%XSIM_RUN_DIR%"
 
-rem Compile the trap bench with the shared SoC and pipeline RTL.
 call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_trap_tb.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_soc.v" ^

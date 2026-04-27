@@ -3,7 +3,6 @@ setlocal EnableDelayedExpansion
 
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
 set TARGET=%~1
-rem Optional arguments let us shrink iterations for quick probes or preserve dated summaries.
 set ITERATIONS=%~2
 set DATA_SIZE=%~3
 set TIMER_HZ=%~4
@@ -21,12 +20,10 @@ if "%MAX_CYCLES%"=="" set MAX_CYCLES=20000000
 if "%EXEC_MASK%"=="" set EXEC_MASK=1
 set BUILD_OUTPUT_NAME=YH_rv_cpu_coremark_%TARGET%_fpga
 
-rem Default summary path matches the software build artifact layout.
 if "%SUMMARY_FILE%"=="" (
     set SUMMARY_FILE=%PROJECT_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%_fpga.summary.txt
 )
 
-rem Build once with the requested execution mask before invoking simulation.
 call "%~dp0build_coremark.bat" %TARGET% %ITERATIONS% %DATA_SIZE% %TIMER_HZ% %EXEC_MASK% %BUILD_OUTPUT_NAME%
 if errorlevel 1 exit /b 1
 
@@ -37,7 +34,6 @@ set PYTHON_CMD=
 set TEST_TOP=YH_rv_cpu_coremark_fpga_tb
 set LOG_FILE=%PROJECT_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%_fpga.log
 
-rem Resolve simulator binaries from whichever Vivado installation is active.
 for %%T in (xvlog.bat xvlog) do (
     where %%T >nul 2>nul
     if not errorlevel 1 (
@@ -89,7 +85,6 @@ if not defined PYTHON_CMD (
 call "%~dp0prepare_xsim_runtime.bat" coremark_fpga XSIM_RUN_DIR
 if not defined XSIM_RUN_DIR exit /b 1
 
-rem Stage images inside an isolated runtime tree so repeated runs do not reuse stale data.
 if not exist "%XSIM_RUN_DIR%\build\sw" mkdir "%XSIM_RUN_DIR%\build\sw"
 copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%.hex" >nul
 if errorlevel 1 exit /b 1
@@ -100,7 +95,6 @@ if exist "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.mem32.hex" (
 
 pushd "%XSIM_RUN_DIR%"
 
-rem Use the FPGA-style bench with the full SoC stack to approximate bring-up behavior.
 call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_fpga_tb.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_soc.v" ^
@@ -125,7 +119,6 @@ if errorlevel 1 goto :fail
 call %XSIM% %TEST_TOP%_snapshot -testplusarg "max_cycles=%MAX_CYCLES%" -runall > "%LOG_FILE%" 2>&1
 type "%LOG_FILE%"
 
-rem Convert the raw log into the same summary schema used by the score flow.
 findstr /c:"PASS: coremark completed" "%LOG_FILE%" >nul
 if errorlevel 1 goto :fail
 

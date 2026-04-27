@@ -1,9 +1,6 @@
 ﻿@echo off
 setlocal
 
-rem Quick environment probe used before syntax, firmware and Vivado runs.
-rem STATUS only tracks required tools; recommended tools are reported but do not fail the script.
-
 set STATUS=0
 set RISCV_GCC=
 set RISCV_OBJDUMP=
@@ -15,7 +12,6 @@ set USER_HOME=%USERPROFILE%
 set RISCV_XPACK_ROOT=%USER_HOME%\AppData\Roaming\xPacks\@xpack-dev-tools\riscv-none-elf-gcc
 set IVL_SCOOP_ROOT=%USER_HOME%\scoop\apps\iverilog
 
-rem iverilog is the minimum required local syntax checker.
 echo [Required] RTL syntax tool
 where iverilog >nul 2>nul
 if errorlevel 1 (
@@ -36,7 +32,6 @@ if errorlevel 1 (
 :iverilog_done
 if defined IVL_CMD echo   FOUND: %IVL_CMD%
 
-rem Cross compiler is required for firmware, riscv-tests and CoreMark payload generation.
 echo [Required] RISC-V compiler
 for %%T in (riscv-none-elf-gcc riscv32-unknown-elf-gcc riscv64-unknown-elf-gcc) do (
     where %%T >nul 2>nul
@@ -59,7 +54,6 @@ if not defined RISCV_GCC (
 :gcc_echo
 if defined RISCV_GCC echo   FOUND: %RISCV_GCC%
 
-rem objdump/objcopy are recommended because most build flows expect both.
 echo [Recommended] Binary utilities
 for %%T in (riscv-none-elf-objdump riscv32-unknown-elf-objdump riscv64-unknown-elf-objdump) do (
     where %%T >nul 2>nul
@@ -101,7 +95,6 @@ if not defined RISCV_OBJCOPY (
 :objcopy_echo
 if defined RISCV_OBJCOPY echo   FOUND objcopy: %RISCV_OBJCOPY%
 
-rem xsim/vsim availability decides whether local simulation regressions can run.
 echo [Recommended] Functional simulator
 for %%T in (xsim vsim) do (
     where %%T >nul 2>nul
@@ -127,7 +120,6 @@ if defined RTL_SIM (
     echo   MISSING xsim / vsim
 )
 
-rem Vivado is only recommended here because pure simulation work can proceed without it.
 echo [Recommended] FPGA tool
 where vivado >nul 2>nul
 if not errorlevel 1 (

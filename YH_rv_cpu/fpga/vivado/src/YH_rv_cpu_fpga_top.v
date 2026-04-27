@@ -16,7 +16,6 @@ module YH_rv_cpu_fpga_top #(
     output wire [3:0] led
 );
 
-// Keep reset release conservative on board so clocks and ROM outputs settle first.
 reg [7:0] reset_sync_r;
 
 wire       soc_rst_n;
@@ -31,7 +30,6 @@ wire       uart_tx_busy;
 
 wire unused_uart_rx;
 
-// LEDs expose coarse-grained bring-up status without needing ILA or UART capture.
 assign soc_rst_n = &reset_sync_r;
 assign led[0] = soc_rst_n;
 assign led[1] = done;
@@ -48,7 +46,6 @@ always @(posedge CLK100MHZ or negedge cpu_resetn) begin
     end
 end
 
-// The FPGA top is intentionally thin: instantiate the SoC and forward a UART TX path.
 YH_rv_cpu_soc #(
     .XLEN             (XLEN),
     .SYNC_IMEM        (1),
@@ -71,7 +68,6 @@ YH_rv_cpu_soc #(
     .timer_irq    (timer_irq)
 );
 
-// UART TX is the only live peripheral path needed for the current bring-up flow.
 YH_rv_uart_tx #(
     .CLK_FREQ_HZ(CLK_FREQ_HZ),
     .BAUD_RATE  (UART_BAUD)

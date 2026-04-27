@@ -11,7 +11,6 @@ module YH_rv_sync_imem_rom #(
     output wire        rvalid
 );
 
-// Simple synchronous ROM used by the instruction fetch path in SoC and FPGA flows.
 (* rom_style = "block" *) reg [31:0] rom_mem [0:ROM_WORDS-1];
 reg [31:0] rdata_r;
 reg [31:0] rdata_pipe_r;
@@ -23,14 +22,12 @@ wire [ROM_ADDR_W-1:0]  word_addr;
 
 integer idx;
 
-// Optional output register models the extra timing stage used in FPGA-oriented builds.
 assign rdata = (OUTPUT_REG != 0) ? rdata_pipe_r : rdata_r;
 assign rvalid = (OUTPUT_REG != 0) ? rvalid_pipe_r : rvalid_r;
 assign word_hit = (word_index < ROM_WORDS);
 assign word_addr = word_index[ROM_ADDR_W-1:0];
 
 initial begin
-    // Uninitialized locations default to NOP so the fetch path fails soft in simulation.
     for (idx = 0; idx < ROM_WORDS; idx = idx + 1) begin
         rom_mem[idx] = 32'h0000_0013;
     end
@@ -46,7 +43,6 @@ initial begin
 end
 
 always @(posedge clk) begin
-    // Only in-range accesses raise valid, but data is read from the same ROM array.
     rvalid_r <= req_hit && word_hit;
     rdata_r <= rom_mem[word_addr];
 

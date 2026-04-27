@@ -27,7 +27,6 @@ set FAIL_FAST=1
 set LINKER_SCRIPT=
 set TOHOST_ADDR=
 
-rem Normalize omitted and placeholder arguments before any path or tool resolution.
 if "%TARGET%"=="" set TARGET=rv32
 if "%MAX_CYCLES%"=="" set MAX_CYCLES=40000
 if "%TEST_OVERRIDE%"=="-" set TEST_OVERRIDE=
@@ -40,11 +39,9 @@ if /I "%CONTINUE_ON_FAIL%"=="continue" set FAIL_FAST=0
 if /I "%CONTINUE_ON_FAIL%"=="0" set FAIL_FAST=0
 if /I "%CONTINUE_ON_FAIL%"=="false" set FAIL_FAST=0
 
-rem Prepare the upstream riscv-tests checkout first so later manifest lookups are stable.
 call "%~dp0prepare_riscv_tests.bat"
 if errorlevel 1 exit /b 1
 
-rem Resolve toolchain components from PATH first, then from the local xPack fallback.
 set GCC=
 set OBJCOPY=
 set XVLOG=
@@ -57,7 +54,6 @@ set WORD_HEX_PY=%PROJECT_DIR%\scripts\make_word_hex.py
 set XSIM_STAGE_DIR=%REPO_DIR%\_tmp\sim_runtime\%TARGET%
 set XSIM_RUN_DIR=
 
-rem Cross compiler used to assemble individual riscv-tests cases.
 for %%T in (riscv-none-elf-gcc riscv32-unknown-elf-gcc riscv64-unknown-elf-gcc) do (
     where %%T >nul 2>nul
     if not errorlevel 1 (
@@ -76,7 +72,6 @@ if not defined GCC (
 )
 :gcc_resolved
 
-rem objcopy is used to derive both verilog hex and raw binary images.
 for %%T in (riscv-none-elf-objcopy riscv32-unknown-elf-objcopy riscv64-unknown-elf-objcopy) do (
     where %%T >nul 2>nul
     if not errorlevel 1 (
@@ -95,7 +90,6 @@ if not defined OBJCOPY (
 )
 :objcopy_resolved
 
-rem Resolve the xsim front-end used by the riscv-tests harness.
 for %%T in (xvlog.bat xvlog) do (
     where %%T >nul 2>nul
     if not errorlevel 1 (
@@ -154,7 +148,6 @@ if not defined XSIM (
     exit /b 1
 )
 
-rem Choose target-specific defaults for ISA width, ABI and the testbench top module.
 if /I "%TARGET%"=="rv64" (
     set XLEN=64
     set MARCH=rv64i_zicsr
@@ -169,7 +162,6 @@ if /I "%TARGET%"=="rv64" (
     set TEST_MANIFEST=%~dp0riscv_tests_rv32_baseline.txt
 )
 
-rem Callers can widen coverage or swap linker/tohost settings without forking the script.
 if not "%MANIFEST_OVERRIDE%"=="" set TEST_MANIFEST=%MANIFEST_OVERRIDE%
 if not "%MARCH_OVERRIDE%"=="" set MARCH=%MARCH_OVERRIDE%
 set LINKER_SCRIPT=%PROJECT_DIR%\sw\linker\YH_rv_cpu_riscv_tests.ld
@@ -182,13 +174,11 @@ if not "%LINKER_SCRIPT_OVERRIDE%"=="" (
 set TOHOST_ADDR=0x00001000
 if not "%TOHOST_ADDR_OVERRIDE%"=="" set TOHOST_ADDR=%TOHOST_ADDR_OVERRIDE%
 
-rem Load the manifest into a whitespace list because cmd.exe has no array type.
 call :load_test_manifest "%TEST_MANIFEST%" TEST_LIST
 if errorlevel 1 exit /b 1
 
 if not "%TEST_OVERRIDE%"=="" set TEST_LIST=%TEST_OVERRIDE%
 
-rem The summary artifact is later consumed by progress docs and frozen status tables.
 if not exist "%BUILD_DIR%\%TARGET%" mkdir "%BUILD_DIR%\%TARGET%"
 set SUMMARY_FILE=%BUILD_DIR%\%TARGET%\summary.txt
 call :timestamp START_TS
@@ -204,13 +194,11 @@ if not "%DEBUG_CYCLES%"=="" >> "%SUMMARY_FILE%" echo debug_cycles=%DEBUG_CYCLES%
 >> "%SUMMARY_FILE%" echo fail_fast=%FAIL_FAST%
 >> "%SUMMARY_FILE%" echo started=%START_TS%
 
-rem Use an isolated xsim runtime so repeated runs do not reuse stale snapshots or logs.
 call "%~dp0prepare_xsim_runtime.bat" riscv_tests_%TARGET% XSIM_RUN_DIR
 if not defined XSIM_RUN_DIR exit /b 1
 
 pushd "%XSIM_RUN_DIR%"
 
-rem Compile the DUT and the target-specific riscv-tests harness once per batch run.
 call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_riscv_tests_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_riscv_tests_%TARGET%_tb.v" ^
@@ -226,7 +214,6 @@ call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_alu.v"
 if errorlevel 1 goto :fail
 
-rem Each manifest entry is rebuilt into ELF/bin/hex/mem32 before being simulated.
 for %%N in (%TEST_LIST%) do (
     set /a TOTAL_TESTS+=1
     set CURRENT_TEST=%%N
@@ -241,7 +228,6 @@ for %%N in (%TEST_LIST%) do (
 
     echo Running %TARGET%ui/%%N ...
 
-    rem Build the upstream assembly case with the selected ISA/ABI and linker script.
     %GCC% -march=%MARCH% -mabi=%MABI% -mno-relax -nostdlib -static -mcmodel=medany -ffreestanding -Os ^
         -I "%PROJECT_DIR%\sw\riscv-tests-env" ^
         -I "%EXTERNAL_DIR%\isa\macros\scalar" ^
@@ -280,7 +266,6 @@ for %%N in (%TEST_LIST%) do (
         if errorlevel 1 set TEST_OK=0
     )
 
-    rem Copy the generated hex into the runtime tree so xsim can open a stable relative path.
     if "!TEST_OK!"=="1" (
         if not "%DEBUG_CYCLES%"=="" (
             if not exist "build\tests\riscv-tests\%TARGET%" mkdir "build\tests\riscv-tests\%TARGET%"
@@ -315,7 +300,6 @@ for %%N in (%TEST_LIST%) do (
     )
 )
 
-rem Emit a final result line consistent with the accumulated pass/fail counters.
 if "!FAILED_TESTS!"=="0" (
     echo PASS: all %TARGET% subset tests completed.
     >> "%SUMMARY_FILE%" echo result=PASS
@@ -339,7 +323,6 @@ if "!FAILED_TESTS!"=="0" (
 goto :done
 
 :fail
-rem Centralized failure exit still writes a summary artifact for handoff/debug use.
 set RUN_STATUS=%ERRORLEVEL%
 if "%RUN_STATUS%"=="0" set RUN_STATUS=1
 if defined CURRENT_TEST (
@@ -358,7 +341,6 @@ popd
 exit /b %RUN_STATUS%
 
 :timestamp
-rem PowerShell provides a locale-stable timestamp format that cmd.exe lacks.
 setlocal
 set TS_VALUE=
 for /f "usebackq delims=" %%T in (`powershell -NoProfile -Command "(Get-Date).ToString('yyyy-MM-ddTHH:mm:ssK')"`) do set TS_VALUE=%%T
@@ -366,12 +348,7 @@ endlocal & set "%~1=%TS_VALUE%"
 exit /b 0
 
 :load_test_manifest
-rem Ignore lines beginning with "#" so manifests can carry comments and grouping.
 setlocal EnableDelayedExpansion
-
-rem Run a selected riscv-tests subset against the RTL testbench and emit a compact summary file.
-rem The script accepts overrides for manifest, ISA string, linker script and tohost address so
-rem the same driver can serve both frozen baseline runs and wider UI coverage.
 set "MANIFEST_PATH=%~1"
 set "MANIFEST_TESTS="
 if not exist "%MANIFEST_PATH%" (

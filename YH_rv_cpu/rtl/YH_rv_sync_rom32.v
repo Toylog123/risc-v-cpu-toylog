@@ -14,7 +14,6 @@ module YH_rv_sync_rom32 #(
     output wire [31:0] data_rdata
 );
 
-// Shared ROM backs both the instruction path and the simple data-side debug access.
 (* rom_style = "block" *) reg [31:0] rom_mem [0:ROM_WORDS-1];
 reg [31:0] imem_rdata_r;
 reg [31:0] imem_rdata_pipe_r;
@@ -28,7 +27,6 @@ wire [ROM_ADDR_W-1:0]  data_word_addr;
 
 integer idx;
 
-// Optional output pipelining matches the FPGA-oriented instruction memory timing point.
 assign imem_rdata = (IMEM_OUTPUT_REG != 0) ? imem_rdata_pipe_r : imem_rdata_r;
 assign imem_rvalid = (IMEM_OUTPUT_REG != 0) ? imem_rvalid_pipe_r : imem_rvalid_r;
 assign data_rdata = data_rdata_r;
@@ -37,7 +35,6 @@ assign imem_word_addr = imem_word_index[ROM_ADDR_W-1:0];
 assign data_word_addr = data_word_index[ROM_ADDR_W-1:0];
 
 initial begin
-    // Fill unused locations with NOPs so empty ROM space is harmless in simulation.
     for (idx = 0; idx < ROM_WORDS; idx = idx + 1) begin
         rom_mem[idx] = 32'h0000_0013;
     end
@@ -54,7 +51,6 @@ initial begin
 end
 
 always @(posedge clk) begin
-    // The data-side read is always available for debug/bring-up helpers.
     imem_rvalid_r <= imem_req && imem_word_hit;
     imem_rdata_r <= rom_mem[imem_word_addr];
     data_rdata_r <= rom_mem[data_word_addr];

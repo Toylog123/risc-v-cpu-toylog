@@ -1,4 +1,3 @@
-`timescale 1ns / 1ps
 // ============================================================
 // YH_rv_cpu_if_stage.v
 // Author: Toylog
@@ -10,9 +9,7 @@
 // ============================================================
 
 module YH_rv_cpu_if_stage #(
-    parameter integer XLEN = 32,  // 数据通路宽度: 32 (RV32) 或 64 (RV64)
-    parameter C_EXT = 0,         // C扩展 (压缩指令) 支持: 0=禁用, 1=启用 (预留)
-    parameter ICACHE_EN = 0      // 指令缓存使能: 0=禁用, 1=启用
+    parameter integer XLEN = 32  // 数据通路宽度: 32 (RV32) 或 64 (RV64)
 ) (
     // ------------------------------------------------------------
     // PC 控制信号
@@ -24,58 +21,21 @@ module YH_rv_cpu_if_stage #(
     // ------------------------------------------------------------
     // 内存访问接口
     // ------------------------------------------------------------
-    input  wire [15:0]     instr_raw,         // 原始指令数据 (用于C扩展判断)
     output wire [XLEN-1:0] imem_addr,        // 指令存储器地址
     output wire [XLEN-1:0] pc_next,          // 下一 PC 值
-    output wire [XLEN-1:0] pc_plus_4,        // PC + 4 (顺序执行下一地址)
-    output wire [XLEN-1:0] pc_plus_2,        // PC + 2 (压缩指令下一地址, C扩展预留)
-    output wire            instr_is_compressed,  // 指令是否为压缩格式 (C扩展预留)
-
-    // ------------------------------------------------------------
-    // ICache接口 (ICACHE_EN=1时使用)
-    // ------------------------------------------------------------
-    input  wire [31:0]     icache_rdata,      // ICache返回指令
-    input  wire            icache_rvalid,      // ICache返回有效
-    output wire            icache_req         // ICache请求
+    output wire [XLEN-1:0] pc_plus_4         // PC + 4 (顺序执行下一地址)
 );
 
     // ------------------------------------------------------------
     // PC 步进常量
     // RISC-V 指令长度为 32 位 (4 字节)，所以 PC 每次增加 4
-    // 压缩指令长度为 16 位 (2 字节)，PC 增加 2
     // ------------------------------------------------------------
 localparam [XLEN-1:0] PC_STEP = {{(XLEN-3){1'b0}}, 3'd4};
-localparam [XLEN-1:0] PC_STEP_COMP = {{(XLEN-3){1'b0}}, 3'd2};  // 压缩指令步进
-
-// ------------------------------------------------------------
-// C扩展预留: 压缩指令判断
-// 压缩指令低两位为 00, 01, 10 (不是 11)
-// ------------------------------------------------------------
-generate
-    if (C_EXT == 1) begin : gen_compressed_check
-        // 指令低两位不为 11 则为压缩指令
-        assign instr_is_compressed = instr_raw[1:0] != 2'b11;
-        assign pc_plus_2 = pc_current + PC_STEP_COMP;
-    end else begin : gen_no_compressed
-        // C扩展禁用时，始终为非压缩指令
-        assign instr_is_compressed = 1'b0;
-        assign pc_plus_2 = pc_current + PC_STEP_COMP;  // 预留计算
-    end
-endgenerate
 
     // ------------------------------------------------------------
     // 指令存储器地址 = 当前 PC
-    // ICACHE_EN=1时地址送往icache
     // ------------------------------------------------------------
-generate
-    if (ICACHE_EN == 1) begin : gen_icache_addr
-        assign imem_addr = pc_current;  // 地址送往icache
-        assign icache_req = 1'b1;       // 始终请求 (icache内部处理)
-    end else begin : gen_no_icache_addr
-        assign imem_addr = pc_current;  // 地址直接送往外部内存
-        assign icache_req = 1'b0;       // 不使用icache
-    end
-endgenerate
+assign imem_addr = pc_current;
 
     // ------------------------------------------------------------
     // PC + 4 计算
@@ -86,17 +46,8 @@ assign pc_plus_4 = pc_current + PC_STEP;
     // ------------------------------------------------------------
     // 下一 PC 选择
     // redirect_en=1: 跳转到目标地址 (分支/jalr/异常)
-    // redirect_en=0: 顺序执行
-    //   - C扩展启用时，根据指令长度选择 PC+4 或 PC+2
-    //   - C扩展禁用时，始终 PC+4
+    // redirect_en=0: 顺序执行 PC+4
     // ------------------------------------------------------------
-generate
-    if (C_EXT == 1) begin : gen_c_ext_pc_next
-        assign pc_next = redirect_en ? redirect_pc :
-                         (instr_is_compressed ? pc_plus_2 : pc_plus_4);
-    end else begin : gen_no_c_ext_pc_next
-        assign pc_next = redirect_en ? redirect_pc : pc_plus_4;
-    end
-endgenerate
+assign pc_next = redirect_en ? redirect_pc : pc_plus_4;
 
 endmodule

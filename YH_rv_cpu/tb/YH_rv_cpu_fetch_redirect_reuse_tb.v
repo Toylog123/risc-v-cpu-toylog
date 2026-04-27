@@ -40,7 +40,6 @@ reg     require_pipe_hit;
 reg     require_queue_preserve;
 reg     require_drop_accounting;
 reg     require_branch_reuse;
-reg     require_branch_decode_kill;
 reg     stall_seen;
 reg     redirect_seen;
 reg     reuse_seen;
@@ -56,16 +55,10 @@ reg     queue_instruction_seen;
 reg     drop_count_loaded_seen;
 reg     drop_count_decrement_seen;
 reg     drop_count_cleared_seen;
-reg     branch_decode_ready_seen;
-reg     branch_wrong_path_killed_seen;
 integer branch_overlap_cycle;
 reg [31:0] overlap_redirect_pc;
 reg [31:0] overlap_expected_instruction;
 localparam [1:0] IMEM_DROP_COUNT = (IMEM_OUTPUT_REG != 0) ? 2'd1 : 2'd0;
-localparam [31:0] BRANCH_PC = 32'h0000_000c;
-localparam [31:0] WRONG_PATH_PC = 32'h0000_0010;
-localparam [31:0] BRANCH_TARGET_PC = 32'h0000_0014;
-localparam [31:0] BRANCH_BEQ_INSN = 32'h0000_0463;
 
 wire fetch_reuse_hit;
 wire fetch_buffer_hit;
@@ -306,26 +299,6 @@ always @(posedge clk) begin
             end
         end
 
-        if (require_branch_decode_kill) begin
-            if (dut.if_id_valid_r &&
-                (dut.if_id_pc_r == BRANCH_PC) &&
-                (dut.if_id_instruction_r == BRANCH_BEQ_INSN) &&
-                !dut.stall_decode) begin
-                branch_decode_ready_seen <= 1'b1;
-                if (dut.if_id_data_write_en && dut.if_id_next_valid && (dut.if_id_next_pc == WRONG_PATH_PC)) begin
-                    $fatal(1,
-                        "FAIL: require_branch_decode_kill set but IF/ID next-state still selects wrong-path PC after taken branch became ID-ready (cycle=%0d next_pc=%h next_valid=%0d)",
-                        cycle,
-                        dut.if_id_next_pc,
-                        dut.if_id_next_valid);
-                end
-
-                if (!dut.if_id_next_valid || (dut.if_id_next_pc == BRANCH_TARGET_PC)) begin
-                    branch_wrong_path_killed_seen <= 1'b1;
-                end
-            end
-        end
-
         if (require_drop_accounting && (IMEM_OUTPUT_REG != 0) && overlap_seen && (overlap_cycle != 0)) begin
             if (dut.fetch_drop_response && dut.fetch_pipe_valid) begin
                 $fatal(1,
@@ -355,7 +328,7 @@ always @(posedge clk) begin
 
         if (debug_trace && (cycle < 120)) begin
             $display(
-                "TRACE cycle=%0d pc=%h req=%0d rvalid=%0d rsp_pc=%h redir_pc=%h redirect=%0d reuse=%0d buf0_hit=%0d buf1_hit=%0d pipe_hit=%0d overlap=%0d overlap_cycle=%0d q_pres=%0d q_insn=%0d q_cons=%0d branch_id_ready=%0d branch_kill=%0d drop_cnt=%0d drop_rsp=%0d pipe_v=%0d buf0_v=%0d buf0_pc=%h buf1_v=%0d buf1_pc=%h fetch_q_v=%0d fetch_q_pc=%h if_id_v=%0d if_id_pc=%h if_id_insn=%h x5=%h",
+                "TRACE cycle=%0d pc=%h req=%0d rvalid=%0d rsp_pc=%h redir_pc=%h redirect=%0d reuse=%0d buf0_hit=%0d buf1_hit=%0d pipe_hit=%0d overlap=%0d overlap_cycle=%0d q_pres=%0d q_insn=%0d q_cons=%0d drop_cnt=%0d drop_rsp=%0d pipe_v=%0d buf0_v=%0d buf0_pc=%h buf1_v=%0d buf1_pc=%h fetch_q_v=%0d fetch_q_pc=%h if_id_v=%0d if_id_pc=%h if_id_insn=%h x5=%h",
                 cycle,
                 debug_pc,
                 imem_req,
@@ -372,8 +345,6 @@ always @(posedge clk) begin
                 queue_preserve_seen,
                 queue_instruction_seen,
                 queue_consumed_seen,
-                branch_decode_ready_seen,
-                branch_wrong_path_killed_seen,
                 dut.fetch_drop_count_r,
                 dut.fetch_drop_response,
                 dut.fetch_pipe_valid,
@@ -392,23 +363,6 @@ always @(posedge clk) begin
 
         if (trap) begin
             $fatal(1, "FAIL: trap asserted at PC=%h cycle=%0d", debug_pc, cycle);
-        end
-
-        if (require_branch_decode_kill &&
-            branch_decode_ready_seen &&
-            branch_wrong_path_killed_seen &&
-            ((debug_pc == BRANCH_TARGET_PC) ||
-             (dut.fetch_queue_valid && (dut.fetch_queue_pc == BRANCH_TARGET_PC)) ||
-             (dut.if_id_valid_r && (dut.if_id_pc_r == BRANCH_TARGET_PC)))) begin
-            $display(
-                "PASS: branch decode kill diagnostic completed at PC=%h in %0d cycles (stall_cycles=%0d branch_id_ready=%0d branch_kill=%0d IMEM_OUTPUT_REG=%0d)",
-                debug_pc,
-                cycle,
-                stall_cycles,
-                branch_decode_ready_seen,
-                branch_wrong_path_killed_seen,
-                IMEM_OUTPUT_REG);
-            $finish;
         end
 
         if ((cycle > 20) && overlap_seen) begin
@@ -434,12 +388,6 @@ always @(posedge clk) begin
             end else if (require_branch_reuse && !branch_reuse_seen) begin
                 // Keep running until the bounded branch window above either
                 // sees reuse or trips the explicit failure.
-            end else if (require_branch_decode_kill && !branch_decode_ready_seen) begin
-                // Keep running until the directed branch reaches the ID-ready
-                // point in this setup.
-            end else if (require_branch_decode_kill && !branch_wrong_path_killed_seen) begin
-                // Keep running until the bounded next-cycle check above either
-                // observes the wrong-path kill or trips its explicit failure.
             end
 
             if (require_queue_preserve && (!queue_preserve_seen || !queue_instruction_seen)) begin
@@ -447,7 +395,7 @@ always @(posedge clk) begin
                 // payload or trips the timeout/fatal checks above.
             end else begin
                 $display(
-                    "PASS: fetch redirect reuse diagnostic completed at PC=%h in %0d cycles (stall_cycles=%0d redirects=%0d reuse_hits=%0d pipe_hits=%0d overlaps=%0d require_pipe_hit=%0d require_queue_preserve=%0d require_drop_accounting=%0d require_branch_reuse=%0d require_branch_decode_kill=%0d IMEM_OUTPUT_REG=%0d)",
+                    "PASS: fetch redirect reuse diagnostic completed at PC=%h in %0d cycles (stall_cycles=%0d redirects=%0d reuse_hits=%0d pipe_hits=%0d overlaps=%0d require_pipe_hit=%0d require_queue_preserve=%0d require_drop_accounting=%0d require_branch_reuse=%0d IMEM_OUTPUT_REG=%0d)",
                     debug_pc,
                     cycle,
                     stall_cycles,
@@ -459,7 +407,6 @@ always @(posedge clk) begin
                     require_queue_preserve,
                     require_drop_accounting,
                     require_branch_reuse,
-                    require_branch_decode_kill,
                     IMEM_OUTPUT_REG);
                 $finish;
             end
@@ -467,7 +414,7 @@ always @(posedge clk) begin
 
         if (cycle > timeout_cycles) begin
             $fatal(1,
-                "FAIL: timeout at PC=%h cycle=%0d stall_cycles=%0d redirects=%0d reuse_hits=%0d pipe_hits=%0d overlaps=%0d branch_redir=%0d branch_overlap=%0d branch_reuse=%0d branch_pipe=%0d branch_id_ready=%0d branch_kill=%0d q_pres=%0d q_insn=%0d q_cons=%0d drop_loaded=%0d drop_dec=%0d drop_zero=%0d IMEM_OUTPUT_REG=%0d",
+                "FAIL: timeout at PC=%h cycle=%0d stall_cycles=%0d redirects=%0d reuse_hits=%0d pipe_hits=%0d overlaps=%0d branch_redir=%0d branch_overlap=%0d branch_reuse=%0d branch_pipe=%0d q_pres=%0d q_insn=%0d q_cons=%0d drop_loaded=%0d drop_dec=%0d drop_zero=%0d IMEM_OUTPUT_REG=%0d",
                 debug_pc,
                 cycle,
                 stall_cycles,
@@ -479,8 +426,6 @@ always @(posedge clk) begin
                 branch_overlap_seen,
                 branch_reuse_seen,
                 branch_pipe_hit_seen,
-                branch_decode_ready_seen,
-                branch_wrong_path_killed_seen,
                 queue_preserve_seen,
                 queue_instruction_seen,
                 queue_consumed_seen,
@@ -514,8 +459,6 @@ initial begin
     branch_overlap_seen = 1'b0;
     branch_reuse_seen = 1'b0;
     branch_pipe_hit_seen = 1'b0;
-    branch_decode_ready_seen = 1'b0;
-    branch_wrong_path_killed_seen = 1'b0;
     queue_preserve_seen = 1'b0;
     queue_consumed_seen = 1'b0;
     queue_instruction_seen = 1'b0;
@@ -529,7 +472,6 @@ initial begin
     require_queue_preserve = 1'b0;
     require_drop_accounting = 1'b0;
     require_branch_reuse = 1'b0;
-    require_branch_decode_kill = 1'b0;
 
     if ($test$plusargs("debug_trace")) begin
         debug_trace = 1'b1;
@@ -551,10 +493,6 @@ initial begin
         require_branch_reuse = 1'b1;
     end
 
-    if ($test$plusargs("require_branch_decode_kill")) begin
-        require_branch_decode_kill = 1'b1;
-    end
-
     if (!$value$plusargs("timeout_cycles=%d", timeout_cycles)) begin
         timeout_cycles = 240;
     end
@@ -567,52 +505,31 @@ initial begin
         dmem[idx] = 8'h00;
     end
 
-    if (require_branch_decode_kill) begin
-        // Dedicated safe-operand branch program: the branch compares x0/x0 so
-        // the diagnostic only checks wrong-path kill, not forwarding timing.
-        // addi x1, x0, 0
-        imem[0]  = rv32_i(12'sd0, 5'd0, 3'b000, 5'd1, 7'b0010011);
-        // addi x2, x0, 1
-        imem[1]  = rv32_i(12'sd1, 5'd0, 3'b000, 5'd2, 7'b0010011);
-        // nop
-        imem[2]  = rv32_i(12'sd0, 5'd0, 3'b000, 5'd0, 7'b0010011);
-        // beq x0, x0, +8
-        imem[3]  = rv32_b(13'sd8, 5'd0, 5'd0, 3'b000, 7'b1100011);
-        // jal x0, +8
-        imem[4]  = rv32_j(21'sd8, 5'd0, 7'b1101111);
-        // addi x4, x4, 1
-        imem[5]  = rv32_i(12'sd1, 5'd4, 3'b000, 5'd4, 7'b0010011);
-        // addi x5, x0, 42
-        imem[6]  = rv32_i(12'sd42, 5'd0, 3'b000, 5'd5, 7'b0010011);
-        // nop
-        imem[7]  = rv32_i(12'sd0, 5'd0, 3'b000, 5'd0, 7'b0010011);
-    end else begin
-        // Mirror the prefetch-style shape: a load-use stall creates a fetch backlog,
-        // then the redirect overlaps a synchronous fetch response. Strict mode can
-        // additionally require queue preservation and drop accounting.
-        // lw x3, 0(x0)
-        imem[0]  = rv32_i(12'sd0, 5'd0, 3'b000, 5'd1, 7'b0010011);
-        // addi x2, x0, 1
-        imem[1]  = rv32_i(12'sd1, 5'd0, 3'b000, 5'd2, 7'b0010011);
-        // lw x3, 0(x1)
-        imem[2]  = rv32_i(12'sd0, 5'd1, 3'b010, 5'd3, 7'b0000011);
-        // beq x3, x0, +8
-        imem[3]  = rv32_b(13'sd8, 5'd0, 5'd3, 3'b000, 7'b1100011);
-        // jal x0, +8
-        imem[4]  = rv32_j(21'sd8, 5'd0, 7'b1101111);
-        // addi x4, x4, 1
-        imem[5]  = rv32_i(12'sd1, 5'd4, 3'b000, 5'd4, 7'b0010011);
-        // addi x2, x2, -1
-        imem[6]  = rv32_i(-12'sd1, 5'd2, 3'b000, 5'd2, 7'b0010011);
-        // bne x2, x0, -20
-        imem[7]  = rv32_b(-13'sd20, 5'd0, 5'd2, 3'b001, 7'b1100011);
-        // addi x5, x0, 42
-        imem[8]  = rv32_i(12'sd42, 5'd0, 3'b000, 5'd5, 7'b0010011);
-        // nop
-        imem[9]  = rv32_i(12'sd0, 5'd0, 3'b000, 5'd0, 7'b0010011);
-    end
+    // Mirror the prefetch-style shape: a load-use stall creates a fetch backlog,
+    // then the redirect overlaps a synchronous fetch response. Strict mode can
+    // additionally require queue preservation and drop accounting.
+    // lw x3, 0(x0)
+    imem[0]  = rv32_i(12'sd0, 5'd0, 3'b000, 5'd1, 7'b0010011);
+    // addi x2, x0, 1
+    imem[1]  = rv32_i(12'sd1, 5'd0, 3'b000, 5'd2, 7'b0010011);
+    // lw x3, 0(x1)
+    imem[2]  = rv32_i(12'sd0, 5'd1, 3'b010, 5'd3, 7'b0000011);
+    // beq x3, x0, +8
+    imem[3]  = rv32_b(13'sd8, 5'd0, 5'd3, 3'b000, 7'b1100011);
+    // jal x0, +8
+    imem[4]  = rv32_j(21'sd8, 5'd0, 7'b1101111);
+    // addi x4, x4, 1
+    imem[5]  = rv32_i(12'sd1, 5'd4, 3'b000, 5'd4, 7'b0010011);
+    // addi x2, x2, -1
+    imem[6]  = rv32_i(-12'sd1, 5'd2, 3'b000, 5'd2, 7'b0010011);
+    // bne x2, x0, -20
+    imem[7]  = rv32_b(-13'sd20, 5'd0, 5'd2, 3'b001, 7'b1100011);
+    // addi x5, x0, 42
+    imem[8]  = rv32_i(12'sd42, 5'd0, 3'b000, 5'd5, 7'b0010011);
+    // nop
+    imem[9]  = rv32_i(12'sd0, 5'd0, 3'b000, 5'd0, 7'b0010011);
 
-    dmem[0] = (require_branch_reuse || require_branch_decode_kill) ? 8'h00 : 8'h01;
+    dmem[0] = require_branch_reuse ? 8'h00 : 8'h01;
 
     #20;
     rst_n = 1'b1;

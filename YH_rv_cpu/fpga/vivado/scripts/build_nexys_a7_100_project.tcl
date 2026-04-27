@@ -1,9 +1,3 @@
-#
-# Batch Vivado flow for the Nexys A7-100T pre-board baseline.
-# The outer batch wrapper resolves environment overrides; this Tcl file turns
-# them into reproducible synth/impl runs plus report and bitstream artifacts.
-#
-
 set script_dir [file dirname [file normalize [info script]]]
 set vivado_dir [file dirname $script_dir]
 set fpga_dir [file dirname $vivado_dir]
@@ -22,7 +16,6 @@ set rom_bytes_override ""
 set ram_bytes_override ""
 set clock_period_ns 10.000
 
-# argv[0] selects the flow stage: project, synth or impl.
 if {[llength $argv] >= 1} {
     set flow_mode [lindex $argv 0]
 }
@@ -43,7 +36,6 @@ if {[info exists ::env(CLOCK_PERIOD_NS_OVERRIDE)] && $::env(CLOCK_PERIOD_NS_OVER
     set clock_period_ns $::env(CLOCK_PERIOD_NS_OVERRIDE)
 }
 
-# Clock-tagged report directories allow multiple frequency baselines to coexist.
 set clock_tag [string map {. p} $clock_period_ns]
 set report_dir [file join $report_dir clk_${clock_tag}ns]
 set bitstream_file [file join $build_dir ${project_name}_${clock_tag}.bit]
@@ -64,7 +56,6 @@ file mkdir $report_dir
 puts "INFO: Flow mode = $flow_mode"
 puts "INFO: Clock period = ${clock_period_ns} ns"
 
-# Add both shared RTL and board-specific wrapper files, then keep include_dirs explicit.
 proc add_project_files {rtl_files fpga_files constr_file rtl_dir} {
     add_files -norecurse $rtl_files
     if {[llength $fpga_files] > 0} {
@@ -77,7 +68,6 @@ proc add_project_files {rtl_files fpga_files constr_file rtl_dir} {
     update_compile_order -fileset sources_1
 }
 
-# Wrap every major command so logs show a clear failing step instead of a generic Tcl trace.
 proc run_checked {label command_body} {
     puts "STEP: $label BEGIN"
     if {[catch {uplevel 1 $command_body} result options]} {
@@ -91,7 +81,6 @@ proc run_checked {label command_body} {
     puts "STEP: $label DONE"
 }
 
-# "project" mode only creates the Vivado skeleton, which is useful for interactive inspection.
 if {$flow_mode eq "project"} {
     run_checked "create_project" [list create_project $project_name $build_dir -force -part $part_name]
     set_property target_language Verilog [current_project]
@@ -106,7 +95,6 @@ if {$flow_mode ne "synth" && $flow_mode ne "impl"} {
     error "Unsupported flow mode: $flow_mode"
 }
 
-# Read shared RTL first, then the board-level wrapper and constraints.
 run_checked "read_rtl" [list read_verilog -sv $rtl_files]
 
 if {[llength $fpga_files] > 0} {
@@ -122,7 +110,6 @@ puts $clock_fd [format {create_clock -name sys_clk -period %s [get_ports CLK100M
 close $clock_fd
 run_checked "read_clock_constraints" [list read_xdc $clock_constr_file]
 
-# Generic overrides feed the chosen ROM payload and memory sizing into the FPGA top.
 set synth_cmd [list synth_design -top $top_name -part $part_name -flatten_hierarchy rebuilt -retiming -fanout_limit 32]
 if {$rom_init_hex ne ""} {
     puts "INFO: ROM_INIT_HEX override = $rom_init_hex"
@@ -147,7 +134,6 @@ run_checked "report_utilization" [list report_utilization -file [file join $repo
 run_checked "report_timing_summary" [list report_timing_summary -file [file join $report_dir synth_timing_summary.rpt]]
 
 puts "INFO: Clock period = ${clock_period_ns} ns"
-# synth mode stops after report generation; impl continues through route and bitstream.
 if {$flow_mode eq "synth"} {
     puts "INFO: Synthesis completed. Reports written to $report_dir"
     exit 0
@@ -161,7 +147,6 @@ run_checked "phys_opt_design_post_route" [list phys_opt_design -directive Explor
 run_checked "report_impl_utilization" [list report_utilization -file [file join $report_dir impl_utilization.rpt]]
 run_checked "report_impl_timing_summary" [list report_timing_summary -file [file join $report_dir impl_timing_summary.rpt]]
 run_checked "write_impl_checkpoint" [list write_checkpoint -force [file join $build_dir ${project_name}_${clock_tag}_impl.dcp]]
-# Keep the bitstream name stable so submission packaging can copy it without extra lookup logic.
 run_checked "write_bitstream" [list write_bitstream -force $bitstream_file]
 
 puts "INFO: Implementation completed. Reports written to $report_dir"

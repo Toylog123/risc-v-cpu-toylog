@@ -1,4 +1,3 @@
-`timescale 1ns / 1ps
 // ============================================================
 // YH_rv_cpu_wb_stage.v
 // Author: Toylog

@@ -4,13 +4,11 @@ setlocal EnableDelayedExpansion
 for %%I in ("%~dp0") do set SCRIPT_DIR=%%~fI
 for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
 set BUILD_DIR=%PROJECT_DIR%\build\sim
-rem This bench focuses on memory-wait overlap behavior in the pipeline.
 set XVLOG=
 set XELAB=
 set XSIM=
 set XSIM_RUN_DIR=
 
-rem Resolve simulator tools from the active PATH configuration.
 for %%T in (xvlog.bat xvlog) do (
     where %%T >nul 2>nul
     if not errorlevel 1 (
@@ -55,13 +53,11 @@ if not defined XSIM (
 
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
-rem Prepare an isolated runtime tree so logs and generated state do not collide.
 call "%SCRIPT_DIR%prepare_xsim_runtime.bat" memwait_overlap_diag XSIM_RUN_DIR
 if not defined XSIM_RUN_DIR exit /b 1
 
 pushd "%XSIM_RUN_DIR%"
 
-rem Compile the dedicated memwait-overlap testbench with the shared CPU RTL.
 call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_memwait_overlap_tb.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu.v" ^
@@ -80,7 +76,6 @@ call %XELAB% YH_rv_cpu_memwait_overlap_tb -s YH_rv_cpu_memwait_overlap_tb_snapsh
 if errorlevel 1 goto :fail
 
 set XSIM_TESTPLUSARGS=
-rem Preserve any extra plusargs exactly so issue-reproduction commands stay copyable.
 :collect_plusargs
 if "%~1"=="" goto :plusargs_done
 set XSIM_TESTPLUSARGS=!XSIM_TESTPLUSARGS! --testplusarg "%~1"
@@ -89,7 +84,6 @@ goto :collect_plusargs
 :plusargs_done
 
 set XSIM_LOG=%XSIM_RUN_DIR%\memwait_overlap_diag_xsim.log
-rem Treat an explicit FAIL marker in the log as a failing run even if xsim exits zero.
 call %XSIM% YH_rv_cpu_memwait_overlap_tb_snapshot --onerror quit -runall !XSIM_TESTPLUSARGS! > "%XSIM_LOG%" 2>&1
 set RUN_STATUS=%ERRORLEVEL%
 if exist "%XSIM_LOG%" (
