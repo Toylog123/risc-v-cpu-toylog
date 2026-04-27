@@ -101,11 +101,11 @@ always @* begin
         // MULHSU: 混合乘法高位 (lhs有符号, rhs无符号)
         `YH_rv_cpu_ALU_MULHSU: result = mul_mix[63:32];
         // MULHU: 无符号乘法高位
-        `YH_rv_cpu_ALU_MULHU: result = {32'b0, lhs} * {32'b0, rhs};
+        `YH_rv_cpu_ALU_MULHU: result = ({32'b0, lhs} * {32'b0, rhs}) >> 32;
         // DIV: 有符号除法
-        `YH_rv_cpu_ALU_DIV:  result = (rhs == 0) ? {XLEN{1'b1}} : $signed(lhs) / $signed(rhs);
+        `YH_rv_cpu_ALU_DIV:  result = (rhs == 0) ? -1 : $signed(lhs) / $signed(rhs);
         // DIVU: 无符号除法
-        `YH_rv_cpu_ALU_DIVU: result = (rhs == 0) ? {XLEN{1'b1}} : lhs / rhs;
+        `YH_rv_cpu_ALU_DIVU: result = (rhs == 0) ? -1 : lhs / rhs;
         // REM: 有符号取模
         `YH_rv_cpu_ALU_REM:  result = (rhs == 0) ? lhs : $signed(lhs) % $signed(rhs);
         // REMU: 无符号取模
