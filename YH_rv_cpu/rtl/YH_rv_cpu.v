@@ -23,6 +23,7 @@ module YH_rv_cpu #(
     parameter integer IMEM_SYNC = 0,        // 指令存储器同步模式
     parameter integer IMEM_OUTPUT_REG = 0,  // 指令存储器输出寄存器
     parameter integer DMEM_SYNC = 0,        // 数据存储器同步模式
+    parameter integer DCACHE_EN = 0,         // 数据缓存使能: 0=禁用, 1=启用
     parameter [XLEN-1:0] RESET_VECTOR = {XLEN{1'b0}}  // 复位向量地址
 ) (
     // ------------------------------------------------------------
@@ -260,6 +261,14 @@ wire            decode_flush_valid;
     // 访存阶段输出
 wire [XLEN-1:0] mem_load_data;
 wire            mem_wait;
+
+    // Dcache中间信号 (当DCACHE_EN=1时，mem_stage连接到此，dcache再连接到dmem)
+wire [XLEN-1:0] mem_stage_dmem_addr;
+wire            mem_stage_dmem_read_req;
+wire [XLEN-1:0] mem_stage_dmem_wdata;
+wire [XLEN/8-1:0] mem_stage_dmem_wstrb;
+wire [XLEN-1:0] mem_stage_dmem_rdata;
+wire [XLEN-1:0] mem_stage_load_data;
 
     // 写回阶段输出
 wire [XLEN-1:0] wb_data;
@@ -913,25 +922,35 @@ YH_rv_cpu_ex_stage #(
     .mem_misaligned(ex_mem_misaligned)
 );
 
-    // 访存阶段
-YH_rv_cpu_mem_stage #(
-    .XLEN(XLEN)
-) u_mem_stage (
-    .valid         (ex_mem_valid_r),
-    .load          (ex_mem_load_r),
-    .store         (ex_mem_store_r),
-    .mem_addr      (ex_mem_mem_addr_r),
-    .store_data_in (ex_mem_store_data_r),
-    .store_wstrb_in(ex_mem_store_wstrb_r),
-    .mem_size      (ex_mem_mem_size_r),
-    .mem_unsigned  (ex_mem_mem_unsigned_r),
-    .dmem_rdata    (dmem_rdata),
-    .dmem_addr     (dmem_addr),
-    .dmem_read_req (dmem_read_req),
-    .dmem_wdata    (dmem_wdata),
-    .dmem_wstrb    (dmem_wstrb),
-    .load_data     (mem_load_data)
-);
+    // ================================================================
+    // 访存阶段 - 带DCache支持
+    // ================================================================
+    generate
+        if (DCACHE_EN == 0) begin : gen_dcache_bypass
+            // DCACHE_EN=0: 直接连接mem_stage到dmem，无缓存
+            YH_rv_cpu_mem_stage #(
+                .XLEN(XLEN)
+            ) u_mem_stage (
+                .valid         (ex_mem_valid_r),
+                .load          (ex_mem_load_r),
+                .store         (ex_mem_store_r),
+                .mem_addr      (ex_mem_mem_addr_r),
+                .store_data_in (ex_mem_store_data_r),
+                .store_wstrb_in(ex_mem_store_wstrb_r),
+                .mem_size      (ex_mem_mem_size_r),
+                .mem_unsigned  (ex_mem_mem_unsigned_r),
+                .dmem_rdata    (dmem_rdata),
+                .dmem_addr     (dmem_addr),
+                .dmem_read_req (dmem_read_req),
+                .dmem_wdata    (dmem_wdata),
+                .dmem_wstrb    (dmem_wstrb),
+                .load_data     (mem_load_data)
+            );
+        end else begin : gen_dcache
+            // DCACHE_EN=1: 通过dcache连接
+            // (dcache instantiation will be added here)
+        end
+    endgenerate
 
     // 写回阶段
 YH_rv_cpu_wb_stage #(
