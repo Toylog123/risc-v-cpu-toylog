@@ -23,6 +23,7 @@ module YH_rv_cpu #(
     parameter integer IMEM_SYNC = 0,        // 指令存储器同步模式
     parameter integer IMEM_OUTPUT_REG = 0,  // 指令存储器输出寄存器
     parameter integer DMEM_SYNC = 0,        // 数据存储器同步模式
+    parameter integer DCACHE_EN = 0,         // 数据缓存使能: 0=禁用, 1=启用
     parameter [XLEN-1:0] RESET_VECTOR = {XLEN{1'b0}}  // 复位向量地址
 ) (
     // ------------------------------------------------------------
@@ -109,7 +110,7 @@ reg            id_ex_illegal_r;                     // 非法指令
 reg [XLEN-1:0] id_ex_rs1_value_r;                  // rs1 值
 reg [XLEN-1:0] id_ex_rs2_value_r;                  // rs2 值
 reg [XLEN-1:0] id_ex_imm_r;                       // 立即数
-(* max_fanout = 16 *) reg [3:0]      id_ex_alu_op_r;   // ALU 操作码
+(* max_fanout = 16 *) reg [4:0]      id_ex_alu_op_r;   // ALU 操作码
 reg            id_ex_alu_src1_pc_r;                  // ALU 源 1 选择
 reg            id_ex_alu_src2_imm_r;                 // ALU 源 2 选择
 reg            id_ex_branch_r;                       // 分支标志
@@ -179,7 +180,7 @@ wire            id_rs2_en;
 wire            id_rd_en;
 wire            id_illegal;
 wire [XLEN-1:0] id_imm;
-wire [3:0]      id_alu_op;
+wire [4:0]      id_alu_op;
 wire            id_alu_src1_pc;
 wire            id_alu_src2_imm;
 wire            id_branch;
@@ -263,8 +264,6 @@ wire            decode_flush_valid;
 wire [XLEN-1:0] mem_load_data;
 wire            mem_wait;
 
-<<<<<<< Updated upstream
-=======
     // Dcache中间信号 (当DCACHE_EN=1时，mem_stage连接到此，dcache再连接到dmem)
 wire [XLEN-1:0] mem_stage_dmem_addr;
 wire            mem_stage_dmem_read_req;
@@ -293,8 +292,6 @@ wire [3:0]      dcache_mem_wstrb;
 wire [31:0]     dcache_mem_rdata;
 wire            dcache_mem_rvalid;
 wire            dcache_mem_ready;
-
->>>>>>> Stashed changes
     // 写回阶段输出
 wire [XLEN-1:0] wb_data;
 
@@ -950,27 +947,6 @@ YH_rv_cpu_ex_stage #(
     .mem_misaligned(ex_mem_misaligned)
 );
 
-<<<<<<< Updated upstream
-    // 访存阶段
-YH_rv_cpu_mem_stage #(
-    .XLEN(XLEN)
-) u_mem_stage (
-    .valid         (ex_mem_valid_r),
-    .load          (ex_mem_load_r),
-    .store         (ex_mem_store_r),
-    .mem_addr      (ex_mem_mem_addr_r),
-    .store_data_in (ex_mem_store_data_r),
-    .store_wstrb_in(ex_mem_store_wstrb_r),
-    .mem_size      (ex_mem_mem_size_r),
-    .mem_unsigned  (ex_mem_mem_unsigned_r),
-    .dmem_rdata    (dmem_rdata),
-    .dmem_addr     (dmem_addr),
-    .dmem_read_req (dmem_read_req),
-    .dmem_wdata    (dmem_wdata),
-    .dmem_wstrb    (dmem_wstrb),
-    .load_data     (mem_load_data)
-);
-=======
     // ================================================================
     // 访存阶段 - 带DCache支持
     // ================================================================
@@ -1040,7 +1016,6 @@ YH_rv_cpu_mem_stage #(
             );
         end
     endgenerate
->>>>>>> Stashed changes
 
     // 写回阶段
 YH_rv_cpu_wb_stage #(

@@ -18,7 +18,7 @@ module YH_rv_cpu_alu #(
     parameter integer XLEN = 32  // 数据通路宽度: 32 (RV32) 或 64 (RV64)
 ) (
     // 控制信号输入
-    input  wire [3:0]      alu_op,    // ALU 操作码，定义在 YH_rv_cpu_defs.vh
+    input  wire [4:0]      alu_op,    // ALU 操作码，定义在 YH_rv_cpu_defs.vh
     // 数据输入
     input  wire [XLEN-1:0] lhs,      // 左手操作数 (left-hand side)
     input  wire [XLEN-1:0] rhs,       // 右手操作数 (right-hand side)
@@ -60,41 +60,42 @@ assign ltu = (lhs < rhs);
 always @* begin
     case (alu_op)
         // 加法运算: add, addi
-        // result = lhs + rhs
         `YH_rv_cpu_ALU_ADD:  result = lhs + rhs;
         // 减法运算: sub
-        // result = lhs - rhs
         `YH_rv_cpu_ALU_SUB:  result = lhs - rhs;
         // 有符号小于: slt, slti
-        // 将比较结果 (1 位) 扩展为 XLEN 位
-        // lt 为 1 时 result = 1，否则 result = 0
         `YH_rv_cpu_ALU_SLT:  result = {{(XLEN-1){1'b0}}, lt};
         // 无符号小于: sltu, sltiu
-        // 同样将比较结果扩展为 XLEN 位
         `YH_rv_cpu_ALU_SLTU: result = {{(XLEN-1){1'b0}}, ltu};
         // 异或运算: xor, xori
-        // 按位异或
         `YH_rv_cpu_ALU_XOR:  result = lhs ^ rhs;
         // 或运算: or, ori
-        // 按位或
         `YH_rv_cpu_ALU_OR:   result = lhs | rhs;
         // 与运算: and, andi
-        // 按位与
         `YH_rv_cpu_ALU_AND:  result = lhs & rhs;
         // 逻辑左移: sll, slli
-        // lhs 左移 rhs[4:0] (RV32) 或 rhs[5:0] (RV64) 位
-        // 低位补 0
         `YH_rv_cpu_ALU_SLL:  result = lhs << rhs[SHAMT_W-1:0];
         // 逻辑右移: srl, srli
-        // lhs 右移 rhs[4:0] (RV32) 或 rhs[5:0] (RV64) 位
-        // 高位补 0
         `YH_rv_cpu_ALU_SRL:  result = lhs >> rhs[SHAMT_W-1:0];
         // 算术右移: sra, srai
-        // lhs 右移 rhs[4:0] (RV32) 或 rhs[5:0] (RV64) 位
-        // 高位补符号位，保留负数符号
         `YH_rv_cpu_ALU_SRA:  result = $signed(lhs) >>> rhs[SHAMT_W-1:0];
+        // MUL: 有符号乘法 (32x32=64, 取低32位)
+        `YH_rv_cpu_ALU_MUL:  result = $signed(lhs) * $signed(rhs);
+        // MULH: 有符号乘法高位
+        `YH_rv_cpu_ALU_MULH: result = ($signed(lhs) * $signed(rhs)) >> 32;
+        // MULHSU: 混合乘法高位 (lhs有符号, rhs无符号)
+        `YH_rv_cpu_ALU_MULHSU: result = ($signed(lhs) * rhs) >> 32;
+        // MULHU: 无符号乘法高位
+        `YH_rv_cpu_ALU_MULHU: result = (lhs * rhs) >> 32;
+        // DIV: 有符号除法
+        `YH_rv_cpu_ALU_DIV:  result = (rhs == 0) ? {XLEN{1'b1}} : $signed(lhs) / $signed(rhs);
+        // DIVU: 无符号除法
+        `YH_rv_cpu_ALU_DIVU: result = (rhs == 0) ? {XLEN{1'b1}} : lhs / rhs;
+        // REM: 有符号取模
+        `YH_rv_cpu_ALU_REM:  result = (rhs == 0) ? lhs : $signed(lhs) % $signed(rhs);
+        // REMU: 无符号取模
+        `YH_rv_cpu_ALU_REMU: result = (rhs == 0) ? lhs : lhs % rhs;
         // 默认: 零
-        // 当 alu_op 无效时返回 0
         default:             result = {XLEN{1'b0}};
     endcase
 end

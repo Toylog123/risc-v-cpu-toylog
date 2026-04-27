@@ -63,6 +63,16 @@
 `define YH_rv_cpu_ALU_SRL   4'd8   // 逻辑右移: result = lhs >> rhs[4:0] (srl, srli)
 `define YH_rv_cpu_ALU_SRA   4'd9   // 算术右移: result = lhs >>> rhs[4:0], 保留符号位 (sra, srai)
 
+// M扩展指令 (RV32M)
+`define YH_rv_cpu_ALU_MUL   4'd10  // 有符号乘法: result = lhs * rhs (mul)
+`define YH_rv_cpu_ALU_MULH  4'd11  // 有符号乘法高位: result = ($signed(lhs) * $signed(rhs))[63:32] (mulh)
+`define YH_rv_cpu_ALU_MULHSU 4'd12 // 混合乘法高位: result = ($signed(lhs) * rhs)[63:32] (mulhsu)
+`define YH_rv_cpu_ALU_MULHU  4'd13 // 无符号乘法高位: result = (lhs * rhs)[63:32] (mulhu)
+`define YH_rv_cpu_ALU_DIV   4'd14  // 有符号除法: result = lhs / rhs (div)
+`define YH_rv_cpu_ALU_DIVU  4'd15  // 无符号除法: result = lhs / rhs (divu)
+`define YH_rv_cpu_ALU_REM   4'd16  // 有符号取模: result = lhs % rhs (rem)
+`define YH_rv_cpu_ALU_REMU  4'd17  // 无符号取模: result = lhs % rhs (remu)
+
 // ------------------------------------------------------------
 // 写回来源控制 (2位)
 // 选择写回寄存器的数据来源

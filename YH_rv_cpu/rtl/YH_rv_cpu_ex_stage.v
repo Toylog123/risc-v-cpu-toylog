@@ -21,7 +21,7 @@ module YH_rv_cpu_ex_stage #(
     input  wire [XLEN-1:0] rs1_value,       // 源寄存器 1 值 (已转发)
     input  wire [XLEN-1:0] rs2_value,       // 源寄存器 2 值 (已转发)
     input  wire [XLEN-1:0] imm,             // 立即数
-    input  wire [3:0]      alu_op,          // ALU 操作码
+    input  wire [4:0]      alu_op,          // ALU 操作码
     input  wire            alu_src1_pc,     // ALU 源 1 选择: 0=rs1, 1=PC
     input  wire            alu_src2_imm,    // ALU 源 2 选择: 0=rs2, 1=imm
     input  wire            branch,          // 分支指令标志
