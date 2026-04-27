@@ -19,6 +19,8 @@ module YH_rv_cpu_soc #(
     parameter integer IMEM_OUTPUT_REG = 0,  // 指令存储器输出寄存器
     parameter integer SYNC_DMEM = 0,        // 数据存储器同步模式
     parameter integer DMEM_OUTPUT_REG = 0,  // 数据存储器输出寄存器
+    parameter integer DCACHE_EN = 0,         // 数据缓存使能: 0=禁用, 1=启用
+    parameter integer ICACHE_EN = 0,         // 指令缓存使能: 0=禁用, 1=启用
     parameter [XLEN-1:0] RESET_VECTOR = {XLEN{1'b0}}, // 复位向量
     parameter [31:0] ROM_BASE = 32'h0000_0000,  // ROM 基地址
     parameter [31:0] RAM_BASE = 32'h0000_4000,  // RAM 基地址
@@ -394,6 +396,8 @@ YH_rv_cpu #(
     .IMEM_SYNC      (SYNC_IMEM),
     .IMEM_OUTPUT_REG(USE_IMEM_OUTPUT_REG),
     .DMEM_SYNC      (SYNC_DMEM),
+    .DCACHE_EN      (DCACHE_EN),
+    .ICACHE_EN      (ICACHE_EN),
     .RESET_VECTOR   (RESET_VECTOR)
 ) u_cpu (
     .clk       (clk),

@@ -1173,9 +1173,8 @@ always @(posedge clk or negedge rst_n) begin
             fetch_valid_d1_r <= fetch_valid_r;
             fetch_pc_r <= imem_req ? pc_r : ZERO_XLEN;
             // For ICACHE_EN=1: set fetch_valid_r when cache miss (icache_cpu_wait=1), clear when data arrives (icache_cpu_rvalid=1)
-            fetch_valid_r <= ((ICACHE_EN != 0) && (icache_cpu_wait && imem_req)) ||
-                             ((ICACHE_EN != 0) && (fetch_valid_r && !icache_cpu_rvalid)) ||
-                             ((ICACHE_EN == 0) && imem_req);
+            fetch_valid_r <= ((ICACHE_EN != 0) && icache_cpu_wait && !icache_cpu_rvalid) ||
+                 ((ICACHE_EN == 0) && imem_req);
         end else begin
             fetch_pc_r <= ZERO_XLEN;
             fetch_pc_d1_r <= ZERO_XLEN;
