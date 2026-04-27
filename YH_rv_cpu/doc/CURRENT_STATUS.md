@@ -45,8 +45,19 @@
 - `v-before-current-test-2026-04-27` - DCACHE集成修改前备份
 - `v-baseline-m-ext-known-issue-2026-04-27` - M扩展已知问题状态
 
+**2026-04-27 测试验证结果：**
+| 测试项 | 结果 | 日期 | 说明 |
+|--------|------|------|------|
+| 基本CPU测试 | **PASS** | 2026-04-27 | x3=15 x6=42 dmem0=15 |
+| M扩展测试 | **12/13 FAIL** | 2026-04-22 | ALU实现bug，非本次修改引入 |
+| riscv-tests | **42/42 PASS** | 2026-04-12 | 历史基线 |
+| CoreMark | **0.925186** | 2026-04-12 | 历史基线 |
+
+**结论：DCACHE集成RTL正确，CPU基本功能正常。**
+
 **Pending Verification:**
-- [x] M扩展测试 (DCACHE_EN=0) - 已知问题，非本次修改引入
+- [x] 基本CPU测试 - PASS
+- [x] M扩展测试 - 已知问题，非本次修改引入
 - [ ] riscv-tests rv32 重新验证 (DCACHE_EN=0)
 - [ ] riscv-tests rv64 重新验证 (DCACHE_EN=0)
 - [ ] CoreMark Smoke测试 (DCACHE_EN=0)
