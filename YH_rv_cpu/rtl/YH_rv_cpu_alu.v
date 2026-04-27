@@ -52,6 +52,21 @@ assign lt  = ($signed(lhs) < $signed(rhs));
 // 不转换符号，直接按位比较
 assign ltu = (lhs < rhs);
 
+// M扩展需要64位乘法结果
+wire [63:0] lhs_ext_signed;
+wire [63:0] lhs_ext_unsigned;
+wire [63:0] rhs_ext_signed;
+wire [63:0] rhs_ext_unsigned;
+wire [63:0] mul_signed;
+wire [63:0] mul_mix;
+
+assign lhs_ext_signed = {{32{lhs[31]}}, lhs};
+assign lhs_ext_unsigned = {32'b0, lhs};
+assign rhs_ext_signed = {{32{rhs[31]}}, rhs};
+assign rhs_ext_unsigned = {32'b0, rhs};
+assign mul_signed = lhs_ext_signed * rhs_ext_signed;
+assign mul_mix = lhs_ext_signed * rhs_ext_unsigned;
+
 // ------------------------------------------------------------
 // 主运算单元 (组合逻辑)
 // 根据 alu_op 选择执行不同的运算
@@ -82,11 +97,11 @@ always @* begin
         // MUL: 有符号乘法 (32x32=64, 取低32位)
         `YH_rv_cpu_ALU_MUL:  result = $signed(lhs) * $signed(rhs);
         // MULH: 有符号乘法高位
-        `YH_rv_cpu_ALU_MULH: result = $signed({{32{lhs[31]}}, lhs}) * $signed({{32{rhs[31]}}, rhs}) >> 32;
+        `YH_rv_cpu_ALU_MULH: result = mul_signed[63:32];
         // MULHSU: 混合乘法高位 (lhs有符号, rhs无符号)
-        `YH_rv_cpu_ALU_MULHSU: result = $signed({{32{lhs[31]}}, lhs}) * {32'b0, rhs} >> 32;
+        `YH_rv_cpu_ALU_MULHSU: result = mul_mix[63:32];
         // MULHU: 无符号乘法高位
-        `YH_rv_cpu_ALU_MULHU: result = {32'b0, lhs} * {32'b0, rhs} >> 32;
+        `YH_rv_cpu_ALU_MULHU: result = mul_mix[63:32];
         // DIV: 有符号除法
         `YH_rv_cpu_ALU_DIV:  result = (rhs == 0) ? {XLEN{1'b1}} : $signed(lhs) / $signed(rhs);
         // DIVU: 无符号除法
