@@ -244,6 +244,14 @@ always @(posedge clk or negedge rst_n) begin
         hit_way_r <= {ASSOC{1'b0}};
     end else begin
         case (state_r)
+            STATE_IDLE: begin
+                if (cache_hit) begin
+                    hit_way_r <= hit_way;
+                end else if (cpu_req && !cache_hit) begin
+                    // Stay idle but waiting for refill to complete
+                end
+            end
+
             STATE_COMPARE: begin
                 if (~cache_hit) begin
                     miss_addr_r <= cpu_addr;
@@ -251,18 +259,14 @@ always @(posedge clk or negedge rst_n) begin
                     miss_way_r <= find_replacement_way(addr_index, cache_lru[addr_index], valid_bits_r);
                     miss_tag_r <= addr_tag;
                     refill_offset_r <= {OFFSET_W{1'b0}};
+                end else begin
+                    hit_way_r <= hit_way;
                 end
             end
-            
+
             STATE_REFILL: begin
                 if (mem_rvalid) begin
                     refill_offset_r <= refill_offset_r + 1;
-                end
-            end
-            
-            STATE_IDLE: begin
-                if (cpu_req) begin
-                    hit_way_r <= hit_way;
                 end
             end
         endcase
