@@ -401,6 +401,9 @@ assign debug_pc = pc_r;
 
     // ICache中间信号
 wire [XLEN-1:0] ifetch_addr;          // 取指地址中间信号
+wire [31:0]     instr_data_from_mem;  // 来自内存/缓存的指令数据
+
+assign instr_data_from_mem = (ICACHE_EN != 0) ? icache_cpu_rdata : imem_rdata;
 
     // ================================================================
     // 取指请求逻辑
@@ -589,7 +592,7 @@ assign fetch_queue_instruction = fetch_buf0_valid_r ?
     fetch_buf0_instruction_r :
     fetch_buf1_valid_r ?
     fetch_buf1_instruction_r :
-    imem_rdata;
+    instr_data_from_mem;
 
     // ================================================================
     // 取指队列消费和入队
@@ -653,7 +656,7 @@ assign id_ex_stall_bubble_local = stall_decode;
     // IF/ID 下一拍数据和指令
     // ================================================================
 assign if_id_next_pc = if_id_load_bubble ? ZERO_XLEN : ((IMEM_SYNC != 0) ? fetch_queue_pc : pc_r);
-assign if_id_next_instruction = if_id_load_bubble ? 32'h0000_0013 : ((IMEM_SYNC != 0) ? fetch_queue_instruction : imem_rdata);
+assign if_id_next_instruction = if_id_load_bubble ? 32'h0000_0013 : ((IMEM_SYNC != 0) ? fetch_queue_instruction : instr_data_from_mem);
 
     // ================================================================
     // 控制流重定向 PC 选择
@@ -782,13 +785,13 @@ always @* begin
         if (fetch_control_redirect_valid) begin
             if (fetch_redirect_pipe_hit) begin
                 fetch_buf0_pc_next_data = fetch_rsp_pc;
-                fetch_buf0_instruction_next_data = imem_rdata;
+                fetch_buf0_instruction_next_data = instr_data_from_mem;
             end
         end else begin
             if (fetch_buf0_load_data) begin
                 if (fetch_buf0_load_rsp_data) begin
                     fetch_buf0_pc_next_data = fetch_rsp_pc;
-                    fetch_buf0_instruction_next_data = imem_rdata;
+                    fetch_buf0_instruction_next_data = instr_data_from_mem;
                 end else begin
                     fetch_buf0_pc_next_data = fetch_buf1_pc_r;
                     fetch_buf0_instruction_next_data = fetch_buf1_instruction_r;
@@ -796,7 +799,7 @@ always @* begin
             end
             if (fetch_buf1_load_data) begin
                 fetch_buf1_pc_next_data = fetch_rsp_pc;
-                fetch_buf1_instruction_next_data = imem_rdata;
+                fetch_buf1_instruction_next_data = instr_data_from_mem;
             end
         end
     end
@@ -813,7 +816,7 @@ always @* begin
     // hazard and ID/EX consume it only when if_id_valid_r is asserted.
     if (if_id_data_write_en) begin
         if_id_pc_next_data = (IMEM_SYNC != 0) ? fetch_queue_pc : pc_r;
-        if_id_instruction_next_data = (IMEM_SYNC != 0) ? fetch_queue_instruction : imem_rdata;
+        if_id_instruction_next_data = (IMEM_SYNC != 0) ? fetch_queue_instruction : instr_data_from_mem;
     end
 end
 
@@ -1169,7 +1172,10 @@ always @(posedge clk or negedge rst_n) begin
             fetch_pc_d1_r <= fetch_pc_r;
             fetch_valid_d1_r <= fetch_valid_r;
             fetch_pc_r <= imem_req ? pc_r : ZERO_XLEN;
-            fetch_valid_r <= imem_req;
+            // For ICACHE_EN=1: set fetch_valid_r when cache miss (icache_cpu_wait=1), clear when data arrives (icache_cpu_rvalid=1)
+            fetch_valid_r <= ((ICACHE_EN != 0) && (icache_cpu_wait && imem_req)) ||
+                             ((ICACHE_EN != 0) && (fetch_valid_r && !icache_cpu_rvalid)) ||
+                             ((ICACHE_EN == 0) && imem_req);
         end else begin
             fetch_pc_r <= ZERO_XLEN;
             fetch_pc_d1_r <= ZERO_XLEN;
