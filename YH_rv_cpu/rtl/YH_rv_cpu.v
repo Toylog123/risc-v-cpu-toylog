@@ -206,10 +206,13 @@ wire            id_ebreak;
 wire            id_mret;
 wire [XLEN-1:0] id_rs1_value;
 wire [XLEN-1:0] id_rs2_value;
-wire            id_branch_beq_bne;
+wire            id_branch_decode_candidate;
 wire            id_branch_decode_rs1_pending;
 wire            id_branch_decode_rs2_pending;
 wire            id_branch_decode_operands_ready;
+wire            id_branch_decode_eq;
+wire            id_branch_decode_lt;
+wire            id_branch_decode_ltu;
 wire            id_branch_decode_taken;
 wire            id_branch_decode_redirect_valid;
 wire [XLEN-1:0] id_branch_decode_redirect_pc;
@@ -517,10 +520,9 @@ assign ex_decode_flush_valid = ex_control_redirect_valid;
     // ID 阶段早分支重定向
     // 仅覆盖 operand-ready 的 taken BEQ/BNE，其他控制流仍走 EX backstop
     // ================================================================
-assign id_branch_beq_bne =
+assign id_branch_decode_candidate =
     if_id_valid_r &&
-    id_branch &&
-    ((id_branch_funct3 == 3'b000) || (id_branch_funct3 == 3'b001));
+    id_branch;
 assign id_branch_decode_rs1_pending =
     id_rs1_en &&
     (
@@ -536,12 +538,19 @@ assign id_branch_decode_rs2_pending =
 assign id_branch_decode_operands_ready =
     !id_branch_decode_rs1_pending &&
     !id_branch_decode_rs2_pending;
+assign id_branch_decode_eq = (id_rs1_value == id_rs2_value);
+assign id_branch_decode_lt = ($signed(id_rs1_value) < $signed(id_rs2_value));
+assign id_branch_decode_ltu = (id_rs1_value < id_rs2_value);
 assign id_branch_decode_taken =
-    id_branch_beq_bne &&
+    id_branch_decode_candidate &&
     id_branch_decode_operands_ready &&
     (
-        ((id_branch_funct3 == 3'b000) && (id_rs1_value == id_rs2_value)) ||
-        ((id_branch_funct3 == 3'b001) && (id_rs1_value != id_rs2_value))
+        ((id_branch_funct3 == 3'b000) &&  id_branch_decode_eq)  ||
+        ((id_branch_funct3 == 3'b001) && !id_branch_decode_eq)  ||
+        ((id_branch_funct3 == 3'b100) &&  id_branch_decode_lt)  ||
+        ((id_branch_funct3 == 3'b101) && !id_branch_decode_lt)  ||
+        ((id_branch_funct3 == 3'b110) &&  id_branch_decode_ltu) ||
+        ((id_branch_funct3 == 3'b111) && !id_branch_decode_ltu)
     );
 assign id_branch_decode_redirect_valid =
     pipeline_run &&
