@@ -632,3 +632,58 @@ algorithm sources.
   higher-throughput microarchitecture work; repeating memwait overlap, static
   backward prediction, or branch-only redirect tweaks is unlikely to close the
   remaining gap.
+
+## 2026-04-28 RV32IM Full-Unroll Compiler Follow-up (Retained)
+
+After retaining `rv32im_o3unroll_b1nosched`, two follow-up screens were run.
+
+First, an RTL idea was tested and rejected:
+
+| Item | Result |
+|------|------|
+| Hypothesis | consume operand-ready not-taken branches in ID instead of allowing them into EX |
+| Directed test | added a temporary not-taken `beq` requirement; old RTL went RED, trial RTL went GREEN |
+| CoreMark score | unchanged at `3090115 ticks`, `3.236126 CoreMark/MHz` |
+| Decision | rejected and reverted; a not-taken branch already overlaps the following ID instruction, so it does not reduce completion time |
+
+Second, additional compiler/code-shape flags were screened while staying within
+`rv32im_zicsr` and without changing CoreMark algorithm sources.
+
+| Variant | Extra flags beyond `rv32im_o3unroll_b1nosched` | Total ticks | CoreMark/MHz | Decision |
+|------|------|------|------|------|
+| `norelax` | `-mno-relax` | `3103890` | `3.221764` | rejected |
+| `nostrictalign` | `-mno-strict-align` | `3090115` | `3.236126` | rejected; tie |
+| `alignnatural` | `-malign-data=natural` | `3090115` | `3.236126` | rejected; tie |
+| `funrollall` | `-funroll-all-loops` | `2970977` | `3.365896` | improved |
+| `unrollall_u4` | `-funroll-all-loops --param max-unroll-times=4` | `3013602` | `3.318288` | rejected |
+| `unrollall_u16` | `-funroll-all-loops --param max-unroll-times=16` | `2967727` | `3.369582` | improved, not best |
+| `unrollall_u16i400` | `-funroll-all-loops --param max-unroll-times=16 --param max-unrolled-insns=400 --param max-average-unrolled-insns=160` | `3117164` | `3.208044` | rejected |
+| `unrollall_i800` | `-funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320` | `2955494` | `3.383529` | retained |
+
+### Retained Changes
+
+| File | Change |
+|------|------|
+| `scripts/build_coremark.bat` | add `rv32im_o3unroll_b1nosched_uall800` target |
+| `sw/coremark_port/core_portme.h` | report the exact `uall800` flags in the CoreMark banner |
+
+### Fresh Retained Evidence
+
+| Check | Result |
+|------|------|
+| Score command | `scripts\run_coremark_score.bat rv32im_o3unroll_b1nosched_uall800 10 2000 100000000UL 30000000 build\sw\YH_rv_cpu_coremark_rv32im_o3unroll_b1nosched_uall800_score.summary.txt` |
+| Score | `total_ticks=2955494`, `CoreMark/MHz=3.383529`, `competition_reportable=yes` |
+| Compiler flags | `-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -march=rv32im_zicsr -mabi=ilp32` |
+| Profile command | `scripts\run_coremark_profile.bat rv32im_o3unroll_b1nosched_uall800 10 2000 100000000UL 30000000 0` |
+| Profile headline | `total_cycles=2987770`, `stall_decode_cycles=0`, `mem_wait_cycles=0`, `id_ex_valid_cycles=2542163`, `ex_fetch_redirect_valid_cycles=79929` |
+| Top-PC note | after aggressive unroll, the old hard-coded function-region buckets are no longer authoritative; use score, headline counters, symbol map, and Top-PC rows for this target |
+
+### Conclusion
+
+- `rv32im_o3unroll_b1nosched_uall800` is the new retained short-run best:
+  `3.383529 CoreMark/MHz`, up from `3.236126`.
+- The improvement is still compiler/code-shape driven and remains within
+  `rv32im_zicsr`.
+- The remaining gap to `>5` is too large for branch-only overlap tweaks; next
+  work should either keep searching for major dynamic-instruction reductions or
+  move to a larger throughput feature with a clear correctness plan.

@@ -44,8 +44,8 @@
 
 - [x] `rv32im` CoreMark short has exceeded the long-term `>1.5` target:
   `2.365118 CoreMark/MHz`, `4269236 cycles`
-- [x] `rv32im_o3unroll_b1nosched` is the current short best:
-  `3.236126 CoreMark/MHz`, `3090115 ticks`
+- [x] `rv32im_o3unroll_b1nosched_uall800` is the current short best:
+  `3.383529 CoreMark/MHz`, `2955494 ticks`
 - [x] `rv32im_o3` was tested and rejected:
   `2.331563 CoreMark/MHz`, `4327580 cycles`
 - [x] `rv32im_o3unroll` profile captured:
@@ -62,6 +62,13 @@
   `rv32im_o3unroll_b1nosched`:
   `-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2`,
   `3.236126 CoreMark/MHz`
+- [x] Full-unroll compiler matrix retained
+  `rv32im_o3unroll_b1nosched_uall800`:
+  `-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320`,
+  `3.383529 CoreMark/MHz`
+- [x] ID-stage not-taken branch consume was tested and rejected:
+  directed RED/GREEN worked, but CoreMark remained
+  `3.236126 CoreMark/MHz`; trial RTL was reverted.
 - [x] `scripts\run_m_extension_test.bat` currently returns PASS with `11/11`
 - [x] Legacy `rv32i_zicsr` short score remains `0.925186` after adding the
   `rv32im` score path
@@ -76,9 +83,10 @@
   score path requires more than the old `1000` iterations to satisfy the
   runtime floor
 - [ ] Next CoreMark >5 direction must not repeat request-only memwait overlap,
-  static backward prediction, or branch-only redirect tweaks; the latest
-  profile has `stall_decode=0` and `mem_wait=0`, so the next active hypothesis
-  must target larger instruction-count or throughput buckets.
+  static backward prediction, branch-only redirect tweaks, or ID-stage
+  not-taken consume; the latest profile has `stall_decode=0` and `mem_wait=0`,
+  so the next active hypothesis must target larger instruction-count or
+  throughput buckets.
 
 ## 暂不推进
 

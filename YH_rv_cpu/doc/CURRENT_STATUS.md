@@ -110,6 +110,15 @@
 
 ## Current optimization status
 
+- Latest `2026-04-28` retained short best is
+  `rv32im_o3unroll_b1nosched_uall800`:
+  - score command:
+    `scripts\run_coremark_score.bat rv32im_o3unroll_b1nosched_uall800 10 2000 100000000UL 30000000 build\sw\YH_rv_cpu_coremark_rv32im_o3unroll_b1nosched_uall800_score.summary.txt`
+  - result: `2955494 total_ticks`, `3.383529 CoreMark/MHz`
+  - evidence:
+    `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_o3unroll_b1nosched_uall800_score.summary.txt`
+  - flags:
+    `-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -march=rv32im_zicsr -mabi=ilp32`
 - `2026-04-28` CoreMark score target `> 1.5 CoreMark/MHz` has a retained
   short-run path using the existing M extension hardware:
   - new script target: `rv32im`

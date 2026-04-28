@@ -64,6 +64,11 @@ if /I "%TARGET%"=="rv64" (
     set MABI=ilp32
     set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2
     set OPT_DEFINE=YH_COREMARK_OPT_O3UNROLL_B1NOSCHED
+) else if /I "%TARGET%"=="rv32im_o3unroll_b1nosched_uall800" (
+    set MARCH=rv32im_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320
+    set OPT_DEFINE=YH_COREMARK_OPT_O3UNROLL_B1NOSCHED_UALL800
 ) else if /I "%TARGET%"=="rv32im_ofast" (
     set MARCH=rv32im_zicsr
     set MABI=ilp32
@@ -189,6 +194,8 @@ if /I "%TARGET%"=="rv64" (
 ) else if /I "%TARGET%"=="rv32im_o3unroll" (
     set MULTIDIR=rv32im\ilp32
 ) else if /I "%TARGET%"=="rv32im_o3unroll_b1nosched" (
+    set MULTIDIR=rv32im\ilp32
+) else if /I "%TARGET%"=="rv32im_o3unroll_b1nosched_uall800" (
     set MULTIDIR=rv32im\ilp32
 ) else if /I "%TARGET%"=="rv32im_ofast" (
     set MULTIDIR=rv32im\ilp32
