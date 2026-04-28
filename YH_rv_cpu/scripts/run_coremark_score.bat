@@ -54,6 +54,8 @@ if /I "%TARGET%"=="rv64im" (
     set TEST_TOP=YH_rv_cpu_coremark_rv64_tb
     set ROM_TARGET=rv64
 )
+if /I "%TARGET%"=="rv32im_o3" set ROM_TARGET=rv32
+if /I "%TARGET%"=="rv32im_o3unroll" set ROM_TARGET=rv32
 
 rem Resolve simulator tools from PATH to keep the script portable across lab machines.
 for %%T in (xvlog.bat xvlog) do (

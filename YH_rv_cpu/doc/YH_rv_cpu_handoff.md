@@ -104,6 +104,13 @@
 - 结果：`4269236 completion cycles`，`2.365118 CoreMark/MHz`
 - 证据：
   `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_score.summary.txt`
+- 当前 short 最优已经更新为：
+  `rv32im_o3unroll`，`4112023 completion cycles`，
+  `2.455226 CoreMark/MHz`
+- 最优证据：
+  `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_o3unroll_score.summary.txt`
+- `rv32im_o3` 已拒绝保留：
+  `4327580 cycles`，`2.331563 CoreMark/MHz`
 - M 扩展护栏：
   `scripts\run_m_extension_test.bat` -> `PASS`，`11/11`
 - 旧 `rv32i_zicsr` 路径复测仍为：

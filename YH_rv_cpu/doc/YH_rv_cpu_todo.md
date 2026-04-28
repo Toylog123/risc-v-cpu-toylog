@@ -44,6 +44,13 @@
 
 - [x] `rv32im` CoreMark short has exceeded the long-term `>1.5` target:
   `2.365118 CoreMark/MHz`, `4269236 cycles`
+- [x] `rv32im_o3unroll` is the current short best:
+  `2.455226 CoreMark/MHz`, `4112023 cycles`
+- [x] `rv32im_o3` was tested and rejected:
+  `2.331563 CoreMark/MHz`, `4327580 cycles`
+- [x] `rv32im_o3unroll` profile captured:
+  `mem_wait=578409`, `stall_decode=204495`, `branch_redirect=149208`,
+  `fetch_queue_empty=314532`
 - [x] `scripts\run_m_extension_test.bat` currently returns PASS with `11/11`
 - [x] Legacy `rv32i_zicsr` short score remains `0.925186` after adding the
   `rv32im` score path

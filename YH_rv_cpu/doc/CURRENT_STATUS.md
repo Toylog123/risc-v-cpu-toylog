@@ -115,9 +115,20 @@
   - new script target: `rv32im`
   - command:
     `scripts\run_coremark_score.bat rv32im 10 2000 100000000UL 20000000 build\sw\YH_rv_cpu_coremark_rv32im_score.summary.txt`
-  - result: `4269236 completion cycles`, `2.365118 CoreMark/MHz`
+  - `rv32im` result: `4269236 completion cycles`, `2.365118 CoreMark/MHz`
   - evidence:
     `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_score.summary.txt`
+  - current best short path after compiler matrix:
+    `rv32im_o3unroll` (`-O3 -funroll-loops -march=rv32im_zicsr -mabi=ilp32`)
+    = `4112023 completion cycles`, `2.455226 CoreMark/MHz`
+  - best evidence:
+    `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_o3unroll_score.summary.txt`
+  - `rv32im_o3` was rejected as a score regression:
+    `4327580 cycles`, `2.331563 CoreMark/MHz`
+  - `rv32im_o3unroll` profile:
+    `total_cycles=4422172`, `mem_wait_cycles=578409`,
+    `stall_decode_cycles=204495`, `ex_branch_redirect_cycles=149208`,
+    `fetch_queue_empty_cycles=314532`
   - dump evidence: `mul` instructions are emitted in
     `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_score.dump`
   - M extension guardrail: `scripts\run_m_extension_test.bat` returns PASS
@@ -128,7 +139,7 @@
 - This is a software/tooling enablement of already-present RTL M-extension
   behavior, not a new RTL microarchitecture change.
 - Not yet frozen as a strict competition baseline:
-  - strict `>=10s` rv32im CoreMark long run is still pending
+  - strict `>=10s` rv32im/rv32im_o3unroll CoreMark long run is still pending
   - `impl50` after choosing rv32im as a report path is still pending
   - FPGA-like probe for rv32im is still pending
 

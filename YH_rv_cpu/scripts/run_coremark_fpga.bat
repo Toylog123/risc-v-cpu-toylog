@@ -33,6 +33,10 @@ set XSIM=
 set PYTHON_CMD=
 set TEST_TOP=YH_rv_cpu_coremark_fpga_tb
 set LOG_FILE=%PROJECT_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%_fpga.log
+set ROM_TARGET=rv32
+
+if /I "%TARGET%"=="rv64" set ROM_TARGET=rv64
+if /I "%TARGET%"=="rv64im" set ROM_TARGET=rv64
 
 for %%T in (xvlog.bat xvlog) do (
     where %%T >nul 2>nul
@@ -86,10 +90,10 @@ call "%~dp0prepare_xsim_runtime.bat" coremark_fpga XSIM_RUN_DIR
 if not defined XSIM_RUN_DIR exit /b 1
 
 if not exist "%XSIM_RUN_DIR%\build\sw" mkdir "%XSIM_RUN_DIR%\build\sw"
-copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%.hex" >nul
+copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%ROM_TARGET%.hex" >nul
 if errorlevel 1 exit /b 1
 if exist "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.mem32.hex" (
-    copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.mem32.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%.mem32.hex" >nul
+    copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.mem32.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%ROM_TARGET%.mem32.hex" >nul
     if errorlevel 1 exit /b 1
 )
 

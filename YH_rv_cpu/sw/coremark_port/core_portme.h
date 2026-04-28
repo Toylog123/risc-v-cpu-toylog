@@ -53,7 +53,11 @@ limitations under the License.
 #endif
 
 #ifndef COMPILER_FLAGS
-#if __riscv_xlen == 64
+#ifdef YH_COREMARK_OPT_O3UNROLL
+#define COMPILER_FLAGS "-O3 -funroll-loops -march=rv32im_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_O3)
+#define COMPILER_FLAGS "-O3 -march=rv32im_zicsr -mabi=ilp32"
+#elif __riscv_xlen == 64
 #ifdef __riscv_mul
 #define COMPILER_FLAGS "-O2 -march=rv64im_zicsr -mabi=lp64"
 #else

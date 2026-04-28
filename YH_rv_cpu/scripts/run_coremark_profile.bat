@@ -29,8 +29,16 @@ set XSIM=
 set TEST_TOP=YH_rv_cpu_coremark_profile_rv32_tb
 set LOG_FILE=%PROJECT_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%_profile.log
 set XSIM_RUN_DIR=
+set ROM_TARGET=rv32
 
-if /I "%TARGET%"=="rv64" set TEST_TOP=YH_rv_cpu_coremark_profile_rv64_tb
+if /I "%TARGET%"=="rv64" (
+    set TEST_TOP=YH_rv_cpu_coremark_profile_rv64_tb
+    set ROM_TARGET=rv64
+)
+if /I "%TARGET%"=="rv64im" (
+    set TEST_TOP=YH_rv_cpu_coremark_profile_rv64_tb
+    set ROM_TARGET=rv64
+)
 
 rem Resolve simulator tools dynamically to avoid hard-coded Vivado install paths.
 for %%T in (xvlog.bat xvlog) do (
@@ -80,10 +88,10 @@ if not defined XSIM_RUN_DIR exit /b 1
 
 rem Copy the program image into the throwaway runtime directory expected by the testbench.
 if not exist "%XSIM_RUN_DIR%\build\sw" mkdir "%XSIM_RUN_DIR%\build\sw"
-copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%.hex" >nul
+copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%ROM_TARGET%.hex" >nul
 if errorlevel 1 exit /b 1
 if exist "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.mem32.hex" (
-    copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.mem32.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%.mem32.hex" >nul
+    copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.mem32.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%ROM_TARGET%.mem32.hex" >nul
     if errorlevel 1 exit /b 1
 )
 

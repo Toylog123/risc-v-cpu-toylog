@@ -30,6 +30,8 @@ set WORD_HEX_PY=%PROJECT_DIR%\scripts\make_word_hex.py
 set COREMARK_DIR=%PROJECT_DIR%\build\external\coremark
 set PORT_DIR=%PROJECT_DIR%\sw\coremark_port
 set BUILD_DIR=%PROJECT_DIR%\build\sw
+set OPT_FLAGS=-O2
+set OPT_DEFINE=YH_COREMARK_OPT_O2
 if "%OUTPUT_NAME%"=="" set OUTPUT_NAME=YH_rv_cpu_coremark_%TARGET%
 
 if /I "%TARGET%"=="rv64" (
@@ -41,6 +43,16 @@ if /I "%TARGET%"=="rv64" (
 ) else if /I "%TARGET%"=="rv32im" (
     set MARCH=rv32im_zicsr
     set MABI=ilp32
+) else if /I "%TARGET%"=="rv32im_o3" (
+    set MARCH=rv32im_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3
+    set OPT_DEFINE=YH_COREMARK_OPT_O3
+) else if /I "%TARGET%"=="rv32im_o3unroll" (
+    set MARCH=rv32im_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -funroll-loops
+    set OPT_DEFINE=YH_COREMARK_OPT_O3UNROLL
 ) else (
     set MARCH=rv32i_zicsr
     set MABI=ilp32
@@ -135,6 +147,10 @@ if /I "%TARGET%"=="rv64" (
     set MULTIDIR=rv64im\lp64
 ) else if /I "%TARGET%"=="rv32im" (
     set MULTIDIR=rv32im\ilp32
+) else if /I "%TARGET%"=="rv32im_o3" (
+    set MULTIDIR=rv32im\ilp32
+) else if /I "%TARGET%"=="rv32im_o3unroll" (
+    set MULTIDIR=rv32im\ilp32
 ) else (
     set MULTIDIR=rv32i\ilp32
 )
@@ -165,16 +181,18 @@ if not exist "!LIBM_REF!" (
 
 echo DEBUG: GCC=!GCC!
 echo DEBUG: MARCH=!MARCH! MABI=!MABI!
+echo DEBUG: OPT_FLAGS=!OPT_FLAGS!
 echo DEBUG: MULTIDIR=!MULTIDIR!
 echo DEBUG: LIBGCC_REF=!LIBGCC_REF!
 echo DEBUG: LIBM_REF=!LIBM_REF!
 
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
-%GCC% -march=%MARCH% -mabi=%MABI% -msmall-data-limit=0 -O2 -ffreestanding -fno-builtin -nostdlib ^
+%GCC% -march=%MARCH% -mabi=%MABI% -msmall-data-limit=0 !OPT_FLAGS! -ffreestanding -fno-builtin -nostdlib ^
     -Wl,--gc-sections ^
     -I "%PORT_DIR%" ^
     -I "%COREMARK_DIR%" ^
+    -D!OPT_DEFINE! ^
     -DITERATIONS=%ITERATIONS% ^
     -DTOTAL_DATA_SIZE=%DATA_SIZE% ^
     -DYH_COREMARK_TIMER_HZ=%TIMER_HZ% ^

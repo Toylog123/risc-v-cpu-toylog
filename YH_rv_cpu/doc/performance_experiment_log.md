@@ -479,3 +479,39 @@ M instructions.
 - Before calling this a frozen strict baseline, still run a strict `>=10s`
   long run with enough iterations for the faster rv32im path, plus `impl50`
   and FPGA-like probe.
+
+## 2026-04-28 RV32IM Compiler Matrix Follow-up
+
+After retaining the basic `rv32im` score path, two compiler variants were
+tested using the same RTL and the same short CoreMark command shape.
+
+| Target | Compiler flags | Completion cycles | CoreMark/MHz | Decision |
+|------|------|------|------|------|
+| `rv32im` | `-O2 -march=rv32im_zicsr -mabi=ilp32` | `4269236` | `2.365118` | retained baseline for M path |
+| `rv32im_o3` | `-O3 -march=rv32im_zicsr -mabi=ilp32` | `4327580` | `2.331563` | rejected; slower than `-O2` |
+| `rv32im_o3unroll` | `-O3 -funroll-loops -march=rv32im_zicsr -mabi=ilp32` | `4112023` | `2.455226` | retained as current short best |
+
+The `rv32im_o3unroll` profile was captured via:
+
+```bat
+scripts\run_coremark_profile.bat rv32im_o3unroll 10 2000 100000000UL 30000000 0
+```
+
+| Counter | Value |
+|------|------|
+| `PROFILE: total_cycles` | `4422172` |
+| `PROFILE: stall_decode_cycles` | `204495` |
+| `PROFILE: mem_wait_cycles` | `578409` |
+| `PROFILE: ex_branch_redirect_cycles` | `149208` |
+| `PROFILE: ex_jal_redirect_cycles` | `53053` |
+| `PROFILE: ex_jalr_redirect_cycles` | `13814` |
+| `PROFILE: ex_fetch_redirect_valid_cycles` | `216075` |
+| `PROFILE: fetch_queue_empty_cycles` | `314532` |
+
+Conclusion:
+
+- The compiler matrix produced a small but real new short-run best.
+- The next RTL target should no longer be branch-first; branch redirect is now
+  much smaller than the memory-side counters.
+- The existing memwait-overlap diagnostic is again relevant on the new best
+  path because `mem_wait_cycles` and `fetch_queue_empty_cycles` remain visible.
