@@ -112,3 +112,37 @@ scripts\run_riscv_tests_subset.bat rv64 - - 120000 YH_rv_cpu\scripts\riscv_tests
 - 如果直接把 `fence_i` 当作“功能失败”处理，会误判当前根因为 CPU 设计缺陷
 - 如果直接忽略 `fence_i` 又不写清 ISA 边界，会导致文档口径不严谨
 - 在扩展矩阵未收口前，不应启动新的高侵入性能优化
+
+## 2026-04-28 - RV32IM O3Unroll Memwait Overlap Trial
+
+### 目的
+
+验证 `rv32im_o3unroll` 当前最佳短跑路径上，单拍 `mem_wait` 重叠取指
+是否能转化为 CoreMark 实际涨分。
+
+### 实际命令
+
+```bat
+scripts\check_syntax.bat
+scripts\run_memwait_overlap_diag.bat require_overlap
+scripts\run_memwait_overlap_diag.bat
+scripts\run_fetch_redirect_reuse_diag.bat
+scripts\run_coremark_smoke.bat rv32im_o3unroll
+scripts\run_coremark_score.bat rv32im_o3unroll 10 2000 100000000UL 30000000 build\sw\YH_rv_cpu_coremark_rv32im_o3unroll_memwait_score.summary.txt
+```
+
+### 结果快照
+
+| 项目 | 结果 | 备注 |
+|------|------|------|
+| syntax | PASS | exit 0 |
+| memwait strict directed | PASS | `overlap_requests=1` |
+| memwait default directed | PASS | `overlap_requests=1` |
+| redirect reuse guardrail | PASS | `overlaps=1` |
+| CoreMark smoke | PASS | `591345 cycles` |
+| CoreMark short | PASS | `4112023 cycles`, `2.455226 CoreMark/MHz` |
+
+### 结论
+
+- 该 RTL 试验功能上可行，但 CoreMark 短跑与当前最佳完全持平。
+- 按 retain/reject 规则，试验 RTL 已回退，只保留文档记录。

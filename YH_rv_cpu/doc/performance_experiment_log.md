@@ -515,3 +515,32 @@ Conclusion:
   much smaller than the memory-side counters.
 - The existing memwait-overlap diagnostic is again relevant on the new best
   path because `mem_wait_cycles` and `fetch_queue_empty_cycles` remain visible.
+
+## 2026-04-28 Memwait Overlap Fetch Request Trial (Rejected)
+
+This round tested the planned low-intrusion RTL slice for the new
+`rv32im_o3unroll` best path: allow a single instruction fetch request during a
+data-side `mem_wait` window when there is no stall, redirect, queued fetch data,
+or unresolved future fetch response.
+
+| Check | Result |
+|------|------|
+| Baseline red | `scripts\run_memwait_overlap_diag.bat require_overlap` -> `FAIL`, `overlap_requests=0` |
+| Trial syntax | `scripts\check_syntax.bat` -> PASS |
+| Trial strict directed | `scripts\run_memwait_overlap_diag.bat require_overlap` -> PASS, `overlap_requests=1` |
+| Trial default directed | `scripts\run_memwait_overlap_diag.bat` -> PASS, `overlap_requests=1` |
+| Redirect guardrail | `scripts\run_fetch_redirect_reuse_diag.bat` -> PASS |
+| CoreMark smoke | `scripts\run_coremark_smoke.bat rv32im_o3unroll` -> PASS, `591345 cycles` |
+| CoreMark short score | `scripts\run_coremark_score.bat rv32im_o3unroll 10 2000 100000000UL 30000000 build\sw\YH_rv_cpu_coremark_rv32im_o3unroll_memwait_score.summary.txt` -> `4112023 cycles`, `2.455226 CoreMark/MHz` |
+| Keep? | `no`; RTL reverted because short CoreMark was exactly unchanged |
+
+Conclusion:
+
+- The directed harness proved the overlap request is functionally feasible.
+- It does not reduce the current CoreMark short cycle count on
+  `rv32im_o3unroll`; the score and cycles are identical to the previous best.
+- Do not repeat this exact request-only memwait overlap slice unless the memory
+  subsystem or CoreMark workload shape changes.
+- The next optimization should target a larger measured bucket than this
+  one-cycle overlap opportunity, or change the software/code-generation path
+  again.

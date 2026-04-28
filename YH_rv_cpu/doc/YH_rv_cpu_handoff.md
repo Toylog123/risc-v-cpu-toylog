@@ -109,6 +109,11 @@
   `2.455226 CoreMark/MHz`
 - 最优证据：
   `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_o3unroll_score.summary.txt`
+- `mem_wait overlap fetch request` 已按 TDD 快速筛选并拒绝：
+  directed 可变绿，但 short score 仍是 `4112023 cycles`，
+  `2.455226 CoreMark/MHz`，试验 RTL 已回退
+- 试验证据：
+  `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_o3unroll_memwait_score.summary.txt`
 - `rv32im_o3` 已拒绝保留：
   `4327580 cycles`，`2.331563 CoreMark/MHz`
 - M 扩展护栏：
@@ -123,7 +128,8 @@
 
 1. 先把当前 profiling / docs WIP 收口成 focused commit
 2. 单独清理脚本 BOM / 换行差异与冲突备份文件
-3. 如果继续优化，优先试做 taken `BEQ/BNE` 的 decode-stage early redirect，并保持 operand-ready gating 与完整 wrong-path flush
+3. 继续冲 `CoreMark/MHz > 5` 时，优先寻找编译/库/工作负载路径和更大
+   RTL 瓶颈；不要重复当前 request-only `mem_wait overlap` 切片
 4. 每轮优化完整重跑 CoreMark / baseline / impl50 并同步日志
 5. 如新一轮优化无明确收益，及时关闭方向并回到 clean worktree
 

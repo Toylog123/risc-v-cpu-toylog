@@ -51,6 +51,9 @@
 - [x] `rv32im_o3unroll` profile captured:
   `mem_wait=578409`, `stall_decode=204495`, `branch_redirect=149208`,
   `fetch_queue_empty=314532`
+- [x] `mem_wait overlap fetch request` tried and rejected:
+  directed `overlap_requests=1`, but short score stayed
+  `2.455226 CoreMark/MHz` / `4112023 cycles`; RTL reverted
 - [x] `scripts\run_m_extension_test.bat` currently returns PASS with `11/11`
 - [x] Legacy `rv32i_zicsr` short score remains `0.925186` after adding the
   `rv32im` score path
@@ -64,6 +67,9 @@
 - [ ] `rv32im` strict `>=10s` long run is still pending because the faster
   score path requires more than the old `1000` iterations to satisfy the
   runtime floor
+- [ ] Next CoreMark >5 direction must not repeat request-only memwait overlap;
+  prioritize a larger measured bucket or a compiler/runtime path with direct
+  instruction-count leverage
 
 ## 暂不推进
 
