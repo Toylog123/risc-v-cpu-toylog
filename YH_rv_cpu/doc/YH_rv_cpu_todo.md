@@ -42,6 +42,11 @@
 
 ## 当前事实
 
+- [x] `rv32im` CoreMark short has exceeded the long-term `>1.5` target:
+  `2.365118 CoreMark/MHz`, `4269236 cycles`
+- [x] `scripts\run_m_extension_test.bat` currently returns PASS with `11/11`
+- [x] Legacy `rv32i_zicsr` short score remains `0.925186` after adding the
+  `rv32im` score path
 - [x] `rv32 full-ui` 最新活跃结果是 `42/42`
 - [x] `rv64 full-ui` 最新活跃结果是 `54/54`
 - [x] `fence_i` 已在 `rv32i_zicsr_zifencei` 口径下通过
@@ -49,6 +54,9 @@
 - [x] fresh CoreMark smoke / short 已复现冻结短口径
 - [x] fresh CoreMark strict 已完成 dated rerun：`0.912465 CoreMark/MHz`
 - [x] 当前收口阶段已经结束，下一阶段转入 post-closure 优化
+- [ ] `rv32im` strict `>=10s` long run is still pending because the faster
+  score path requires more than the old `1000` iterations to satisfy the
+  runtime floor
 
 ## 暂不推进
 

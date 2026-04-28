@@ -54,9 +54,17 @@ limitations under the License.
 
 #ifndef COMPILER_FLAGS
 #if __riscv_xlen == 64
+#ifdef __riscv_mul
+#define COMPILER_FLAGS "-O2 -march=rv64im_zicsr -mabi=lp64"
+#else
 #define COMPILER_FLAGS "-O2 -march=rv64i_zicsr -mabi=lp64"
+#endif
+#else
+#ifdef __riscv_mul
+#define COMPILER_FLAGS "-O2 -march=rv32im_zicsr -mabi=ilp32"
 #else
 #define COMPILER_FLAGS "-O2 -march=rv32i_zicsr -mabi=ilp32"
+#endif
 #endif
 #endif
 

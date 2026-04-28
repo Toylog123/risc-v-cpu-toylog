@@ -93,6 +93,27 @@
 
 ## 5. 下一步最值得做的 5 项
 
+### 2026-04-28 CoreMark >1.5 update
+
+当前 `perf/coremark-over-1p5` 分支已经通过启用 `rv32im` CoreMark
+编译/跑分路径，把 short CoreMark 从 `0.925186` 提升到
+`2.365118 CoreMark/MHz`：
+
+- 命令：
+  `scripts\run_coremark_score.bat rv32im 10 2000 100000000UL 20000000 build\sw\YH_rv_cpu_coremark_rv32im_score.summary.txt`
+- 结果：`4269236 completion cycles`，`2.365118 CoreMark/MHz`
+- 证据：
+  `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_score.summary.txt`
+- M 扩展护栏：
+  `scripts\run_m_extension_test.bat` -> `PASS`，`11/11`
+- 旧 `rv32i_zicsr` 路径复测仍为：
+  `10862713 cycles`，`0.925186 CoreMark/MHz`
+
+这个收益来自把 CoreMark 中的软件 `__mulsi3` 路径替换为硬件 `mul`
+指令，属于已有 M 扩展能力的工具链启用；不是新的 RTL 结构优化。
+还不能称为 strict 冻结基线，因为 `rv32im` 的 `>=10s` 长跑、`impl50`
+和 FPGA-like probe 尚未刷新。
+
 1. 先把当前 profiling / docs WIP 收口成 focused commit
 2. 单独清理脚本 BOM / 换行差异与冲突备份文件
 3. 如果继续优化，优先试做 taken `BEQ/BNE` 的 decode-stage early redirect，并保持 operand-ready gating 与完整 wrong-path flush

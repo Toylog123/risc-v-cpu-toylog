@@ -42,10 +42,18 @@ set XELAB=
 set XSIM=
 set PYTHON_CMD=
 set TEST_TOP=YH_rv_cpu_coremark_rv32_tb
+set ROM_TARGET=rv32
 set LOG_FILE=!OUTPUT_DIR!!OUTPUT_STEM!.log
 set XSIM_RUN_DIR=
 
-if /I "%TARGET%"=="rv64" set TEST_TOP=YH_rv_cpu_coremark_rv64_tb
+if /I "%TARGET%"=="rv64" (
+    set TEST_TOP=YH_rv_cpu_coremark_rv64_tb
+    set ROM_TARGET=rv64
+)
+if /I "%TARGET%"=="rv64im" (
+    set TEST_TOP=YH_rv_cpu_coremark_rv64_tb
+    set ROM_TARGET=rv64
+)
 
 rem Resolve simulator tools from PATH to keep the script portable across lab machines.
 for %%T in (xvlog.bat xvlog) do (
@@ -101,7 +109,7 @@ if not defined XSIM_RUN_DIR exit /b 1
 
 rem Mirror the generated image into an isolated xsim runtime directory.
 if not exist "%XSIM_RUN_DIR%\build\sw" mkdir "%XSIM_RUN_DIR%\build\sw"
-copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%.hex" >nul
+copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%ROM_TARGET%.hex" >nul
 if errorlevel 1 exit /b 1
 
 pushd "%XSIM_RUN_DIR%"

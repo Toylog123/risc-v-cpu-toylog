@@ -424,3 +424,58 @@ branch operands are provably ready and not still pending in `ID/EX` or
   - strict CoreMark long run
   - `impl50`
   - FPGA-like probe
+
+## 2026-04-28 RV32IM CoreMark Score Path (Retained Short-Run Path)
+
+This round attacked the largest software-visible gap in the CoreMark dump:
+the `rv32i_zicsr` build was still calling software multiply/divide helpers
+such as `__mulsi3` and `__divsi3`. The RTL already includes M-extension
+decode and ALU support, so the lowest-intrusion candidate was to add an
+explicit `rv32im` CoreMark build/score path and verify that it emits hardware
+M instructions.
+
+### Red / Green
+
+| Item | Result |
+|------|------|
+| Red build | `scripts\build_coremark.bat rv32im 1 2000 100000000UL 0 YH_rv_cpu_coremark_rv32im_red` still used `MARCH=rv32i_zicsr` |
+| Red dump check | no hardware `mul` / `div` / `rem` instructions were emitted |
+| Green build | `scripts\build_coremark.bat rv32im 1 2000 100000000UL 0 YH_rv_cpu_coremark_rv32im_green` used `MARCH=rv32im_zicsr` and `MULTIDIR=rv32im\ilp32` |
+| Green dump check | hardware `mul` instructions appeared in `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_green.dump` |
+
+### Changes
+
+| File | Change |
+|------|------|
+| `scripts/build_coremark.bat` | add `rv32im` and `rv64im` target mapping to `rv32im_zicsr` / `rv64im_zicsr` and matching GCC multilibs |
+| `scripts/run_coremark_score.bat` | map `rv32im` onto the existing rv32 testbench ROM name, and `rv64im` onto the existing rv64 testbench ROM name |
+| `sw/coremark_port/core_portme.h` | report `rv32im_zicsr` / `rv64im_zicsr` compiler flags when `__riscv_mul` is defined |
+| `scripts/run_m_extension_test.bat` | make pass/fail parsing robust by using ASCII `11/11` and `[FAIL]` markers |
+
+### Fresh Evidence
+
+| Check | Result |
+|------|------|
+| `rv32im` CoreMark short | `4269236 completion cycles`, `2.365118 CoreMark/MHz` via `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_score.summary.txt` |
+| `rv32im` compiler flags | `-O2 -march=rv32im_zicsr -mabi=ilp32` |
+| CoreMark CRCs | `crclist=0xe714`, `crcmatrix=0x1fd7`, `crcstate=0x8e3a`, `crcfinal=0xfcaf` |
+| M extension guardrail | `scripts\run_m_extension_test.bat` -> `PASS`, `11/11` |
+| Legacy `rv32i` score after script change | `10862713 cycles`, `0.925186 CoreMark/MHz` via `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_score_after_rv32im.summary.txt` |
+
+### Measured Delta
+
+| Metric | Previous active short path | RV32IM short path | Delta |
+|------|------|------|------|
+| CoreMark short cycles | `10862713` | `4269236` | `-6593477` (`-60.70%`) |
+| CoreMark/MHz | `0.925186` | `2.365118` | `+1.439932` (`+155.64%`) |
+
+### Conclusion
+
+- The `>1.5 CoreMark/MHz` target is exceeded on the short reportable path.
+- The gain comes from replacing software multiply helpers with hardware
+  M-extension instructions, not from a new RTL timing or fetch change.
+- This path should be kept as the primary high-score candidate, while the
+  older `rv32i_zicsr` path remains available as the conservative ISA baseline.
+- Before calling this a frozen strict baseline, still run a strict `>=10s`
+  long run with enough iterations for the faster rv32im path, plus `impl50`
+  and FPGA-like probe.

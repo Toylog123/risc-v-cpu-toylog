@@ -89,35 +89,30 @@ if errorlevel 1 goto :fail
 call %XSIM% %TEST_TOP%_snapshot -runall > "%LOG_FILE%" 2>&1
 type "%LOG_FILE%"
 
-rem Check for pass/fail
-findstr /c:"全部通过" "%LOG_FILE%" >nul
-if not errorlevel 1 (
-    echo.
-    echo ========================================
-    echo M扩展测试: PASS
-    echo ========================================
-    set RUN_STATUS=0
-    goto :done
-)
-
-findstr /c:"有测试失败" "%LOG_FILE%" >nul
-if not errorlevel 1 (
-    echo.
-    echo ========================================
-    echo M扩展测试: FAIL
-    echo ========================================
-    set RUN_STATUS=1
-    goto :done
-)
-
-findstr /c:"测试完成" "%LOG_FILE%" >nul
-if not errorlevel 1 (
-    set RUN_STATUS=0
-    goto :done
-)
+rem Check for pass/fail. Prefer ASCII tokens so this stays robust across codepages.
+findstr /r /c:"^\[FAIL\]" "%LOG_FILE%" >nul
+if not errorlevel 1 goto :m_fail
+findstr /c:"11/11" "%LOG_FILE%" >nul
+if not errorlevel 1 goto :m_pass
 
 :fail
 set RUN_STATUS=%ERRORLEVEL%
+goto :done
+
+:m_pass
+echo.
+echo ========================================
+echo M extension test: PASS
+echo ========================================
+set RUN_STATUS=0
+goto :done
+
+:m_fail
+echo.
+echo ========================================
+echo M extension test: FAIL
+echo ========================================
+set RUN_STATUS=1
 
 :done
 popd

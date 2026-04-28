@@ -35,6 +35,12 @@ if "%OUTPUT_NAME%"=="" set OUTPUT_NAME=YH_rv_cpu_coremark_%TARGET%
 if /I "%TARGET%"=="rv64" (
     set MARCH=rv64i_zicsr
     set MABI=lp64
+) else if /I "%TARGET%"=="rv64im" (
+    set MARCH=rv64im_zicsr
+    set MABI=lp64
+) else if /I "%TARGET%"=="rv32im" (
+    set MARCH=rv32im_zicsr
+    set MABI=ilp32
 ) else (
     set MARCH=rv32i_zicsr
     set MABI=ilp32
@@ -125,6 +131,10 @@ set GCC_ROOT=!GCC_DIR:~0,-4!
 
 if /I "%TARGET%"=="rv64" (
     set MULTIDIR=rv64i\lp64
+) else if /I "%TARGET%"=="rv64im" (
+    set MULTIDIR=rv64im\lp64
+) else if /I "%TARGET%"=="rv32im" (
+    set MULTIDIR=rv32im\ilp32
 ) else (
     set MULTIDIR=rv32i\ilp32
 )
