@@ -544,3 +544,27 @@ Conclusion:
 - The next optimization should target a larger measured bucket than this
   one-cycle overlap opportunity, or change the software/code-generation path
   again.
+
+## 2026-04-28 RV32IM Extended Compiler Matrix (No New Best)
+
+After rejecting the request-only memwait RTL slice, another compiler-side
+screen was run before moving to higher-intrusion RTL work. This batch also
+fixed the Windows LTO build path by forcing GCC temporary files into the
+project-local `_tmp\gcc_tmp` directory, avoiding non-ASCII user-profile temp
+paths during `-flto` links.
+
+| Target | Compiler flags | Completion cycles | CoreMark/MHz | Decision |
+|------|------|------|------|------|
+| `rv32im_o2unroll` | `-O2 -funroll-loops -march=rv32im_zicsr -mabi=ilp32` | `4138703` | `2.439546` | rejected |
+| `rv32im_ofast` | `-Ofast -march=rv32im_zicsr -mabi=ilp32` | `4327646` | `2.331563` | rejected |
+| `rv32im_ofast_unroll` | `-Ofast -funroll-loops -march=rv32im_zicsr -mabi=ilp32` | `4112080` | `2.455226` | rejected; score ties but cycles are slightly worse |
+| `rv32im_o3lto` | `-O3 -flto -march=rv32im_zicsr -mabi=ilp32` | `4238630` | `2.381280` | rejected |
+| `rv32im_o3unroll_lto` | `-O3 -funroll-loops -flto -march=rv32im_zicsr -mabi=ilp32` | `4168008` | `2.422267` | rejected |
+
+Conclusion:
+
+- Current short best remains `rv32im_o3unroll`: `4112023 cycles`,
+  `2.455226 CoreMark/MHz`.
+- Plain LTO and `Ofast` do not help this in-order core on the current workload.
+- Further progress is more likely from reducing the global synchronous-load
+  wait policy than from more generic GCC flag combinations.

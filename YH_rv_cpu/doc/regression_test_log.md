@@ -146,3 +146,26 @@ scripts\run_coremark_score.bat rv32im_o3unroll 10 2000 100000000UL 30000000 buil
 
 - 该 RTL 试验功能上可行，但 CoreMark 短跑与当前最佳完全持平。
 - 按 retain/reject 规则，试验 RTL 已回退，只保留文档记录。
+
+## 2026-04-28 - RV32IM Extended Compiler Matrix
+
+### 目的
+
+在进入更高侵入 RTL 优化前，补测常见高优化编译组合，确认是否存在
+不用改硬件即可超过当前 `rv32im_o3unroll` 的短跑路径。
+
+### 结果快照
+
+| Target | Result | 备注 |
+|------|------|------|
+| `rv32im_o2unroll` | `4138703 cycles`, `2.439546 CoreMark/MHz` | rejected |
+| `rv32im_ofast` | `4327646 cycles`, `2.331563 CoreMark/MHz` | rejected |
+| `rv32im_ofast_unroll` | `4112080 cycles`, `2.455226 CoreMark/MHz` | score tie, cycles worse |
+| `rv32im_o3lto` | `4238630 cycles`, `2.381280 CoreMark/MHz` | rejected |
+| `rv32im_o3unroll_lto` | `4168008 cycles`, `2.422267 CoreMark/MHz` | rejected |
+
+### 结论
+
+- 当前最佳仍为 `rv32im_o3unroll`：`4112023 cycles`，
+  `2.455226 CoreMark/MHz`。
+- LTO 构建路径已修复为项目内 ASCII 临时目录，但 LTO 分数不保留。

@@ -116,6 +116,14 @@
   `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_o3unroll_memwait_score.summary.txt`
 - `rv32im_o3` 已拒绝保留：
   `4327580 cycles`，`2.331563 CoreMark/MHz`
+- 扩展编译矩阵已拒绝产生新最佳：
+  `rv32im_o2unroll=2.439546`，
+  `rv32im_ofast=2.331563`，
+  `rv32im_ofast_unroll=2.455226` 但 cycles 略差，
+  `rv32im_o3lto=2.381280`，
+  `rv32im_o3unroll_lto=2.422267`
+- `build_coremark.bat` 已将 GCC 临时目录固定到项目内
+  `_tmp\gcc_tmp`，避免 Windows 中文用户名路径导致 LTO 链接失败
 - M 扩展护栏：
   `scripts\run_m_extension_test.bat` -> `PASS`，`11/11`
 - 旧 `rv32i_zicsr` 路径复测仍为：
@@ -128,8 +136,9 @@
 
 1. 先把当前 profiling / docs WIP 收口成 focused commit
 2. 单独清理脚本 BOM / 换行差异与冲突备份文件
-3. 继续冲 `CoreMark/MHz > 5` 时，优先寻找编译/库/工作负载路径和更大
-   RTL 瓶颈；不要重复当前 request-only `mem_wait overlap` 切片
+3. 继续冲 `CoreMark/MHz > 5` 时，下一条主动假设是同步 DMem 全局等待解耦：
+   当前每个 load 都触发 `pipeline_run = !mem_wait`，应先用 directed RED
+   证明“load 后独立指令可推进”当前不成立，再试最小 RTL 切片
 4. 每轮优化完整重跑 CoreMark / baseline / impl50 并同步日志
 5. 如新一轮优化无明确收益，及时关闭方向并回到 clean worktree
 

@@ -53,8 +53,18 @@ limitations under the License.
 #endif
 
 #ifndef COMPILER_FLAGS
-#ifdef YH_COREMARK_OPT_O3UNROLL
+#ifdef YH_COREMARK_OPT_O3UNROLL_LTO
+#define COMPILER_FLAGS "-O3 -funroll-loops -flto -march=rv32im_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_O3LTO)
+#define COMPILER_FLAGS "-O3 -flto -march=rv32im_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_OFAST_UNROLL)
+#define COMPILER_FLAGS "-Ofast -funroll-loops -march=rv32im_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_OFAST)
+#define COMPILER_FLAGS "-Ofast -march=rv32im_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_O3UNROLL)
 #define COMPILER_FLAGS "-O3 -funroll-loops -march=rv32im_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_O2UNROLL)
+#define COMPILER_FLAGS "-O2 -funroll-loops -march=rv32im_zicsr -mabi=ilp32"
 #elif defined(YH_COREMARK_OPT_O3)
 #define COMPILER_FLAGS "-O3 -march=rv32im_zicsr -mabi=ilp32"
 #elif __riscv_xlen == 64

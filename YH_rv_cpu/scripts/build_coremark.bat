@@ -30,6 +30,7 @@ set WORD_HEX_PY=%PROJECT_DIR%\scripts\make_word_hex.py
 set COREMARK_DIR=%PROJECT_DIR%\build\external\coremark
 set PORT_DIR=%PROJECT_DIR%\sw\coremark_port
 set BUILD_DIR=%PROJECT_DIR%\build\sw
+set GCC_TMP_DIR=%PROJECT_DIR%\..\_tmp\gcc_tmp
 set OPT_FLAGS=-O2
 set OPT_DEFINE=YH_COREMARK_OPT_O2
 if "%OUTPUT_NAME%"=="" set OUTPUT_NAME=YH_rv_cpu_coremark_%TARGET%
@@ -43,6 +44,11 @@ if /I "%TARGET%"=="rv64" (
 ) else if /I "%TARGET%"=="rv32im" (
     set MARCH=rv32im_zicsr
     set MABI=ilp32
+) else if /I "%TARGET%"=="rv32im_o2unroll" (
+    set MARCH=rv32im_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O2 -funroll-loops
+    set OPT_DEFINE=YH_COREMARK_OPT_O2UNROLL
 ) else if /I "%TARGET%"=="rv32im_o3" (
     set MARCH=rv32im_zicsr
     set MABI=ilp32
@@ -53,6 +59,26 @@ if /I "%TARGET%"=="rv64" (
     set MABI=ilp32
     set OPT_FLAGS=-O3 -funroll-loops
     set OPT_DEFINE=YH_COREMARK_OPT_O3UNROLL
+) else if /I "%TARGET%"=="rv32im_ofast" (
+    set MARCH=rv32im_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-Ofast
+    set OPT_DEFINE=YH_COREMARK_OPT_OFAST
+) else if /I "%TARGET%"=="rv32im_ofast_unroll" (
+    set MARCH=rv32im_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-Ofast -funroll-loops
+    set OPT_DEFINE=YH_COREMARK_OPT_OFAST_UNROLL
+) else if /I "%TARGET%"=="rv32im_o3lto" (
+    set MARCH=rv32im_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -flto
+    set OPT_DEFINE=YH_COREMARK_OPT_O3LTO
+) else if /I "%TARGET%"=="rv32im_o3unroll_lto" (
+    set MARCH=rv32im_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -funroll-loops -flto
+    set OPT_DEFINE=YH_COREMARK_OPT_O3UNROLL_LTO
 ) else (
     set MARCH=rv32i_zicsr
     set MABI=ilp32
@@ -147,9 +173,19 @@ if /I "%TARGET%"=="rv64" (
     set MULTIDIR=rv64im\lp64
 ) else if /I "%TARGET%"=="rv32im" (
     set MULTIDIR=rv32im\ilp32
+) else if /I "%TARGET%"=="rv32im_o2unroll" (
+    set MULTIDIR=rv32im\ilp32
 ) else if /I "%TARGET%"=="rv32im_o3" (
     set MULTIDIR=rv32im\ilp32
 ) else if /I "%TARGET%"=="rv32im_o3unroll" (
+    set MULTIDIR=rv32im\ilp32
+) else if /I "%TARGET%"=="rv32im_ofast" (
+    set MULTIDIR=rv32im\ilp32
+) else if /I "%TARGET%"=="rv32im_ofast_unroll" (
+    set MULTIDIR=rv32im\ilp32
+) else if /I "%TARGET%"=="rv32im_o3lto" (
+    set MULTIDIR=rv32im\ilp32
+) else if /I "%TARGET%"=="rv32im_o3unroll_lto" (
     set MULTIDIR=rv32im\ilp32
 ) else (
     set MULTIDIR=rv32i\ilp32
@@ -187,6 +223,10 @@ echo DEBUG: LIBGCC_REF=!LIBGCC_REF!
 echo DEBUG: LIBM_REF=!LIBM_REF!
 
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
+if not exist "%GCC_TMP_DIR%" mkdir "%GCC_TMP_DIR%"
+set TMP=%GCC_TMP_DIR%
+set TEMP=%GCC_TMP_DIR%
+set TMPDIR=%GCC_TMP_DIR%
 
 %GCC% -march=%MARCH% -mabi=%MABI% -msmall-data-limit=0 !OPT_FLAGS! -ffreestanding -fno-builtin -nostdlib ^
     -Wl,--gc-sections ^
