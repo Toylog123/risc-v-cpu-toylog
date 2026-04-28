@@ -69,10 +69,11 @@ reg     score_found;
 // Profile runs reuse the same SoC wrapper as the score flow so comparisons stay fair.
 YH_rv_cpu_soc #(
     .XLEN(XLEN),
-    .SYNC_IMEM(1),
+    .SYNC_IMEM(0),
     .IMEM_OUTPUT_REG(0),
     .SYNC_DMEM(1),
     .DMEM_OUTPUT_REG(0),
+    .DMEM_NEGEDGE_READ(1),
     .RAM_BASE(RAM_BASE),
     .ROM_BYTES(ROM_BYTES),
     .RAM_BYTES(RAM_BYTES),

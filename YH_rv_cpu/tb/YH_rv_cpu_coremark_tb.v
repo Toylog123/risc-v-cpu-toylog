@@ -34,6 +34,7 @@ reg     score_found;
 YH_rv_cpu_soc #(
     .XLEN(XLEN),
     .SYNC_DMEM(1),
+    .DMEM_NEGEDGE_READ(1),
     .RAM_BASE(RAM_BASE),
     .ROM_BYTES(ROM_BYTES),
     .RAM_BYTES(RAM_BYTES),
