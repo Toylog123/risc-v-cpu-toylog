@@ -67,12 +67,13 @@ localparam [2:0]
 
     // ================================================================
     // 缓存存储
+    // 使用distributed RAM以支持同步读写(写后立即读返回新数据)
     // ================================================================
-(* ram_style = "block" *) reg [31:0]     cache_data [0:CACHE_SIZE/4-1];  // 缓存数据
-(* ram_style = "block" *) reg [TAG_W-1:0] cache_tag   [0:NUM_SETS*ASSOC-1];  // 缓存标签
-(* ram_style = "block" *) reg             cache_valid [0:NUM_SETS*ASSOC-1];  // 有效位
-(* ram_style = "block" *) reg             cache_dirty [0:NUM_SETS*ASSOC-1];  // 脏位
-(* ram_style = "block" *) reg [LRU_W-1:0] cache_lru   [0:NUM_SETS-1];       // LRU信息
+(* ram_style = "distributed" *) reg [31:0]     cache_data [0:CACHE_SIZE/4-1];  // 缓存数据
+(* ram_style = "distributed" *) reg [TAG_W-1:0] cache_tag   [0:NUM_SETS*ASSOC-1];  // 缓存标签
+(* ram_style = "distributed" *) reg             cache_valid [0:NUM_SETS*ASSOC-1];  // 有效位
+(* ram_style = "distributed" *) reg             cache_dirty [0:NUM_SETS*ASSOC-1];  // 脏位
+(* ram_style = "distributed" *) reg [LRU_W-1:0] cache_lru   [0:NUM_SETS-1];       // LRU信息
 
     // ================================================================
     // 地址解析
