@@ -358,6 +358,9 @@ wire            fetch_buf0_valid_after_shift;
 wire            fetch_buf1_valid_after_shift;
 wire            fetch_buf0_load_rsp_data;
 wire            fetch_buf1_load_rsp_data;
+wire            fetch_response_inflight;
+wire            mem_wait_overlap_fetch_req;
+wire            fetch_request_valid;
 wire            fetch_buf0_load_data;
 wire            fetch_buf1_load_data;
 wire            fetch_reuse_redirect_valid;
@@ -412,7 +415,7 @@ assign instr_data_from_mem = (ICACHE_EN != 0) ? icache_cpu_rdata : imem_rdata;
     // ================================================================
 generate
     if (ICACHE_EN == 0) begin : gen_imem_req_direct
-        assign imem_req = (IMEM_SYNC != 0) && !trap_r && !mem_wait && !stall_decode && !fetch_control_redirect_valid;
+        assign imem_req = fetch_request_valid;
     end
 endgenerate
 
@@ -569,6 +572,22 @@ assign mem_wait = DCACHE_EN ? dcache_cpu_wait : ((DMEM_SYNC != 0) && ex_mem_vali
     // ================================================================
 assign fetch_rsp_pc = (IMEM_OUTPUT_REG != 0) ? fetch_pc_d1_r : fetch_pc_r;
 assign fetch_rsp_valid = (IMEM_OUTPUT_REG != 0) ? fetch_valid_d1_r : fetch_valid_r;
+assign fetch_response_inflight =
+    (IMEM_OUTPUT_REG != 0) ?
+    (fetch_valid_r || (fetch_valid_d1_r && !imem_rvalid)) :
+    (fetch_valid_r && !imem_rvalid);
+assign mem_wait_overlap_fetch_req =
+    mem_wait &&
+    !stall_decode &&
+    !ex_fetch_redirect_valid &&
+    !fetch_buffer_valid &&
+    !fetch_response_inflight;
+assign fetch_request_valid =
+    (IMEM_SYNC != 0) &&
+    !trap_r &&
+    !stall_decode &&
+    !fetch_control_redirect_valid &&
+    (!mem_wait || mem_wait_overlap_fetch_req);
 
     // ================================================================
     // 取指丢弃响应
@@ -1055,14 +1074,14 @@ YH_rv_cpu_ex_stage #(
         if (ICACHE_EN == 0) begin : gen_icache_bypass
             // ICACHE_EN=0: 直接连接ifetch_addr到imem_addr
             assign imem_addr = ifetch_addr;
-            assign imem_req = (IMEM_SYNC != 0) && !trap_r && !mem_wait && !stall_decode && !fetch_control_redirect_valid;
+            assign imem_req = fetch_request_valid;
         end else begin : gen_icache
             // ICACHE_EN=1: 通过icache连接
             // ifetch_addr连接到icache CPU接口，icache再连接到实际imem
 
             // ifetch信号连接到icache CPU接口
             assign icache_cpu_addr = ifetch_addr;
-            assign icache_cpu_req = (IMEM_SYNC != 0) && !trap_r && !mem_wait && !stall_decode && !fetch_control_redirect_valid;
+            assign icache_cpu_req = fetch_request_valid;
 
             // icache输出到外部内存接口
             assign imem_addr = icache_mem_addr;
