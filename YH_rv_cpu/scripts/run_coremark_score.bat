@@ -115,6 +115,8 @@ call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\rtl\YH_rv_sync_imem_rom.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_sync_rom32.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_dmem_ram.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_icache.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_dcache.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_if_stage.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_id_stage.v" ^

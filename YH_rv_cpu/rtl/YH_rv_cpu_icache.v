@@ -59,10 +59,11 @@ localparam integer LRU_W = (ASSOC <= 1) ? 1 : (ASSOC - 1);         // LRU位宽
     // 状态机定义
     // ================================================================
 localparam [2:0]
-    STATE_IDLE    = 3'd0,  // 空闲状态
-    STATE_COMPARE = 3'd1,  // 标签比较
-    STATE_REFILL  = 3'd2,  // 填充缺失行
-    STATE_WRITE   = 3'd3;  // 写回(如需要)
+    STATE_IDLE        = 3'd0,  // 空闲状态
+    STATE_COMPARE     = 3'd1,  // 标签比较
+    STATE_REFILL      = 3'd2,  // 填充缺失行
+    STATE_REFILL_DONE = 3'd3,  // 填充完成(等待写入完成)
+    STATE_WRITE       = 3'd4;  // 写回(如需要)
 
     // ================================================================
     // 缓存存储
@@ -153,12 +154,16 @@ reg [ASSOC-1:0] miss_way_r;     // 缺失路索引
 reg [TAG_W-1:0] miss_tag_r;     // 缺失标签
 reg [OFFSET_W-1:0] refill_offset_r; // 填充偏移计数
 reg [ASSOC-1:0] hit_way_r;     // 命中路
+reg [TAG_W-1:0] refill_tag_r;  // 正在填充的标签（用于解决block RAM时序）
 
 wire cache_hit;
 wire [ASSOC-1:0] hit_way;
 reg [ASSOC-1:0] valid_bits_r;
 reg [TAG_W-1:0] tags_r [0:ASSOC-1];
 reg [ASSOC-1:0] dirty_bits_r;
+reg refill_valid_r;  // refill完成的标记
+reg [ASSOC-1:0] refill_valid_way_r;  // refill完成的路
+reg [TAG_W-1:0] refill_valid_tag_r;   // refill完成的标签
 
 always @* begin
     set_base = addr_index * ASSOC;
@@ -176,11 +181,23 @@ always @(posedge clk or negedge rst_n) begin
         for (j = 0; j < ASSOC; j = j + 1) begin
             tags_r[j] <= {TAG_W{1'b0}};
         end
+        refill_valid_r <= 1'b0;
+        refill_valid_way_r <= {ASSOC{1'b0}};
+        refill_valid_tag_r <= {TAG_W{1'b0}};
     end else begin
         for (j = 0; j < ASSOC; j = j + 1) begin
             if (hit_way[j]) begin
                 tags_r[j] <= addr_tag;
             end
+        end
+        // 如果refill完成，更新对应路的tags_r
+        if (refill_valid_r) begin
+            for (j = 0; j < ASSOC; j = j + 1) begin
+                if (refill_valid_way_r[j]) begin
+                    tags_r[j] <= refill_valid_tag_r;
+                end
+            end
+            refill_valid_r <= 1'b0;
         end
     end
 end
@@ -212,7 +229,7 @@ always @* begin
                 state_next = STATE_COMPARE;
             end
         end
-        
+
         STATE_COMPARE: begin
             if (cache_hit) begin
                 state_next = STATE_IDLE;
@@ -220,13 +237,17 @@ always @* begin
                 state_next = STATE_REFILL;
             end
         end
-        
+
         STATE_REFILL: begin
             if (mem_rvalid && (refill_offset_r == BLOCK_WORDS - 1)) begin
-                state_next = STATE_IDLE;
+                state_next = STATE_REFILL_DONE;
             end
         end
-        
+
+        STATE_REFILL_DONE: begin
+            state_next = STATE_IDLE;
+        end
+
         default: state_next = STATE_IDLE;
     endcase
 end
@@ -242,6 +263,7 @@ always @(posedge clk or negedge rst_n) begin
         miss_tag_r <= {TAG_W{1'b0}};
         refill_offset_r <= {OFFSET_W{1'b0}};
         hit_way_r <= {ASSOC{1'b0}};
+        refill_tag_r <= {TAG_W{1'b0}};
     end else begin
         case (state_r)
             STATE_IDLE: begin
@@ -267,6 +289,13 @@ always @(posedge clk or negedge rst_n) begin
             STATE_REFILL: begin
                 if (mem_rvalid) begin
                     refill_offset_r <= refill_offset_r + 1;
+                end
+                // 在最后一批数据到达时设置refill完成标记
+                if (mem_rvalid && (refill_offset_r == BLOCK_WORDS - 1)) begin
+                    refill_tag_r <= miss_tag_r;
+                    refill_valid_r <= 1'b1;
+                    refill_valid_way_r <= miss_way_r;
+                    refill_valid_tag_r <= miss_tag_r;
                 end
             end
         endcase
@@ -374,7 +403,13 @@ always @(posedge clk or negedge rst_n) begin
                     rvalid_r <= 1'b0;
                 end
             end
-            
+
+            STATE_REFILL_DONE: begin
+                rdata_r <= cache_data[cache_data_idx];
+                rvalid_r <= 1'b1;
+                wait_r <= 1'b0;
+            end
+
             default: begin
                 rvalid_r <= 1'b0;
                 wait_r <= 1'b0;

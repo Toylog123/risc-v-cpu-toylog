@@ -54,7 +54,12 @@ module YH_rv_cpu_hazard_unit (
     // ------------------------------------------------------------
     // DCache 等待信号 (DCACHE_EN=1时使用)
     // ------------------------------------------------------------
-    input  wire        dcache_wait          // DCache busy信号，阻止流水线前进
+    input  wire        dcache_wait,         // DCache busy信号，阻止流水线前进
+
+    // ------------------------------------------------------------
+    // ICache 等待信号 (ICACHE_EN=1时使用)
+    // ------------------------------------------------------------
+    input  wire        icache_wait          // ICache busy信号，阻止流水线前进
 );
 
     // ------------------------------------------------------------
@@ -76,10 +81,12 @@ assign load_use_hazard =
         (if_id_rs2_en && (if_id_rs2_addr == id_ex_rd_addr))
     );
 
-    // 停顿条件: load-use冒险 或 DCache等待
+    // 停顿条件: load-use冒险 或 DCache等待 或 ICache等待
     // DCACHE_EN=0时dcache_wait=0，不影响
     // DCACHE_EN=1时dcache_wait会阻止流水线直到dcache完成访问
-assign stall_decode = load_use_hazard || dcache_wait;
+    // ICACHE_EN=0时icache_wait=0，不影响
+    // ICACHE_EN=1时icache_wait会阻止流水线直到icache完成取指
+assign stall_decode = load_use_hazard || dcache_wait || icache_wait;
 
     // ------------------------------------------------------------
     // 数据转发选择逻辑

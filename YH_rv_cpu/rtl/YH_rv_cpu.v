@@ -407,8 +407,14 @@ assign instr_data_from_mem = (ICACHE_EN != 0) ? icache_cpu_rdata : imem_rdata;
 
     // ================================================================
     // 取指请求逻辑
+    // ICACHE_EN=0: 直接驱动imem_req
+    // ICACHE_EN=1: imem_req由gen_icache块中的icache_mem_req驱动(见line ~1062)
     // ================================================================
-assign imem_req = (ICACHE_EN ? !icache_cpu_wait : 1'b1) && (IMEM_SYNC != 0) && !trap_r && !mem_wait && !stall_decode && !fetch_control_redirect_valid;
+generate
+    if (ICACHE_EN == 0) begin : gen_imem_req_direct
+        assign imem_req = (IMEM_SYNC != 0) && !trap_r && !mem_wait && !stall_decode && !fetch_control_redirect_valid;
+    end
+endgenerate
 
     // ================================================================
     // 执行阶段前递数据选择
@@ -919,7 +925,8 @@ YH_rv_cpu_hazard_unit u_hazard_unit (
     .stall_decode   (stall_decode),
     .forward_a_sel  (forward_a_sel),
     .forward_b_sel  (forward_b_sel),
-    .dcache_wait    (DCACHE_EN ? dcache_cpu_wait : 1'b0)
+    .dcache_wait    (DCACHE_EN ? dcache_cpu_wait : 1'b0),
+    .icache_wait    (ICACHE_EN ? icache_cpu_wait : 1'b0)
 );
 
     // ================================================================
