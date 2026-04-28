@@ -8,7 +8,9 @@
 //   支持五级流水线 (IF/ID/EX/MEM/WB) 的数据前递
 // ============================================================
 
-module YH_rv_cpu_hazard_unit (
+module YH_rv_cpu_hazard_unit #(
+    parameter integer LOAD_USE_FAST_FORWARD = 0
+) (
     // ------------------------------------------------------------
     // IF/ID 阶段寄存器地址输入 (当前正在译码的指令)
     // ------------------------------------------------------------
@@ -75,6 +77,7 @@ wire load_use_hazard;
 
     // ID/EX 加载冒险: 当前译码指令需要 ID/EX 阶段加载的结果
 assign load_use_hazard =
+    (LOAD_USE_FAST_FORWARD == 0) &&
     id_ex_valid && id_ex_load && id_ex_rd_en && (id_ex_rd_addr != 5'd0) &&
     (
         (if_id_rs1_en && (if_id_rs1_addr == id_ex_rd_addr)) ||
@@ -107,7 +110,7 @@ always @* begin
     // ------------------------------------------------------------
     // 情况 1: EX/MEM 阶段有有效结果，且地址匹配
     // 注意: 加载指令不能立即转发 (需要额外的周期)
-    if (id_ex_rs1_en && ex_mem_valid && ex_mem_rd_en && !ex_mem_load &&
+    if (id_ex_rs1_en && ex_mem_valid && ex_mem_rd_en && ((LOAD_USE_FAST_FORWARD != 0) || !ex_mem_load) &&
         (ex_mem_rd_addr != 5'd0) && (ex_mem_rd_addr == id_ex_rs1_addr)) begin
         forward_a_sel = 2'b01;  // 从 EX/MEM 转发
     end
@@ -120,7 +123,7 @@ always @* begin
     // ------------------------------------------------------------
     // rs2 转发选择
     // ------------------------------------------------------------
-    if (id_ex_rs2_en && ex_mem_valid && ex_mem_rd_en && !ex_mem_load &&
+    if (id_ex_rs2_en && ex_mem_valid && ex_mem_rd_en && ((LOAD_USE_FAST_FORWARD != 0) || !ex_mem_load) &&
         (ex_mem_rd_addr != 5'd0) && (ex_mem_rd_addr == id_ex_rs2_addr)) begin
         forward_b_sel = 2'b01;
     end else if (id_ex_rs2_en && mem_wb_valid && mem_wb_rd_en &&

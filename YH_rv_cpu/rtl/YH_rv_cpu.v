@@ -23,6 +23,7 @@ module YH_rv_cpu #(
     parameter integer IMEM_SYNC = 0,        // 指令存储器同步模式
     parameter integer IMEM_OUTPUT_REG = 0,  // 指令存储器输出寄存器
     parameter integer DMEM_SYNC = 0,        // 数据存储器同步模式
+    parameter integer LOAD_USE_FAST_FORWARD = 0, // forward load data from MEM when memory returns within the cycle
     parameter integer DCACHE_EN = 0,         // 数据缓存使能: 0=禁用, 1=启用
     parameter integer ICACHE_EN = 0,         // 指令缓存使能: 0=禁用, 1=启用
     parameter [XLEN-1:0] RESET_VECTOR = {XLEN{1'b0}}  // 复位向量地址
@@ -426,6 +427,7 @@ endgenerate
     // 执行阶段前递数据选择
     // ================================================================
 assign ex_mem_forward_data =
+    ((LOAD_USE_FAST_FORWARD != 0) && (ex_mem_wb_sel_r == `YH_rv_cpu_WB_MEM)) ? mem_load_data :
     (ex_mem_wb_sel_r == `YH_rv_cpu_WB_PC4) ? ex_mem_pc4_r : ex_mem_exec_result_r;
 
     // ================================================================
@@ -924,7 +926,9 @@ YH_rv_cpu_id_stage #(
 );
 
     // 冒险检测单元
-YH_rv_cpu_hazard_unit u_hazard_unit (
+YH_rv_cpu_hazard_unit #(
+    .LOAD_USE_FAST_FORWARD(LOAD_USE_FAST_FORWARD)
+) u_hazard_unit (
     .if_id_rs1_en   (if_id_valid_r && id_rs1_en),
     .if_id_rs2_en   (if_id_valid_r && id_rs2_en),
     .if_id_rs1_addr (id_rs1_addr),

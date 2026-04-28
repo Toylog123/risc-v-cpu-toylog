@@ -164,6 +164,7 @@ localparam integer USE_SHARED_SYNC_ROM = ((XLEN == 32) && (SYNC_IMEM != 0) && (S
 localparam integer USE_IMEM_OUTPUT_REG = ((SYNC_IMEM != 0) && (IMEM_OUTPUT_REG != 0)) ? 1 : 0;
 localparam integer USE_DMEM_OUTPUT_REG = ((SYNC_DMEM != 0) && (DMEM_OUTPUT_REG != 0)) ? 1 : 0;
 localparam integer USE_DMEM_NEGEDGE_READ = ((SYNC_DMEM != 0) && (DMEM_OUTPUT_REG == 0) && (DMEM_NEGEDGE_READ != 0) && (USE_SHARED_SYNC_ROM == 0)) ? 1 : 0;
+localparam integer USE_LOAD_USE_FAST_FORWARD = ((DCACHE_EN == 0) && ((SYNC_DMEM == 0) || (USE_DMEM_NEGEDGE_READ != 0))) ? 1 : 0;
 localparam [1:0] DMEM_SRC_NONE = 2'b00; // 无数据源
 localparam [1:0] DMEM_SRC_RAM  = 2'b01; // RAM 数据源
 localparam [1:0] DMEM_SRC_ROM  = 2'b10; // ROM 数据源
@@ -401,6 +402,7 @@ YH_rv_cpu #(
     .IMEM_SYNC      (SYNC_IMEM),
     .IMEM_OUTPUT_REG(USE_IMEM_OUTPUT_REG),
     .DMEM_SYNC      (SYNC_DMEM),
+    .LOAD_USE_FAST_FORWARD(USE_LOAD_USE_FAST_FORWARD),
     .DCACHE_EN      (DCACHE_EN),
     .ICACHE_EN      (ICACHE_EN),
     .RESET_VECTOR   (RESET_VECTOR)
