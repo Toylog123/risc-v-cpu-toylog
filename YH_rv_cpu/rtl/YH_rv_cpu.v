@@ -213,6 +213,9 @@ wire            id_branch_decode_operands_ready;
 wire            id_branch_decode_taken;
 wire            id_branch_decode_redirect_valid;
 wire [XLEN-1:0] id_branch_decode_redirect_pc;
+wire            id_jal_x0_decode_redirect_valid;
+wire            id_decode_redirect_valid;
+wire [XLEN-1:0] id_decode_redirect_pc;
 
     // 寄存器堆信号
 wire [XLEN-1:0] rs1_rdata;
@@ -546,10 +549,20 @@ assign id_branch_decode_redirect_valid =
     !stall_decode &&
     id_branch_decode_taken;
 assign id_branch_decode_redirect_pc = if_id_pc_r + id_imm;
-assign fetch_control_redirect_valid = ex_fetch_redirect_valid || id_branch_decode_redirect_valid;
+assign id_jal_x0_decode_redirect_valid =
+    pipeline_run &&
+    !ex_fetch_redirect_valid &&
+    !stall_decode &&
+    if_id_valid_r &&
+    id_jump &&
+    !id_jalr &&
+    (id_rd_addr == 5'd0);
+assign id_decode_redirect_valid = id_branch_decode_redirect_valid || id_jal_x0_decode_redirect_valid;
+assign id_decode_redirect_pc = id_jal_x0_decode_redirect_valid ? (if_id_pc_r + id_imm) : id_branch_decode_redirect_pc;
+assign fetch_control_redirect_valid = ex_fetch_redirect_valid || id_decode_redirect_valid;
 assign fetch_control_redirect_pc =
-    ex_fetch_redirect_valid ? ex_control_redirect_pc : id_branch_decode_redirect_pc;
-assign decode_flush_valid = ex_decode_flush_valid || id_branch_decode_redirect_valid;
+    ex_fetch_redirect_valid ? ex_control_redirect_pc : id_decode_redirect_pc;
+assign decode_flush_valid = ex_decode_flush_valid || id_decode_redirect_valid;
 
     // ================================================================
     // 取指缓冲重用逻辑
