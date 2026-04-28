@@ -62,7 +62,7 @@ localparam [2:0]
     STATE_IDLE        = 3'd0,  // 空闲状态
     STATE_COMPARE     = 3'd1,  // 标签比较
     STATE_REFILL      = 3'd2,  // 填充缺失行
-    STATE_REFILL_DONE = 3'd3,  // 填充完成(等待写入完成)
+    STATE_BACKFILL    = 3'd3,  // 后台填充( CPU已获取数据，继续填充剩余字)
     STATE_WRITE       = 3'd4;  // 写回(如需要)
 
     // ================================================================
@@ -156,6 +156,7 @@ reg [TAG_W-1:0] miss_tag_r;     // 缺失标签
 reg [OFFSET_W-1:0] refill_offset_r; // 填充偏移计数
 reg [ASSOC-1:0] hit_way_r;     // 命中路
 reg [TAG_W-1:0] refill_tag_r;  // 正在填充的标签（用于解决block RAM时序）
+reg cpu_data_ready_r;  // CPU已收到请求的数据
 
 wire cache_hit;
 wire [ASSOC-1:0] hit_way;
@@ -240,13 +241,17 @@ always @* begin
         end
 
         STATE_REFILL: begin
-            if (mem_rvalid && (refill_offset_r == BLOCK_WORDS - 1)) begin
-                state_next = STATE_REFILL_DONE;
+            // 当CPU请求的字到达时，CPU可以继续，但后台继续填充
+            if (mem_rvalid && (refill_offset_r == miss_addr_r[OFFSET_W-1:2])) begin
+                state_next = STATE_BACKFILL;
             end
         end
 
-        STATE_REFILL_DONE: begin
-            state_next = STATE_IDLE;
+        STATE_BACKFILL: begin
+            // 继续填充直到整个块填充完成
+            if (mem_rvalid && (refill_offset_r == BLOCK_WORDS - 1)) begin
+                state_next = STATE_IDLE;
+            end
         end
 
         default: state_next = STATE_IDLE;
@@ -265,13 +270,26 @@ always @(posedge clk or negedge rst_n) begin
         refill_offset_r <= {OFFSET_W{1'b0}};
         hit_way_r <= {ASSOC{1'b0}};
         refill_tag_r <= {TAG_W{1'b0}};
+        cpu_data_ready_r <= 1'b0;
     end else begin
         case (state_r)
             STATE_IDLE: begin
                 if (cache_hit) begin
                     hit_way_r <= hit_way;
-                end else if (cpu_req && !cache_hit) begin
-                    // Stay idle but waiting for refill to complete
+                end
+                // 回到IDLE时清除CPU数据就绪标记
+                cpu_data_ready_r <= 1'b0;
+            end
+
+            STATE_COMPARE: begin
+                if (~cache_hit) begin
+                    miss_addr_r <= cpu_addr;
+                    miss_index_r <= addr_index;
+                    miss_way_r <= find_replacement_way(addr_index, cache_lru[addr_index], valid_bits_r);
+                    miss_tag_r <= addr_tag;
+                    refill_offset_r <= {OFFSET_W{1'b0}};
+                end else begin
+                    hit_way_r <= hit_way;
                 end
             end
 
@@ -291,9 +309,25 @@ always @(posedge clk or negedge rst_n) begin
                 if (mem_rvalid) begin
                     refill_offset_r <= refill_offset_r + 1;
                 end
+                // 当CPU请求的字到达时，设置CPU数据就绪标记
+                if (mem_rvalid && (refill_offset_r == miss_addr_r[OFFSET_W-1:2])) begin
+                    cpu_data_ready_r <= 1'b1;
+                    refill_tag_r <= miss_tag_r;
+                end
                 // 在最后一批数据到达时设置refill完成标记
                 if (mem_rvalid && (refill_offset_r == BLOCK_WORDS - 1)) begin
-                    refill_tag_r <= miss_tag_r;
+                    refill_valid_r <= 1'b1;
+                    refill_valid_way_r <= miss_way_r;
+                    refill_valid_tag_r <= miss_tag_r;
+                end
+            end
+
+            STATE_BACKFILL: begin
+                if (mem_rvalid) begin
+                    refill_offset_r <= refill_offset_r + 1;
+                end
+                // 在最后一批数据到达时设置refill完成标记
+                if (mem_rvalid && (refill_offset_r == BLOCK_WORDS - 1)) begin
                     refill_valid_r <= 1'b1;
                     refill_valid_way_r <= miss_way_r;
                     refill_valid_tag_r <= miss_tag_r;
@@ -405,9 +439,9 @@ always @(posedge clk or negedge rst_n) begin
                 end
             end
 
-            STATE_REFILL_DONE: begin
-                rdata_r <= cache_data[cache_data_idx];
-                rvalid_r <= 1'b1;
+            STATE_BACKFILL: begin
+                // CPU已经收到数据，继续后台填充缓存
+                rvalid_r <= 1'b0;
                 wait_r <= 1'b0;
             end
 
@@ -445,9 +479,17 @@ always @(posedge clk or negedge rst_n) begin
                     mem_addr_r <= {miss_addr_r[XLEN-1:OFFSET_W], refill_offset_r, 2'b00};
                 end
             end
-            
+
+            STATE_BACKFILL: begin
+                // 继续后台填充
+                if (!mem_req_r || mem_rvalid) begin
+                    mem_req_r <= 1'b1;
+                    mem_addr_r <= {miss_addr_r[XLEN-1:OFFSET_W], refill_offset_r, 2'b00};
+                end
+            end
+
             default: begin
-                if (state_r != STATE_REFILL) begin
+                if ((state_r != STATE_REFILL) && (state_r != STATE_BACKFILL)) begin
                     mem_req_r <= 1'b0;
                 end
             end
@@ -456,7 +498,7 @@ always @(posedge clk or negedge rst_n) begin
 end
 
 assign mem_addr = mem_addr_r;
-assign mem_req = mem_req_r && (state_r == STATE_REFILL);
+assign mem_req = mem_req_r && ((state_r == STATE_REFILL) || (state_r == STATE_BACKFILL));
 assign mem_we = 1'b0;  // 指令缓存只读
 assign mem_wdata = 32'h0;
 assign mem_wstrb = 4'h0;
