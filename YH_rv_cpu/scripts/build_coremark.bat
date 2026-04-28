@@ -59,6 +59,11 @@ if /I "%TARGET%"=="rv64" (
     set MABI=ilp32
     set OPT_FLAGS=-O3 -funroll-loops
     set OPT_DEFINE=YH_COREMARK_OPT_O3UNROLL
+) else if /I "%TARGET%"=="rv32im_o3unroll_b1nosched" (
+    set MARCH=rv32im_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2
+    set OPT_DEFINE=YH_COREMARK_OPT_O3UNROLL_B1NOSCHED
 ) else if /I "%TARGET%"=="rv32im_ofast" (
     set MARCH=rv32im_zicsr
     set MABI=ilp32
@@ -82,6 +87,10 @@ if /I "%TARGET%"=="rv64" (
 ) else (
     set MARCH=rv32i_zicsr
     set MABI=ilp32
+)
+
+if not "%YH_COREMARK_EXTRA_OPT%"=="" (
+    set OPT_FLAGS=!OPT_FLAGS! %YH_COREMARK_EXTRA_OPT%
 )
 
 for %%T in (riscv-none-elf-gcc riscv32-unknown-elf-gcc riscv64-unknown-elf-gcc) do (
@@ -178,6 +187,8 @@ if /I "%TARGET%"=="rv64" (
 ) else if /I "%TARGET%"=="rv32im_o3" (
     set MULTIDIR=rv32im\ilp32
 ) else if /I "%TARGET%"=="rv32im_o3unroll" (
+    set MULTIDIR=rv32im\ilp32
+) else if /I "%TARGET%"=="rv32im_o3unroll_b1nosched" (
     set MULTIDIR=rv32im\ilp32
 ) else if /I "%TARGET%"=="rv32im_ofast" (
     set MULTIDIR=rv32im\ilp32

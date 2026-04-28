@@ -1,5 +1,7 @@
 `timescale 1ns / 1ps
 
+`include "YH_rv_cpu_defs.vh"
+
 module YH_rv_cpu_coremark_profile_tb #(
     parameter integer XLEN = 32,
     parameter string ROM_HEX = "build/sw/YH_rv_cpu_coremark_rv32.hex",
@@ -36,6 +38,13 @@ wire [2:0] id_ex_branch_funct3;
 wire fetch_redirect_reuse_valid;
 wire fetch_redirect_buf0_hit;
 wire fetch_redirect_buf1_hit;
+wire id_ex_valid;
+wire id_ex_load;
+wire id_ex_store;
+wire id_ex_branch;
+wire id_ex_csr_valid;
+wire [4:0] id_ex_alu_op;
+wire [31:0] id_ex_pc32;
 wire id_branch_decode_candidate;
 wire id_branch_decode_operands_ready;
 wire id_branch_decode_redirect_valid;
@@ -73,6 +82,51 @@ integer fetch_redirect_reuse_cycles;
 integer fetch_redirect_reuse_miss_cycles;
 integer fetch_redirect_buf0_hit_cycles;
 integer fetch_redirect_buf1_hit_cycles;
+integer id_ex_valid_cycles;
+integer id_ex_load_cycles;
+integer id_ex_store_cycles;
+integer id_ex_branch_cycles;
+integer id_ex_jump_cycles;
+integer id_ex_jal_cycles;
+integer id_ex_jalr_cycles;
+integer id_ex_csr_cycles;
+integer id_ex_mul_cycles;
+integer id_ex_mulh_cycles;
+integer id_ex_mulhsu_cycles;
+integer id_ex_mulhu_cycles;
+integer id_ex_div_cycles;
+integer id_ex_divu_cycles;
+integer id_ex_rem_cycles;
+integer id_ex_remu_cycles;
+integer pc_startup_cycles;
+integer pc_calc_cycles;
+integer pc_list_cycles;
+integer pc_list_init_cycles;
+integer pc_list_runtime_cycles;
+integer pc_iterate_cycles;
+integer pc_main_cycles;
+integer pc_matrix_cycles;
+integer pc_matrix_test_cycles;
+integer pc_core_bench_matrix_cycles;
+integer pc_core_init_matrix_cycles;
+integer pc_matrix_sum_cycles;
+integer pc_matrix_mul_const_cycles;
+integer pc_matrix_add_const_cycles;
+integer pc_matrix_mul_vect_cycles;
+integer pc_matrix_mul_matrix_cycles;
+integer pc_matrix_bitextract_cycles;
+integer pc_state_cycles;
+integer pc_core_init_state_cycles;
+integer pc_state_transition_cycles;
+integer pc_core_bench_state_cycles;
+integer pc_crc_cycles;
+integer pc_port_cycles;
+integer pc_unknown_cycles;
+integer pc_exec_bins [0:65535];
+integer hist_i;
+integer hist_j;
+integer hist_top_count;
+integer hist_top_index;
 integer id_branch_decode_candidate_cycles;
 integer id_branch_decode_ready_cycles;
 integer id_branch_decode_pending_cycles;
@@ -132,6 +186,13 @@ assign fetch_queue_empty = !dut.u_cpu.fetch_queue_valid;
 assign id_ex_jump = dut.u_cpu.id_ex_jump_r;
 assign id_ex_jalr = dut.u_cpu.id_ex_jalr_r;
 assign id_ex_branch_funct3 = dut.u_cpu.id_ex_branch_funct3_r;
+assign id_ex_valid = dut.u_cpu.id_ex_valid_r;
+assign id_ex_load = dut.u_cpu.id_ex_load_r;
+assign id_ex_store = dut.u_cpu.id_ex_store_r;
+assign id_ex_branch = dut.u_cpu.id_ex_branch_r;
+assign id_ex_csr_valid = dut.u_cpu.id_ex_csr_valid_r;
+assign id_ex_alu_op = dut.u_cpu.id_ex_alu_op_r;
+assign id_ex_pc32 = dut.u_cpu.id_ex_pc_r[31:0];
 assign fetch_redirect_reuse_valid = dut.u_cpu.fetch_redirect_reuse_valid;
 assign fetch_redirect_buf0_hit = dut.u_cpu.fetch_redirect_buf0_hit;
 assign fetch_redirect_buf1_hit = dut.u_cpu.fetch_redirect_buf1_hit;
@@ -251,6 +312,105 @@ always @(posedge clk) begin
             fetch_queue_empty_cycles <= fetch_queue_empty_cycles + 1;
         end
 
+        if (id_ex_valid) begin
+            id_ex_valid_cycles <= id_ex_valid_cycles + 1;
+            if (id_ex_pc32[31:18] == 14'd0) begin
+                pc_exec_bins[id_ex_pc32[17:2]] <= pc_exec_bins[id_ex_pc32[17:2]] + 1;
+            end
+            if (id_ex_load) id_ex_load_cycles <= id_ex_load_cycles + 1;
+            if (id_ex_store) id_ex_store_cycles <= id_ex_store_cycles + 1;
+            if (id_ex_branch) id_ex_branch_cycles <= id_ex_branch_cycles + 1;
+            if (id_ex_jump) begin
+                id_ex_jump_cycles <= id_ex_jump_cycles + 1;
+                if (id_ex_jalr) id_ex_jalr_cycles <= id_ex_jalr_cycles + 1;
+                else id_ex_jal_cycles <= id_ex_jal_cycles + 1;
+            end
+            if (id_ex_csr_valid) id_ex_csr_cycles <= id_ex_csr_cycles + 1;
+
+            case (id_ex_alu_op)
+                `YH_rv_cpu_ALU_MUL: id_ex_mul_cycles <= id_ex_mul_cycles + 1;
+                `YH_rv_cpu_ALU_MULH: id_ex_mulh_cycles <= id_ex_mulh_cycles + 1;
+                `YH_rv_cpu_ALU_MULHSU: id_ex_mulhsu_cycles <= id_ex_mulhsu_cycles + 1;
+                `YH_rv_cpu_ALU_MULHU: id_ex_mulhu_cycles <= id_ex_mulhu_cycles + 1;
+                `YH_rv_cpu_ALU_DIV: id_ex_div_cycles <= id_ex_div_cycles + 1;
+                `YH_rv_cpu_ALU_DIVU: id_ex_divu_cycles <= id_ex_divu_cycles + 1;
+                `YH_rv_cpu_ALU_REM: id_ex_rem_cycles <= id_ex_rem_cycles + 1;
+                `YH_rv_cpu_ALU_REMU: id_ex_remu_cycles <= id_ex_remu_cycles + 1;
+                default: begin
+                end
+            endcase
+
+            case (1'b1)
+                (id_ex_pc32 < 32'h0000_0060): pc_startup_cycles <= pc_startup_cycles + 1;
+                (id_ex_pc32 < 32'h0000_0458): pc_calc_cycles <= pc_calc_cycles + 1;
+                (id_ex_pc32 < 32'h0000_10c4): begin
+                    pc_list_cycles <= pc_list_cycles + 1;
+                    pc_list_runtime_cycles <= pc_list_runtime_cycles + 1;
+                end
+                (id_ex_pc32 < 32'h0000_16c8): begin
+                    pc_list_cycles <= pc_list_cycles + 1;
+                    pc_list_init_cycles <= pc_list_init_cycles + 1;
+                end
+                (id_ex_pc32 < 32'h0000_1d30): begin
+                    pc_list_cycles <= pc_list_cycles + 1;
+                    pc_list_runtime_cycles <= pc_list_runtime_cycles + 1;
+                end
+                (id_ex_pc32 < 32'h0000_1f38): pc_iterate_cycles <= pc_iterate_cycles + 1;
+                (id_ex_pc32 < 32'h0000_2938): pc_main_cycles <= pc_main_cycles + 1;
+                (id_ex_pc32 < 32'h0000_3620): begin
+                    pc_matrix_cycles <= pc_matrix_cycles + 1;
+                    pc_matrix_test_cycles <= pc_matrix_test_cycles + 1;
+                end
+                (id_ex_pc32 < 32'h0000_365c): begin
+                    pc_matrix_cycles <= pc_matrix_cycles + 1;
+                    pc_core_bench_matrix_cycles <= pc_core_bench_matrix_cycles + 1;
+                end
+                (id_ex_pc32 < 32'h0000_3920): begin
+                    pc_matrix_cycles <= pc_matrix_cycles + 1;
+                    pc_core_init_matrix_cycles <= pc_core_init_matrix_cycles + 1;
+                end
+                (id_ex_pc32 < 32'h0000_39b8): begin
+                    pc_matrix_cycles <= pc_matrix_cycles + 1;
+                    pc_matrix_sum_cycles <= pc_matrix_sum_cycles + 1;
+                end
+                (id_ex_pc32 < 32'h0000_3b48): begin
+                    pc_matrix_cycles <= pc_matrix_cycles + 1;
+                    pc_matrix_mul_const_cycles <= pc_matrix_mul_const_cycles + 1;
+                end
+                (id_ex_pc32 < 32'h0000_3c8c): begin
+                    pc_matrix_cycles <= pc_matrix_cycles + 1;
+                    pc_matrix_add_const_cycles <= pc_matrix_add_const_cycles + 1;
+                end
+                (id_ex_pc32 < 32'h0000_3e98): begin
+                    pc_matrix_cycles <= pc_matrix_cycles + 1;
+                    pc_matrix_mul_vect_cycles <= pc_matrix_mul_vect_cycles + 1;
+                end
+                (id_ex_pc32 < 32'h0000_4108): begin
+                    pc_matrix_cycles <= pc_matrix_cycles + 1;
+                    pc_matrix_mul_matrix_cycles <= pc_matrix_mul_matrix_cycles + 1;
+                end
+                (id_ex_pc32 < 32'h0000_4308): begin
+                    pc_matrix_cycles <= pc_matrix_cycles + 1;
+                    pc_matrix_bitextract_cycles <= pc_matrix_bitextract_cycles + 1;
+                end
+                (id_ex_pc32 < 32'h0000_4698): begin
+                    pc_state_cycles <= pc_state_cycles + 1;
+                    pc_core_init_state_cycles <= pc_core_init_state_cycles + 1;
+                end
+                (id_ex_pc32 < 32'h0000_4980): begin
+                    pc_state_cycles <= pc_state_cycles + 1;
+                    pc_state_transition_cycles <= pc_state_transition_cycles + 1;
+                end
+                (id_ex_pc32 < 32'h0000_4e50): begin
+                    pc_state_cycles <= pc_state_cycles + 1;
+                    pc_core_bench_state_cycles <= pc_core_bench_state_cycles + 1;
+                end
+                (id_ex_pc32 < 32'h0000_5858): pc_crc_cycles <= pc_crc_cycles + 1;
+                (id_ex_pc32 < 32'h0000_8950): pc_port_cycles <= pc_port_cycles + 1;
+                default: pc_unknown_cycles <= pc_unknown_cycles + 1;
+            endcase
+        end
+
         if (id_branch_decode_candidate) begin
             id_branch_decode_candidate_cycles <= id_branch_decode_candidate_cycles + 1;
             if (id_branch_decode_operands_ready) begin
@@ -350,6 +510,61 @@ always @(posedge clk) begin
             $display("PROFILE: fetch_redirect_reuse_miss_cycles=%0d", fetch_redirect_reuse_miss_cycles);
             $display("PROFILE: fetch_redirect_buf0_hit_cycles=%0d", fetch_redirect_buf0_hit_cycles);
             $display("PROFILE: fetch_redirect_buf1_hit_cycles=%0d", fetch_redirect_buf1_hit_cycles);
+            $display("PROFILE: id_ex_valid_cycles=%0d", id_ex_valid_cycles);
+            $display("PROFILE: id_ex_load_cycles=%0d", id_ex_load_cycles);
+            $display("PROFILE: id_ex_store_cycles=%0d", id_ex_store_cycles);
+            $display("PROFILE: id_ex_branch_cycles=%0d", id_ex_branch_cycles);
+            $display("PROFILE: id_ex_jump_cycles=%0d", id_ex_jump_cycles);
+            $display("PROFILE: id_ex_jal_cycles=%0d", id_ex_jal_cycles);
+            $display("PROFILE: id_ex_jalr_cycles=%0d", id_ex_jalr_cycles);
+            $display("PROFILE: id_ex_csr_cycles=%0d", id_ex_csr_cycles);
+            $display("PROFILE: id_ex_mul_cycles=%0d", id_ex_mul_cycles);
+            $display("PROFILE: id_ex_mulh_cycles=%0d", id_ex_mulh_cycles);
+            $display("PROFILE: id_ex_mulhsu_cycles=%0d", id_ex_mulhsu_cycles);
+            $display("PROFILE: id_ex_mulhu_cycles=%0d", id_ex_mulhu_cycles);
+            $display("PROFILE: id_ex_div_cycles=%0d", id_ex_div_cycles);
+            $display("PROFILE: id_ex_divu_cycles=%0d", id_ex_divu_cycles);
+            $display("PROFILE: id_ex_rem_cycles=%0d", id_ex_rem_cycles);
+            $display("PROFILE: id_ex_remu_cycles=%0d", id_ex_remu_cycles);
+            $display("PROFILE: pc_startup_cycles=%0d", pc_startup_cycles);
+            $display("PROFILE: pc_calc_cycles=%0d", pc_calc_cycles);
+            $display("PROFILE: pc_list_cycles=%0d", pc_list_cycles);
+            $display("PROFILE: pc_list_init_cycles=%0d", pc_list_init_cycles);
+            $display("PROFILE: pc_list_runtime_cycles=%0d", pc_list_runtime_cycles);
+            $display("PROFILE: pc_iterate_cycles=%0d", pc_iterate_cycles);
+            $display("PROFILE: pc_main_cycles=%0d", pc_main_cycles);
+            $display("PROFILE: pc_matrix_cycles=%0d", pc_matrix_cycles);
+            $display("PROFILE: pc_matrix_test_cycles=%0d", pc_matrix_test_cycles);
+            $display("PROFILE: pc_core_bench_matrix_cycles=%0d", pc_core_bench_matrix_cycles);
+            $display("PROFILE: pc_core_init_matrix_cycles=%0d", pc_core_init_matrix_cycles);
+            $display("PROFILE: pc_matrix_sum_cycles=%0d", pc_matrix_sum_cycles);
+            $display("PROFILE: pc_matrix_mul_const_cycles=%0d", pc_matrix_mul_const_cycles);
+            $display("PROFILE: pc_matrix_add_const_cycles=%0d", pc_matrix_add_const_cycles);
+            $display("PROFILE: pc_matrix_mul_vect_cycles=%0d", pc_matrix_mul_vect_cycles);
+            $display("PROFILE: pc_matrix_mul_matrix_cycles=%0d", pc_matrix_mul_matrix_cycles);
+            $display("PROFILE: pc_matrix_bitextract_cycles=%0d", pc_matrix_bitextract_cycles);
+            $display("PROFILE: pc_state_cycles=%0d", pc_state_cycles);
+            $display("PROFILE: pc_core_init_state_cycles=%0d", pc_core_init_state_cycles);
+            $display("PROFILE: pc_state_transition_cycles=%0d", pc_state_transition_cycles);
+            $display("PROFILE: pc_core_bench_state_cycles=%0d", pc_core_bench_state_cycles);
+            $display("PROFILE: pc_crc_cycles=%0d", pc_crc_cycles);
+            $display("PROFILE: pc_port_cycles=%0d", pc_port_cycles);
+            $display("PROFILE: pc_unknown_cycles=%0d", pc_unknown_cycles);
+            for (hist_j = 0; hist_j < 40; hist_j = hist_j + 1) begin
+                hist_top_count = 0;
+                hist_top_index = 0;
+                for (hist_i = 0; hist_i < 65536; hist_i = hist_i + 1) begin
+                    if (pc_exec_bins[hist_i] > hist_top_count) begin
+                        hist_top_count = pc_exec_bins[hist_i];
+                        hist_top_index = hist_i;
+                    end
+                end
+                if (hist_top_count != 0) begin
+                    $display("PROFILE: pc_top rank=%0d pc=%08x cycles=%0d",
+                             hist_j, hist_top_index * 4, hist_top_count);
+                    pc_exec_bins[hist_top_index] = 0;
+                end
+            end
             $display("PROFILE: id_branch_decode_candidate_cycles=%0d", id_branch_decode_candidate_cycles);
             $display("PROFILE: id_branch_decode_ready_cycles=%0d", id_branch_decode_ready_cycles);
             $display("PROFILE: id_branch_decode_pending_cycles=%0d", id_branch_decode_pending_cycles);
@@ -411,6 +626,52 @@ initial begin
     fetch_redirect_reuse_miss_cycles = 0;
     fetch_redirect_buf0_hit_cycles = 0;
     fetch_redirect_buf1_hit_cycles = 0;
+    id_ex_valid_cycles = 0;
+    id_ex_load_cycles = 0;
+    id_ex_store_cycles = 0;
+    id_ex_branch_cycles = 0;
+    id_ex_jump_cycles = 0;
+    id_ex_jal_cycles = 0;
+    id_ex_jalr_cycles = 0;
+    id_ex_csr_cycles = 0;
+    id_ex_mul_cycles = 0;
+    id_ex_mulh_cycles = 0;
+    id_ex_mulhsu_cycles = 0;
+    id_ex_mulhu_cycles = 0;
+    id_ex_div_cycles = 0;
+    id_ex_divu_cycles = 0;
+    id_ex_rem_cycles = 0;
+    id_ex_remu_cycles = 0;
+    pc_startup_cycles = 0;
+    pc_calc_cycles = 0;
+    pc_list_cycles = 0;
+    pc_list_init_cycles = 0;
+    pc_list_runtime_cycles = 0;
+    pc_iterate_cycles = 0;
+    pc_main_cycles = 0;
+    pc_matrix_cycles = 0;
+    pc_matrix_test_cycles = 0;
+    pc_core_bench_matrix_cycles = 0;
+    pc_core_init_matrix_cycles = 0;
+    pc_matrix_sum_cycles = 0;
+    pc_matrix_mul_const_cycles = 0;
+    pc_matrix_add_const_cycles = 0;
+    pc_matrix_mul_vect_cycles = 0;
+    pc_matrix_mul_matrix_cycles = 0;
+    pc_matrix_bitextract_cycles = 0;
+    pc_state_cycles = 0;
+    pc_core_init_state_cycles = 0;
+    pc_state_transition_cycles = 0;
+    pc_core_bench_state_cycles = 0;
+    pc_crc_cycles = 0;
+    pc_port_cycles = 0;
+    pc_unknown_cycles = 0;
+    for (hist_i = 0; hist_i < 65536; hist_i = hist_i + 1) begin
+        pc_exec_bins[hist_i] = 0;
+    end
+    hist_j = 0;
+    hist_top_count = 0;
+    hist_top_index = 0;
     id_branch_decode_candidate_cycles = 0;
     id_branch_decode_ready_cycles = 0;
     id_branch_decode_pending_cycles = 0;

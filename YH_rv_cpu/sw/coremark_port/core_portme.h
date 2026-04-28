@@ -61,6 +61,8 @@ limitations under the License.
 #define COMPILER_FLAGS "-Ofast -funroll-loops -march=rv32im_zicsr -mabi=ilp32"
 #elif defined(YH_COREMARK_OPT_OFAST)
 #define COMPILER_FLAGS "-Ofast -march=rv32im_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_O3UNROLL_B1NOSCHED)
+#define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -march=rv32im_zicsr -mabi=ilp32"
 #elif defined(YH_COREMARK_OPT_O3UNROLL)
 #define COMPILER_FLAGS "-O3 -funroll-loops -march=rv32im_zicsr -mabi=ilp32"
 #elif defined(YH_COREMARK_OPT_O2UNROLL)

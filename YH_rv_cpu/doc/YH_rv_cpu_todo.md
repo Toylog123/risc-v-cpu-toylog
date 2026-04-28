@@ -44,8 +44,8 @@
 
 - [x] `rv32im` CoreMark short has exceeded the long-term `>1.5` target:
   `2.365118 CoreMark/MHz`, `4269236 cycles`
-- [x] `rv32im_o3unroll` is the current short best:
-  `2.455226 CoreMark/MHz`, `4112023 cycles`
+- [x] `rv32im_o3unroll_b1nosched` is the current short best:
+  `3.236126 CoreMark/MHz`, `3090115 ticks`
 - [x] `rv32im_o3` was tested and rejected:
   `2.331563 CoreMark/MHz`, `4327580 cycles`
 - [x] `rv32im_o3unroll` profile captured:
@@ -58,6 +58,10 @@
   `rv32im_o2unroll=2.439546`, `rv32im_ofast=2.331563`,
   `rv32im_ofast_unroll=2.455226` with slightly worse cycles,
   `rv32im_o3lto=2.381280`, `rv32im_o3unroll_lto=2.422267`
+- [x] Branch-cost / scheduler compiler matrix retained
+  `rv32im_o3unroll_b1nosched`:
+  `-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2`,
+  `3.236126 CoreMark/MHz`
 - [x] `scripts\run_m_extension_test.bat` currently returns PASS with `11/11`
 - [x] Legacy `rv32i_zicsr` short score remains `0.925186` after adding the
   `rv32im` score path
@@ -71,9 +75,10 @@
 - [ ] `rv32im` strict `>=10s` long run is still pending because the faster
   score path requires more than the old `1000` iterations to satisfy the
   runtime floor
-- [ ] Next CoreMark >5 direction must not repeat request-only memwait overlap;
-  next active RTL hypothesis is to reduce the global synchronous-load wait
-  policy so independent instructions can proceed while a load response returns
+- [ ] Next CoreMark >5 direction must not repeat request-only memwait overlap,
+  static backward prediction, or branch-only redirect tweaks; the latest
+  profile has `stall_decode=0` and `mem_wait=0`, so the next active hypothesis
+  must target larger instruction-count or throughput buckets.
 
 ## 暂不推进
 

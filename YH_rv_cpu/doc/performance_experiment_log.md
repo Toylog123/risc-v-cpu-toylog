@@ -568,3 +568,67 @@ Conclusion:
 - Plain LTO and `Ofast` do not help this in-order core on the current workload.
 - Further progress is more likely from reducing the global synchronous-load
   wait policy than from more generic GCC flag combinations.
+
+## 2026-04-28 RV32IM Branch-Cost / Scheduler Compiler Follow-up (Retained)
+
+After the RTL-side load/branch work lifted the `rv32im_o3unroll` path to
+`3.140284 CoreMark/MHz`, a fresh profile showed the remaining score was no
+longer dominated by stalls:
+
+| Counter | Value |
+|------|------|
+| `PROFILE: total_cycles` | `3216462` |
+| `PROFILE: stall_decode_cycles` | `0` |
+| `PROFILE: mem_wait_cycles` | `0` |
+| `PROFILE: id_ex_valid_cycles` | `2596163` |
+| `PROFILE: ex_fetch_redirect_valid_cycles` | `71972` |
+| Top dynamic regions | matrix `745741`, list `716795`, state `695000`, crc `394942` |
+
+The next screen stayed within `rv32im_zicsr` and did not modify CoreMark
+algorithm sources.
+
+| Variant | Extra flags | Total ticks | CoreMark/MHz | Decision |
+|------|------|------|------|------|
+| baseline | none beyond `-O3 -funroll-loops` | `3184425` | `3.140284` | previous best |
+| `rocket` | `-mtune=rocket` | `3184425` | `3.140284` | rejected; identical |
+| `sifive-e31` | `-mtune=sifive-e31` | `3184425` | `3.140284` | rejected; identical |
+| `branch0` | `-mbranch-cost=0` | `3184425` | `3.140284` | rejected; identical |
+| `branch1` | `-mbranch-cost=1` | `3101076` | `3.224687` | improved |
+| `branch2` | `-mbranch-cost=2` | `3184955` | `3.139762` | rejected |
+| `branch1_sched` | `branch1` + modulo scheduling / rename flags | `3101096` | `3.224666` | rejected; tie/slightly worse |
+| `branch1_peel` | `branch1` + peel/unswitch/tracer | `3101053` | `3.224711` | rejected; tiny gain but not best |
+| `branch1_noifcvt` | `branch1` + `-fno-if-conversion*` | `3101116` | `3.224646` | rejected |
+| `rv32im_o3_branch1_nosched` | no `-funroll-loops` | `3299219` | `3.031020` | rejected |
+| `rv32im_o3unroll_b1nosched` | `-mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2` | `3090115` | `3.236126` | retained |
+| `branch1_nosched_peel` | retained flags + peel/unswitch/tracer | `3090890` | `3.235314` | rejected |
+
+### Retained Changes
+
+| File | Change |
+|------|------|
+| `scripts/build_coremark.bat` | add `rv32im_o3unroll_b1nosched`; allow `YH_COREMARK_EXTRA_OPT` for temporary compiler screens |
+| `sw/coremark_port/core_portme.h` | report the exact retained compiler flags in the CoreMark banner |
+| `tb/YH_rv_cpu_coremark_profile_tb.v` | add dynamic instruction mix, function-region, and static PC Top-40 counters |
+| `scripts/run_coremark_profile.bat` | print all `PROFILE:` counters so new profile fields are not silently hidden |
+
+### Fresh Retained Evidence
+
+| Check | Result |
+|------|------|
+| Score command | `scripts\run_coremark_score.bat rv32im_o3unroll_b1nosched 10 2000 100000000UL 30000000 build\sw\YH_rv_cpu_coremark_rv32im_o3unroll_b1nosched_score.summary.txt` |
+| Score | `total_ticks=3090115`, `CoreMark/MHz=3.236126`, `competition_reportable=yes` |
+| Compiler flags | `-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -march=rv32im_zicsr -mabi=ilp32` |
+| Profile command | `scripts\run_coremark_profile.bat rv32im_o3unroll_b1nosched 10 2000 100000000UL 30000000 0` |
+| Profile | `id_ex_valid_cycles=2544066`, `stall_decode_cycles=0`, `mem_wait_cycles=0`, `ex_fetch_redirect_valid_cycles=90227` |
+
+### Conclusion
+
+- The retained compiler target is a real short-run improvement over
+  `rv32im_o3unroll_idjalr`: `3.236126` vs `3.140284 CoreMark/MHz`.
+- The score gain comes from lower dynamic instruction count and code shape,
+  not from reducing redirect cycles.
+- The profile now shows no decode or memory wait stalls, so the remaining path
+  to `>5 CoreMark/MHz` likely needs much larger instruction-count reduction or
+  higher-throughput microarchitecture work; repeating memwait overlap, static
+  backward prediction, or branch-only redirect tweaks is unlikely to close the
+  remaining gap.

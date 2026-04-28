@@ -109,6 +109,13 @@
   `2.455226 CoreMark/MHz`
 - 最优证据：
   `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_o3unroll_score.summary.txt`
+- 当前最新 short 最优继续更新为：
+  `rv32im_o3unroll_b1nosched`，`3090115 ticks`，
+  `3.236126 CoreMark/MHz`
+- 最新最优证据：
+  `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_o3unroll_b1nosched_score.summary.txt`
+- 该路径仍是 `rv32im_zicsr`，CoreMark banner 已报告完整 flags：
+  `-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -march=rv32im_zicsr -mabi=ilp32`
 - `mem_wait overlap fetch request` 已按 TDD 快速筛选并拒绝：
   directed 可变绿，但 short score 仍是 `4112023 cycles`，
   `2.455226 CoreMark/MHz`，试验 RTL 已回退
@@ -136,9 +143,10 @@
 
 1. 先把当前 profiling / docs WIP 收口成 focused commit
 2. 单独清理脚本 BOM / 换行差异与冲突备份文件
-3. 继续冲 `CoreMark/MHz > 5` 时，下一条主动假设是同步 DMem 全局等待解耦：
-   当前每个 load 都触发 `pipeline_run = !mem_wait`，应先用 directed RED
-   证明“load 后独立指令可推进”当前不成立，再试最小 RTL 切片
+3. 继续冲 `CoreMark/MHz > 5` 时，下一条主动假设不能重复
+   request-only memwait overlap、静态 backward prediction 或 branch-only
+   redirect 微调；最新 profile 已是 `stall_decode=0`、`mem_wait=0`，
+   需要转向更大的动态指令数削减或吞吐结构优化
 4. 每轮优化完整重跑 CoreMark / baseline / impl50 并同步日志
 5. 如新一轮优化无明确收益，及时关闭方向并回到 clean worktree
 
