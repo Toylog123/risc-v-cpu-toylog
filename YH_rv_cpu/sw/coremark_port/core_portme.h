@@ -65,6 +65,8 @@ limitations under the License.
 #define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -march=rv32im_zicsr -mabi=ilp32"
 #elif defined(YH_COREMARK_OPT_O3UNROLL_B1NOSCHED_UALL800)
 #define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -march=rv32im_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_O3UNROLL_B1NOSCHED_UALL800_INLINE_NOCROSS)
+#define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -march=rv32im_zicsr -mabi=ilp32"
 #elif defined(YH_COREMARK_OPT_O3UNROLL)
 #define COMPILER_FLAGS "-O3 -funroll-loops -march=rv32im_zicsr -mabi=ilp32"
 #elif defined(YH_COREMARK_OPT_O2UNROLL)

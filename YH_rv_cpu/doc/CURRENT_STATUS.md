@@ -1,6 +1,6 @@
 # CURRENT_STATUS
 
-> Updated: `2026-04-28 20:05`
+> Updated: `2026-04-28 23:45`
 > Branch: `perf/coremark-over-1p5`
 > Live repo state: verify with `git status --short --branch` and
 > `git log -4 --oneline` before take-over
@@ -111,6 +111,15 @@
 ## Current optimization status
 
 - Latest `2026-04-28` retained short best is
+  `rv32im_o3unroll_b1nosched_uall800_inline_nocross`:
+  - score command:
+    `scripts\run_coremark_score.bat rv32im_o3unroll_b1nosched_uall800_inline_nocross 10 2000 100000000UL 30000000 build\sw\YH_rv_cpu_coremark_rv32im_o3unroll_b1nosched_uall800_inline_nocross_score.summary.txt`
+  - result: `2656940 total_ticks`, `3.763728 CoreMark/MHz`
+  - evidence:
+    `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_o3unroll_b1nosched_uall800_inline_nocross_score.summary.txt`
+  - flags:
+    `-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -march=rv32im_zicsr -mabi=ilp32`
+- Previous `2026-04-28` retained short best was
   `rv32im_o3unroll_b1nosched_uall800`:
   - score command:
     `scripts\run_coremark_score.bat rv32im_o3unroll_b1nosched_uall800 10 2000 100000000UL 30000000 build\sw\YH_rv_cpu_coremark_rv32im_o3unroll_b1nosched_uall800_score.summary.txt`

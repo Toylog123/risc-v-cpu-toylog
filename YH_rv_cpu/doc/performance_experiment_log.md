@@ -687,3 +687,80 @@ Second, additional compiler/code-shape flags were screened while staying within
 - The remaining gap to `>5` is too large for branch-only overlap tweaks; next
   work should either keep searching for major dynamic-instruction reductions or
   move to a larger throughput feature with a clear correctness plan.
+
+## 2026-04-28 RV32IM Inline/No-Crossjump Compiler Follow-up (Retained)
+
+After retaining `rv32im_o3unroll_b1nosched_uall800`, follow-up compiler screens
+were run around code shape and inlining. The flow stayed within
+`rv32im_zicsr`, did not change CoreMark algorithm sources, and used the same
+host-parsed short score policy.
+
+### Screens
+
+Full-unroll threshold retuning was first screened and rejected. The following
+variants all produced the same score as `uall800`: `2955494 ticks`,
+`3.383529 CoreMark/MHz`.
+
+| Variant family | Result |
+|------|------|
+| `max-unrolled-insns=600/700/900/1000/1200/1600` | no score change |
+| `max-average-unrolled-insns=240/280/360/400/480/640` | no score change |
+
+The next matrix found that aggressive inlining was the meaningful next code
+shape change:
+
+| Variant | Extra flags beyond `uall800` | Total ticks | CoreMark/MHz | Decision |
+|------|------|------|------|------|
+| `rename`, `web`, `peel`, `unswitch` families | build-hash identical to `uall800` | `2955494` | `3.383529` | rejected; same binary |
+| `ira_loop` | `-fira-loop-pressure` | `2955494` | `3.383529` | rejected; tie |
+| `sched` | `-fschedule-insns -fschedule-insns2` | `2968235` | `3.369005` | rejected |
+| `no_crossjump` | `-fno-crossjumping` | `2949849` | `3.390004` | improved, not best |
+| `inline_big` | `-finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500` | `2690653` | `3.716570` | improved |
+| `branch0` / `branch2` | `-mbranch-cost=0/2` | `3042348` | `3.286935` | rejected |
+| `no_reorder` | `-fno-reorder-blocks` | `3188160` | `3.136605` | rejected |
+
+Inlining parameter sweeps at `500/800/1200/1500/2000` generated the same
+binary as the retained `1000/1000/growth=500` form. Combination screens then
+selected `inline + no_crossjump`:
+
+| Variant | Extra flags beyond `uall800` | Total ticks | CoreMark/MHz | Decision |
+|------|------|------|------|------|
+| `inline_nocross` | `inline_big + -fno-crossjumping` | `2656940` | `3.763728` | retained |
+| `inline_nocross_nogcsear` | retained + `-fno-gcse-after-reload` | `2656940` | `3.763728` | rejected; tie |
+| `inline_nocross_ipapta` | retained + `-fipa-pta` | `2656940` | `3.763728` | rejected; tie |
+| `inline_nocross_nocodehoist` | retained + `-fno-code-hoisting` | `2664336` | `3.753280` | rejected |
+| `inline_nocross_align16` | retained + `-falign-functions=16 -falign-loops=16 -falign-jumps=16` | `2677986` | `3.734149` | rejected |
+| `inline_nocross_sched` | retained + `-fschedule-insns -fschedule-insns2` | `2678871` | `3.732916` | rejected |
+| `inline_nocross_lto` | retained + `-flto` | n/a | n/a | rejected; ROM overflow by `560` bytes |
+| `inline_nocross_tracer` | retained + `-ftracer` | `3054780` | `3.273558` | rejected |
+
+### Retained Changes
+
+| File | Change |
+|------|------|
+| `scripts/build_coremark.bat` | add `rv32im_o3unroll_b1nosched_uall800_inline_nocross` target |
+| `sw/coremark_port/core_portme.h` | report the exact inline/no-crossjump flags in the CoreMark banner |
+
+### Fresh Retained Evidence
+
+| Check | Result |
+|------|------|
+| Score command | `scripts\run_coremark_score.bat rv32im_o3unroll_b1nosched_uall800_inline_nocross 10 2000 100000000UL 30000000 build\sw\YH_rv_cpu_coremark_rv32im_o3unroll_b1nosched_uall800_inline_nocross_score.summary.txt` |
+| Score | `total_ticks=2656940`, `CoreMark/MHz=3.763728`, `competition_reportable=yes` |
+| Compiler flags | `-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -march=rv32im_zicsr -mabi=ilp32` |
+| Profile command | `scripts\run_coremark_profile.bat rv32im_o3unroll_b1nosched_uall800_inline_nocross 10 2000 100000000UL 30000000 0` |
+| Profile headline | `total_cycles=2691102`, `stall_decode_cycles=0`, `mem_wait_cycles=0`, `id_ex_valid_cycles=2294639`, `ex_fetch_redirect_valid_cycles=40889` |
+| Branch profile | `id_branch_decode_candidate_cycles=481346`, `id_branch_decode_pending_cycles=149631`, `id_branch_decode_redirect_cycles=129898`, `ex_branch_redirect_cycles=38485` |
+| Top-PC note | with aggressive unroll and inlining, hard-coded function-region buckets are approximate; use score, headline counters, symbol map, and Top-PC rows for this target |
+
+### Conclusion
+
+- `rv32im_o3unroll_b1nosched_uall800_inline_nocross` is the new retained
+  short-run best: `3.763728 CoreMark/MHz`, up from `3.383529`.
+- The improvement is still compiler/code-shape driven and remains within
+  `rv32im_zicsr`.
+- The remaining `>5` gap is about `656940 ticks` on the 10-iteration short run;
+  redirect-only work cannot close it because fetch redirects are now only
+  `40889` cycles. The next direction should target dynamic instruction count,
+  inlined hot-path code shape, or a larger throughput feature with correctness
+  guardrails.
