@@ -36,6 +36,16 @@ wire [2:0] id_ex_branch_funct3;
 wire fetch_redirect_reuse_valid;
 wire fetch_redirect_buf0_hit;
 wire fetch_redirect_buf1_hit;
+wire id_branch_decode_candidate;
+wire id_branch_decode_operands_ready;
+wire id_branch_decode_redirect_valid;
+wire id_branch_decode_rs1_pending;
+wire id_branch_decode_rs2_pending;
+wire id_branch_decode_rs1_idex_pending;
+wire id_branch_decode_rs2_idex_pending;
+wire id_branch_decode_rs1_exmem_pending;
+wire id_branch_decode_rs2_exmem_pending;
+wire [2:0] id_branch_funct3;
 
 reg [7:0] valid_msg [0:VALID_MSG_LEN-1];
 reg [7:0] score_msg [0:SCORE_MSG_LEN-1];
@@ -63,6 +73,28 @@ integer fetch_redirect_reuse_cycles;
 integer fetch_redirect_reuse_miss_cycles;
 integer fetch_redirect_buf0_hit_cycles;
 integer fetch_redirect_buf1_hit_cycles;
+integer id_branch_decode_candidate_cycles;
+integer id_branch_decode_ready_cycles;
+integer id_branch_decode_pending_cycles;
+integer id_branch_decode_redirect_cycles;
+integer id_branch_decode_rs1_pending_cycles;
+integer id_branch_decode_rs2_pending_cycles;
+integer id_branch_decode_rs1_idex_pending_cycles;
+integer id_branch_decode_rs2_idex_pending_cycles;
+integer id_branch_decode_rs1_exmem_pending_cycles;
+integer id_branch_decode_rs2_exmem_pending_cycles;
+integer id_beq_decode_candidate_cycles;
+integer id_bne_decode_candidate_cycles;
+integer id_blt_decode_candidate_cycles;
+integer id_bge_decode_candidate_cycles;
+integer id_bltu_decode_candidate_cycles;
+integer id_bgeu_decode_candidate_cycles;
+integer id_beq_decode_pending_cycles;
+integer id_bne_decode_pending_cycles;
+integer id_blt_decode_pending_cycles;
+integer id_bge_decode_pending_cycles;
+integer id_bltu_decode_pending_cycles;
+integer id_bgeu_decode_pending_cycles;
 reg     valid_found;
 reg     score_found;
 
@@ -103,6 +135,24 @@ assign id_ex_branch_funct3 = dut.u_cpu.id_ex_branch_funct3_r;
 assign fetch_redirect_reuse_valid = dut.u_cpu.fetch_redirect_reuse_valid;
 assign fetch_redirect_buf0_hit = dut.u_cpu.fetch_redirect_buf0_hit;
 assign fetch_redirect_buf1_hit = dut.u_cpu.fetch_redirect_buf1_hit;
+assign id_branch_decode_candidate = dut.u_cpu.id_branch_decode_candidate;
+assign id_branch_decode_operands_ready = dut.u_cpu.id_branch_decode_operands_ready;
+assign id_branch_decode_redirect_valid = dut.u_cpu.id_branch_decode_redirect_valid;
+assign id_branch_decode_rs1_pending = dut.u_cpu.id_branch_decode_rs1_pending;
+assign id_branch_decode_rs2_pending = dut.u_cpu.id_branch_decode_rs2_pending;
+assign id_branch_funct3 = dut.u_cpu.id_branch_funct3;
+assign id_branch_decode_rs1_idex_pending =
+    dut.u_cpu.id_branch_decode_rs1_idex_match &&
+    !dut.u_cpu.id_branch_decode_idex_value_available;
+assign id_branch_decode_rs2_idex_pending =
+    dut.u_cpu.id_branch_decode_rs2_idex_match &&
+    !dut.u_cpu.id_branch_decode_idex_value_available;
+assign id_branch_decode_rs1_exmem_pending =
+    dut.u_cpu.id_branch_decode_rs1_exmem_match &&
+    !dut.u_cpu.id_branch_decode_exmem_value_available;
+assign id_branch_decode_rs2_exmem_pending =
+    dut.u_cpu.id_branch_decode_rs2_exmem_match &&
+    !dut.u_cpu.id_branch_decode_exmem_value_available;
 
 always #5 clk = ~clk;
 
@@ -201,6 +251,66 @@ always @(posedge clk) begin
             fetch_queue_empty_cycles <= fetch_queue_empty_cycles + 1;
         end
 
+        if (id_branch_decode_candidate) begin
+            id_branch_decode_candidate_cycles <= id_branch_decode_candidate_cycles + 1;
+            if (id_branch_decode_operands_ready) begin
+                id_branch_decode_ready_cycles <= id_branch_decode_ready_cycles + 1;
+            end else begin
+                id_branch_decode_pending_cycles <= id_branch_decode_pending_cycles + 1;
+            end
+            if (id_branch_decode_rs1_pending) begin
+                id_branch_decode_rs1_pending_cycles <= id_branch_decode_rs1_pending_cycles + 1;
+            end
+            if (id_branch_decode_rs2_pending) begin
+                id_branch_decode_rs2_pending_cycles <= id_branch_decode_rs2_pending_cycles + 1;
+            end
+            if (id_branch_decode_rs1_idex_pending) begin
+                id_branch_decode_rs1_idex_pending_cycles <= id_branch_decode_rs1_idex_pending_cycles + 1;
+            end
+            if (id_branch_decode_rs2_idex_pending) begin
+                id_branch_decode_rs2_idex_pending_cycles <= id_branch_decode_rs2_idex_pending_cycles + 1;
+            end
+            if (id_branch_decode_rs1_exmem_pending) begin
+                id_branch_decode_rs1_exmem_pending_cycles <= id_branch_decode_rs1_exmem_pending_cycles + 1;
+            end
+            if (id_branch_decode_rs2_exmem_pending) begin
+                id_branch_decode_rs2_exmem_pending_cycles <= id_branch_decode_rs2_exmem_pending_cycles + 1;
+            end
+
+            case (id_branch_funct3)
+                3'b000: begin
+                    id_beq_decode_candidate_cycles <= id_beq_decode_candidate_cycles + 1;
+                    if (!id_branch_decode_operands_ready) id_beq_decode_pending_cycles <= id_beq_decode_pending_cycles + 1;
+                end
+                3'b001: begin
+                    id_bne_decode_candidate_cycles <= id_bne_decode_candidate_cycles + 1;
+                    if (!id_branch_decode_operands_ready) id_bne_decode_pending_cycles <= id_bne_decode_pending_cycles + 1;
+                end
+                3'b100: begin
+                    id_blt_decode_candidate_cycles <= id_blt_decode_candidate_cycles + 1;
+                    if (!id_branch_decode_operands_ready) id_blt_decode_pending_cycles <= id_blt_decode_pending_cycles + 1;
+                end
+                3'b101: begin
+                    id_bge_decode_candidate_cycles <= id_bge_decode_candidate_cycles + 1;
+                    if (!id_branch_decode_operands_ready) id_bge_decode_pending_cycles <= id_bge_decode_pending_cycles + 1;
+                end
+                3'b110: begin
+                    id_bltu_decode_candidate_cycles <= id_bltu_decode_candidate_cycles + 1;
+                    if (!id_branch_decode_operands_ready) id_bltu_decode_pending_cycles <= id_bltu_decode_pending_cycles + 1;
+                end
+                3'b111: begin
+                    id_bgeu_decode_candidate_cycles <= id_bgeu_decode_candidate_cycles + 1;
+                    if (!id_branch_decode_operands_ready) id_bgeu_decode_pending_cycles <= id_bgeu_decode_pending_cycles + 1;
+                end
+                default: begin
+                end
+            endcase
+        end
+
+        if (id_branch_decode_redirect_valid) begin
+            id_branch_decode_redirect_cycles <= id_branch_decode_redirect_cycles + 1;
+        end
+
         // Emit coarse progress for very long profile runs.
         if (cycle > 0 && cycle % 10000000 == 0) begin
             $display("CYCLE=%0d PC=%h", cycle, debug_pc);
@@ -240,6 +350,28 @@ always @(posedge clk) begin
             $display("PROFILE: fetch_redirect_reuse_miss_cycles=%0d", fetch_redirect_reuse_miss_cycles);
             $display("PROFILE: fetch_redirect_buf0_hit_cycles=%0d", fetch_redirect_buf0_hit_cycles);
             $display("PROFILE: fetch_redirect_buf1_hit_cycles=%0d", fetch_redirect_buf1_hit_cycles);
+            $display("PROFILE: id_branch_decode_candidate_cycles=%0d", id_branch_decode_candidate_cycles);
+            $display("PROFILE: id_branch_decode_ready_cycles=%0d", id_branch_decode_ready_cycles);
+            $display("PROFILE: id_branch_decode_pending_cycles=%0d", id_branch_decode_pending_cycles);
+            $display("PROFILE: id_branch_decode_redirect_cycles=%0d", id_branch_decode_redirect_cycles);
+            $display("PROFILE: id_branch_decode_rs1_pending_cycles=%0d", id_branch_decode_rs1_pending_cycles);
+            $display("PROFILE: id_branch_decode_rs2_pending_cycles=%0d", id_branch_decode_rs2_pending_cycles);
+            $display("PROFILE: id_branch_decode_rs1_idex_pending_cycles=%0d", id_branch_decode_rs1_idex_pending_cycles);
+            $display("PROFILE: id_branch_decode_rs2_idex_pending_cycles=%0d", id_branch_decode_rs2_idex_pending_cycles);
+            $display("PROFILE: id_branch_decode_rs1_exmem_pending_cycles=%0d", id_branch_decode_rs1_exmem_pending_cycles);
+            $display("PROFILE: id_branch_decode_rs2_exmem_pending_cycles=%0d", id_branch_decode_rs2_exmem_pending_cycles);
+            $display("PROFILE: id_beq_decode_candidate_cycles=%0d", id_beq_decode_candidate_cycles);
+            $display("PROFILE: id_bne_decode_candidate_cycles=%0d", id_bne_decode_candidate_cycles);
+            $display("PROFILE: id_blt_decode_candidate_cycles=%0d", id_blt_decode_candidate_cycles);
+            $display("PROFILE: id_bge_decode_candidate_cycles=%0d", id_bge_decode_candidate_cycles);
+            $display("PROFILE: id_bltu_decode_candidate_cycles=%0d", id_bltu_decode_candidate_cycles);
+            $display("PROFILE: id_bgeu_decode_candidate_cycles=%0d", id_bgeu_decode_candidate_cycles);
+            $display("PROFILE: id_beq_decode_pending_cycles=%0d", id_beq_decode_pending_cycles);
+            $display("PROFILE: id_bne_decode_pending_cycles=%0d", id_bne_decode_pending_cycles);
+            $display("PROFILE: id_blt_decode_pending_cycles=%0d", id_blt_decode_pending_cycles);
+            $display("PROFILE: id_bge_decode_pending_cycles=%0d", id_bge_decode_pending_cycles);
+            $display("PROFILE: id_bltu_decode_pending_cycles=%0d", id_bltu_decode_pending_cycles);
+            $display("PROFILE: id_bgeu_decode_pending_cycles=%0d", id_bgeu_decode_pending_cycles);
             $finish;
         end
 
@@ -279,6 +411,28 @@ initial begin
     fetch_redirect_reuse_miss_cycles = 0;
     fetch_redirect_buf0_hit_cycles = 0;
     fetch_redirect_buf1_hit_cycles = 0;
+    id_branch_decode_candidate_cycles = 0;
+    id_branch_decode_ready_cycles = 0;
+    id_branch_decode_pending_cycles = 0;
+    id_branch_decode_redirect_cycles = 0;
+    id_branch_decode_rs1_pending_cycles = 0;
+    id_branch_decode_rs2_pending_cycles = 0;
+    id_branch_decode_rs1_idex_pending_cycles = 0;
+    id_branch_decode_rs2_idex_pending_cycles = 0;
+    id_branch_decode_rs1_exmem_pending_cycles = 0;
+    id_branch_decode_rs2_exmem_pending_cycles = 0;
+    id_beq_decode_candidate_cycles = 0;
+    id_bne_decode_candidate_cycles = 0;
+    id_blt_decode_candidate_cycles = 0;
+    id_bge_decode_candidate_cycles = 0;
+    id_bltu_decode_candidate_cycles = 0;
+    id_bgeu_decode_candidate_cycles = 0;
+    id_beq_decode_pending_cycles = 0;
+    id_bne_decode_pending_cycles = 0;
+    id_blt_decode_pending_cycles = 0;
+    id_bge_decode_pending_cycles = 0;
+    id_bltu_decode_pending_cycles = 0;
+    id_bgeu_decode_pending_cycles = 0;
     valid_found = 1'b0;
     score_found = 1'b0;
 

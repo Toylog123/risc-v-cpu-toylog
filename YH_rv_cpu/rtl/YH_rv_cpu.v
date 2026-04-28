@@ -208,9 +208,17 @@ wire            id_mret;
 wire [XLEN-1:0] id_rs1_value;
 wire [XLEN-1:0] id_rs2_value;
 wire            id_branch_decode_candidate;
+wire            id_branch_decode_idex_value_available;
+wire            id_branch_decode_exmem_value_available;
+wire            id_branch_decode_rs1_idex_match;
+wire            id_branch_decode_rs2_idex_match;
+wire            id_branch_decode_rs1_exmem_match;
+wire            id_branch_decode_rs2_exmem_match;
 wire            id_branch_decode_rs1_pending;
 wire            id_branch_decode_rs2_pending;
 wire            id_branch_decode_operands_ready;
+wire [XLEN-1:0] id_branch_decode_rs1_value;
+wire [XLEN-1:0] id_branch_decode_rs2_value;
 wire            id_branch_decode_eq;
 wire            id_branch_decode_lt;
 wire            id_branch_decode_ltu;
@@ -218,6 +226,9 @@ wire            id_branch_decode_taken;
 wire            id_branch_decode_redirect_valid;
 wire [XLEN-1:0] id_branch_decode_redirect_pc;
 wire            id_jal_x0_decode_redirect_valid;
+wire            id_jalr_x0_decode_redirect_valid;
+wire [XLEN-1:0] id_jalr_decode_target_sum;
+wire [XLEN-1:0] id_jalr_decode_redirect_pc;
 wire            id_decode_redirect_valid;
 wire [XLEN-1:0] id_decode_redirect_pc;
 
@@ -525,24 +536,59 @@ assign ex_decode_flush_valid = ex_control_redirect_valid;
 assign id_branch_decode_candidate =
     if_id_valid_r &&
     id_branch;
-assign id_branch_decode_rs1_pending =
+assign id_branch_decode_idex_value_available =
+    !id_ex_load_r &&
+    !id_ex_csr_valid_r;
+assign id_branch_decode_exmem_value_available =
+    ((LOAD_USE_FAST_FORWARD != 0) || !ex_mem_load_r);
+assign id_branch_decode_rs1_idex_match =
     id_rs1_en &&
-    (
-        (id_ex_valid_r && id_ex_rd_en_r && (id_ex_rd_addr_r != 5'd0) && (id_ex_rd_addr_r == id_rs1_addr)) ||
-        (ex_mem_valid_r && ex_mem_rd_en_r && (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == id_rs1_addr))
-    );
-assign id_branch_decode_rs2_pending =
+    id_ex_valid_r &&
+    id_ex_rd_en_r &&
+    (id_ex_rd_addr_r != 5'd0) &&
+    (id_ex_rd_addr_r == id_rs1_addr);
+assign id_branch_decode_rs2_idex_match =
     id_rs2_en &&
-    (
-        (id_ex_valid_r && id_ex_rd_en_r && (id_ex_rd_addr_r != 5'd0) && (id_ex_rd_addr_r == id_rs2_addr)) ||
-        (ex_mem_valid_r && ex_mem_rd_en_r && (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == id_rs2_addr))
-    );
+    id_ex_valid_r &&
+    id_ex_rd_en_r &&
+    (id_ex_rd_addr_r != 5'd0) &&
+    (id_ex_rd_addr_r == id_rs2_addr);
+assign id_branch_decode_rs1_exmem_match =
+    id_rs1_en &&
+    ex_mem_valid_r &&
+    ex_mem_rd_en_r &&
+    (ex_mem_rd_addr_r != 5'd0) &&
+    (ex_mem_rd_addr_r == id_rs1_addr);
+assign id_branch_decode_rs2_exmem_match =
+    id_rs2_en &&
+    ex_mem_valid_r &&
+    ex_mem_rd_en_r &&
+    (ex_mem_rd_addr_r != 5'd0) &&
+    (ex_mem_rd_addr_r == id_rs2_addr);
+assign id_branch_decode_rs1_pending =
+    id_branch_decode_rs1_idex_match ? !id_branch_decode_idex_value_available :
+    (id_branch_decode_rs1_exmem_match && !id_branch_decode_exmem_value_available);
+assign id_branch_decode_rs2_pending =
+    id_branch_decode_rs2_idex_match ? !id_branch_decode_idex_value_available :
+    (id_branch_decode_rs2_exmem_match && !id_branch_decode_exmem_value_available);
 assign id_branch_decode_operands_ready =
     !id_branch_decode_rs1_pending &&
     !id_branch_decode_rs2_pending;
-assign id_branch_decode_eq = (id_rs1_value == id_rs2_value);
-assign id_branch_decode_lt = ($signed(id_rs1_value) < $signed(id_rs2_value));
-assign id_branch_decode_ltu = (id_rs1_value < id_rs2_value);
+assign id_branch_decode_rs1_value =
+    (id_branch_decode_rs1_idex_match && id_branch_decode_idex_value_available) ?
+        ((id_ex_wb_sel_r == `YH_rv_cpu_WB_PC4) ? id_ex_pc4_r : ex_exec_result_final) :
+    (id_branch_decode_rs1_exmem_match && id_branch_decode_exmem_value_available) ?
+        ex_mem_forward_data :
+    id_rs1_value;
+assign id_branch_decode_rs2_value =
+    (id_branch_decode_rs2_idex_match && id_branch_decode_idex_value_available) ?
+        ((id_ex_wb_sel_r == `YH_rv_cpu_WB_PC4) ? id_ex_pc4_r : ex_exec_result_final) :
+    (id_branch_decode_rs2_exmem_match && id_branch_decode_exmem_value_available) ?
+        ex_mem_forward_data :
+    id_rs2_value;
+assign id_branch_decode_eq = (id_branch_decode_rs1_value == id_branch_decode_rs2_value);
+assign id_branch_decode_lt = ($signed(id_branch_decode_rs1_value) < $signed(id_branch_decode_rs2_value));
+assign id_branch_decode_ltu = (id_branch_decode_rs1_value < id_branch_decode_rs2_value);
 assign id_branch_decode_taken =
     id_branch_decode_candidate &&
     id_branch_decode_operands_ready &&
@@ -568,8 +614,25 @@ assign id_jal_x0_decode_redirect_valid =
     id_jump &&
     !id_jalr &&
     (id_rd_addr == 5'd0);
-assign id_decode_redirect_valid = id_branch_decode_redirect_valid || id_jal_x0_decode_redirect_valid;
-assign id_decode_redirect_pc = id_jal_x0_decode_redirect_valid ? (if_id_pc_r + id_imm) : id_branch_decode_redirect_pc;
+assign id_jalr_decode_target_sum = id_branch_decode_rs1_value + id_imm;
+assign id_jalr_decode_redirect_pc = {id_jalr_decode_target_sum[XLEN-1:1], 1'b0};
+assign id_jalr_x0_decode_redirect_valid =
+    pipeline_run &&
+    !ex_fetch_redirect_valid &&
+    !stall_decode &&
+    if_id_valid_r &&
+    id_jump &&
+    id_jalr &&
+    (id_rd_addr == 5'd0) &&
+    !id_branch_decode_rs1_pending;
+assign id_decode_redirect_valid =
+    id_branch_decode_redirect_valid ||
+    id_jal_x0_decode_redirect_valid ||
+    id_jalr_x0_decode_redirect_valid;
+assign id_decode_redirect_pc =
+    id_jal_x0_decode_redirect_valid ? (if_id_pc_r + id_imm) :
+    id_jalr_x0_decode_redirect_valid ? id_jalr_decode_redirect_pc :
+    id_branch_decode_redirect_pc;
 assign fetch_control_redirect_valid = ex_fetch_redirect_valid || id_decode_redirect_valid;
 assign fetch_control_redirect_pc =
     ex_fetch_redirect_valid ? ex_control_redirect_pc : id_decode_redirect_pc;
