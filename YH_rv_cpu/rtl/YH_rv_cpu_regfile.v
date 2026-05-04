@@ -31,11 +31,24 @@ module YH_rv_cpu_regfile #(
     output wire [XLEN-1:0] rs2_rdata,        // 读数据 2
 
     // ------------------------------------------------------------
+    // 读端口 C (rd-as-source for selected custom stores)
+    // ------------------------------------------------------------
+    input  wire [4:0]      rs3_addr,
+    output wire [XLEN-1:0] rs3_rdata,
+
+    // ------------------------------------------------------------
     // 写端口 (rd)
     // ------------------------------------------------------------
     input  wire            rd_wen,           // 写使能
     input  wire [4:0]      rd_addr,          // 写地址
-    input  wire [XLEN-1:0] rd_wdata          // 写数据
+    input  wire [XLEN-1:0] rd_wdata,         // 写数据
+
+    // ------------------------------------------------------------
+    // 第二写端口 (用于带基址更新的访存扩展)
+    // ------------------------------------------------------------
+    input  wire            rd2_wen,
+    input  wire [4:0]      rd2_addr,
+    input  wire [XLEN-1:0] rd2_wdata
 );
 
     // ------------------------------------------------------------
@@ -54,6 +67,7 @@ integer idx;
     // ------------------------------------------------------------
 assign rs1_rdata =
     (rs1_addr == 5'd0) ? {XLEN{1'b0}} :  // x0 始终为 0
+    (rd2_wen && (rd2_addr == rs1_addr) && (rd2_addr != 5'd0)) ? rd2_wdata :
     (rd_wen && (rd_addr == rs1_addr) && (rd_addr != 5'd0)) ? rd_wdata :  // 旁路
     regs[rs1_addr];                        // 正常读取
 
@@ -63,8 +77,15 @@ assign rs1_rdata =
     // ------------------------------------------------------------
 assign rs2_rdata =
     (rs2_addr == 5'd0) ? {XLEN{1'b0}} :
+    (rd2_wen && (rd2_addr == rs2_addr) && (rd2_addr != 5'd0)) ? rd2_wdata :
     (rd_wen && (rd_addr == rs2_addr) && (rd_addr != 5'd0)) ? rd_wdata :
     regs[rs2_addr];
+
+assign rs3_rdata =
+    (rs3_addr == 5'd0) ? {XLEN{1'b0}} :
+    (rd2_wen && (rd2_addr == rs3_addr) && (rd2_addr != 5'd0)) ? rd2_wdata :
+    (rd_wen && (rd_addr == rs3_addr) && (rd_addr != 5'd0)) ? rd_wdata :
+    regs[rs3_addr];
 
     // ------------------------------------------------------------
     // 寄存器写操作
@@ -77,8 +98,13 @@ always @(posedge clk or negedge rst_n) begin
         for (idx = 0; idx < 32; idx = idx + 1) begin
             regs[idx] <= {XLEN{1'b0}};
         end
-    end else if (rd_wen && (rd_addr != 5'd0)) begin
-        regs[rd_addr] <= rd_wdata;
+    end else begin
+        if (rd_wen && (rd_addr != 5'd0)) begin
+            regs[rd_addr] <= rd_wdata;
+        end
+        if (rd2_wen && (rd2_addr != 5'd0)) begin
+            regs[rd2_addr] <= rd2_wdata;
+        end
     end
 end
 

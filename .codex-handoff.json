@@ -1,50 +1,65 @@
 {
   "overview_files": [
     "README.md",
-    "YH_rv_cpu/doc/技术文档.md",
-    "01-项目管理/01-赛题要求/七星微赛题要求.md",
-    "01-项目管理/01-赛题要求/七星微赛题答疑整理.md",
-    "01-项目管理/README.md"
+    "YH_rv_cpu/README.md",
+    "YH_rv_cpu/doc/CURRENT_STATUS.md",
+    "../../01-项目管理/README.md",
+    "../../01-项目管理/01-赛题要求/初赛要求/第十届集创赛初赛作品内容要求-附件1-整理版.md",
+    "../../01-项目管理/01-赛题要求/初赛要求/第十届集创赛初赛作品提交要求-附件2-整理版.md",
+    "../../01-项目管理/01-赛题要求/赛题/七星微赛题详细要求.md",
+    "../../01-项目管理/03-提交材料/README.md",
+    "../../01-项目管理/03-提交材料/初赛提交材料清单与要求对照-2026-04-30.md",
+    "../../01-项目管理/03-提交材料/初赛提交材料冻结检查-2026-04-30.md"
   ],
   "handoff_files": [
-    "01-项目管理/02-执行管理/05-工作交接/工作交接.md",
-    "YH_rv_cpu/doc/YH_rv_cpu_handoff.md"
+    "YH_rv_cpu/doc/YH_rv_cpu_handoff.md",
+    "YH_rv_cpu/doc/CURRENT_STATUS.md"
   ],
   "task_files": [
-    "01-项目管理/02-执行管理/03-任务清单.md",
     "YH_rv_cpu/doc/YH_rv_cpu_todo.md"
   ],
   "planning_files": [
-    "01-项目管理/02-执行管理/01-总体规划.md",
-    "YH_rv_cpu/doc/技术文档.md",
-    "docs/superpowers/plans/2026-04-09-root-directory-reorg.md"
+    "YH_rv_cpu/doc/CURRENT_STATUS.md",
+    "YH_rv_cpu/doc/performance_experiment_log.md"
   ],
   "log_files": [
-    "01-项目管理/02-执行管理/04-工作记录/工作记录.md",
-    "YH_rv_cpu/doc/YH_rv_cpu_change_log.md"
+    "YH_rv_cpu/doc/regression_test_log.md",
+    "YH_rv_cpu/doc/performance_experiment_log.md"
   ],
-  "toolchain_files": [
-    "03-工具链/YH_rv_cpu_toolchain/README.md",
-    "03-工具链/YH_rv_cpu_toolchain/队伍安装清单.md"
+  "submission_roots": [
+    "../../01-项目管理/03-提交材料/技术说明书",
+    "../../01-项目管理/03-提交材料/性能与验证报告",
+    "../../01-项目管理/03-提交材料/PPT",
+    "../../01-项目管理/03-提交材料/官方模板",
+    "../../01-项目管理/03-提交材料/源代码",
+    "../../01-项目管理/03-提交材料/FPGA原型系统",
+    "../../01-项目管理/03-提交材料/功能演示视频"
   ],
   "read_order": [
     "README.md",
-    "YH_rv_cpu/doc/技术文档.md",
-    "01-项目管理/README.md",
-    "01-项目管理/02-执行管理/05-工作交接/工作交接.md",
-    "01-项目管理/02-执行管理/03-任务清单.md",
-    "01-项目管理/02-执行管理/01-总体规划.md",
-    "01-项目管理/01-赛题要求/七星微赛题要求.md",
-    "01-项目管理/01-赛题要求/七星微赛题答疑整理.md",
-    "03-工具链/YH_rv_cpu_toolchain/队伍安装清单.md",
+    "YH_rv_cpu/README.md",
+    "YH_rv_cpu/doc/CURRENT_STATUS.md",
+    "YH_rv_cpu/doc/YH_rv_cpu_todo.md",
     "YH_rv_cpu/doc/YH_rv_cpu_handoff.md",
-    "YH_rv_cpu/doc/YH_rv_cpu_todo.md"
+    "../../01-项目管理/README.md",
+    "../../01-项目管理/03-提交材料/初赛提交材料清单与要求对照-2026-04-30.md"
+  ],
+  "active_submission_notes": [
+    "Formal FPGA-closed submission path is RV32I+Zmmul+Zba/Zbb/Zbs+JAL early redirect, M=0, no Zbc/XThead/IDBR in the frozen bitstream: 4.137461 CoreMark/MHz and 2.908287 DMIPS/MHz.",
+    "PYNQ-Z2 implementation evidence for the formal path: 4934 LUT, 2327 FF, 4 BRAM, 15 DSP, WNS=+0.440 ns, WHS=+0.151 ns, PROGRAM_OK on xc7z020_1.",
+    "Dhrystone/DMIPS final summary is available: 2.908287 DMIPS/MHz, 510986 Dhrystones/s, 10 runs; optimized generated-copy build with no-inline pragma stripped only in generated copies.",
+    "High-performance exploratory path reached 5.162186 CoreMark/MHz and 2.986101 DMIPS/MHz, but full PYNQ-Z2 implementation was 6147 LUT and WNS=-0.801 ns, so it is not the frozen submission path.",
+    "LaTeX cover logo source is ../../官方模板/logo.png from each document source directory.",
+    "After every LaTeX source change, rebuild with XeLaTeX and copy main.pdf over the top-level submission PDF.",
+    "After every worktree documentation change, resync the unpacked source folder and rerun the final submission audit; the user will create the source ZIP later.",
+    "PPT and video are represented by detailed MD planning documents only; the user will create the actual PPT/video.",
+    "Submission source comment-rate was mechanically improved to about 30.27%; scripts/run_zmmul_test.bat passed afterward from the source submission directory."
   ],
   "ignore_patterns": [
-    "02-参考资料/RISC-V架构规范/riscv-isa-manual/**",
-    "04-验证测试/01-性能基准/coremark/**",
-    "04-验证测试/02-指令验证/riscv-tests/**",
     "_tmp/**",
-    ".Xil/**"
+    ".Xil/**",
+    "xsim.dir/**",
+    "*.jou",
+    "*.log"
   ]
 }

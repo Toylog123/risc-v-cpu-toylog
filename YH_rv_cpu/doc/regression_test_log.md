@@ -1,171 +1,58 @@
-﻿# YH_rv_cpu 回归测试记录
+# Regression Test Log
 
-## 使用规则
+> Updated: `2026-04-30`
 
-- `2026-04-07` 条目是当前冻结基线的完整 fresh 记录
-- `2026-04-08` 条目是扩展验证中的活跃记录，不应直接当成新的冻结基线引用
-- 只有 fresh 命令、fresh 摘要、文档口径一致时，才能把结果升级为新的正式口径
+## Formal Candidate
 
-## 2026-04-07 - Frozen Baseline Refresh
+Configuration: `RV32I + Zmmul + Zba/Zbb/Zbs + Zbc + XThead memidx/condmov + IDBR cmp-cheapALU + JAL early redirect`, full M division disabled, PYNQ-Z2 CPU clock `50.0 MHz`.
 
-### 测试环境
+## Functional Regression
 
-- GCC: `15.2.0`
-- Vivado: `2025.2`
-- branch: `main`
-- target device: `xc7a100tcsg324-1`
-- retained optimizations:
-  - `stall_decode=load_use_hazard`
-  - `IMEM_OUTPUT_REG=0`
-  - `DMEM_OUTPUT_REG=0`
+| Check | Command / evidence | Result |
+|---|---|---|
+| XThead memidx directed | `scripts/run_xthead_memidx_test.bat` | PASS, `cycles=12` |
+| Zmmul directed | `scripts/run_zmmul_test.bat` | PASS, multiply path valid; `divu` traps as unsupported |
+| Bitmanip directed | `scripts/run_bitmanip_test.bat` | PASS, `23/23` |
+| Fast bitmanip subset directed | `scripts/run_bitmanip_fast_subset_test.bat` | PASS, fast ops accepted and `clmul` rejected when `Zbc=0` |
+| SoC smoke | `scripts/run_soc_smoke.bat` | PASS, `PC=0000003c`, `cycles=150` |
 
-### 实际命令
+## Performance Regression
 
-```bat
-scripts\check_syntax.bat
-scripts\run_soc_smoke.bat
-scripts\run_trap_smoke.bat
-scripts\run_timer_irq_smoke.bat
-scripts\run_xlen64_smoke.bat
-scripts\run_coremark_smoke.bat rv32
-scripts\run_coremark_score.bat rv32 10 2000 100000000UL 20000000
-scripts\run_coremark_score.bat rv32 1000 2000 100000000UL 1500000000 build\sw\YH_rv_cpu_coremark_rv32_strict.summary.txt
-scripts\run_riscv_tests_subset.bat rv32
-scripts\run_riscv_tests_subset.bat rv64
-scripts\build_vivado_project.bat impl50
-scripts\run_coremark_fpga.bat rv32
-```
+| Check | Command / evidence | Result |
+|---|---|---|
+| CoreMark score | `scripts/run_coremark_score.bat rv32i_zmmul_zba_zbb_zbs_zbc_xthead_memidx_noautoinc_o2sched_nocaller_noifconv 10 2000 100000000UL 30000000 build\sw\YH_rv_cpu_coremark_idbr_cmp_jal_predict_score_20260430_rerun.summary.txt` | PASS, `5.162186 CoreMark/MHz`, CRC OK |
+| Dhrystone conservative score | `scripts/run_dhrystone_score.bat 100000000UL 250000000 build\sw\YH_rv_cpu_dhrystone_idbr_cmp_jal_predict.summary.txt 10 rv32i_zmmul_zba_zbb_zbs` | PASS, `1.009846 DMIPS/MHz`, `177430 Dhrystones/s` |
 
-### 结果快照
+CoreMark counters:
 
-| 项目 | 结果 | 备注 |
-|------|------|------|
-| SoC smoke | PASS | `PC=00000038`, `164 cycles` |
-| trap smoke | PASS | `PC=000000ac`, `89 cycles` |
-| timer_irq smoke | PASS | `PC=000000e4`, `136 cycles` |
-| xlen64 smoke | PASS | `PC=0000000000000020`, `17 cycles` |
-| RV32 baseline | PASS | `33/33` |
-| RV64 baseline | PASS | `21/21` |
-| CoreMark smoke | PASS | `620530 cycles` |
-| CoreMark short | PASS | `11014885 cycles`, `0.912472 CoreMark/MHz` |
-| CoreMark strict | PASS | `1095991523 cycles`, `0.912465 CoreMark/MHz`, `10.959325s` |
-| impl50 | PASS | `2556 LUT / 2170 FF / 4 BRAM / 0 DSP`, `WNS=+5.599ns`, `WHS=+0.025ns` |
-| FPGA-like probe | PASS | `156442 cycles`, `7.728811 CoreMark/MHz` |
+| Counter | Value |
+|---|---:|
+| ticks | `1937164` |
+| iterations/s | `516.218555` |
+| completion cycles | `1971888` |
+| EX branch redirect cycles | `1900` |
+| EX BEQ redirect cycles | `1864` |
+| EX JAL redirect cycles | `0` |
+| EX JALR redirect cycles | `26` |
+| ID branch decode redirect cycles | `141100` |
 
-### 结论
+## FPGA Closure
 
-- 当前冻结主线可回归
-- 当前保留优化未打坏 RV32 / RV64 / impl50 / FPGA-like probe
-- strict EEMBC `>=10s` CoreMark 已有可引用证据
-- 板卡与最终 I/O delay 仍是外部阻塞
+| Item | Result |
+|---|---:|
+| Target board | `PYNQ-Z2 / xc7z020clg400-1` |
+| CPU clock | `50.0 MHz` |
+| Slice LUTs | `4634 / 53200 = 8.71%` |
+| Slice Registers | `2317 / 106400 = 2.18%` |
+| Block RAM Tile | `4 / 140 = 2.86%` |
+| DSPs | `15 / 220 = 6.82%` |
+| Setup slack | `WNS=+0.608 ns` |
+| Hold slack | `WHS=+0.121 ns` |
+| Bitstream | `project/YH_rv_cpu_pynq_z2_sysclk_8p000ns_cpu50.bit` |
+| Hardware program | `PROGRAM_OK: xc7z020_1` |
 
-## 2026-04-08 - Expanded `riscv-tests` Validation (In Progress)
+## Promotion Decision
 
-### 目的
+The `5.162186` candidate replaces the prior `5.155952` cmp-cheapALU path because it improves CoreMark, reduces LUT usage from `4665` to `4634`, and keeps positive setup/hold slack at `50.0 MHz`.
 
-这轮不是新的性能优化，而是把 `riscv-tests` 从冻结 baseline 子集扩展到更接近普遍 `rv32ui/rv64ui` 的真实矩阵，并校验当前设计是否存在更广泛的 ISA/异常处理问题。
-
-### 活跃工作区输入
-
-- `scripts\riscv_tests_rv32_ui_all.txt`
-- `scripts\riscv_tests_rv64_ui_all.txt`
-- `sw\linker\YH_rv_cpu_riscv_tests_large.ld`
-- `scripts\run_riscv_tests_subset.bat` 的扩展参数能力
-- `sw\riscv-tests-env\riscv_test.h` 的 misaligned trap 软件补偿
-
-### 实际命令
-
-```bat
-scripts\run_riscv_tests_subset.bat rv32 - - 120000 YH_rv_cpu\scripts\riscv_tests_rv32_ui_all.txt rv32i_zicsr_zifencei continue YH_rv_cpu\sw\linker\YH_rv_cpu_riscv_tests_large.ld 0x00008000
-scripts\run_riscv_tests_subset.bat rv64 - - 120000 YH_rv_cpu\scripts\riscv_tests_rv64_ui_all.txt rv64i_zicsr_zifencei continue YH_rv_cpu\sw\linker\YH_rv_cpu_riscv_tests_large.ld 0x00008000
-```
-
-### 结果快照
-
-| 项目 | 结果 | 备注 |
-|------|------|------|
-| `rv32 full-ui` 总体 | `42/42` | 摘要：`build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt` |
-| `rv64 full-ui` 总体 | `54/54` | 摘要：`build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-08.txt` |
-| `ma_data` | PASS | 说明 misaligned trap 软件补偿已生效 |
-| `fence_i` | PASS | 在 `rv32i_zicsr_zifencei` 口径下通过 |
-| 口径说明 | `rv32i_zicsr_zifencei` | 该扩展覆盖矩阵用于 general UI 验证；冻结比赛口径仍维持 `RV32I + Zicsr` |
-| `rv32 baseline` fresh rerun | `33/33` | 归档：`build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt` |
-| `rv64 baseline` fresh rerun | `21/21` | 归档：`build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt` |
-| CoreMark smoke fresh rerun | PASS | `620530 cycles` |
-| CoreMark short fresh rerun | PASS | `11014885 cycles`，`0.912472 CoreMark/MHz`，摘要：`build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt` |
-| CoreMark strict fresh rerun | PASS | `1095991523 cycles`，`0.912465 CoreMark/MHz`，`10.959325s`，摘要：`build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt` |
-
-### 解释
-
-- 这轮结果已经排除了“`ma_data` 只是跑得慢”的假设
-- `rv32 full-ui` 已在扩展 UI 覆盖矩阵下闭环
-- `rv64 full-ui`、fresh baseline、fresh CoreMark smoke/short/strict 已全部闭环
-- 当前预优化收口阶段已完成，后续如继续本机工作可转入 `FQ-06`
-
-### 待补跑项
-
-- freeze post-closure baseline table
-- 启动下一轮单变量优化并保持 docs / commit 同步
-
-## 当前风险
-
-- 如果直接把 `fence_i` 当作“功能失败”处理，会误判当前根因为 CPU 设计缺陷
-- 如果直接忽略 `fence_i` 又不写清 ISA 边界，会导致文档口径不严谨
-- 在扩展矩阵未收口前，不应启动新的高侵入性能优化
-
-## 2026-04-28 - RV32IM O3Unroll Memwait Overlap Trial
-
-### 目的
-
-验证 `rv32im_o3unroll` 当前最佳短跑路径上，单拍 `mem_wait` 重叠取指
-是否能转化为 CoreMark 实际涨分。
-
-### 实际命令
-
-```bat
-scripts\check_syntax.bat
-scripts\run_memwait_overlap_diag.bat require_overlap
-scripts\run_memwait_overlap_diag.bat
-scripts\run_fetch_redirect_reuse_diag.bat
-scripts\run_coremark_smoke.bat rv32im_o3unroll
-scripts\run_coremark_score.bat rv32im_o3unroll 10 2000 100000000UL 30000000 build\sw\YH_rv_cpu_coremark_rv32im_o3unroll_memwait_score.summary.txt
-```
-
-### 结果快照
-
-| 项目 | 结果 | 备注 |
-|------|------|------|
-| syntax | PASS | exit 0 |
-| memwait strict directed | PASS | `overlap_requests=1` |
-| memwait default directed | PASS | `overlap_requests=1` |
-| redirect reuse guardrail | PASS | `overlaps=1` |
-| CoreMark smoke | PASS | `591345 cycles` |
-| CoreMark short | PASS | `4112023 cycles`, `2.455226 CoreMark/MHz` |
-
-### 结论
-
-- 该 RTL 试验功能上可行，但 CoreMark 短跑与当前最佳完全持平。
-- 按 retain/reject 规则，试验 RTL 已回退，只保留文档记录。
-
-## 2026-04-28 - RV32IM Extended Compiler Matrix
-
-### 目的
-
-在进入更高侵入 RTL 优化前，补测常见高优化编译组合，确认是否存在
-不用改硬件即可超过当前 `rv32im_o3unroll` 的短跑路径。
-
-### 结果快照
-
-| Target | Result | 备注 |
-|------|------|------|
-| `rv32im_o2unroll` | `4138703 cycles`, `2.439546 CoreMark/MHz` | rejected |
-| `rv32im_ofast` | `4327646 cycles`, `2.331563 CoreMark/MHz` | rejected |
-| `rv32im_ofast_unroll` | `4112080 cycles`, `2.455226 CoreMark/MHz` | score tie, cycles worse |
-| `rv32im_o3lto` | `4238630 cycles`, `2.381280 CoreMark/MHz` | rejected |
-| `rv32im_o3unroll_lto` | `4168008 cycles`, `2.422267 CoreMark/MHz` | rejected |
-
-### 结论
-
-- 当前最佳仍为 `rv32im_o3unroll`：`4112023 cycles`，
-  `2.455226 CoreMark/MHz`。
-- LTO 构建路径已修复为项目内 ASCII 临时目录，但 LTO 分数不保留。
+Source ZIP and final submission audit must be refreshed after this log update before the material snapshot is treated as frozen.

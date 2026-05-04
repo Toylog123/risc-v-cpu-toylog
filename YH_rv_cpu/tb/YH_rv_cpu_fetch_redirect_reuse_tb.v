@@ -40,11 +40,13 @@ reg     require_pipe_hit;
 reg     require_queue_preserve;
 reg     require_drop_accounting;
 reg     require_branch_reuse;
+reg     require_redirect_target_req;
 reg     stall_seen;
 reg     redirect_seen;
 reg     reuse_seen;
 reg     pipe_hit_seen;
 reg     overlap_seen;
+reg     redirect_target_req_seen;
 reg     branch_redirect_seen;
 reg     branch_overlap_seen;
 reg     branch_reuse_seen;
@@ -183,6 +185,26 @@ always @(posedge clk) begin
 
         if (fetch_reuse_hit && dut.ex_fetch_redirect_valid && !dut.id_ex_jump_r) begin
             branch_reuse_seen <= 1'b1;
+        end
+
+        if (require_redirect_target_req &&
+            (IMEM_OUTPUT_REG == 0) &&
+            dut.fetch_control_redirect_valid &&
+            !dut.fetch_redirect_reuse_valid) begin
+            if (!imem_req) begin
+                $fatal(1,
+                    "FAIL: redirect target request was not issued at cycle=%0d redirect_pc=%h",
+                    cycle,
+                    dut.fetch_control_redirect_pc);
+            end
+            if (imem_addr !== dut.fetch_control_redirect_pc) begin
+                $fatal(1,
+                    "FAIL: redirect target request used wrong address at cycle=%0d expected=%h observed=%h",
+                    cycle,
+                    dut.fetch_control_redirect_pc,
+                    imem_addr);
+            end
+            redirect_target_req_seen <= 1'b1;
         end
 
         if (dut.fetch_redirect_pipe_hit) begin
@@ -365,6 +387,20 @@ always @(posedge clk) begin
             $fatal(1, "FAIL: trap asserted at PC=%h cycle=%0d", debug_pc, cycle);
         end
 
+        if (require_redirect_target_req &&
+            redirect_target_req_seen &&
+            (cycle > 20) &&
+            !require_pipe_hit &&
+            !require_queue_preserve &&
+            !require_drop_accounting &&
+            !require_branch_reuse) begin
+            $display(
+                "PASS: fetch redirect target request diagnostic completed at PC=%h in %0d cycles",
+                debug_pc,
+                cycle);
+            $finish;
+        end
+
         if ((cycle > 20) && overlap_seen) begin
             if (!stall_seen) begin
                 $fatal(1, "FAIL: diagnostic never triggered stall_decode");
@@ -393,9 +429,11 @@ always @(posedge clk) begin
             if (require_queue_preserve && (!queue_preserve_seen || !queue_instruction_seen)) begin
                 // Keep running until the bounded window either proves the queue
                 // payload or trips the timeout/fatal checks above.
+            end else if (require_redirect_target_req && !redirect_target_req_seen) begin
+                // Keep running until the explicit redirect request check fires.
             end else begin
                 $display(
-                    "PASS: fetch redirect reuse diagnostic completed at PC=%h in %0d cycles (stall_cycles=%0d redirects=%0d reuse_hits=%0d pipe_hits=%0d overlaps=%0d require_pipe_hit=%0d require_queue_preserve=%0d require_drop_accounting=%0d require_branch_reuse=%0d IMEM_OUTPUT_REG=%0d)",
+                    "PASS: fetch redirect reuse diagnostic completed at PC=%h in %0d cycles (stall_cycles=%0d redirects=%0d reuse_hits=%0d pipe_hits=%0d overlaps=%0d require_pipe_hit=%0d require_queue_preserve=%0d require_drop_accounting=%0d require_branch_reuse=%0d require_redirect_target_req=%0d redirect_target_req_seen=%0d IMEM_OUTPUT_REG=%0d)",
                     debug_pc,
                     cycle,
                     stall_cycles,
@@ -407,6 +445,8 @@ always @(posedge clk) begin
                     require_queue_preserve,
                     require_drop_accounting,
                     require_branch_reuse,
+                    require_redirect_target_req,
+                    redirect_target_req_seen,
                     IMEM_OUTPUT_REG);
                 $finish;
             end
@@ -455,6 +495,7 @@ initial begin
     reuse_seen = 1'b0;
     pipe_hit_seen = 1'b0;
     overlap_seen = 1'b0;
+    redirect_target_req_seen = 1'b0;
     branch_redirect_seen = 1'b0;
     branch_overlap_seen = 1'b0;
     branch_reuse_seen = 1'b0;
@@ -472,6 +513,7 @@ initial begin
     require_queue_preserve = 1'b0;
     require_drop_accounting = 1'b0;
     require_branch_reuse = 1'b0;
+    require_redirect_target_req = 1'b0;
 
     if ($test$plusargs("debug_trace")) begin
         debug_trace = 1'b1;
@@ -491,6 +533,10 @@ initial begin
 
     if ($test$plusargs("require_branch_reuse")) begin
         require_branch_reuse = 1'b1;
+    end
+
+    if ($test$plusargs("require_redirect_target_req")) begin
+        require_redirect_target_req = 1'b1;
     end
 
     if (!$value$plusargs("timeout_cycles=%d", timeout_cycles)) begin

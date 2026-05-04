@@ -152,6 +152,10 @@ initial begin
     if ($test$plusargs("debug_trace")) begin
         debug_trace = 1'b1;
     end
+    if ($test$plusargs("dump_vcd")) begin
+        $dumpfile("YH_rv_cpu_id_jal_fast_tb.vcd");
+        $dumpvars(0, YH_rv_cpu_id_jal_fast_tb);
+    end
     if (!$value$plusargs("timeout_cycles=%d", timeout_cycles)) begin
         timeout_cycles = 80;
     end

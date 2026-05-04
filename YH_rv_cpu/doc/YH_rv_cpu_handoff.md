@@ -1,331 +1,81 @@
-﻿# YH_rv_cpu 交接说明
+# YH_rv_cpu Handoff
 
-## 1. 项目是什么
+> Updated: `2026-04-30`
 
-`YH_rv_cpu` 是当前比赛提交主线使用的 RISC-V CPU 工程基线。核心目标不是做更多一次性实验，而是把工程维持在“可复现、可验证、可交接、可继续优化”的提交级状态。
+## Snapshot
 
-本文件按 live handoff 维护。每完成一个阶段，都应先把这里同步到可接手状态，再继续下一阶段。
+- Active worktree: `.worktrees/coremark-over-1p5`
+- Active project: `.worktrees/coremark-over-1p5/YH_rv_cpu`
+- Board: `Xilinx PYNQ-Z2 (xc7z020clg400-1)`
+- Team number in submission materials: `CICC1003618`
+- Formal freeze label: `pynq-z2-cpu50-coremark-5.162186-idbr-cmpcheap-jalpredict`
 
-当前赛题与工程 ISA 口径是：
+## Formal Result
 
-- 赛题题面允许 CPU 基于 `RV32I` 或 `RV64I`
-- 当前冻结性能/提交主口径仍以 `RV32I + Zicsr` 为主
-- 当前工程验证能力已覆盖 `RV32/RV64` 双 XLEN，且 `baseline` / `full-ui` 都有 fresh 结果
+- CoreMark/MHz: `5.162186`
+- CoreMark ticks: `1937164`
+- Completion cycles: `1971888`
+- Dhrystone conservative binary: `1.009846 DMIPS/MHz`, `177430 Dhrystones/s`
+- CPU configuration: `RV32I + Zmmul + Zba/Zbb/Zbs + Zbc + XThead memidx/condmov + IDBR cmp-cheapALU + JAL early redirect`, `M=0`
+- FPGA utilization: `4634 LUT / 2317 FF / 4 BRAM / 15 DSP`
+- Timing: `WNS=+0.608 ns`, `WHS=+0.121 ns`
+- Hardware: connected PYNQ-Z2 programmed successfully, `PROGRAM_OK: xc7z020_1`
 
-## 2. 当前做到哪一步
+## Submission Material Roots
 
-- 冻结基线仍然是 `2026-04-07` 的完整收口结果
-- `2026-04-08` 的 `riscv-tests` 扩展验证与全文档同步已经完成收口
-- `2026-04-08` 的主线收口结果已拆成 focused commits；当前仓库还存在独立的目录整理/材料提交线与 profiling WIP，需分别按各自范围处理
-- 当前最新 fresh 活跃证据是：
-  - `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt`
-  - `rv32 full-ui = 42/42`
-  - `YH_rv_cpu/build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-08.txt`
-  - `rv64 full-ui = 54/54`
-  - `fence_i` 已在 `rv32i_zicsr_zifencei` 口径下通过
-  - `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt`
-  - `rv32 baseline = 33/33`
-  - `YH_rv_cpu/build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt`
-  - `rv64 baseline = 21/21`
-  - `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt`
-  - fresh `CoreMark short = 0.912472 CoreMark/MHz`
-  - fresh `CoreMark smoke = 620530 cycles`
-  - `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt`
-  - fresh `CoreMark strict = 0.912465 CoreMark/MHz`
+Use the main workspace submission directory, not `.worktrees`, for review/upload:
 
-当前冻结结果：
-
-| 项目 | 结果 |
-|------|------|
-| CoreMark short score | `0.912472 CoreMark/MHz` |
-| CoreMark short completion cycles | `11014885` |
-| CoreMark strict score | `0.912465 CoreMark/MHz` |
-| CoreMark strict completion cycles | `1095991523` |
-| CoreMark strict runtime | `10.959325s` |
-| CoreMark smoke | `620530 cycles` |
-| RV32 baseline | `33/33` |
-| RV64 baseline | `21/21` |
-| impl50 | `2556 LUT / 2170 FF / 4 BRAM / 0 DSP` |
-| impl50 timing | `WNS = +5.599ns`，`WHS = +0.025ns` |
-| FPGA-like probe | `156442 cycles`，`7.728811 CoreMark/MHz` |
-
-## 3. 已完成的关键工作
-
-- CoreMark short 与 strict `>=10s` 口径均已收口并形成正式文档
-- 当前冻结 baseline 的 RV32 / RV64 / impl50 / FPGA-like probe 均有 fresh 可引用证据
-- `timer_irq_smoke` 已修复并纳入基线
-- Vivado `impl50` 默认 payload 已冻结为 `YH_rv_cpu_demo`
-- `redirect/flush/drop-accounting` 双变体 strict 诊断已补齐
-- `2026-04-09` 已整理赛方答疑，并把汇报/初赛提交材料集中到 `01-项目管理/04-汇报与提交材料/`
-- 第一轮与第二轮单变量前端候选均已完成快速门禁并拒绝保留：
-  - `request-cursor`
-  - `pipe-hit`
-  - `redirect 同拍取指`
-  - `FQ-01`
-  - `FQ-02`
-  - `FQ-03`
-  - `FQ-04`
-  - `FQ-05A/B/C`
-- 为扩大 `riscv-tests` 覆盖，当前工作区已补入：
-  - full-ui manifest
-  - large linker
-  - custom `tohost_addr`
-  - misaligned trap 软件补偿
-
-## 4. 当前阻塞与风险
-
-### 本机内待收口
-
-- `rv32 full-ui` 已闭环；当前 `fence_i` 处理策略是：扩展 UI 覆盖矩阵使用 `zifencei`，但冻结比赛 ISA 口径仍是 `RV32I + Zicsr`
-- 对当前无 I-cache、同步 ROM/RAM 的核，`fence.i` 作为 non-trapping nop 足以通过当前测试覆盖；这不等于完整 `Zifencei` signoff
-- fresh baseline 与 fresh CoreMark smoke/short/strict 已全部补齐
-- `2026-04-08` dated strict summary/log 已归档，并与冻结 strict 口径一致
-
-### 外部阻塞
-
-- 缺实体板卡，无法完成 UART/LED 实板闭环
-- 缺最终板级 I/O delay 约束，`XDC` 仍是 pre-board 版本
-
-### 风险
-
-- 如果后续文档把扩展 UI 覆盖矩阵误写成“冻结比赛 ISA 口径升级”，会造成口径漂移
-- 如果跳过文档同步继续做高侵入优化，会让口径再次失真
-
-## 5. 下一步最值得做的 5 项
-
-### 2026-04-28 CoreMark >1.5 update
-
-当前 `perf/coremark-over-1p5` 分支已经通过启用 `rv32im` CoreMark
-编译/跑分路径，把 short CoreMark 从 `0.925186` 提升到
-`2.365118 CoreMark/MHz`：
-
-- 命令：
-  `scripts\run_coremark_score.bat rv32im 10 2000 100000000UL 20000000 build\sw\YH_rv_cpu_coremark_rv32im_score.summary.txt`
-- 结果：`4269236 completion cycles`，`2.365118 CoreMark/MHz`
-- 证据：
-  `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_score.summary.txt`
-- 当前 short 最优已经更新为：
-  `rv32im_o3unroll`，`4112023 completion cycles`，
-  `2.455226 CoreMark/MHz`
-- 最优证据：
-  `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_o3unroll_score.summary.txt`
-- 上一轮 short 最优曾更新为：
-  `rv32im_o3unroll_b1nosched`，`3090115 ticks`，
-  `3.236126 CoreMark/MHz`
-- 对应证据：
-  `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_o3unroll_b1nosched_score.summary.txt`
-- 该路径仍是 `rv32im_zicsr`，CoreMark banner 已报告完整 flags：
-  `-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -march=rv32im_zicsr -mabi=ilp32`
-- 上一轮 short 最优再次更新为：
-  `rv32im_o3unroll_b1nosched_uall800`，`2955494 ticks`，
-  `3.383529 CoreMark/MHz`
-- 对应证据：
-  `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_o3unroll_b1nosched_uall800_score.summary.txt`
-- 该路径仍是 `rv32im_zicsr`，CoreMark banner 已报告完整 flags：
-  `-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -march=rv32im_zicsr -mabi=ilp32`
-- 当前最新 short 最优更新为：
-  `rv32im_o3unroll_b1nosched_uall800_inline_nocross`，
-  `2656940 ticks`，`3.763728 CoreMark/MHz`
-- 最新最优证据：
-  `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_o3unroll_b1nosched_uall800_inline_nocross_score.summary.txt`
-- 该路径仍是 `rv32im_zicsr`，CoreMark banner 已报告完整 flags：
-  `-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -march=rv32im_zicsr -mabi=ilp32`
-- `mem_wait overlap fetch request` 已按 TDD 快速筛选并拒绝：
-  directed 可变绿，但 short score 仍是 `4112023 cycles`，
-  `2.455226 CoreMark/MHz`，试验 RTL 已回退
-- 试验证据：
-  `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32im_o3unroll_memwait_score.summary.txt`
-- `rv32im_o3` 已拒绝保留：
-  `4327580 cycles`，`2.331563 CoreMark/MHz`
-- 扩展编译矩阵已拒绝产生新最佳：
-  `rv32im_o2unroll=2.439546`，
-  `rv32im_ofast=2.331563`，
-  `rv32im_ofast_unroll=2.455226` 但 cycles 略差，
-  `rv32im_o3lto=2.381280`，
-  `rv32im_o3unroll_lto=2.422267`
-- `build_coremark.bat` 已将 GCC 临时目录固定到项目内
-  `_tmp\gcc_tmp`，避免 Windows 中文用户名路径导致 LTO 链接失败
-- M 扩展护栏：
-  `scripts\run_m_extension_test.bat` -> `PASS`，`11/11`
-- 旧 `rv32i_zicsr` 路径复测仍为：
-  `10862713 cycles`，`0.925186 CoreMark/MHz`
-
-这个收益来自把 CoreMark 中的软件 `__mulsi3` 路径替换为硬件 `mul`
-指令，属于已有 M 扩展能力的工具链启用；不是新的 RTL 结构优化。
-还不能称为 strict 冻结基线，因为 `rv32im` 的 `>=10s` 长跑、`impl50`
-和 FPGA-like probe 尚未刷新。
-
-1. 先把当前 profiling / docs WIP 收口成 focused commit
-2. 单独清理脚本 BOM / 换行差异与冲突备份文件
-3. 继续冲 `CoreMark/MHz > 5` 时，下一条主动假设不能重复
-   request-only memwait overlap、静态 backward prediction、branch-only
-   redirect 微调、ID-stage not-taken consume 或 full-unroll threshold tuning；
-   最新 profile 已是 `stall_decode=0`、`mem_wait=0`，且 fetch redirect 只剩
-   `40889`，需要转向更大的动态指令数削减或吞吐结构优化
-4. 每轮优化完整重跑 CoreMark / baseline / impl50 并同步日志
-5. 如新一轮优化无明确收益，及时关闭方向并回到 clean worktree
-
-`FQ-06A` 已在 `2026-04-08` 执行完 quick-screen，并已收口为 rejected。
-这轮的真实结论是：
-
-- 性能目标路径：`IMEM_OUTPUT_REG=0`
-- 结构目标：bounded request cursor / request-side decouple
-- 不动的部分：IF/ID payload path、fetch buffer 深度、比赛 ISA 口径
-- correctness guardrail：`run_fetch_redirect_reuse_diag.bat` 严格覆盖 `IMEM_OUTPUT_REG=0/1` 的 queue preserve 与 drop-accounting，均已通过
-- quick-screen gate：`require_prefetch` / `require_queue_fill` / redirect / memwait / smoke 全绿，但 CoreMark short 仍为 `11014885 / 0.912472`
-- 收口动作：实验 RTL 已回退，主线只保留更强的 prefetch 诊断和脚本 plusarg 归一化
-- fresh profile follow-up：`YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-08.log` 显示 `fetch_queue_empty_cycles = ex_fetch_redirect_valid_cycles = 1504970`，说明剩余大头是 redirect 代价，不是 request-side 缺口
-- `2026-04-09` split profile：`YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-09.log` 显示
-  - `ex_branch_redirect_cycles = 1235790`
-  - `ex_jal_redirect_cycles = 153354`
-  - `ex_jalr_redirect_cycles = 115826`
-  - `fetch_redirect_reuse_cycles = 0`
-  - `fetch_redirect_reuse_miss_cycles = 1504970`
-- 这说明 CoreMark 的 redirect 开销是“taken branch 主导 + reuse 完全不起作用”，下一轮若继续，应优先围绕 branch-dominant redirect 代价做新假设，而不是重复 queue/reuse 微调或重开 `jal-only` 快捷路径
-
-## 6. 关键文档与命令
-
-关键文档：
-
-- `doc/CURRENT_STATUS.md`
-- `README.md`
-- `doc/技术文档.md`
-- `doc/coremark_submission_report.md`
-- `doc/performance_experiment_log.md`
-- `doc/regression_test_log.md`
-- `doc/fpga_bringup_checklist.md`
-- `fpga/vivado/README.md`
-- `../01-项目管理/01-赛题要求/七星微赛题答疑整理.md`
-- `../01-项目管理/04-汇报与提交材料/README.md`
-
-关键命令：
-
-```bat
-scripts\run_coremark_smoke.bat rv32
-scripts\run_coremark_score.bat rv32 10 2000 100000000UL 20000000
-scripts\run_coremark_score.bat rv32 1000 2000 100000000UL 1500000000 build\sw\YH_rv_cpu_coremark_rv32_strict.summary.txt
-scripts\run_coremark_profile.bat rv32 10 2000 100000000UL 20000000
-scripts\run_riscv_tests_subset.bat rv32
-scripts\run_riscv_tests_subset.bat rv64
-scripts\run_riscv_tests_subset.bat rv32 - - 120000 YH_rv_cpu\scripts\riscv_tests_rv32_ui_all.txt rv32i_zicsr_zifencei continue YH_rv_cpu\sw\linker\YH_rv_cpu_riscv_tests_large.ld 0x00008000
-scripts\run_riscv_tests_subset.bat rv64 - - 120000 YH_rv_cpu\scripts\riscv_tests_rv64_ui_all.txt rv64i_zicsr_zifencei continue YH_rv_cpu\sw\linker\YH_rv_cpu_riscv_tests_large.ld 0x00008000
-scripts\build_vivado_project.bat impl50
-scripts\run_coremark_fpga.bat rv32
+```text
+../../01-项目管理/03-提交材料/
 ```
 
-关键证据位置：
+Expected folders:
 
-- CoreMark short summary: `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_score.summary.txt`
-- CoreMark short dated summary: `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_score_2026-04-08.summary.txt`
-- CoreMark strict summary: `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_strict.summary.txt`
-- CoreMark strict dated summary: `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt`
-- CoreMark strict dated log: `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.log`
-- CoreMark profile split log: `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-09.log`
-- `rv32` baseline current summary: `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt`
-- `rv64` baseline current summary: `YH_rv_cpu/build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt`
-- `rv32 full-ui` current summary: `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt`
-- `rv64 full-ui` current summary: `YH_rv_cpu/build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-08.txt`
-- FPGA reports: `project/reports/clk_20p000ns/`
+- `技术说明书/`
+- `性能与验证报告/`
+- `PPT/`
+- `源代码/`
+- `FPGA原型系统/`
+- `功能演示视频/`
+- `官方模板/`
 
-## 7. 文档缺口与建议补齐项
+Current key files:
 
-- 文档已同步到“冻结基线 + 2026-04-08 活跃验证”双层口径
-- 赛方最新答疑已明确初赛以设计/技术文档为硬交付；性能/验证/FPGA 证据继续作为增强材料
-- 初赛提交材料目录已迁入项目管理目录，但仍需在后续新结果出现时持续同步
-- 当前主要不再是收口缺口，而是下一阶段优化工作：
-  - freeze post-closure baseline
-  - start from a control-flow-first hypothesis backed by the `2026-04-09` split profile
-  - do not reopen request/queue micro-tuning unless a new control-flow hypothesis justifies it
-  - keep docs aligned if optimization resumes
+- `技术说明书/YH_rv_cpu初赛技术说明书-2026-04-30.pdf`
+- `性能与验证报告/YH_rv_cpu初赛性能与验证报告-2026-04-30.pdf`
+- `PPT/CICC1003618+初赛+作品PPT.pptx`
+- `PPT/CICC1003618+初赛+作品PPT.pdf`
+- `源代码/YH_rv_cpu初赛源码包-2026-04-30.zip`
+- `FPGA原型系统/fpga_artifacts_pynq_z2/YH_rv_cpu_pynq_z2_sysclk_8p000ns_cpu50_zmmul_zbc_xthead_idbr_cmpcheap_jalpredict.bit`
+- `功能演示视频/CICC1003618+初赛+演示视频.mp4`
+- `初赛提交材料清单与要求对照-2026-04-30.md`
+- `初赛提交材料冻结检查-2026-04-30.md`
 
-## 2026-04-10 当前工作区补充（交接必读）
+## Rebuild Rules
 
-### 当前环境与分支
+1. After editing LaTeX source, compile with XeLaTeX and copy `main.pdf` over the top-level submission PDF.
+2. After editing worktree docs, rebuild the source ZIP so the submitted code package contains the latest status.
+3. After replacing any performance number, rerun the final audit and update both checklist markdown files.
+4. Do not promote an optimization unless it passes functional regression, CoreMark, PYNQ-Z2 implementation, timing/resource gates, and hardware or artifact refresh checks.
 
-- 主机：`Toylog_desktop`
-- 系统 / shell：`Windows + PowerShell 5.1`
-- 仓库根目录：`D:\BaiduSyncdisk\icdc_workspace`
-- 当前分支：`main`
-- push 状态：未推送；当前分支相对 `origin/main` 显示 `ahead 57`
+## Core Commands
 
-### 当前工作区真实状态
+```bat
+scripts\run_xthead_memidx_test.bat
+scripts\run_zmmul_test.bat
+scripts\run_bitmanip_test.bat
+scripts\run_bitmanip_fast_subset_test.bat
+scripts\run_soc_smoke.bat
 
-- 当前工程主线不是新的性能收益版本，而是“冻结基线已稳定，后续优化仍停留在 profiling / hypothesis 筛选阶段”。
-- 最新有实质内容的本地未提交改动集中在：
-  - `doc/performance_experiment_log.md`
-  - `scripts/run_coremark_profile.bat`
-  - `tb/YH_rv_cpu_coremark_profile_tb.v`
-  - `doc/2026-04-09_optimization_status_addendum.md`（未跟踪）
-- 这些改动的真实目的不是改主线 RTL 行为，而是继续细化 redirect profiling，并把 `decode-stage early JAL redirect` 的拒绝结论写入文档。
-- 当前还存在两类应单独处理的工作区噪声：
-  - `scripts/build_coremark.bat`、`scripts/open_vivado_project.bat` 的 BOM / 换行差异
-  - `scripts/build_coremark_冲突文件_佟亚龙_20260409225716.bat`
-  - `scripts/open_vivado_project_冲突文件_佟亚龙_20260409225716.bat`
+scripts\run_coremark_score.bat rv32i_zmmul_zba_zbb_zbs_zbc_xthead_memidx_noautoinc_o2sched_nocaller_noifconv 10 2000 100000000UL 30000000 build\sw\YH_rv_cpu_coremark_idbr_cmp_jal_predict_score_20260430_rerun.summary.txt
+scripts\run_dhrystone_score.bat 100000000UL 250000000 build\sw\YH_rv_cpu_dhrystone_idbr_cmp_jal_predict.summary.txt 10 rv32i_zmmul_zba_zbb_zbs
+```
 
-### 当前最新可复核结论
+For PYNQ-Z2 implementation, keep the CPU clock at `50.0 MHz`, enable `Zmmul/Zba/Zbb/Zbs/Zbc/XThead/IDBR cmp-cheapALU/JAL early redirect`, and keep full M division disabled.
 
-- `rv32 full-ui` 真实证据路径应为：
-  - `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_ui_all_zifencei_2026-04-08.txt`
-  - 结果：`42/42`
-- `rv64 full-ui` 真实证据路径应为：
-  - `YH_rv_cpu/build/tests/riscv-tests/rv64/summary_ui_all_zifencei_2026-04-08.txt`
-  - 结果：`54/54`
-- `rv32 baseline` 真实证据路径应为：
-  - `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_baseline_2026-04-08.txt`
-  - 结果：`33/33`
-- `rv64 baseline` 真实证据路径应为：
-  - `YH_rv_cpu/build/tests/riscv-tests/rv64/summary_baseline_2026-04-08.txt`
-  - 结果：`21/21`
-- strict CoreMark dated 证据路径应为：
-  - `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.summary.txt`
-  - `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_strict_2026-04-08.log`
-- `2026-04-09` split profile 真实证据路径应为：
-  - `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile_2026-04-09.log`
-- 当前 branch-dominant redirect 结论已被该 profile 支撑：
-  - `ex_branch_redirect_cycles = 1235790`
-  - `ex_jal_redirect_cycles = 153354`
-  - `ex_jalr_redirect_cycles = 115826`
-  - `fetch_redirect_reuse_cycles = 0`
-  - `fetch_redirect_reuse_miss_cycles = 1504970`
-- 新增的 branch breakdown 证据路径是：
-  - `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile_branch_breakdown_2026-04-09.log`
-  - 当前可直接读到：
-    - `ex_beq_redirect_cycles = 329513`
-    - `ex_bne_redirect_cycles = 849894`
-    - `ex_blt_redirect_cycles = 3863`
-    - `ex_bge_redirect_cycles = 10573`
-    - `ex_bltu_redirect_cycles = 13963`
-    - `ex_bgeu_redirect_cycles = 27984`
-- `2026-04-11` 已用同一命令在当前工作区复核：
-  - 工作日志：`YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile.log`
-  - 与 `YH_rv_cpu/build/sw/YH_rv_cpu_coremark_rv32_profile_branch_breakdown_2026-04-09.log` 的文本差异仅剩时间戳与仿真运行时行
-  - 关键计数保持一致，说明 branch-dominant redirect 结论在当前工作区仍成立
-- `2026-04-11` branch-first `BEQ/BNE` pipe-hit quick-screen 已执行并归档：
-  - 基线失败日志：`YH_rv_cpu/build/tests/branch-first/branch_reuse_beqbne_baseline_fail_2026-04-11.log`
-  - 试验通过日志：`YH_rv_cpu/build/tests/branch-first/branch_reuse_beqbne_diag_2026-04-11.log`
-  - `rv32 beq` / `rv32 bne` guardrail：
-    - `YH_rv_cpu/build/tests/branch-first/summary_beq_branch_pipehit_beqbne_2026-04-11.txt`
-    - `YH_rv_cpu/build/tests/branch-first/summary_bne_branch_pipehit_beqbne_2026-04-11.txt`
-  - CoreMark profile：
-    - `YH_rv_cpu/build/tests/branch-first/YH_rv_cpu_coremark_rv32_profile_branch_pipehit_beqbne_2026-04-11.log`
-    - 关键信号变化：`fetch_redirect_reuse_cycles = 305277`，`fetch_redirect_reuse_miss_cycles = 1199693`
-    - 但 `fetch_queue_empty_cycles` 仍为 `1504970`
-  - CoreMark short：
-    - `YH_rv_cpu/build/tests/branch-first/YH_rv_cpu_coremark_rv32_score_branch_pipehit_beqbne_2026-04-11.summary.txt`
-    - 结果仍为 `11014885 cycles`，`0.912472 CoreMark/MHz`
-  - 结论：主线 RTL 已在同轮回退；本轮保留的是更强的 `require_branch_reuse` 诊断，而不是新的性能收益 RTL
-- `decode-stage early JAL redirect` 已经拒绝保留，最小 guardrail 失败证据为：
-  - `YH_rv_cpu/build/tests/riscv-tests/rv32/summary_jal_early_redirect_debug_2026-04-09.txt`
-  - `YH_rv_cpu/build/tests/riscv-tests/rv32/jal_early_redirect_debug_2026-04-09.log`
-  - 失败摘要：`jal -> FAIL`，最终 `tohost=5`
+## Next Work
 
-### 当前最值得直接接手的动作
-
-1. 先把 profiling / docs WIP 收口成 focused commit：
-   - `tb/YH_rv_cpu_coremark_profile_tb.v`
-   - `scripts/run_coremark_profile.bat`
-   - `doc/performance_experiment_log.md`
-   - `doc/2026-04-09_optimization_status_addendum.md`
-2. 单独清理 BOM / 换行差异与冲突备份脚本，不要和 profiling 结论混在同一个 commit。
-3. 如果继续优化，下一轮不要再试 `jal-only` 快捷路径，也不要重复 `BEQ/BNE pipe-hit-only` 切片；优先执行 `docs/superpowers/plans/2026-04-12-yh-rv-cpu-beqbne-early-redirect-plan.md` 中的 taken `BEQ/BNE` decode-stage early redirect 试验。
-4. 后续所有文档引用 build 证据时，统一使用 `YH_rv_cpu/build/...`，不要再误写成仓库根目录 `build/...`。
+1. Rebuild the source ZIP from this updated worktree.
+2. Rerun final Attachment 1/2 audit and record frozen evidence.
+3. Continue CoreMark optimization toward `6+` while respecting the hard `5000 LUT` ceiling.
+4. If a new candidate beats `5.162186`, repeat the full evidence chain before refreshing submission materials.

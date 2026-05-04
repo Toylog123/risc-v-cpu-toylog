@@ -39,6 +39,10 @@ if /I "%TARGET%"=="rv64im" (
     set TEST_TOP=YH_rv_cpu_coremark_profile_rv64_tb
     set ROM_TARGET=rv64
 )
+if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_xthead_memidx_noautoinc_o2sched_nocaller_noifconv" (
+    set TEST_TOP=YH_rv_cpu_coremark_profile_rv32_zmmul_bitmanip_zbc_xthead_idbr_tb
+    set ROM_TARGET=rv32
+)
 
 rem Resolve simulator tools dynamically to avoid hard-coded Vivado install paths.
 for %%T in (xvlog.bat xvlog) do (

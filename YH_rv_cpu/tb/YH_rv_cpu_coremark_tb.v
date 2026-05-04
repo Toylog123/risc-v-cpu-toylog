@@ -6,7 +6,16 @@ module YH_rv_cpu_coremark_tb #(
     parameter [31:0] RAM_BASE = 32'h0001_0000,
     parameter integer ROM_BYTES = 65536,
     parameter integer RAM_BYTES = 65536,
-    parameter integer MAX_CYCLES = 1000000000
+    parameter integer MAX_CYCLES = 1000000000,
+    parameter integer ENABLE_M_EXTENSION = 1,
+    parameter integer ENABLE_ZMMUL_EXTENSION = 0,
+    parameter integer ENABLE_BITMANIP_EXTENSION = 0,
+    parameter integer ENABLE_ZBC_EXTENSION = 0,
+    parameter integer ENABLE_ZICOND_EXTENSION = 0,
+    parameter integer ENABLE_ZBKB_EXTENSION = 0,
+    parameter integer ENABLE_XTHEAD_EXTENSION = 0,
+    parameter integer ENABLE_XTHEAD_COND_MOVE = 0,
+    parameter integer ENABLE_ID_BRANCH_EX_FORWARD = 1
 ) ();
 
 localparam integer VALID_MSG_LEN = 13;
@@ -30,6 +39,12 @@ integer valid_match_idx;
 integer score_match_idx;
 reg     valid_found;
 reg     score_found;
+integer trace_cycles;
+integer trace_stride;
+integer trace_start;
+integer trace_end;
+integer plusarg_seen;
+reg     debug_trace;
 
 YH_rv_cpu_soc #(
     .XLEN(XLEN),
@@ -38,7 +53,16 @@ YH_rv_cpu_soc #(
     .RAM_BASE(RAM_BASE),
     .ROM_BYTES(ROM_BYTES),
     .RAM_BYTES(RAM_BYTES),
-    .ROM_INIT_HEX(ROM_HEX)
+    .ROM_INIT_HEX(ROM_HEX),
+    .ENABLE_M_EXTENSION(ENABLE_M_EXTENSION),
+    .ENABLE_ZMMUL_EXTENSION(ENABLE_ZMMUL_EXTENSION),
+    .ENABLE_BITMANIP_EXTENSION(ENABLE_BITMANIP_EXTENSION),
+    .ENABLE_ZBC_EXTENSION(ENABLE_ZBC_EXTENSION),
+    .ENABLE_ZICOND_EXTENSION(ENABLE_ZICOND_EXTENSION),
+    .ENABLE_ZBKB_EXTENSION(ENABLE_ZBKB_EXTENSION),
+    .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION),
+    .ENABLE_XTHEAD_COND_MOVE(ENABLE_XTHEAD_COND_MOVE),
+    .ENABLE_ID_BRANCH_EX_FORWARD(ENABLE_ID_BRANCH_EX_FORWARD)
 ) dut (
     .clk          (clk),
     .rst_n        (rst_n),
@@ -91,6 +115,26 @@ always @(posedge clk) begin
             $display("CYCLE=%0d PC=%h", cycle, debug_pc);
         end
 
+        if (debug_trace && (
+            (cycle < trace_cycles) ||
+            ((trace_stride > 0) && ((cycle % trace_stride) == 0)) ||
+            ((cycle >= trace_start) && (cycle <= trace_end))
+        )) begin
+            $display(
+                "TRACE cycle=%0d pc=%h trap=%b done=%b x10=%h x11=%h x12=%h daddr=%h dwdata=%h dwstrb=%h",
+                cycle,
+                debug_pc,
+                trap,
+                done,
+                dut.u_cpu.u_regfile.regs[10],
+                dut.u_cpu.u_regfile.regs[11],
+                dut.u_cpu.u_regfile.regs[12],
+                dut.dmem_addr,
+                dut.dmem_wdata,
+                dut.dmem_wstrb
+            );
+        end
+
         if (trap) begin
             $fatal(1, "\nFAIL: coremark trap asserted at PC=%h cycle=%0d", debug_pc, cycle);
         end
@@ -125,6 +169,12 @@ initial begin
     score_match_idx = 0;
     valid_found = 1'b0;
     score_found = 1'b0;
+    debug_trace = 1'b0;
+    trace_cycles = 200;
+    trace_stride = 0;
+    trace_start = 1;
+    trace_end = 0;
+    plusarg_seen = 0;
 
     valid_msg[0]  = "C";
     valid_msg[1]  = "o";
@@ -160,6 +210,14 @@ initial begin
     if (!$value$plusargs("max_cycles=%d", max_cycles_runtime)) begin
         max_cycles_runtime = MAX_CYCLES;
     end
+
+    if ($test$plusargs("debug_trace")) begin
+        debug_trace = 1'b1;
+    end
+    plusarg_seen = $value$plusargs("trace_cycles=%d", trace_cycles);
+    plusarg_seen = $value$plusargs("trace_stride=%d", trace_stride);
+    plusarg_seen = $value$plusargs("trace_start=%d", trace_start);
+    plusarg_seen = $value$plusargs("trace_end=%d", trace_end);
 
     #100;
     rst_n = 1'b1;

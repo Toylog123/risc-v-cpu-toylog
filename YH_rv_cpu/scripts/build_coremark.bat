@@ -74,6 +74,81 @@ if /I "%TARGET%"=="rv64" (
     set MABI=ilp32
     set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping
     set OPT_DEFINE=YH_COREMARK_OPT_O3UNROLL_B1NOSCHED_UALL800_INLINE_NOCROSS
+) else if /I "%TARGET%"=="rv32i_zmmul_o3unroll_b1nosched_uall800_inline_nocross" (
+    set MARCH=rv32i_zmmul_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping
+    set OPT_DEFINE=YH_COREMARK_OPT_RV32I_ZMMUL_O3UNROLL_B1NOSCHED_UALL800_INLINE_NOCROSS
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_o3unroll_b1nosched_uall800_inline_nocross" (
+    set MARCH=rv32i_zmmul_zba_zbb_zbs_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping
+    set OPT_DEFINE=YH_COREMARK_OPT_RV32I_ZMMUL_ZBA_ZBB_ZBS_INLINE_NOCROSS
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_xthead_memidx_noautoinc_o2sched_nocaller_noifconv" (
+    set MARCH=rv32i_zmmul_zba_zbb_zbs_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -fno-if-conversion -fno-if-conversion2 -fno-auto-inc-dec
+    set OPT_DEFINE=YH_COREMARK_OPT_RV32I_ZMMUL_ZB_XTHEAD_MEMIDX_NOAUTOINC_O2SCHED_NOCALLER_NOIFCONV
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_xthead_memidx_noautoinc_o2sched_nocaller_noifconv" (
+    set MARCH=rv32i_zmmul_zba_zbb_zbs_zbc_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -fno-if-conversion -fno-if-conversion2 -fno-auto-inc-dec
+    set OPT_DEFINE=YH_COREMARK_OPT_RV32I_ZMMUL_ZBC_XTHEAD_MEMIDX_NOAUTOINC_O2SCHED_NOCALLER_NOIFCONV
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xthead_memidx_noautoinc_o2sched_nocaller" (
+    set MARCH=rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -fno-auto-inc-dec
+    set OPT_DEFINE=YH_COREMARK_OPT_RV32I_ZMMUL_ZBC_ZICOND_XTHEAD_MEMIDX_NOAUTOINC_O2SCHED_NOCALLER
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xthead_memidx_o2sched_nocaller" (
+    set MARCH=rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves
+    set OPT_DEFINE=YH_COREMARK_OPT_RV32I_ZMMUL_ZBC_ZICOND_XTHEAD_MEMIDX_O2SCHED_NOCALLER
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_zbkb_xthead_memidx_noautoinc_o2sched_nocaller_noifconv" (
+    set MARCH=rv32i_zmmul_zba_zbb_zbs_zbc_zbkb_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -fno-if-conversion -fno-if-conversion2 -fno-auto-inc-dec
+    set OPT_DEFINE=YH_COREMARK_OPT_RV32I_ZMMUL_ZBC_ZBKB_XTHEAD_MEMIDX_NOAUTOINC_O2SCHED_NOCALLER_NOIFCONV
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_zicond_zbkb_xthead_memidx_noautoinc_o2sched_nocaller" (
+    set MARCH=rv32i_zmmul_zba_zbb_zbs_zbc_zicond_zbkb_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -fno-auto-inc-dec
+    set OPT_DEFINE=YH_COREMARK_OPT_RV32I_ZMMUL_ZBC_ZICOND_ZBKB_XTHEAD_MEMIDX_NOAUTOINC_O2SCHED_NOCALLER
+) else if /I "%TARGET%"=="rv32im_zba_zbb_zbs_o3unroll_b1nosched_uall800_inline_nocross" (
+    set MARCH=rv32im_zba_zbb_zbs_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping
+    set OPT_DEFINE=YH_COREMARK_OPT_RV32IM_ZBA_ZBB_ZBS_INLINE_NOCROSS
+) else if /I "%TARGET%"=="rv32im_zba_zbb_zbs_zbc_zbkb_zicond_o3unroll_b1nosched_uall800_inline_nocross" (
+    set MARCH=rv32im_zba_zbb_zbs_zbc_zbkb_zicond_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping
+    set OPT_DEFINE=YH_COREMARK_OPT_RV32IM_STD_EXT_INLINE_NOCROSS
+) else if /I "%TARGET%"=="rv32im_stdext_o2sched_nocaller" (
+    set MARCH=rv32im_zba_zbb_zbs_zbc_zbkb_zicond_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves
+    set OPT_DEFINE=YH_COREMARK_OPT_RV32IM_STD_EXT_O2SCHED_NOCALLER
+) else if /I "%TARGET%"=="rv32im_zb_xthead_o2sched_nocaller" (
+    set MARCH=rv32im_zba_zbb_zbs_zbc_zbkb_zicond_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves
+    set OPT_DEFINE=YH_COREMARK_OPT_RV32IM_ZB_XTHEAD_O2SCHED_NOCALLER
+) else if /I "%TARGET%"=="rv32im_zb_xthead_o2sched_nocaller_noifconv" (
+    set MARCH=rv32im_zba_zbb_zbs_zbc_zbkb_zicond_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -fno-if-conversion -fno-if-conversion2
+    set OPT_DEFINE=YH_COREMARK_OPT_RV32IM_ZB_XTHEAD_O2SCHED_NOCALLER_NOIFCONV
+) else if /I "%TARGET%"=="rv32im_zb_xthead_memidx_o2sched_nocaller_noifconv" (
+    set MARCH=rv32im_zba_zbb_zbs_zbc_zbkb_zicond_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -fno-if-conversion -fno-if-conversion2
+    set OPT_DEFINE=YH_COREMARK_OPT_RV32IM_ZB_XTHEAD_MEMIDX_O2SCHED_NOCALLER_NOIFCONV
+) else if /I "%TARGET%"=="rv32im_zb_xthead_memidx_noautoinc_o2sched_nocaller_noifconv" (
+    set MARCH=rv32im_zba_zbb_zbs_zbc_zbkb_zicond_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -fno-if-conversion -fno-if-conversion2 -fno-auto-inc-dec
+    set OPT_DEFINE=YH_COREMARK_OPT_RV32IM_ZB_XTHEAD_MEMIDX_NOAUTOINC_O2SCHED_NOCALLER_NOIFCONV
 ) else if /I "%TARGET%"=="rv32im_ofast" (
     set MARCH=rv32im_zicsr
     set MABI=ilp32
@@ -203,6 +278,36 @@ if /I "%TARGET%"=="rv64" (
 ) else if /I "%TARGET%"=="rv32im_o3unroll_b1nosched_uall800" (
     set MULTIDIR=rv32im\ilp32
 ) else if /I "%TARGET%"=="rv32im_o3unroll_b1nosched_uall800_inline_nocross" (
+    set MULTIDIR=rv32im\ilp32
+) else if /I "%TARGET%"=="rv32i_zmmul_o3unroll_b1nosched_uall800_inline_nocross" (
+    set MULTIDIR=rv32i\ilp32
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_o3unroll_b1nosched_uall800_inline_nocross" (
+    set MULTIDIR=rv32i\ilp32
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_xthead_memidx_noautoinc_o2sched_nocaller_noifconv" (
+    set MULTIDIR=rv32i\ilp32
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_xthead_memidx_noautoinc_o2sched_nocaller_noifconv" (
+    set MULTIDIR=rv32i\ilp32
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xthead_memidx_noautoinc_o2sched_nocaller" (
+    set MULTIDIR=rv32i\ilp32
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xthead_memidx_o2sched_nocaller" (
+    set MULTIDIR=rv32i\ilp32
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_zbkb_xthead_memidx_noautoinc_o2sched_nocaller_noifconv" (
+    set MULTIDIR=rv32i\ilp32
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_zicond_zbkb_xthead_memidx_noautoinc_o2sched_nocaller" (
+    set MULTIDIR=rv32i\ilp32
+) else if /I "%TARGET%"=="rv32im_zba_zbb_zbs_o3unroll_b1nosched_uall800_inline_nocross" (
+    set MULTIDIR=rv32im\ilp32
+) else if /I "%TARGET%"=="rv32im_zba_zbb_zbs_zbc_zbkb_zicond_o3unroll_b1nosched_uall800_inline_nocross" (
+    set MULTIDIR=rv32im\ilp32
+) else if /I "%TARGET%"=="rv32im_stdext_o2sched_nocaller" (
+    set MULTIDIR=rv32im\ilp32
+) else if /I "%TARGET%"=="rv32im_zb_xthead_o2sched_nocaller" (
+    set MULTIDIR=rv32im\ilp32
+) else if /I "%TARGET%"=="rv32im_zb_xthead_o2sched_nocaller_noifconv" (
+    set MULTIDIR=rv32im\ilp32
+) else if /I "%TARGET%"=="rv32im_zb_xthead_memidx_o2sched_nocaller_noifconv" (
+    set MULTIDIR=rv32im\ilp32
+) else if /I "%TARGET%"=="rv32im_zb_xthead_memidx_noautoinc_o2sched_nocaller_noifconv" (
     set MULTIDIR=rv32im\ilp32
 ) else if /I "%TARGET%"=="rv32im_ofast" (
     set MULTIDIR=rv32im\ilp32

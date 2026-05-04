@@ -27,7 +27,11 @@ integer timeout_cycles;
 reg     require_no_ex_bne_redirect;
 reg     require_no_ex_bltu_redirect;
 reg     require_no_ex_jalr_redirect;
+reg     require_async_redirect_refill;
 reg     debug_trace;
+reg     refill_pending;
+reg     refill_seen;
+reg [31:0] refill_expected_pc;
 
 assign imem_rdata = imem[imem_addr[31:2]];
 assign imem_rvalid = 1'b1;
@@ -94,6 +98,31 @@ always @(posedge clk) begin
             ex_jalr_redirects <= ex_jalr_redirects + 1;
         end
 
+        if (refill_pending) begin
+            if (!dut.if_id_valid_r || (dut.if_id_pc_r !== refill_expected_pc)) begin
+                $fatal(1,
+                    "FAIL: async redirect did not refill IF/ID on the next cycle expected_pc=%h observed_valid=%0d observed_pc=%h cycle=%0d",
+                    refill_expected_pc,
+                    dut.if_id_valid_r,
+                    dut.if_id_pc_r,
+                    cycle);
+            end
+            if (debug_pc !== (refill_expected_pc + 32'd4)) begin
+                $fatal(1,
+                    "FAIL: async redirect refill did not advance fetch PC expected_next_pc=%h observed_pc=%h cycle=%0d",
+                    refill_expected_pc + 32'd4,
+                    debug_pc,
+                    cycle);
+            end
+            refill_pending <= 1'b0;
+            refill_seen <= 1'b1;
+        end
+
+        if (require_async_redirect_refill && dut.fetch_control_redirect_valid) begin
+            refill_pending <= 1'b1;
+            refill_expected_pc <= dut.fetch_control_redirect_pc;
+        end
+
         if (debug_trace && (cycle < 50)) begin
             $display(
                 "TRACE cycle=%0d pc=%h if_id_v=%0d if_id_pc=%h id_ex_v=%0d id_ex_pc=%h id_ex_branch=%0d f3=%0d id_ex_jump=%0d id_ex_jalr=%0d ex_redirect=%0d redir_pc=%h x1=%h x2=%h x3=%h x4=%h x5=%h x6=%h x7=%h",
@@ -146,9 +175,12 @@ always @(posedge clk) begin
                     "FAIL: require_no_ex_jalr_redirect set but observed ex_jalr_redirects=%0d",
                     ex_jalr_redirects);
             end
+            if (require_async_redirect_refill && !refill_seen) begin
+                $fatal(1, "FAIL: require_async_redirect_refill set but no redirect refill was observed");
+            end
 
             $display(
-                "PASS: id branch fast diagnostic completed at PC=%h cycles=%0d ex_bne_redirects=%0d ex_bltu_redirects=%0d ex_jalr_redirects=%0d require_no_ex_bne_redirect=%0d require_no_ex_bltu_redirect=%0d require_no_ex_jalr_redirect=%0d",
+                "PASS: id branch fast diagnostic completed at PC=%h cycles=%0d ex_bne_redirects=%0d ex_bltu_redirects=%0d ex_jalr_redirects=%0d require_no_ex_bne_redirect=%0d require_no_ex_bltu_redirect=%0d require_no_ex_jalr_redirect=%0d require_async_redirect_refill=%0d refill_seen=%0d",
                 debug_pc,
                 cycle,
                 ex_bne_redirects,
@@ -156,7 +188,9 @@ always @(posedge clk) begin
                 ex_jalr_redirects,
                 require_no_ex_bne_redirect,
                 require_no_ex_bltu_redirect,
-                require_no_ex_jalr_redirect);
+                require_no_ex_jalr_redirect,
+                require_async_redirect_refill,
+                refill_seen);
             $finish;
         end
 
@@ -190,7 +224,11 @@ initial begin
     require_no_ex_bne_redirect = 1'b0;
     require_no_ex_bltu_redirect = 1'b0;
     require_no_ex_jalr_redirect = 1'b0;
+    require_async_redirect_refill = 1'b0;
     debug_trace = 1'b0;
+    refill_pending = 1'b0;
+    refill_seen = 1'b0;
+    refill_expected_pc = 32'h0000_0000;
 
     if ($test$plusargs("require_no_ex_bne_redirect")) begin
         require_no_ex_bne_redirect = 1'b1;
@@ -201,8 +239,15 @@ initial begin
     if ($test$plusargs("require_no_ex_jalr_redirect")) begin
         require_no_ex_jalr_redirect = 1'b1;
     end
+    if ($test$plusargs("require_async_redirect_refill")) begin
+        require_async_redirect_refill = 1'b1;
+    end
     if ($test$plusargs("debug_trace")) begin
         debug_trace = 1'b1;
+    end
+    if ($test$plusargs("dump_vcd")) begin
+        $dumpfile("YH_rv_cpu_id_branch_fast_tb.vcd");
+        $dumpvars(0, YH_rv_cpu_id_branch_fast_tb);
     end
     if (!$value$plusargs("timeout_cycles=%d", timeout_cycles)) begin
         timeout_cycles = 100;

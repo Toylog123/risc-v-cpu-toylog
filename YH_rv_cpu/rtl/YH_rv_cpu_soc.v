@@ -22,6 +22,15 @@ module YH_rv_cpu_soc #(
     parameter integer DMEM_NEGEDGE_READ = 0, // fast half-cycle data RAM read
     parameter integer DCACHE_EN = 0,         // 数据缓存使能: 0=禁用, 1=启用
     parameter integer ICACHE_EN = 0,         // 指令缓存使能: 0=禁用, 1=启用
+    parameter integer ENABLE_M_EXTENSION = 1,
+    parameter integer ENABLE_ZMMUL_EXTENSION = 0,
+    parameter integer ENABLE_BITMANIP_EXTENSION = 1,
+    parameter integer ENABLE_ZBC_EXTENSION = 0,
+    parameter integer ENABLE_ZICOND_EXTENSION = 0,
+    parameter integer ENABLE_ZBKB_EXTENSION = 0,
+    parameter integer ENABLE_XTHEAD_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_COND_MOVE = 1, // XThead 条件移动写回门控使能
+    parameter integer ENABLE_ID_BRANCH_EX_FORWARD = 1, // ID 早分支允许使用 EX 本周期结果
     parameter [XLEN-1:0] RESET_VECTOR = {XLEN{1'b0}}, // 复位向量
     parameter [31:0] ROM_BASE = 32'h0000_0000,  // ROM 基地址
     parameter [31:0] RAM_BASE = 32'h0000_4000,  // RAM 基地址
@@ -405,6 +414,15 @@ YH_rv_cpu #(
     .LOAD_USE_FAST_FORWARD(USE_LOAD_USE_FAST_FORWARD),
     .DCACHE_EN      (DCACHE_EN),
     .ICACHE_EN      (ICACHE_EN),
+    .ENABLE_M_EXTENSION(ENABLE_M_EXTENSION),
+    .ENABLE_ZMMUL_EXTENSION(ENABLE_ZMMUL_EXTENSION),
+    .ENABLE_BITMANIP_EXTENSION(ENABLE_BITMANIP_EXTENSION),
+    .ENABLE_ZBC_EXTENSION(ENABLE_ZBC_EXTENSION),
+    .ENABLE_ZICOND_EXTENSION(ENABLE_ZICOND_EXTENSION),
+    .ENABLE_ZBKB_EXTENSION(ENABLE_ZBKB_EXTENSION),
+    .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION),
+    .ENABLE_XTHEAD_COND_MOVE(ENABLE_XTHEAD_COND_MOVE),
+    .ENABLE_ID_BRANCH_EX_FORWARD(ENABLE_ID_BRANCH_EX_FORWARD),
     .RESET_VECTOR   (RESET_VECTOR)
 ) u_cpu (
     .clk       (clk),

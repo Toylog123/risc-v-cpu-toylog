@@ -1,1 +1,0 @@
-"YH_rv_cpu_soc_tb" -s "soc_tb_snapshot" 

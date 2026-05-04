@@ -1,4 +1,0 @@
-sv xil_defaultlib rtl/YH_rv_cpu.v
-sv xil_defaultlib rtl/YH_rv_cpu_defs.vh
-sv xil_defaultlib rtl/YH_rv_cpu_if_stage.v
-sv xil_defaultlib tb/YH_rv_cpu_m_extension_tb.v
