@@ -1,6 +1,6 @@
 # CURRENT_STATUS
 
-> Updated: `2026-04-27 21:52`
+> Updated: `2026-04-28 10:55`
 > Branch: `fix/dcache-icache-integration`
 > Live repo state: verify with `git status --short --branch` and
 > `git log -4 --oneline` before take-over
@@ -71,9 +71,35 @@
 - [ ] riscv-tests (DCACHE_EN=1)
 - [ ] CoreMark Score测试 (DCACHE_EN=1)
 
-### Phase 2: ICache Integration (NOT STARTED)
-- 计划文档: `doc/cache_axi_integration_design.md`
-- 模块: `rtl/YH_rv_cpu_icache.v` (已存在)
+### Phase 2: ICache Integration (尝试完成，存在Block RAM时序问题)
+**Date:** 2026-04-28
+
+**ICACHE集成状态：**
+- `rtl/YH_rv_cpu_icache.v` 已实现完整的直接映射指令缓存
+- `rtl/YH_rv_cpu_hazard_unit.v` 已添加 icache_wait 输入
+- `rtl/YH_rv_cpu.v` 已修复 imem_req 多驱动冲突
+
+**核心问题：Block RAM同步读时序问题**
+- Block RAM在同一个时钟周期内写后读返回旧数据
+- ICACHE需要立即返回刚写入的缓存数据给CPU
+- 多次尝试解决方案均失败：STATE_BACKFILL、distributed RAM等
+- **当前状态**: ICACHE_EN=0，保持稳定
+
+**Git提交历史：**
+```
+00d9691 feat: ICACHE STATE_BACKFILL方案尝试 - CPU先获取数据后继续填充
+45f58f3 feat: ICACHE尝试使用distributed RAM解决block RAM时序问题
+70f03be fix: ICACHE集成修复 - imem_req冲突和hazard unit连接
+02358a5 fix: icache refill offset comparison using miss_addr_r not addr
+36d8ee3 fix: icache hit_way_r update in COMPARE state for correct tag selection
+```
+
+**稳定基线（ICACHE_EN=0, DCACHE_EN=0）：**
+| 测试项 | 结果 | 日期 |
+|--------|------|------|
+| CoreMark Score | **0.925186 CM/MHz** | 2026-04-28 |
+| M扩展测试 | 9/10 PASS | 2026-04-27 |
+| riscv-tests rv32 | 42/42 PASS | 历史 |
 
 ## Frozen engineering baseline
 

@@ -1,0 +1,13 @@
+log_path=D:\BaiduSyncdisk\02_icdc_workspace\01-项目管理\03-提交材料\性能与验证报告\性能日志\YH_rv_cpu_dhrystone_zmmul_zbc_xthead_idbr.log
+clock_hz=100000000
+runs=10
+microseconds_per_run=4
+dhrystones_per_second=221926
+dmips=126.309619
+dmips_per_mhz=1.263096
+total_seconds=0.000045
+estimated_total_ticks=4506
+completion_cycles=47786
+benchmark=Dhrystone 2.2
+measurement_mode=host-parsed-from-uart-log
+competition_report_line=DMIPS/MHz (host-parsed): 1.263096 / Dhrystones/s 221926 / runs 10

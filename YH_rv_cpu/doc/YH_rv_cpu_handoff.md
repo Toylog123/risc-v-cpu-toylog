@@ -56,7 +56,7 @@
 - `timer_irq_smoke` 已修复并纳入基线
 - Vivado `impl50` 默认 payload 已冻结为 `YH_rv_cpu_demo`
 - `redirect/flush/drop-accounting` 双变体 strict 诊断已补齐
-- `2026-04-09` 已整理赛方答疑，并把汇报/初赛提交材料集中到 `01-项目管理/04-汇报与提交材料/`
+- `2026-04-09` 已整理赛方答疑，并把汇报/初赛提交材料集中到 `01-项目管理/03-提交材料/`
 - 第一轮与第二轮单变量前端候选均已完成快速门禁并拒绝保留：
   - `request-cursor`
   - `pipe-hit`
@@ -130,7 +130,7 @@
 - `doc/fpga_bringup_checklist.md`
 - `fpga/vivado/README.md`
 - `../01-项目管理/01-赛题要求/七星微赛题答疑整理.md`
-- `../01-项目管理/04-汇报与提交材料/README.md`
+- `../01-项目管理/03-提交材料/README.md`
 
 关键命令：
 
@@ -263,3 +263,4 @@ scripts\run_coremark_fpga.bat rv32
 2. 单独清理 BOM / 换行差异与冲突备份脚本，不要和 profiling 结论混在同一个 commit。
 3. 如果继续优化，下一轮不要再试 `jal-only` 快捷路径，也不要重复 `BEQ/BNE pipe-hit-only` 切片；优先执行 `docs/superpowers/plans/2026-04-12-yh-rv-cpu-beqbne-early-redirect-plan.md` 中的 taken `BEQ/BNE` decode-stage early redirect 试验。
 4. 后续所有文档引用 build 证据时，统一使用 `YH_rv_cpu/build/...`，不要再误写成仓库根目录 `build/...`。
+

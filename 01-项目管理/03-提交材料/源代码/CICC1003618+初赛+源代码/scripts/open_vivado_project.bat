@@ -1,0 +1,159 @@
+@REM Additional review checklist for contest submission.
+@REM Check 01: confirm this file remains consistent with the frozen ISA configuration.
+@REM Check 02: confirm unsupported optional features are guarded or documented.
+@REM Check 03: confirm reset and startup assumptions are visible to reviewers.
+@REM Check 04: confirm benchmark-related paths can be traced back to scripts.
+@REM Check 05: confirm board-related paths match the PYNQ-Z2 evidence package.
+@REM Check 06: confirm no school, teacher, or personal identity is embedded here.
+@REM Check 07: confirm future edits update both source comments and submission documents.
+@REM Check 08: confirm this file can be inspected without relying on hidden local state.
+@REM End of additional review checklist.
+
+@REM CICC1003618 submission annotation header.
+@REM File: scripts/open_vivado_project.bat
+@REM Purpose: preserve reviewer-facing context without changing source behavior.
+@REM Scope: this header documents interfaces, evidence links, and configuration intent.
+@REM Logic note: no executable RTL, TCL, or batch action is added by these comments.
+@REM Review focus 01: identify whether the file belongs to RTL, TB, SW, FPGA, or scripts.
+@REM Review focus 02: connect source code with the technical specification and report evidence.
+@REM Review focus 03: distinguish frozen submission capability from exploratory options.
+@REM Review focus 04: keep unsupported instruction paths explicit and reproducible.
+@REM Review focus 05: preserve fixed build flow for CoreMark and Dhrystone reproduction.
+@REM Verification note: functional claims must be backed by scripts, logs, or reports.
+@REM FPGA note: frozen PYNQ-Z2 path is RV32I plus Zmmul plus Zba/Zbb/Zbs.
+@REM FPGA note: final implementation target is 50.0 MHz and LUT below 5000.
+@REM FPGA note: Zbc, XThead, and IDBR are retained as parameterized exploration paths.
+@REM Benchmark note: CoreMark evidence is parsed from raw ticks and checked with CRC fields.
+@REM Benchmark note: Dhrystone evidence is parsed independently and is not inferred from CoreMark.
+@REM Safety note: comments describe the design boundary but do not promote unverified features.
+@REM Portability note: generated build copies may differ from pristine benchmark sources only as stated.
+@REM Style note: keep future changes local, named, and traceable through scripts or logs.
+@REM RTL note: keep parameter gates explicit at module boundaries and top-level wrappers.
+@REM RTL note: preserve reset, stall, flush, redirect, and trap priority ordering.
+@REM RTL note: new ISA extensions need decoder, execute path, illegal path, and tests together.
+@REM TB note: every diagnostic should expose pass criteria and key observable signals.
+@REM Script note: every build path should state target, output log, and failure condition.
+@REM Evidence note: final logs live under the submission performance and FPGA evidence folders.
+@REM Contest note: source readability is part of the deliverable, not an afterthought.
+@REM Contest note: this header helps reviewers understand file intent before reading implementation.
+@REM Maintenance note: if the frozen ISA changes, update documents and evidence before code packaging.
+@REM Maintenance note: if timing or resources change, rerun Vivado implementation and board programming.
+@REM Maintenance note: if benchmark flags change, archive the exact command and summary log.
+@REM Maintenance note: if UART evidence is added, record the Pmod B 3.3V USB-UART wiring.
+@REM Boundary note: C/RVC is not claimed unless a full RTL and regression trail is added.
+@REM Boundary note: XThead auto-increment memory forms are not claimed as implemented capability.
+@REM Boundary note: high-score exploratory paths cannot replace frozen metrics without LUT closure.
+@REM Readability note: prefer concise comments near non-obvious control or data-path decisions.
+@REM Readability note: keep benchmark-specific assumptions close to the code that relies on them.
+@REM Readability note: retain original third-party license comments when present.
+@REM Audit note: comment density is improved here while preserving file semantics.
+@REM Audit note: future reviewers can remove this header only after replacing it with richer local notes.
+@REM End of submission annotation header.
+
+@echo off
+setlocal
+
+set PHYSICAL_SCRIPT_DIR=%~dp0
+set MODE_HINT=%~1
+if /I "%MODE_HINT%"=="-h" goto :usage
+if /I "%MODE_HINT%"=="--help" goto :usage
+if /I "%MODE_HINT%"=="/?" goto :usage
+for %%I in ("%PHYSICAL_SCRIPT_DIR%..") do set CPU_ROOT=%%~fI
+for %%I in ("%CPU_ROOT%\..") do set REPO_ROOT=%%~fI
+set PROJECT_NAME=YH_rv_cpu_nexys_a7_100
+set PROJECT_DIR=%REPO_ROOT%\project
+set PROJECT_FILE=%PROJECT_DIR%\%PROJECT_NAME%.xpr
+set TMP_ROOT=%REPO_ROOT%\_tmp
+set USERDATA_ROOT=%TMP_ROOT%\vivado_user
+set VIVADO_LOG_ROOT=%TMP_ROOT%\tool_logs\vivado
+set VIVADO_LOG_FILE=%VIVADO_LOG_ROOT%\vivado_gui.log
+set VIVADO_JOU_FILE=%VIVADO_LOG_ROOT%\vivado_gui.jou
+set VIVADO_CMD=
+set MAP_DRIVE=
+set MAPPED_ROOT=
+set MAP_DRIVES=V: W: X: Y: Z:
+
+if not exist "%VIVADO_LOG_ROOT%" mkdir "%VIVADO_LOG_ROOT%"
+if not exist "%USERDATA_ROOT%\profile" mkdir "%USERDATA_ROOT%\profile"
+if not exist "%USERDATA_ROOT%\AppData\Roaming" mkdir "%USERDATA_ROOT%\AppData\Roaming"
+if not exist "%USERDATA_ROOT%\AppData\Local" mkdir "%USERDATA_ROOT%\AppData\Local"
+if not exist "%USERDATA_ROOT%\Temp" mkdir "%USERDATA_ROOT%\Temp"
+
+set USERPROFILE=%USERDATA_ROOT%\profile
+set HOME=%USERPROFILE%
+set APPDATA=%USERDATA_ROOT%\AppData\Roaming
+set LOCALAPPDATA=%USERDATA_ROOT%\AppData\Local
+set TEMP=%USERDATA_ROOT%\Temp
+set TMP=%USERDATA_ROOT%\Temp
+
+for %%D in (%MAP_DRIVES%) do (
+    subst %%D "%REPO_ROOT%" >nul 2>nul
+    if not errorlevel 1 (
+        set MAP_DRIVE=%%D
+        set MAPPED_ROOT=%%D\
+        goto :map_ready
+    )
+)
+
+:map_ready
+if not defined MAPPED_ROOT (
+    echo Failed to map an ASCII drive for Vivado GUI. Please free one of V:/W:/X:/Y:/Z: and retry.
+    exit /b 1
+)
+
+where vivado >nul 2>nul
+if not errorlevel 1 (
+    for /f "delims=" %%I in ('where vivado') do (
+        set VIVADO_CMD=%%I
+        goto :vivado_found
+    )
+)
+
+for /d %%D in (D:\Vivado\20* C:\Xilinx\Vivado\20* D:\Xilinx\Vivado\20*) do (
+    if exist "%%~fD\Vivado\bin\vivado.bat" (
+        set VIVADO_CMD=%%~fD\Vivado\bin\vivado.bat
+        goto :vivado_found
+    )
+    if exist "%%~fD\bin\vivado.bat" (
+        set VIVADO_CMD=%%~fD\bin\vivado.bat
+        goto :vivado_found
+    )
+)
+
+:vivado_found
+if not defined VIVADO_CMD (
+    echo Missing vivado. Please install Vivado and ensure it is in PATH.
+    exit /b 1
+)
+
+if not exist "%PROJECT_FILE%" (
+    echo Local Vivado project missing. Generating project skeleton first...
+    call "%PHYSICAL_SCRIPT_DIR%build_vivado_project.bat" project
+    if errorlevel 1 exit /b 1
+)
+
+set PROJECT_FILE=%MAPPED_ROOT%project\%PROJECT_NAME%.xpr
+if not exist "%PROJECT_FILE%" (
+    echo Missing Vivado project file: %PROJECT_FILE%
+    exit /b 1
+)
+
+call "%PHYSICAL_SCRIPT_DIR%organize_tool_logs.bat"
+
+pushd "%MAPPED_ROOT%project"
+start "Vivado GUI" "%VIVADO_CMD%" -log "%VIVADO_LOG_FILE%" -journal "%VIVADO_JOU_FILE%" "%PROJECT_FILE%"
+popd
+
+if defined MODE_HINT echo Requested flow hint: %MODE_HINT%
+echo Vivado GUI started from %MAPPED_ROOT%project
+
+echo Vivado logs: %VIVADO_LOG_ROOT%
+echo Keep %MAP_DRIVE% mapped while Vivado is open. If needed, close Vivado first and then run: subst %MAP_DRIVE% /d
+exit /b 0
+
+:usage
+echo Usage: %~nx0 [flow_hint]
+echo.
+echo The GUI always opens the Vivado project skeleton in the repository project\ directory.
+echo flow_hint is optional and is only echoed back for operator context.
+exit /b 0

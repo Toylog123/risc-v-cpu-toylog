@@ -1,1 +1,0 @@
-"YH_rv_cpu_m_extension_tb" -s "m_extension_snapshot" 
