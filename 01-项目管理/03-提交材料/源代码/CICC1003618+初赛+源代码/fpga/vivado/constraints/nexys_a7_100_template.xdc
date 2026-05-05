@@ -1,3 +1,11 @@
+## CICC1003618 submission context:
+## File role: fpga/vivado/constraints/nexys_a7_100_template.xdc is part of the FPGA prototype build, constraint or board adaptation source.
+## Frozen target: RV32I plus Zmmul plus Zba/Zbb/Zbs on PYNQ-Z2 at 50 MHz.
+## Review focus: keep reset, stall, flush, forwarding and evidence paths traceable.
+## Boundary note: do not claim unsupported C/RVC or exploratory paths without new evidence.
+## Verification note: functional changes require matching simulation logs or FPGA reports.
+## Maintenance note: update documents, metrics and hashes when this file changes.
+
 ## YH_rv_cpu Nexys A7-100T constraint template
 ##
 ## This file freezes only the ports used by YH_rv_cpu on the Nexys A7-100T.

@@ -1,3 +1,13 @@
+/*
+ * CICC1003618 submission context:
+ * File role: sw/linker/YH_rv_cpu_coremark.ld is part of the RISC-V software, benchmark port, startup or linker source.
+ * Frozen target: RV32I plus Zmmul plus Zba/Zbb/Zbs on PYNQ-Z2 at 50 MHz.
+ * Review focus: keep reset, stall, flush, forwarding and evidence paths traceable.
+ * Boundary note: do not claim unsupported C/RVC or exploratory paths without new evidence.
+ * Verification note: functional changes require matching simulation logs or FPGA reports.
+ * Maintenance note: update documents, metrics and hashes when this file changes.
+ */
+
 ENTRY(_start)
 
 MEMORY

@@ -1,3 +1,11 @@
+## CICC1003618 submission context:
+## File role: fpga/vivado/constraints/pynq_z2_template.xdc is part of the FPGA prototype build, constraint or board adaptation source.
+## Frozen target: RV32I plus Zmmul plus Zba/Zbb/Zbs on PYNQ-Z2 at 50 MHz.
+## Review focus: keep reset, stall, flush, forwarding and evidence paths traceable.
+## Boundary note: do not claim unsupported C/RVC or exploratory paths without new evidence.
+## Verification note: functional changes require matching simulation logs or FPGA reports.
+## Maintenance note: update documents, metrics and hashes when this file changes.
+
 ## YH_rv_cpu PYNQ-Z2 constraint template
 ##
 ## Board: TUL/AMD PYNQ-Z2, Zynq-7000 XC7Z020-1CLG400C

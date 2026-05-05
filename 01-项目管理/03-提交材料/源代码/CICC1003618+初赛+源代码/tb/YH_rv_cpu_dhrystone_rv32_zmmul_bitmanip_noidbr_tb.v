@@ -1,3 +1,11 @@
+// CICC1003618 submission context:
+// File role: tb/YH_rv_cpu_dhrystone_rv32_zmmul_bitmanip_noidbr_tb.v is part of the simulation testbench and benchmark verification source.
+// Frozen target: RV32I plus Zmmul plus Zba/Zbb/Zbs on PYNQ-Z2 at 50 MHz.
+// Review focus: keep reset, stall, flush, forwarding and evidence paths traceable.
+// Boundary note: do not claim unsupported C/RVC or exploratory paths without new evidence.
+// Verification note: functional changes require matching simulation logs or FPGA reports.
+// Maintenance note: update documents, metrics and hashes when this file changes.
+
 // Additional review checklist for contest submission.
 // Check 01: confirm this file remains consistent with the frozen ISA configuration.
 // Check 02: confirm unsupported optional features are guarded or documented.

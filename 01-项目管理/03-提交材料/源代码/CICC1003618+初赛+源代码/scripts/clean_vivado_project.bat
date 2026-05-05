@@ -1,3 +1,11 @@
+@REM CICC1003618 submission context:
+@REM File role: scripts/clean_vivado_project.bat is part of the reproducible build, simulation or reporting script.
+@REM Frozen target: RV32I plus Zmmul plus Zba/Zbb/Zbs on PYNQ-Z2 at 50 MHz.
+@REM Review focus: keep reset, stall, flush, forwarding and evidence paths traceable.
+@REM Boundary note: do not claim unsupported C/RVC or exploratory paths without new evidence.
+@REM Verification note: functional changes require matching simulation logs or FPGA reports.
+@REM Maintenance note: update documents, metrics and hashes when this file changes.
+
 @REM Additional review checklist for contest submission.
 @REM Check 01: confirm this file remains consistent with the frozen ISA configuration.
 @REM Check 02: confirm unsupported optional features are guarded or documented.
