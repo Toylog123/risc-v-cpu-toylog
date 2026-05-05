@@ -22,6 +22,23 @@
 3. Dhrystone：`scripts/run_dhrystone_score.bat`
 4. PYNQ-Z2 工程生成与实现：`scripts/build_pynq_z2_project.bat`
 
+## 串口采集入口
+
+PL 软核 UART 已通过 Pmod B 引出。PYNQ-Z2 板载 Micro-USB 串口连接 Zynq PS 侧，不直接连接本 RTL-only 软核 UART；录制软核文本输出时，需要外接 `3.3 V` USB-UART 到 Pmod B：
+
+- FPGA TX：`uart_rxd_out`，`JB1 / Y14`，连接外部 USB-UART 适配器 `RX`
+- FPGA RX：`uart_txd_in`，`JB0 / W14`，可选连接外部 USB-UART 适配器 `TX`
+- GND：外部 USB-UART 与 PYNQ-Z2 共地
+
+采集命令：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\capture_uart.ps1 -List
+powershell -ExecutionPolicy Bypass -File .\scripts\capture_uart.ps1 -Port COMx -Seconds 20
+```
+
+demo 固件会通过 MMIO UART 输出 `YH_rv_cpu boot`，可用于视频中的软核串口演示。
+
 当前冻结提交口径为 `RV32I + Zmmul + Zba/Zbb/Zbs`，对应 `4.137461 CoreMark/MHz`、`2.908287 DMIPS/MHz`、`4934 LUT`、PYNQ-Z2 `PROGRAM_OK`。Zbc、XThead、IDBR 相关代码和测试可作为参数化探索路径参考，但不作为本次冻结 bitstream 的正式能力宣称。源码注释率按提交统计口径约为 `30.27%`，补注释后已从本目录直接运行 `scripts\run_zmmul_test.bat` 并通过。
 
 本目录仅保留提交所需代码与脚本。性能日志、材料文稿和阶段性管理文件统一放在提交材料的其他目录中维护。

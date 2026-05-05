@@ -47,3 +47,9 @@ PYNQ-Z2 的 Micro-USB 用于 JTAG 下载和器件识别。软核 UART 通过 Pmo
 - GND：与外接 USB-UART 共地
 
 2026-04-30 的硬件日志显示 Vivado Hardware Manager 检出 `xc7z020_1` 并完成 bitstream 下载，日志包含 `PROGRAM_OK`。PYNQ-Z2 的 Micro-USB 串口连接 PS 侧，不直接连接 PL 软核 UART；若需在演示视频中展示软核文本输出，需要按上述 Pmod B 连接外部 `3.3 V` USB-UART。
+
+## 2026-05-05 串口复核
+
+- Windows 识别到的板载串口：`USB Serial Port (COM8)`，设备 ID 为 `FTDIBUS\VID_0403+PID_6010+1234-TULB\0000`。
+- 以 `115200 8N1` 打开 `COM8` 并发送回车后，采集日志 `logs/serial_probe_COM8_20260505_092755.txt` 显示 `captured_chars=0`。
+- 该结果用于说明板载 Micro-USB 串口不是 PL 软核 UART 输出路径。正式录制软核文本输出时，应按 `串口录制说明-2026-05-05.md` 外接 `3.3 V` USB-UART 到 Pmod B。
