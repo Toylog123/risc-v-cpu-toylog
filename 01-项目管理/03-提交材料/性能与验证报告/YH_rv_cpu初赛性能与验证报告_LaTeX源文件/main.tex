@@ -82,16 +82,16 @@
 \newcommand{\StandardTicks}{2416941}
 \newcommand{\ExploratoryScore}{5.162186}
 \newcommand{\ExploratoryTicks}{1937164}
-\newcommand{\BoardLUT}{4934}
-\newcommand{\BoardLUTPct}{9.27\%}
-\newcommand{\BoardFF}{2327}
-\newcommand{\BoardFFPct}{2.19\%}
-\newcommand{\BoardBRAM}{4}
-\newcommand{\BoardBRAMPct}{2.86\%}
+\newcommand{\BoardLUT}{4961}
+\newcommand{\BoardLUTPct}{9.33\%}
+\newcommand{\BoardFF}{2367}
+\newcommand{\BoardFFPct}{2.22\%}
+\newcommand{\BoardBRAM}{6}
+\newcommand{\BoardBRAMPct}{4.29\%}
 \newcommand{\BoardDSP}{15}
 \newcommand{\BoardDSPPct}{6.82\%}
-\newcommand{\BoardWNS}{+0.440\,ns}
-\newcommand{\BoardWHS}{+0.151\,ns}
+\newcommand{\BoardWNS}{+0.338\,ns}
+\newcommand{\BoardWHS}{+0.059\,ns}
 \newcommand{\DhrystoneRuns}{10}
 \newcommand{\DhrystoneDPS}{510986}
 \newcommand{\DhrystoneDMIPS}{290.828685}
@@ -271,7 +271,7 @@ bitstream & PYNQ-Z2 提交 bitstream，完整文件名见证据索引。 \\
 \end{tabularx}
 \end{table}
 
-板级证据以 bitstream 下载日志、资源报告、时序报告和板卡配置记录为主。PYNQ-Z2 的 Micro-USB 串口连接到 PS 侧，不直接连接 PL 软核 UART；软核 UART 已约束到 Pmod B，可通过外接 \Metric{3.3 V} USB-UART 模块采集启动打印。在未接入外部 USB-UART 的条件下，本报告不将串口文本日志列为证据项，而以 JTAG 下载、实现报告和仿真日志支撑板级可运行性。
+板级证据包括 bitstream 下载日志、资源报告、时序报告、板卡配置记录和 PL 侧 UART 文本日志。PYNQ-Z2 的 Micro-USB 串口连接到 PS 侧，不直接连接 PL 软核 UART；PL 侧 UART 已约束到 Pmod B，并使用外接 \Metric{3.3 V} CP2102 USB-UART 模块在 \Metric{115200 8N1} 参数下采集到连续 \Code{YH\_rv\_cpu CoreMark/MHz=4.137461 DMIPS/MHz=2.908287 tick=XX pc=XXXXXXXX} 输出。下载日志包含 \Code{PROGRAM\_OK}，串口日志显示 \Code{tick} 持续变化，\Code{pc} 为 CPU 调试 PC 采样，可用于证明 FPGA 原型系统在板级持续运行。
 
 \section{指令覆盖率}
 

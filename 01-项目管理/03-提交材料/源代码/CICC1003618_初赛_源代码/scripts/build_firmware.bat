@@ -84,6 +84,11 @@ if /I "%TARGET%"=="timer_irq_smoke" (
     set SOURCES="%PROJECT_DIR%\sw\src\crt0.S" "%PROJECT_DIR%\sw\src\timer_irq_entry.S" "%PROJECT_DIR%\sw\src\timer_irq_smoke.c"
 )
 
+if /I "%TARGET%"=="uart_alive" (
+    set OUTPUT_NAME=YH_rv_cpu_uart_alive
+    set SOURCES="%PROJECT_DIR%\sw\src\crt0.S" "%PROJECT_DIR%\sw\src\uart_alive.S"
+)
+
 for %%T in (riscv-none-elf-gcc riscv32-unknown-elf-gcc riscv64-unknown-elf-gcc) do (
     where %%T >nul 2>nul
     if not errorlevel 1 (

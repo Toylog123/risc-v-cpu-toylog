@@ -1,5 +1,0 @@
-﻿port=COM8
-baud=115200
-captured_at=2026-05-05 09:28:04
-bytes=0
---- capture ---

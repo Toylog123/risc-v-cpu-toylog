@@ -11,7 +11,7 @@ xelatex -interaction=nonstopmode -halt-on-error main.tex
 xelatex -interaction=nonstopmode -halt-on-error main.tex
 ```
 
-生成后将 `main.pdf` 覆盖到上一级目录的 `YH_rv_cpu初赛性能与验证报告-2026-04-30.pdf`。
+生成后将 `main.pdf` 覆盖到上一级目录的 `CICC1003618_初赛_性能与验证报告.pdf`。
 
 ## 当前报告必须包含
 
@@ -22,4 +22,4 @@ xelatex -interaction=nonstopmode -halt-on-error main.tex
 5. 资源占用率
 6. 优化前后的性能差异对比
 
-当前正式指标为 `4.137461 CoreMark/MHz`、`2.908287 DMIPS/MHz`、`4934 LUT`，所有数据以脚本日志、仿真输出和 Vivado 报告为准。
+当前正式指标为 `4.137461 CoreMark/MHz`、`2.908287 DMIPS/MHz`、`4961 LUT`，所有数据以脚本日志、仿真输出、Vivado 报告和 PYNQ-Z2 上板串口实时指标流为准。

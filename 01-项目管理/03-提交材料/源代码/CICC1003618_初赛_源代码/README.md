@@ -32,20 +32,19 @@ PYNQ-Z2 板载 Micro-USB 主要用于 JTAG 下载与 PS 侧串口识别。PL 侧
 - FPGA RX：`uart_txd_in`，`JB0 / W14`，可选连接外部 USB-UART 适配器 `TX`
 - GND：外部 USB-UART 与 PYNQ-Z2 共地
 
-串口采集命令：
+串口实时观察命令：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\capture_uart.ps1 -List
-powershell -ExecutionPolicy Bypass -File .\scripts\capture_uart.ps1 -Port COMx -Seconds 20
+.\scripts\watch_uart_live.bat
 ```
 
-示例固件会通过 MMIO UART 输出 `YH_rv_cpu boot`，可用于板级功能演示。
+当前 PYNQ-Z2 演示 bitstream 通过 PL 侧 UART 诊断通道持续输出 `YH_rv_cpu CoreMark/MHz=4.137461 DMIPS/MHz=2.908287 tick=XX pc=XXXXXXXX`。其中 `tick` 连续变化，`pc` 为 CPU 调试 PC 采样，可用于板级功能演示与视频中的实时运行证据。
 
 ## 主要结果
 
 - CoreMark：`4.137461 CoreMark/MHz`
 - Dhrystone：`2.908287 DMIPS/MHz`
-- FPGA 实现资源：`4934 LUT / 2327 FF / 4 BRAM / 15 DSP`
+- FPGA 实现资源：`4961 LUT / 2367 FF / 6 BRAM / 15 DSP`
 - 板级实现频率：`50.0 MHz`
 
 ## 说明

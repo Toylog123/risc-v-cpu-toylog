@@ -45,10 +45,13 @@ $startedAt = Get-Date
 
 try {
     $serial.Open()
+    $serial.DiscardInBuffer()
+    $serial.DiscardOutBuffer()
     Start-Sleep -Milliseconds 200
 
     Write-Host "UART capture started: port=$Port baud=$Baud seconds=$Seconds"
     Write-Host "Terminal settings: 115200 8N1, no parity, no flow control"
+    Write-Host "Input buffer cleared before capture."
     Write-Host "Press reset/release SW0 on the board now if you want to capture the boot banner."
     Write-Host "---- live uart ----"
 

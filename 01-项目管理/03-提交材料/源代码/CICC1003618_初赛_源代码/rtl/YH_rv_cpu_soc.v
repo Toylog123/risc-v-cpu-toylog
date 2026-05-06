@@ -114,6 +114,7 @@ module YH_rv_cpu_soc #(
     // ------------------------------------------------------------
     // UART 接口
     // ------------------------------------------------------------
+    input  wire            uart_tx_ready,     // UART transmitter can accept one byte
     output reg             uart_tx_valid,     // UART 发送有效
     output reg  [7:0]      uart_tx_data,     // UART 发送数据
 
@@ -134,6 +135,7 @@ localparam [31:0] TIMER_VALUE_HI  = 32'h1000_000c; // 定时器值高 32 位
 localparam [31:0] TIMER_CMP_LO   = 32'h1000_0010; // 定时器比较值低 32 位
 localparam [31:0] TIMER_CMP_HI   = 32'h1000_0014; // 定时器比较值高 32 位
 localparam [31:0] TIMER_CTRL_ADDR = 32'h1000_0018; // 定时器控制寄存器
+localparam [31:0] UART_STATUS_ADDR = 32'h1000_0020; // bit0: UART TX ready
 
     // ================================================================
     // CPU 存储器接口信号
@@ -291,7 +293,7 @@ assign ram_write_hit = (dmem_addr32 >= RAM_BASE) && (dmem_addr32 < (RAM_BASE + R
 assign mmio_word_hit = (dmem_mmio_addr32 == UART_TX_ADDR) || (dmem_mmio_addr32 == DONE_ADDR) ||
     (dmem_mmio_addr32 == TIMER_VALUE_LO) || (dmem_mmio_addr32 == TIMER_VALUE_HI) ||
     (dmem_mmio_addr32 == TIMER_CMP_LO) || (dmem_mmio_addr32 == TIMER_CMP_HI) ||
-    (dmem_mmio_addr32 == TIMER_CTRL_ADDR);
+    (dmem_mmio_addr32 == TIMER_CTRL_ADDR) || (dmem_mmio_addr32 == UART_STATUS_ADDR);
 
     // ================================================================
     // 偏移计算
@@ -416,6 +418,7 @@ always @* begin
         TIMER_CMP_LO:    mmio_read_word = timer_cmp_r[31:0];
         TIMER_CMP_HI:    mmio_read_word = timer_cmp_r[63:32];
         TIMER_CTRL_ADDR: mmio_read_word = {30'b0, timer_irq, timer_irq_en_r};
+        UART_STATUS_ADDR:mmio_read_word = {31'b0, uart_tx_ready};
         default:         mmio_read_word = 32'h0000_0000;
     endcase
 end

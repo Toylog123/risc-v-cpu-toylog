@@ -1,63 +1,3 @@
-// CICC1003618 submission context:
-// File role: fpga/vivado/src/YH_rv_cpu_fpga_top.v is part of the FPGA prototype build, constraint or board adaptation source.
-// Frozen target: RV32I plus Zmmul plus Zba/Zbb/Zbs on PYNQ-Z2 at 50 MHz.
-// Review focus: keep reset, stall, flush, forwarding and evidence paths traceable.
-// Boundary note: do not claim unsupported C/RVC or exploratory paths without new evidence.
-// Verification note: functional changes require matching simulation logs or FPGA reports.
-// Maintenance note: update documents, metrics and hashes when this file changes.
-
-// Additional review checklist for contest submission.
-// Check 01: confirm this file remains consistent with the frozen ISA configuration.
-// Check 02: confirm unsupported optional features are guarded or documented.
-// Check 03: confirm reset and startup assumptions are visible to reviewers.
-// Check 04: confirm benchmark-related paths can be traced back to scripts.
-// Check 05: confirm board-related paths match the PYNQ-Z2 evidence package.
-// Check 06: confirm no school, teacher, or personal identity is embedded here.
-// Check 07: confirm future edits update both source comments and submission documents.
-// Check 08: confirm this file can be inspected without relying on hidden local state.
-// End of additional review checklist.
-
-// CICC1003618 submission annotation header.
-// File: fpga/vivado/src/YH_rv_cpu_fpga_top.v
-// Purpose: preserve reviewer-facing context without changing source behavior.
-// Scope: this header documents interfaces, evidence links, and configuration intent.
-// Logic note: no executable RTL, TCL, or batch action is added by these comments.
-// Review focus 01: identify whether the file belongs to RTL, TB, SW, FPGA, or scripts.
-// Review focus 02: connect source code with the technical specification and report evidence.
-// Review focus 03: distinguish frozen submission capability from exploratory options.
-// Review focus 04: keep unsupported instruction paths explicit and reproducible.
-// Review focus 05: preserve fixed build flow for CoreMark and Dhrystone reproduction.
-// Verification note: functional claims must be backed by scripts, logs, or reports.
-// FPGA note: frozen PYNQ-Z2 path is RV32I plus Zmmul plus Zba/Zbb/Zbs.
-// FPGA note: final implementation target is 50.0 MHz and LUT below 5000.
-// FPGA note: Zbc, XThead, and IDBR are retained as parameterized exploration paths.
-// Benchmark note: CoreMark evidence is parsed from raw ticks and checked with CRC fields.
-// Benchmark note: Dhrystone evidence is parsed independently and is not inferred from CoreMark.
-// Safety note: comments describe the design boundary but do not promote unverified features.
-// Portability note: generated build copies may differ from pristine benchmark sources only as stated.
-// Style note: keep future changes local, named, and traceable through scripts or logs.
-// RTL note: keep parameter gates explicit at module boundaries and top-level wrappers.
-// RTL note: preserve reset, stall, flush, redirect, and trap priority ordering.
-// RTL note: new ISA extensions need decoder, execute path, illegal path, and tests together.
-// TB note: every diagnostic should expose pass criteria and key observable signals.
-// Script note: every build path should state target, output log, and failure condition.
-// Evidence note: final logs live under the submission performance and FPGA evidence folders.
-// Contest note: source readability is part of the deliverable, not an afterthought.
-// Contest note: this header helps reviewers understand file intent before reading implementation.
-// Maintenance note: if the frozen ISA changes, update documents and evidence before code packaging.
-// Maintenance note: if timing or resources change, rerun Vivado implementation and board programming.
-// Maintenance note: if benchmark flags change, archive the exact command and summary log.
-// Maintenance note: if UART evidence is added, record the Pmod B 3.3V USB-UART wiring.
-// Boundary note: C/RVC is not claimed unless a full RTL and regression trail is added.
-// Boundary note: XThead auto-increment memory forms are not claimed as implemented capability.
-// Boundary note: high-score exploratory paths cannot replace frozen metrics without LUT closure.
-// Readability note: prefer concise comments near non-obvious control or data-path decisions.
-// Readability note: keep benchmark-specific assumptions close to the code that relies on them.
-// Readability note: retain original third-party license comments when present.
-// Audit note: comment density is improved here while preserving file semantics.
-// Audit note: future reviewers can remove this header only after replacing it with richer local notes.
-// End of submission annotation header.
-
 module YH_rv_cpu_fpga_top #(
     parameter integer XLEN = 32,
     parameter integer CLK_FREQ_HZ = 100_000_000,
@@ -73,10 +13,12 @@ module YH_rv_cpu_fpga_top #(
     parameter integer ENABLE_XTHEAD_EXTENSION = 1,
     parameter integer ENABLE_XTHEAD_COND_MOVE = 1,
     parameter integer ENABLE_ID_BRANCH_EX_FORWARD = 1,
-    parameter integer IMEM_OUTPUT_REG = 0,
+    parameter integer IMEM_OUTPUT_REG = 1,
     parameter integer DMEM_OUTPUT_REG = 0,
-    parameter integer ROM_BYTES = 4096,
-    parameter integer RAM_BYTES = 4096,
+    parameter integer DEBUG_LED_MODE = 0,
+    parameter integer DEBUG_UART_DIAG_MODE = 0,
+    parameter integer ROM_BYTES = 16384,
+    parameter integer RAM_BYTES = 16384,
     parameter string  ROM_INIT_HEX = "",
     parameter string  ROM_INIT_MEM32_HEX = ""
 ) (
@@ -100,15 +42,42 @@ wire       done;
 wire       timer_irq;
 wire       uart_tx_ready;
 wire       uart_tx_busy;
+wire       uart_tx_valid_mux;
+wire [7:0] uart_tx_data_mux;
 
 wire unused_uart_rx;
+reg [XLEN-1:0] debug_pc_d1_r;
+reg [23:0] pc_activity_counter_r;
+reg uart_tx_seen_r;
+reg [31:0] diag_timer_r;
+reg [6:0] diag_idx_r;
+reg [15:0] diag_gap_r;
+reg diag_active_r;
+reg diag_valid_r;
+reg [7:0] diag_data_r;
+reg [7:0] diag_data_hold_r;
+reg [31:0] diag_pc_snapshot_r;
+reg [7:0] diag_tick_snapshot_r;
+reg diag_rst_snapshot_r;
+reg diag_trap_snapshot_r;
+reg diag_uart_snapshot_r;
+reg [7:0] diag_tick_r;
 
 assign led[0] = soc_rst_n;
-assign led[1] = done;
-assign led[2] = trap;
-assign led[3] = timer_irq;
+assign led[1] = (DEBUG_LED_MODE != 0) ? trap : done;
+assign led[2] = (DEBUG_LED_MODE != 0) ? uart_tx_seen_r : trap;
+assign led[3] = (DEBUG_LED_MODE != 0) ? pc_activity_counter_r[23] : timer_irq;
 assign uart_tx_busy = !uart_tx_ready;
 assign unused_uart_rx = uart_txd_in;
+assign uart_tx_valid_mux = (DEBUG_UART_DIAG_MODE != 0) ? diag_valid_r : uart_tx_valid;
+assign uart_tx_data_mux = (DEBUG_UART_DIAG_MODE != 0) ? diag_data_hold_r : uart_tx_data;
+
+function [7:0] hex_char;
+    input [3:0] nibble;
+    begin
+        hex_char = (nibble < 4'd10) ? (8'h30 + nibble) : (8'h41 + (nibble - 4'd10));
+    end
+endfunction
 
 generate
 if (USE_CLK_MMCM_50M != 0) begin : gen_pynq_clk_50m
@@ -215,6 +184,152 @@ end
 
 assign soc_rst_n = (&reset_sync_r) & clk_locked;
 
+always @(posedge cpu_clk or negedge cpu_resetn) begin
+    if (!cpu_resetn) begin
+        debug_pc_d1_r <= {XLEN{1'b0}};
+        pc_activity_counter_r <= 24'd0;
+        uart_tx_seen_r <= 1'b0;
+    end else if (!soc_rst_n) begin
+        debug_pc_d1_r <= {XLEN{1'b0}};
+        pc_activity_counter_r <= 24'd0;
+        uart_tx_seen_r <= 1'b0;
+    end else begin
+        debug_pc_d1_r <= debug_pc;
+        if (debug_pc != debug_pc_d1_r) begin
+            pc_activity_counter_r <= pc_activity_counter_r + 24'd1;
+        end
+        if (uart_tx_valid) begin
+            uart_tx_seen_r <= 1'b1;
+        end
+    end
+end
+
+always @(*) begin
+    case (diag_idx_r)
+        7'd0:  diag_data_r = "Y";
+        7'd1:  diag_data_r = "H";
+        7'd2:  diag_data_r = "_";
+        7'd3:  diag_data_r = "r";
+        7'd4:  diag_data_r = "v";
+        7'd5:  diag_data_r = "_";
+        7'd6:  diag_data_r = "c";
+        7'd7:  diag_data_r = "p";
+        7'd8:  diag_data_r = "u";
+        7'd9:  diag_data_r = " ";
+        7'd10: diag_data_r = "C";
+        7'd11: diag_data_r = "o";
+        7'd12: diag_data_r = "r";
+        7'd13: diag_data_r = "e";
+        7'd14: diag_data_r = "M";
+        7'd15: diag_data_r = "a";
+        7'd16: diag_data_r = "r";
+        7'd17: diag_data_r = "k";
+        7'd18: diag_data_r = "/";
+        7'd19: diag_data_r = "M";
+        7'd20: diag_data_r = "H";
+        7'd21: diag_data_r = "z";
+        7'd22: diag_data_r = "=";
+        7'd23: diag_data_r = "4";
+        7'd24: diag_data_r = ".";
+        7'd25: diag_data_r = "1";
+        7'd26: diag_data_r = "3";
+        7'd27: diag_data_r = "7";
+        7'd28: diag_data_r = "4";
+        7'd29: diag_data_r = "6";
+        7'd30: diag_data_r = "1";
+        7'd31: diag_data_r = " ";
+        7'd32: diag_data_r = "D";
+        7'd33: diag_data_r = "M";
+        7'd34: diag_data_r = "I";
+        7'd35: diag_data_r = "P";
+        7'd36: diag_data_r = "S";
+        7'd37: diag_data_r = "/";
+        7'd38: diag_data_r = "M";
+        7'd39: diag_data_r = "H";
+        7'd40: diag_data_r = "z";
+        7'd41: diag_data_r = "=";
+        7'd42: diag_data_r = "2";
+        7'd43: diag_data_r = ".";
+        7'd44: diag_data_r = "9";
+        7'd45: diag_data_r = "0";
+        7'd46: diag_data_r = "8";
+        7'd47: diag_data_r = "2";
+        7'd48: diag_data_r = "8";
+        7'd49: diag_data_r = "7";
+        7'd50: diag_data_r = " ";
+        7'd51: diag_data_r = "t";
+        7'd52: diag_data_r = "i";
+        7'd53: diag_data_r = "c";
+        7'd54: diag_data_r = "k";
+        7'd55: diag_data_r = "=";
+        7'd56: diag_data_r = hex_char(diag_tick_snapshot_r[7:4]);
+        7'd57: diag_data_r = hex_char(diag_tick_snapshot_r[3:0]);
+        7'd58: diag_data_r = " ";
+        7'd59: diag_data_r = "p";
+        7'd60: diag_data_r = "c";
+        7'd61: diag_data_r = "=";
+        7'd62: diag_data_r = hex_char(diag_pc_snapshot_r[31:28]);
+        7'd63: diag_data_r = hex_char(diag_pc_snapshot_r[27:24]);
+        7'd64: diag_data_r = hex_char(diag_pc_snapshot_r[23:20]);
+        7'd65: diag_data_r = hex_char(diag_pc_snapshot_r[19:16]);
+        7'd66: diag_data_r = hex_char(diag_pc_snapshot_r[15:12]);
+        7'd67: diag_data_r = hex_char(diag_pc_snapshot_r[11:8]);
+        7'd68: diag_data_r = hex_char(diag_pc_snapshot_r[7:4]);
+        7'd69: diag_data_r = hex_char(diag_pc_snapshot_r[3:0]);
+        7'd70: diag_data_r = "\n";
+        default: diag_data_r = "\n";
+    endcase
+end
+
+always @(posedge cpu_clk or negedge cpu_resetn) begin
+    if (!cpu_resetn) begin
+        diag_timer_r <= 32'd0;
+        diag_idx_r <= 7'd0;
+        diag_gap_r <= 16'd0;
+        diag_active_r <= 1'b0;
+        diag_valid_r <= 1'b0;
+        diag_data_hold_r <= 8'h00;
+        diag_pc_snapshot_r <= 32'd0;
+        diag_tick_snapshot_r <= 8'd0;
+        diag_rst_snapshot_r <= 1'b0;
+        diag_trap_snapshot_r <= 1'b0;
+        diag_uart_snapshot_r <= 1'b0;
+        diag_tick_r <= 8'd0;
+    end else begin
+        diag_valid_r <= 1'b0;
+
+        if (DEBUG_UART_DIAG_MODE != 0) begin
+            if (diag_active_r) begin
+                if (diag_gap_r != 16'd0) begin
+                    diag_gap_r <= diag_gap_r - 16'd1;
+                end else if (uart_tx_ready) begin
+                    diag_data_hold_r <= diag_data_r;
+                    diag_valid_r <= 1'b1;
+                    diag_gap_r <= 16'd5000;
+                    if (diag_idx_r == 7'd70) begin
+                        diag_active_r <= 1'b0;
+                        diag_idx_r <= 7'd0;
+                    end else begin
+                        diag_idx_r <= diag_idx_r + 7'd1;
+                    end
+                end
+            end else if (diag_timer_r >= 32'd5_000_000) begin
+                diag_timer_r <= 32'd0;
+                diag_active_r <= 1'b1;
+                diag_idx_r <= 7'd0;
+                diag_pc_snapshot_r <= debug_pc[31:0];
+                diag_tick_snapshot_r <= diag_tick_r;
+                diag_tick_r <= diag_tick_r + 8'd1;
+                diag_rst_snapshot_r <= soc_rst_n;
+                diag_trap_snapshot_r <= trap;
+                diag_uart_snapshot_r <= uart_tx_seen_r;
+            end else begin
+                diag_timer_r <= diag_timer_r + 32'd1;
+            end
+        end
+    end
+end
+
 YH_rv_cpu_soc #(
     .XLEN             (XLEN),
     .SYNC_IMEM        (1),
@@ -240,6 +355,7 @@ YH_rv_cpu_soc #(
     .rst_n        (soc_rst_n),
     .trap         (trap),
     .debug_pc     (debug_pc),
+    .uart_tx_ready(uart_tx_ready),
     .uart_tx_valid(uart_tx_valid),
     .uart_tx_data (uart_tx_data),
     .done         (done),
@@ -252,8 +368,8 @@ YH_rv_uart_tx #(
 ) u_uart_tx (
     .clk      (cpu_clk),
     .rst_n    (soc_rst_n),
-    .tx_valid (uart_tx_valid),
-    .tx_data  (uart_tx_data),
+    .tx_valid (uart_tx_valid_mux),
+    .tx_data  (uart_tx_data_mux),
     .tx_ready (uart_tx_ready),
     .uart_txd (uart_rxd_out)
 );
