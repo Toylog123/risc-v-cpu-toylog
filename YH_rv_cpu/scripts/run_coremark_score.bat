@@ -13,6 +13,7 @@ set EXEC_MASK=0
 set BUILD_OUTPUT_NAME=
 set OUTPUT_DIR=
 set OUTPUT_STEM=
+set XSIM_TRACE_ARGS=
 
 if "%TARGET%"=="" set TARGET=rv32
 if "%ITERATIONS%"=="" set ITERATIONS=10
@@ -42,10 +43,53 @@ set XELAB=
 set XSIM=
 set PYTHON_CMD=
 set TEST_TOP=YH_rv_cpu_coremark_rv32_tb
+set ROM_TARGET=rv32
 set LOG_FILE=!OUTPUT_DIR!!OUTPUT_STEM!.log
 set XSIM_RUN_DIR=
 
-if /I "%TARGET%"=="rv64" set TEST_TOP=YH_rv_cpu_coremark_rv64_tb
+if /I "%TARGET%"=="rv64" (
+    set TEST_TOP=YH_rv_cpu_coremark_rv64_tb
+    set ROM_TARGET=rv64
+)
+if /I "%TARGET%"=="rv64im" (
+    set TEST_TOP=YH_rv_cpu_coremark_rv64_tb
+    set ROM_TARGET=rv64
+)
+if /I "%TARGET%"=="rv32i_zmmul_o3unroll_b1nosched_uall800_inline_nocross" (
+    set TEST_TOP=YH_rv_cpu_coremark_rv32_zmmul_noidbr_tb
+    set ROM_TARGET=rv32
+)
+if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_o3unroll_b1nosched_uall800_inline_nocross" (
+    set TEST_TOP=YH_rv_cpu_coremark_rv32_zmmul_bitmanip_noidbr_tb
+    set ROM_TARGET=rv32
+)
+if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_xthead_memidx_noautoinc_o2sched_nocaller_noifconv" (
+    set TEST_TOP=YH_rv_cpu_coremark_rv32_zmmul_bitmanip_xthead_noidbr_tb
+    set ROM_TARGET=rv32
+)
+if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_xthead_memidx_noautoinc_o2sched_nocaller_noifconv" (
+    set TEST_TOP=YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_xthead_idbr_tb
+    set ROM_TARGET=rv32
+)
+if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xthead_memidx_noautoinc_o2sched_nocaller" (
+    set TEST_TOP=YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_zicond_xthead_idbr_tb
+    set ROM_TARGET=rv32
+)
+if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xthead_memidx_o2sched_nocaller" (
+    set TEST_TOP=YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_zicond_xthead_idbr_tb
+    set ROM_TARGET=rv32
+)
+if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_zbkb_xthead_memidx_noautoinc_o2sched_nocaller_noifconv" (
+    set TEST_TOP=YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_zbkb_xthead_idbr_tb
+    set ROM_TARGET=rv32
+)
+if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_zicond_zbkb_xthead_memidx_noautoinc_o2sched_nocaller" (
+    set TEST_TOP=YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_zicond_zbkb_xthead_idbr_tb
+    set ROM_TARGET=rv32
+)
+if not "%YH_COREMARK_TEST_TOP%"=="" set TEST_TOP=%YH_COREMARK_TEST_TOP%
+if /I "%TARGET%"=="rv32im_o3" set ROM_TARGET=rv32
+if /I "%TARGET%"=="rv32im_o3unroll" set ROM_TARGET=rv32
 
 rem Resolve simulator tools from PATH to keep the script portable across lab machines.
 for %%T in (xvlog.bat xvlog) do (
@@ -96,12 +140,28 @@ if not defined PYTHON_CMD (
     exit /b 1
 )
 
+if not "%YH_XSIM_DEBUG_TRACE%"=="" (
+    set XSIM_TRACE_ARGS=!XSIM_TRACE_ARGS! -testplusarg debug_trace
+)
+if not "%YH_XSIM_TRACE_CYCLES%"=="" (
+    set XSIM_TRACE_ARGS=!XSIM_TRACE_ARGS! -testplusarg "trace_cycles=%YH_XSIM_TRACE_CYCLES%"
+)
+if not "%YH_XSIM_TRACE_START%"=="" (
+    set XSIM_TRACE_ARGS=!XSIM_TRACE_ARGS! -testplusarg "trace_start=%YH_XSIM_TRACE_START%"
+)
+if not "%YH_XSIM_TRACE_END%"=="" (
+    set XSIM_TRACE_ARGS=!XSIM_TRACE_ARGS! -testplusarg "trace_end=%YH_XSIM_TRACE_END%"
+)
+if not "%YH_XSIM_TRACE_STRIDE%"=="" (
+    set XSIM_TRACE_ARGS=!XSIM_TRACE_ARGS! -testplusarg "trace_stride=%YH_XSIM_TRACE_STRIDE%"
+)
+
 call "%~dp0prepare_xsim_runtime.bat" coremark_score XSIM_RUN_DIR
 if not defined XSIM_RUN_DIR exit /b 1
 
 rem Mirror the generated image into an isolated xsim runtime directory.
 if not exist "%XSIM_RUN_DIR%\build\sw" mkdir "%XSIM_RUN_DIR%\build\sw"
-copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%.hex" >nul
+copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%ROM_TARGET%.hex" >nul
 if errorlevel 1 exit /b 1
 
 pushd "%XSIM_RUN_DIR%"
@@ -111,6 +171,17 @@ call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv64_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_noidbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_noidbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_xthead_noidbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_xthead_noidbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_zicond_xthead_noidbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_zbkb_xthead_noidbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_zicond_zbkb_xthead_noidbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_xthead_idbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_zicond_xthead_idbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_zbkb_xthead_idbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_zicond_zbkb_xthead_idbr_tb.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_soc.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_sync_imem_rom.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_sync_rom32.v" ^
@@ -132,7 +203,7 @@ if errorlevel 1 goto :fail
 call %XELAB% %TEST_TOP% -s %TEST_TOP%_score_snapshot
 if errorlevel 1 goto :fail
 
-call %XSIM% %TEST_TOP%_score_snapshot -testplusarg "max_cycles=%MAX_CYCLES%" -runall > "%LOG_FILE%" 2>&1
+call %XSIM% %TEST_TOP%_score_snapshot -testplusarg "max_cycles=%MAX_CYCLES%" !XSIM_TRACE_ARGS! %YH_XSIM_EXTRA_ARGS% -runall > "%LOG_FILE%" 2>&1
 type "%LOG_FILE%"
 
 rem The score flow only succeeds if both the simulation and the post-processed summary are reportable.

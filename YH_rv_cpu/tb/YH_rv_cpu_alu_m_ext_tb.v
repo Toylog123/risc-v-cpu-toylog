@@ -4,7 +4,7 @@
 
 module YH_rv_cpu_alu_m_ext_tb;
 reg clk;
-reg [4:0] alu_op;
+reg [5:0] alu_op;
 reg [31:0] lhs, rhs;
 wire [31:0] result;
 

@@ -36,6 +36,7 @@
 `define YH_rv_cpu_OPCODE_OP_IMM  7'b0010011
 // 寄存器运算 (OP): add, sub, slt, sltu, xor, or, and, sll, srl, sra
 `define YH_rv_cpu_OPCODE_OP      7'b0110011
+`define YH_rv_cpu_OPCODE_CUSTOM_0 7'b0001011
 // 32位立即数运算 (OP-IMM-32): addiw, slliw, srliw, sraiw - RV64 专用
 `define YH_rv_cpu_OPCODE_OP_IMM_32 7'b0011011
 // 32位寄存器运算 (OP-32): addw, subw, sllw, srlw, sraw - RV64 专用
@@ -72,6 +73,27 @@
 `define YH_rv_cpu_ALU_DIVU  5'd15  // 无符号除法: result = lhs / rhs (divu)
 `define YH_rv_cpu_ALU_REM   5'd16  // 有符号取模: result = lhs % rhs (rem)
 `define YH_rv_cpu_ALU_REMU  5'd17  // 无符号取模: result = lhs % rhs (remu)
+
+// Zba/Zbb/Zbs subset emitted by the CoreMark toolchain experiments.
+`define YH_rv_cpu_ALU_SH1ADD 5'd18
+`define YH_rv_cpu_ALU_SH2ADD 5'd19
+`define YH_rv_cpu_ALU_SH3ADD 5'd20
+`define YH_rv_cpu_ALU_ANDN   5'd21
+`define YH_rv_cpu_ALU_MAX    5'd22
+`define YH_rv_cpu_ALU_SEXT_H 5'd23
+`define YH_rv_cpu_ALU_ZEXT_H 5'd24
+`define YH_rv_cpu_ALU_BEXT   5'd25
+`define YH_rv_cpu_ALU_CZERO_EQZ 5'd26
+`define YH_rv_cpu_ALU_CZERO_NEZ 5'd27
+`define YH_rv_cpu_ALU_CLMUL     5'd28
+`define YH_rv_cpu_ALU_CLMULH    5'd29
+`define YH_rv_cpu_ALU_PACK      5'd30
+`define YH_rv_cpu_ALU_EXT_RANGE  5'd31
+`define YH_rv_cpu_ALU_TH_ADDSL1  6'd32
+`define YH_rv_cpu_ALU_TH_ADDSL2  6'd33
+`define YH_rv_cpu_ALU_TH_ADDSL3  6'd34
+`define YH_rv_cpu_ALU_TH_MVEQZ   6'd35
+`define YH_rv_cpu_ALU_TH_MVNEZ   6'd36
 
 // ------------------------------------------------------------
 // 写回来源控制 (2位)

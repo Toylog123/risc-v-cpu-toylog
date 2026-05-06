@@ -15,10 +15,17 @@
 // 参数化设计允许在实例化时指定数据通路宽度
 // ------------------------------------------------------------
 module YH_rv_cpu_alu #(
-    parameter integer XLEN = 32  // 数据通路宽度: 32 (RV32) 或 64 (RV64)
+    parameter integer XLEN = 32,  // 数据通路宽度: 32 (RV32) 或 64 (RV64)
+    parameter integer ENABLE_M_EXTENSION = 1,
+    parameter integer ENABLE_ZMMUL_EXTENSION = 0,
+    parameter integer ENABLE_BITMANIP_EXTENSION = 1,
+    parameter integer ENABLE_ZBC_EXTENSION = 0,
+    parameter integer ENABLE_ZICOND_EXTENSION = 0,
+    parameter integer ENABLE_ZBKB_EXTENSION = 0,
+    parameter integer ENABLE_XTHEAD_EXTENSION = 1
 ) (
     // 控制信号输入
-    input  wire [4:0]      alu_op,    // ALU 操作码，定义在 YH_rv_cpu_defs.vh
+    input  wire [5:0]      alu_op,    // ALU 操作码，定义在 YH_rv_cpu_defs.vh
     // 数据输入
     input  wire [XLEN-1:0] lhs,      // 左手操作数 (left-hand side)
     input  wire [XLEN-1:0] rhs,       // 右手操作数 (right-hand side)
@@ -52,20 +59,125 @@ assign lt  = ($signed(lhs) < $signed(rhs));
 // 不转换符号，直接按位比较
 assign ltu = (lhs < rhs);
 
-// M扩展需要64位乘法结果
-wire [63:0] lhs_ext_signed;
-wire [63:0] lhs_ext_unsigned;
-wire [63:0] rhs_ext_signed;
-wire [63:0] rhs_ext_unsigned;
-wire [63:0] mul_signed;
-wire [63:0] mul_mix;
+wire [XLEN-1:0] m_result_mul;
+wire [XLEN-1:0] m_result_mulh;
+wire [XLEN-1:0] m_result_mulhsu;
+wire [XLEN-1:0] m_result_mulhu;
+wire [XLEN-1:0] m_result_div;
+wire [XLEN-1:0] m_result_divu;
+wire [XLEN-1:0] m_result_rem;
+wire [XLEN-1:0] m_result_remu;
+wire [XLEN-1:0] b_result_clmul;
+wire [XLEN-1:0] b_result_clmulh;
+wire [XLEN-1:0] x_result_ext_range;
 
-assign lhs_ext_signed = {{32{lhs[31]}}, lhs};
-assign lhs_ext_unsigned = {32'b0, lhs};
-assign rhs_ext_signed = {{32{rhs[31]}}, rhs};
-assign rhs_ext_unsigned = {32'b0, rhs};
-assign mul_signed = $signed({{32{lhs[31]}}, lhs}) * $signed({{32{rhs[31]}}, rhs});
-assign mul_mix = $signed({{32{lhs[31]}}, lhs}) * {32'b0, rhs};
+generate
+if ((ENABLE_M_EXTENSION != 0) || (ENABLE_ZMMUL_EXTENSION != 0)) begin : gen_mul_extension
+    wire [63:0] mul_signed;
+    wire [63:0] mul_mix;
+    wire [63:0] mul_unsigned;
+
+    assign mul_signed = $signed({{32{lhs[31]}}, lhs}) * $signed({{32{rhs[31]}}, rhs});
+    assign mul_mix = $signed({{32{lhs[31]}}, lhs}) * {32'b0, rhs};
+    assign mul_unsigned = {32'b0, lhs} * {32'b0, rhs};
+
+    assign m_result_mul = mul_signed[XLEN-1:0];
+    assign m_result_mulh = mul_signed[63:32];
+    assign m_result_mulhsu = mul_mix[63:32];
+    assign m_result_mulhu = mul_unsigned[63:32];
+end else begin : gen_no_mul_extension
+    assign m_result_mul = {XLEN{1'b0}};
+    assign m_result_mulh = {XLEN{1'b0}};
+    assign m_result_mulhsu = {XLEN{1'b0}};
+    assign m_result_mulhu = {XLEN{1'b0}};
+end
+endgenerate
+
+generate
+if (ENABLE_M_EXTENSION != 0) begin : gen_div_extension
+    wire [XLEN-1:0] xlen_one;
+    wire lhs_neg;
+    wire rhs_neg;
+    wire div_neg;
+    wire div_overflow;
+    wire [XLEN-1:0] lhs_abs;
+    wire [XLEN-1:0] rhs_abs;
+    wire [XLEN-1:0] rhs_abs_safe;
+    wire [XLEN-1:0] div_abs;
+    wire [XLEN-1:0] rem_abs;
+    wire [XLEN-1:0] div_signed_result;
+    wire [XLEN-1:0] rem_signed_result;
+
+    assign xlen_one = {{(XLEN-1){1'b0}}, 1'b1};
+    assign lhs_neg = lhs[XLEN-1];
+    assign rhs_neg = rhs[XLEN-1];
+    assign div_neg = lhs_neg ^ rhs_neg;
+    assign div_overflow = (lhs == {1'b1, {(XLEN-1){1'b0}}}) && (rhs == {XLEN{1'b1}});
+    assign lhs_abs = lhs_neg ? (~lhs + xlen_one) : lhs;
+    assign rhs_abs = rhs_neg ? (~rhs + xlen_one) : rhs;
+    assign rhs_abs_safe = (rhs == {XLEN{1'b0}}) ? xlen_one : rhs_abs;
+    assign div_abs = lhs_abs / rhs_abs_safe;
+    assign rem_abs = lhs_abs % rhs_abs_safe;
+    assign div_signed_result = div_neg ? (~div_abs + xlen_one) : div_abs;
+    assign rem_signed_result = lhs_neg ? (~rem_abs + xlen_one) : rem_abs;
+
+    assign m_result_div = (rhs == 0) ? {XLEN{1'b1}} : (div_overflow ? lhs : div_signed_result);
+    assign m_result_divu = (rhs == 0) ? {XLEN{1'b1}} : lhs / rhs;
+    assign m_result_rem = (rhs == 0) ? lhs : (div_overflow ? {XLEN{1'b0}} : rem_signed_result);
+    assign m_result_remu = (rhs == 0) ? lhs : lhs % rhs;
+end else begin : gen_no_div_extension
+    assign m_result_div = {XLEN{1'b0}};
+    assign m_result_divu = {XLEN{1'b0}};
+    assign m_result_rem = {XLEN{1'b0}};
+    assign m_result_remu = {XLEN{1'b0}};
+end
+endgenerate
+
+generate
+if (ENABLE_ZBC_EXTENSION != 0) begin : gen_zbc_extension
+    reg  [(2*XLEN)-1:0] clmul_product;
+    integer clmul_i;
+
+    always @* begin
+        clmul_product = {(2*XLEN){1'b0}};
+        for (clmul_i = 0; clmul_i < XLEN; clmul_i = clmul_i + 1) begin
+            if (rhs[clmul_i]) begin
+                clmul_product = clmul_product ^ (({{XLEN{1'b0}}, lhs}) << clmul_i);
+            end
+        end
+    end
+
+    assign b_result_clmul = clmul_product[XLEN-1:0];
+    assign b_result_clmulh = clmul_product[(2*XLEN)-1:XLEN];
+end else begin : gen_no_zbc_extension
+    assign b_result_clmul = {XLEN{1'b0}};
+    assign b_result_clmulh = {XLEN{1'b0}};
+end
+endgenerate
+
+generate
+if (ENABLE_XTHEAD_EXTENSION != 0) begin : gen_xthead_extension
+    reg [XLEN-1:0] ext_range_result;
+    integer ext_i;
+
+    always @* begin
+        ext_range_result = {XLEN{1'b0}};
+        if (rhs[10:5] >= rhs[4:0]) begin
+            for (ext_i = 0; ext_i < XLEN; ext_i = ext_i + 1) begin
+                if (ext_i <= (rhs[10:5] - rhs[4:0])) begin
+                    ext_range_result[ext_i] = lhs[rhs[4:0] + ext_i[4:0]];
+                end else if (rhs[11]) begin
+                    ext_range_result[ext_i] = lhs[rhs[10:5]];
+                end
+            end
+        end
+    end
+
+    assign x_result_ext_range = ext_range_result;
+end else begin : gen_no_xthead_extension
+    assign x_result_ext_range = {XLEN{1'b0}};
+end
+endgenerate
 
 // ------------------------------------------------------------
 // 主运算单元 (组合逻辑)
@@ -95,21 +207,40 @@ always @* begin
         // 算术右移: sra, srai
         `YH_rv_cpu_ALU_SRA:  result = $signed(lhs) >>> rhs[SHAMT_W-1:0];
         // MUL: 有符号乘法 (32x32=64, 取低32位)
-        `YH_rv_cpu_ALU_MUL:  result = $signed(lhs) * $signed(rhs);
+        `YH_rv_cpu_ALU_MUL:  result = m_result_mul;
         // MULH: 有符号乘法高位
-        `YH_rv_cpu_ALU_MULH: result = mul_signed[63:32];
+        `YH_rv_cpu_ALU_MULH: result = m_result_mulh;
         // MULHSU: 混合乘法高位 (lhs有符号, rhs无符号)
-        `YH_rv_cpu_ALU_MULHSU: result = mul_mix[63:32];
+        `YH_rv_cpu_ALU_MULHSU: result = m_result_mulhsu;
         // MULHU: 无符号乘法高位
-        `YH_rv_cpu_ALU_MULHU: result = ({32'b0, lhs} * {32'b0, rhs}) >> 32;
+        `YH_rv_cpu_ALU_MULHU: result = m_result_mulhu;
         // DIV: 有符号除法
-        `YH_rv_cpu_ALU_DIV:  result = (rhs == 0) ? -1 : $signed(lhs) / $signed(rhs);
+        `YH_rv_cpu_ALU_DIV:  result = m_result_div;
         // DIVU: 无符号除法
-        `YH_rv_cpu_ALU_DIVU: result = (rhs == 0) ? -1 : lhs / rhs;
+        `YH_rv_cpu_ALU_DIVU: result = m_result_divu;
         // REM: 有符号取模
-        `YH_rv_cpu_ALU_REM:  result = (rhs == 0) ? lhs : $signed(lhs) % $signed(rhs);
+        `YH_rv_cpu_ALU_REM:  result = m_result_rem;
         // REMU: 无符号取模
-        `YH_rv_cpu_ALU_REMU: result = (rhs == 0) ? lhs : lhs % rhs;
+        `YH_rv_cpu_ALU_REMU: result = m_result_remu;
+        `YH_rv_cpu_ALU_SH1ADD: result = (ENABLE_BITMANIP_EXTENSION != 0) ? ((lhs << 1) + rhs) : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_SH2ADD: result = (ENABLE_BITMANIP_EXTENSION != 0) ? ((lhs << 2) + rhs) : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_SH3ADD: result = (ENABLE_BITMANIP_EXTENSION != 0) ? ((lhs << 3) + rhs) : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_TH_ADDSL1: result = (ENABLE_XTHEAD_EXTENSION != 0) ? (lhs + (rhs << 1)) : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_TH_ADDSL2: result = (ENABLE_XTHEAD_EXTENSION != 0) ? (lhs + (rhs << 2)) : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_TH_ADDSL3: result = (ENABLE_XTHEAD_EXTENSION != 0) ? (lhs + (rhs << 3)) : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_TH_MVEQZ:  result = (ENABLE_XTHEAD_EXTENSION != 0) ? lhs : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_TH_MVNEZ:  result = (ENABLE_XTHEAD_EXTENSION != 0) ? lhs : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_ANDN:   result = (ENABLE_BITMANIP_EXTENSION != 0) ? (lhs & ~rhs) : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_MAX:    result = (ENABLE_BITMANIP_EXTENSION != 0) ? (($signed(lhs) > $signed(rhs)) ? lhs : rhs) : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_SEXT_H: result = (ENABLE_BITMANIP_EXTENSION != 0) ? {{(XLEN-16){lhs[15]}}, lhs[15:0]} : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_ZEXT_H: result = (ENABLE_BITMANIP_EXTENSION != 0) ? {{(XLEN-16){1'b0}}, lhs[15:0]} : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_BEXT:   result = (ENABLE_BITMANIP_EXTENSION != 0) ? {{(XLEN-1){1'b0}}, lhs[rhs[SHAMT_W-1:0]]} : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_CZERO_EQZ: result = (ENABLE_ZICOND_EXTENSION != 0) ? ((rhs == {XLEN{1'b0}}) ? {XLEN{1'b0}} : lhs) : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_CZERO_NEZ: result = (ENABLE_ZICOND_EXTENSION != 0) ? ((rhs != {XLEN{1'b0}}) ? {XLEN{1'b0}} : lhs) : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_CLMUL:     result = b_result_clmul;
+        `YH_rv_cpu_ALU_CLMULH:    result = b_result_clmulh;
+        `YH_rv_cpu_ALU_PACK:      result = (ENABLE_ZBKB_EXTENSION != 0) ? {rhs[15:0], lhs[15:0]} : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_EXT_RANGE: result = x_result_ext_range;
         // 默认: 零
         default:             result = {XLEN{1'b0}};
     endcase

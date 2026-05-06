@@ -19,8 +19,18 @@ module YH_rv_cpu_soc #(
     parameter integer IMEM_OUTPUT_REG = 0,  // 指令存储器输出寄存器
     parameter integer SYNC_DMEM = 0,        // 数据存储器同步模式
     parameter integer DMEM_OUTPUT_REG = 0,  // 数据存储器输出寄存器
+    parameter integer DMEM_NEGEDGE_READ = 0, // fast half-cycle data RAM read
     parameter integer DCACHE_EN = 0,         // 数据缓存使能: 0=禁用, 1=启用
     parameter integer ICACHE_EN = 0,         // 指令缓存使能: 0=禁用, 1=启用
+    parameter integer ENABLE_M_EXTENSION = 1,
+    parameter integer ENABLE_ZMMUL_EXTENSION = 0,
+    parameter integer ENABLE_BITMANIP_EXTENSION = 1,
+    parameter integer ENABLE_ZBC_EXTENSION = 0,
+    parameter integer ENABLE_ZICOND_EXTENSION = 0,
+    parameter integer ENABLE_ZBKB_EXTENSION = 0,
+    parameter integer ENABLE_XTHEAD_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_COND_MOVE = 1, // XThead 条件移动写回门控使能
+    parameter integer ENABLE_ID_BRANCH_EX_FORWARD = 1, // ID 早分支允许使用 EX 本周期结果
     parameter [XLEN-1:0] RESET_VECTOR = {XLEN{1'b0}}, // 复位向量
     parameter [31:0] ROM_BASE = 32'h0000_0000,  // ROM 基地址
     parameter [31:0] RAM_BASE = 32'h0000_4000,  // RAM 基地址
@@ -162,6 +172,8 @@ localparam integer BUS_ALIGN_LSB = (XLEN == 64) ? 3 : 2;
 localparam integer USE_SHARED_SYNC_ROM = ((XLEN == 32) && (SYNC_IMEM != 0) && (SYNC_DMEM != 0)) ? 1 : 0;
 localparam integer USE_IMEM_OUTPUT_REG = ((SYNC_IMEM != 0) && (IMEM_OUTPUT_REG != 0)) ? 1 : 0;
 localparam integer USE_DMEM_OUTPUT_REG = ((SYNC_DMEM != 0) && (DMEM_OUTPUT_REG != 0)) ? 1 : 0;
+localparam integer USE_DMEM_NEGEDGE_READ = ((SYNC_DMEM != 0) && (DMEM_OUTPUT_REG == 0) && (DMEM_NEGEDGE_READ != 0) && (USE_SHARED_SYNC_ROM == 0)) ? 1 : 0;
+localparam integer USE_LOAD_USE_FAST_FORWARD = ((DCACHE_EN == 0) && ((SYNC_DMEM == 0) || (USE_DMEM_NEGEDGE_READ != 0))) ? 1 : 0;
 localparam [1:0] DMEM_SRC_NONE = 2'b00; // 无数据源
 localparam [1:0] DMEM_SRC_RAM  = 2'b01; // RAM 数据源
 localparam [1:0] DMEM_SRC_ROM  = 2'b10; // ROM 数据源
@@ -232,7 +244,9 @@ assign ram_bus_offset = dmem_bus_base32 - RAM_BASE;
     // ================================================================
     // 读取接受和发起
     // ================================================================
-assign dmem_read_accept = (SYNC_DMEM != 0) ? (dmem_read_req && !dmem_read_busy_r) : dmem_read_req;
+assign dmem_read_accept = (SYNC_DMEM != 0) ?
+    (dmem_read_req && ((USE_DMEM_NEGEDGE_READ != 0) ? 1'b1 : !dmem_read_busy_r)) :
+    dmem_read_req;
 assign ram_read_issue = ram_read_hit && ((SYNC_DMEM != 0) ? dmem_read_accept : 1'b1);
 
     // ================================================================
@@ -318,7 +332,8 @@ YH_rv_dmem_ram #(
     .XLEN      (XLEN),
     .RAM_BYTES (RAM_BYTES),
     .SYNC_READ (SYNC_DMEM),
-    .OUTPUT_REG(DMEM_OUTPUT_REG)
+    .OUTPUT_REG(DMEM_OUTPUT_REG),
+    .READ_NEGEDGE(USE_DMEM_NEGEDGE_READ)
 ) u_dmem_ram (
     .clk        (clk),
     .read_req   (ram_read_issue),
@@ -396,8 +411,18 @@ YH_rv_cpu #(
     .IMEM_SYNC      (SYNC_IMEM),
     .IMEM_OUTPUT_REG(USE_IMEM_OUTPUT_REG),
     .DMEM_SYNC      (SYNC_DMEM),
+    .LOAD_USE_FAST_FORWARD(USE_LOAD_USE_FAST_FORWARD),
     .DCACHE_EN      (DCACHE_EN),
     .ICACHE_EN      (ICACHE_EN),
+    .ENABLE_M_EXTENSION(ENABLE_M_EXTENSION),
+    .ENABLE_ZMMUL_EXTENSION(ENABLE_ZMMUL_EXTENSION),
+    .ENABLE_BITMANIP_EXTENSION(ENABLE_BITMANIP_EXTENSION),
+    .ENABLE_ZBC_EXTENSION(ENABLE_ZBC_EXTENSION),
+    .ENABLE_ZICOND_EXTENSION(ENABLE_ZICOND_EXTENSION),
+    .ENABLE_ZBKB_EXTENSION(ENABLE_ZBKB_EXTENSION),
+    .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION),
+    .ENABLE_XTHEAD_COND_MOVE(ENABLE_XTHEAD_COND_MOVE),
+    .ENABLE_ID_BRANCH_EX_FORWARD(ENABLE_ID_BRANCH_EX_FORWARD),
     .RESET_VECTOR   (RESET_VECTOR)
 ) u_cpu (
     .clk       (clk),
@@ -438,43 +463,84 @@ endgenerate
     // ================================================================
     // 数据读取源跟踪 (同步模式)
     // ================================================================
-always @(posedge clk or negedge rst_n) begin
-    if (!rst_n) begin
-        dmem_read_src_r <= DMEM_SRC_NONE;
-        dmem_read_src_d1_r <= DMEM_SRC_NONE;
-        dmem_nonram_rdata_r <= {XLEN{1'b0}};
-        dmem_nonram_rdata_d1_r <= {XLEN{1'b0}};
-        dmem_rvalid_sync_r <= 1'b0;
-        dmem_rvalid_sync_d1_r <= 1'b0;
-        dmem_read_busy_r <= 1'b0;
-    end else begin
-        dmem_read_src_d1_r <= dmem_read_src_r;
-        dmem_nonram_rdata_d1_r <= dmem_nonram_rdata_r;
-        dmem_rvalid_sync_d1_r <= dmem_rvalid_sync_r;
-        dmem_rvalid_sync_r <= dmem_read_accept;
-        if (dmem_rvalid) begin
-            dmem_read_busy_r <= 1'b0;
-        end
-        if (dmem_read_accept) begin
-            dmem_read_busy_r <= 1'b1;
-            if (ram_read_hit) begin
-                dmem_read_src_r <= DMEM_SRC_RAM;
-                dmem_nonram_rdata_r <= {XLEN{1'b0}};
-            end else if (rom_read_hit) begin
-                dmem_read_src_r <= DMEM_SRC_ROM;
-                dmem_nonram_rdata_r <= {XLEN{1'b0}};
-            end else if (mmio_word_hit) begin
-                dmem_read_src_r <= DMEM_SRC_MMIO;
-                dmem_nonram_rdata_r <= mmio_read_data_ext[XLEN-1:0];
-            end else begin
+generate
+    if (USE_DMEM_NEGEDGE_READ != 0) begin : g_dmem_negedge_tracking
+        always @(negedge clk or negedge rst_n) begin
+            if (!rst_n) begin
                 dmem_read_src_r <= DMEM_SRC_NONE;
+                dmem_read_src_d1_r <= DMEM_SRC_NONE;
                 dmem_nonram_rdata_r <= {XLEN{1'b0}};
+                dmem_nonram_rdata_d1_r <= {XLEN{1'b0}};
+                dmem_rvalid_sync_r <= 1'b0;
+                dmem_rvalid_sync_d1_r <= 1'b0;
+                dmem_read_busy_r <= 1'b0;
+            end else begin
+                dmem_read_src_d1_r <= dmem_read_src_r;
+                dmem_nonram_rdata_d1_r <= dmem_nonram_rdata_r;
+                dmem_rvalid_sync_d1_r <= dmem_rvalid_sync_r;
+                dmem_rvalid_sync_r <= dmem_read_accept;
+                dmem_read_busy_r <= 1'b0;
+
+                if (dmem_read_accept) begin
+                    if (ram_read_hit) begin
+                        dmem_read_src_r <= DMEM_SRC_RAM;
+                        dmem_nonram_rdata_r <= {XLEN{1'b0}};
+                    end else if (rom_read_hit) begin
+                        dmem_read_src_r <= DMEM_SRC_ROM;
+                        dmem_nonram_rdata_r <= {XLEN{1'b0}};
+                    end else if (mmio_word_hit) begin
+                        dmem_read_src_r <= DMEM_SRC_MMIO;
+                        dmem_nonram_rdata_r <= mmio_read_data_ext[XLEN-1:0];
+                    end else begin
+                        dmem_read_src_r <= DMEM_SRC_NONE;
+                        dmem_nonram_rdata_r <= {XLEN{1'b0}};
+                    end
+                end else begin
+                    dmem_read_src_r <= DMEM_SRC_NONE;
+                    dmem_nonram_rdata_r <= {XLEN{1'b0}};
+                end
             end
-        end else begin
-            dmem_read_src_r <= DMEM_SRC_NONE;
+        end
+    end else begin : g_dmem_posedge_tracking
+        always @(posedge clk or negedge rst_n) begin
+            if (!rst_n) begin
+                dmem_read_src_r <= DMEM_SRC_NONE;
+                dmem_read_src_d1_r <= DMEM_SRC_NONE;
+                dmem_nonram_rdata_r <= {XLEN{1'b0}};
+                dmem_nonram_rdata_d1_r <= {XLEN{1'b0}};
+                dmem_rvalid_sync_r <= 1'b0;
+                dmem_rvalid_sync_d1_r <= 1'b0;
+                dmem_read_busy_r <= 1'b0;
+            end else begin
+                dmem_read_src_d1_r <= dmem_read_src_r;
+                dmem_nonram_rdata_d1_r <= dmem_nonram_rdata_r;
+                dmem_rvalid_sync_d1_r <= dmem_rvalid_sync_r;
+                dmem_rvalid_sync_r <= dmem_read_accept;
+                if (dmem_rvalid) begin
+                    dmem_read_busy_r <= 1'b0;
+                end
+                if (dmem_read_accept) begin
+                    dmem_read_busy_r <= 1'b1;
+                    if (ram_read_hit) begin
+                        dmem_read_src_r <= DMEM_SRC_RAM;
+                        dmem_nonram_rdata_r <= {XLEN{1'b0}};
+                    end else if (rom_read_hit) begin
+                        dmem_read_src_r <= DMEM_SRC_ROM;
+                        dmem_nonram_rdata_r <= {XLEN{1'b0}};
+                    end else if (mmio_word_hit) begin
+                        dmem_read_src_r <= DMEM_SRC_MMIO;
+                        dmem_nonram_rdata_r <= mmio_read_data_ext[XLEN-1:0];
+                    end else begin
+                        dmem_read_src_r <= DMEM_SRC_NONE;
+                        dmem_nonram_rdata_r <= {XLEN{1'b0}};
+                    end
+                end else begin
+                    dmem_read_src_r <= DMEM_SRC_NONE;
+                end
+            end
         end
     end
-end
+endgenerate
 
     // ================================================================
     // MMIO 寄存器更新

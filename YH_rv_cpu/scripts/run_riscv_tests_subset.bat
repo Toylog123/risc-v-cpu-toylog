@@ -355,7 +355,7 @@ if not exist "%MANIFEST_PATH%" (
     echo Missing test manifest: %MANIFEST_PATH%
     endlocal & exit /b 1
 )
-for /f "usebackq eol=# delims=" %%L in ("%MANIFEST_PATH%") do (
+for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command "$lines = Get-Content -LiteralPath '%MANIFEST_PATH%' -Encoding UTF8; foreach ($line in $lines) { $t = ($line -replace '^\uFEFF','').Trim(); if ($t -and (-not $t.StartsWith('#'))) { $t } }"`) do (
     if defined MANIFEST_TESTS (
         set "MANIFEST_TESTS=!MANIFEST_TESTS! %%L"
     ) else (

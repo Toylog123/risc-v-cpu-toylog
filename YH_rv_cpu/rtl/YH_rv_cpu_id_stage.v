@@ -10,7 +10,14 @@
 // ============================================================
 
 module YH_rv_cpu_id_stage #(
-    parameter integer XLEN = 32  // 数据通路宽度: 32 (RV32) 或 64 (RV64)
+    parameter integer XLEN = 32,
+    parameter integer ENABLE_M_EXTENSION = 1,
+    parameter integer ENABLE_ZMMUL_EXTENSION = 0,
+    parameter integer ENABLE_BITMANIP_EXTENSION = 1,
+    parameter integer ENABLE_ZBC_EXTENSION = 0,
+    parameter integer ENABLE_ZICOND_EXTENSION = 0,
+    parameter integer ENABLE_ZBKB_EXTENSION = 0,
+    parameter integer ENABLE_XTHEAD_EXTENSION = 1
 ) (
     // ------------------------------------------------------------
     // 流水线输入信号
@@ -40,7 +47,7 @@ module YH_rv_cpu_id_stage #(
     // 立即数和控制信号
     // ------------------------------------------------------------
     output wire [XLEN-1:0] imm,             // 立即数
-    output wire [4:0]      alu_op,          // ALU 操作码
+    output wire [5:0]      alu_op,          // ALU 操作码
     output wire            alu_src1_pc,     // ALU 源 1 选择: 0=rs1, 1=PC
     output wire            alu_src2_imm,    // ALU 源 2 选择: 0=rs2, 1=imm
 
@@ -59,6 +66,11 @@ module YH_rv_cpu_id_stage #(
     output wire            store,           // 存储指令
     output wire [1:0]      mem_size,        // 内存访问宽度
     output wire            mem_unsigned,    // 无符号加载
+    output wire            mem_indexed,
+    output wire [1:0]      mem_index_shift,
+    output wire            store_data_from_rd,
+    output wire            mem_base_update,
+    output wire            mem_base_update_before,
 
     // ------------------------------------------------------------
     // 写回控制和其他
@@ -115,7 +127,14 @@ assign rs2_value = rs2_rdata;
     // 支持 RV32I 和 RV64I 指令集
     // ------------------------------------------------------------
 YH_rv_cpu_decoder #(
-    .XLEN(XLEN)
+    .XLEN(XLEN),
+    .ENABLE_M_EXTENSION(ENABLE_M_EXTENSION),
+    .ENABLE_ZMMUL_EXTENSION(ENABLE_ZMMUL_EXTENSION),
+    .ENABLE_BITMANIP_EXTENSION(ENABLE_BITMANIP_EXTENSION),
+    .ENABLE_ZBC_EXTENSION(ENABLE_ZBC_EXTENSION),
+    .ENABLE_ZICOND_EXTENSION(ENABLE_ZICOND_EXTENSION),
+    .ENABLE_ZBKB_EXTENSION(ENABLE_ZBKB_EXTENSION),
+    .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION)
 ) u_decoder (
     .instruction   (instruction),
     .rs1_addr      (rs1_addr),
@@ -138,6 +157,11 @@ YH_rv_cpu_decoder #(
     .wb_sel        (wb_sel),
     .mem_size      (mem_size),
     .mem_unsigned  (mem_unsigned),
+    .mem_indexed   (mem_indexed),
+    .mem_index_shift(mem_index_shift),
+    .store_data_from_rd(store_data_from_rd),
+    .mem_base_update(mem_base_update),
+    .mem_base_update_before(mem_base_update_before),
     .word_op       (word_op),
     .is_lui        (is_lui),
     .csr_valid     (csr_valid),

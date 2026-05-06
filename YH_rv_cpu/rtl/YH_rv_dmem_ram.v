@@ -2,7 +2,8 @@ module YH_rv_dmem_ram #(
     parameter integer XLEN = 32,
     parameter integer RAM_BYTES = 16384,
     parameter integer SYNC_READ = 0,
-    parameter integer OUTPUT_REG = 0
+    parameter integer OUTPUT_REG = 0,
+    parameter integer READ_NEGEDGE = 0
 ) (
     input  wire            clk,
     input  wire            read_req,
@@ -42,21 +43,43 @@ generate
 `endif
         end
 
-        always @(posedge clk) begin
-            if (write_en && (write_index < RAM_DEPTH)) begin
-                for (byte_idx = 0; byte_idx < STRB_W; byte_idx = byte_idx + 1) begin
-                    if (write_wstrb[byte_idx]) begin
-                        ram_mem[write_index][byte_idx * 8 +: 8] <= write_data[byte_idx * 8 +: 8];
+        if (READ_NEGEDGE != 0) begin : g_negedge_read
+            always @(posedge clk) begin
+                if (write_en && (write_index < RAM_DEPTH)) begin
+                    for (byte_idx = 0; byte_idx < STRB_W; byte_idx = byte_idx + 1) begin
+                        if (write_wstrb[byte_idx]) begin
+                            ram_mem[write_index][byte_idx * 8 +: 8] <= write_data[byte_idx * 8 +: 8];
+                        end
                     end
+                end
+
+                if (OUTPUT_REG != 0) begin
+                    read_data_pipe_r <= read_data_r;
                 end
             end
 
-            if (read_req && (read_index < RAM_DEPTH)) begin
-                read_data_r <= ram_mem[read_index];
+            always @(negedge clk) begin
+                if (read_req && (read_index < RAM_DEPTH)) begin
+                    read_data_r <= ram_mem[read_index];
+                end
             end
+        end else begin : g_posedge_read
+            always @(posedge clk) begin
+                if (write_en && (write_index < RAM_DEPTH)) begin
+                    for (byte_idx = 0; byte_idx < STRB_W; byte_idx = byte_idx + 1) begin
+                        if (write_wstrb[byte_idx]) begin
+                            ram_mem[write_index][byte_idx * 8 +: 8] <= write_data[byte_idx * 8 +: 8];
+                        end
+                    end
+                end
 
-            if (OUTPUT_REG != 0) begin
-                read_data_pipe_r <= read_data_r;
+                if (read_req && (read_index < RAM_DEPTH)) begin
+                    read_data_r <= ram_mem[read_index];
+                end
+
+                if (OUTPUT_REG != 0) begin
+                    read_data_pipe_r <= read_data_r;
+                end
             end
         end
     end else begin : g_async_ram

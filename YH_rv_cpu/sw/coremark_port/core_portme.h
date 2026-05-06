@@ -53,10 +53,68 @@ limitations under the License.
 #endif
 
 #ifndef COMPILER_FLAGS
-#if __riscv_xlen == 64
+#ifdef YH_COREMARK_OPT_O3UNROLL_LTO
+#define COMPILER_FLAGS "-O3 -funroll-loops -flto -march=rv32im_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_O3LTO)
+#define COMPILER_FLAGS "-O3 -flto -march=rv32im_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_OFAST_UNROLL)
+#define COMPILER_FLAGS "-Ofast -funroll-loops -march=rv32im_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_OFAST)
+#define COMPILER_FLAGS "-Ofast -march=rv32im_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_O3UNROLL_B1NOSCHED)
+#define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -march=rv32im_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_O3UNROLL_B1NOSCHED_UALL800)
+#define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -march=rv32im_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_O3UNROLL_B1NOSCHED_UALL800_INLINE_NOCROSS)
+#define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -march=rv32im_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_RV32I_ZMMUL_O3UNROLL_B1NOSCHED_UALL800_INLINE_NOCROSS)
+#define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -march=rv32i_zmmul_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_RV32I_ZMMUL_ZBA_ZBB_ZBS_INLINE_NOCROSS)
+#define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -march=rv32i_zmmul_zba_zbb_zbs_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_RV32I_ZMMUL_ZB_XTHEAD_MEMIDX_NOAUTOINC_O2SCHED_NOCALLER_NOIFCONV)
+#define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -fno-if-conversion -fno-if-conversion2 -fno-auto-inc-dec -march=rv32i_zmmul_zba_zbb_zbs_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_RV32I_ZMMUL_ZBC_XTHEAD_MEMIDX_NOAUTOINC_O2SCHED_NOCALLER_NOIFCONV)
+#define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -fno-if-conversion -fno-if-conversion2 -fno-auto-inc-dec -march=rv32i_zmmul_zba_zbb_zbs_zbc_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_RV32I_ZMMUL_ZBC_ZICOND_XTHEAD_MEMIDX_NOAUTOINC_O2SCHED_NOCALLER)
+#define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -fno-auto-inc-dec -march=rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_RV32I_ZMMUL_ZBC_ZICOND_XTHEAD_MEMIDX_O2SCHED_NOCALLER)
+#define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -march=rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_RV32I_ZMMUL_ZBC_ZBKB_XTHEAD_MEMIDX_NOAUTOINC_O2SCHED_NOCALLER_NOIFCONV)
+#define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -fno-if-conversion -fno-if-conversion2 -fno-auto-inc-dec -march=rv32i_zmmul_zba_zbb_zbs_zbc_zbkb_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_RV32I_ZMMUL_ZBC_ZICOND_ZBKB_XTHEAD_MEMIDX_NOAUTOINC_O2SCHED_NOCALLER)
+#define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -fno-auto-inc-dec -march=rv32i_zmmul_zba_zbb_zbs_zbc_zicond_zbkb_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_RV32IM_ZBA_ZBB_ZBS_INLINE_NOCROSS)
+#define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -march=rv32im_zba_zbb_zbs_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_RV32IM_STD_EXT_INLINE_NOCROSS)
+#define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -march=rv32im_zba_zbb_zbs_zbc_zbkb_zicond_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_RV32IM_STD_EXT_O2SCHED_NOCALLER)
+#define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -march=rv32im_zba_zbb_zbs_zbc_zbkb_zicond_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_RV32IM_ZB_XTHEAD_O2SCHED_NOCALLER)
+#define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -march=rv32im_zba_zbb_zbs_zbc_zbkb_zicond_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_RV32IM_ZB_XTHEAD_O2SCHED_NOCALLER_NOIFCONV)
+#define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -fno-if-conversion -fno-if-conversion2 -march=rv32im_zba_zbb_zbs_zbc_zbkb_zicond_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_RV32IM_ZB_XTHEAD_MEMIDX_O2SCHED_NOCALLER_NOIFCONV)
+#define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -fno-if-conversion -fno-if-conversion2 -march=rv32im_zba_zbb_zbs_zbc_zbkb_zicond_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_RV32IM_ZB_XTHEAD_MEMIDX_NOAUTOINC_O2SCHED_NOCALLER_NOIFCONV)
+#define COMPILER_FLAGS "-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -fno-if-conversion -fno-if-conversion2 -fno-auto-inc-dec -march=rv32im_zba_zbb_zbs_zbc_zbkb_zicond_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_O3UNROLL)
+#define COMPILER_FLAGS "-O3 -funroll-loops -march=rv32im_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_O2UNROLL)
+#define COMPILER_FLAGS "-O2 -funroll-loops -march=rv32im_zicsr -mabi=ilp32"
+#elif defined(YH_COREMARK_OPT_O3)
+#define COMPILER_FLAGS "-O3 -march=rv32im_zicsr -mabi=ilp32"
+#elif __riscv_xlen == 64
+#ifdef __riscv_mul
+#define COMPILER_FLAGS "-O2 -march=rv64im_zicsr -mabi=lp64"
+#else
 #define COMPILER_FLAGS "-O2 -march=rv64i_zicsr -mabi=lp64"
+#endif
+#else
+#ifdef __riscv_mul
+#define COMPILER_FLAGS "-O2 -march=rv32im_zicsr -mabi=ilp32"
 #else
 #define COMPILER_FLAGS "-O2 -march=rv32i_zicsr -mabi=ilp32"
+#endif
 #endif
 #endif
 

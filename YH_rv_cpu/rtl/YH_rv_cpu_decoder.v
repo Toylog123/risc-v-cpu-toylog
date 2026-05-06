@@ -11,7 +11,14 @@
 `include "YH_rv_cpu_defs.vh"
 
 module YH_rv_cpu_decoder #(
-    parameter integer XLEN = 32  // 数据通路宽度: 32 (RV32) 或 64 (RV64)
+    parameter integer XLEN = 32,
+    parameter integer ENABLE_M_EXTENSION = 1,
+    parameter integer ENABLE_ZMMUL_EXTENSION = 0,
+    parameter integer ENABLE_BITMANIP_EXTENSION = 1,
+    parameter integer ENABLE_ZBC_EXTENSION = 0,
+    parameter integer ENABLE_ZICOND_EXTENSION = 0,
+    parameter integer ENABLE_ZBKB_EXTENSION = 0,
+    parameter integer ENABLE_XTHEAD_EXTENSION = 1
 ) (
     // ------------------------------------------------------------
     // 指令输入
@@ -45,7 +52,7 @@ module YH_rv_cpu_decoder #(
     // ------------------------------------------------------------
     // ALU 控制信号
     // ------------------------------------------------------------
-    output reg  [4:0]      alu_op,          // ALU 操作码
+    output reg  [5:0]      alu_op,          // ALU 操作码
     output reg             alu_src1_pc,     // ALU 源操作数 1 选择: 0=rs1, 1=PC
     output reg             alu_src2_imm,     // ALU 源操作数 2 选择: 0=rs2, 1=imm
 
@@ -68,6 +75,11 @@ module YH_rv_cpu_decoder #(
     output reg             store,           // 存储指令标志
     output reg  [1:0]      mem_size,         // 内存访问宽度: B/H/W/D
     output reg             mem_unsigned,     // 加载无符号扩展标志
+    output reg             mem_indexed,
+    output reg  [1:0]      mem_index_shift,
+    output reg             store_data_from_rd,
+    output reg             mem_base_update,
+    output reg             mem_base_update_before,
 
     // ------------------------------------------------------------
     // Word 操作标志 (RV64 32 位字操作)
@@ -126,6 +138,7 @@ wire [XLEN-1:0] imm_s = {{(XLEN-12){instruction[31]}}, instruction[31:25], instr
 wire [XLEN-1:0] imm_b = {{(XLEN-13){instruction[31]}}, instruction[31], instruction[7], instruction[30:25], instruction[11:8], 1'b0};
 wire [XLEN-1:0] imm_u = {{(XLEN-32){instruction[31]}}, instruction[31:12], 12'b0};
 wire [XLEN-1:0] imm_j = {{(XLEN-21){instruction[31]}}, instruction[31], instruction[19:12], instruction[20], instruction[30:21], 1'b0};
+wire [XLEN-1:0] imm_th_inc = {{(XLEN-5){instruction[24]}}, instruction[24:20]};
 
     // ------------------------------------------------------------
     // 寄存器地址分配
@@ -157,6 +170,11 @@ always @* begin
     wb_sel        = `YH_rv_cpu_WB_ALU;   // 默认写回 ALU 结果
     mem_size      = `YH_rv_cpu_MEM_W;    // 默认 32 位访问
     mem_unsigned  = 1'b0;
+    mem_indexed   = 1'b0;
+    mem_index_shift = 2'b00;
+    store_data_from_rd = 1'b0;
+    mem_base_update = 1'b0;
+    mem_base_update_before = 1'b0;
     word_op       = 1'b0;
     is_lui        = 1'b0;
     csr_valid     = 1'b0;
@@ -333,23 +351,31 @@ always @* begin
                 3'b100: alu_op = `YH_rv_cpu_ALU_XOR;   // xori
                 3'b110: alu_op = `YH_rv_cpu_ALU_OR;    // ori
                 3'b111: alu_op = `YH_rv_cpu_ALU_AND;   // andi
-                3'b001: begin                           // slli
-                    alu_op = `YH_rv_cpu_ALU_SLL;
-                    // 移位量检查: RV64 使用 6 位移位量，RV32 使用 5 位
-                    if (XLEN == 64) begin
-                        if (instruction[31:26] != 6'b000000) begin
+                3'b001: begin                           // slli / sext.h
+                    if (instruction[31:20] == 12'h605) begin
+                        if (ENABLE_BITMANIP_EXTENSION != 0) alu_op = `YH_rv_cpu_ALU_SEXT_H;
+                        else illegal = 1'b1;
+                    end else begin
+                        alu_op = `YH_rv_cpu_ALU_SLL;
+                        // 移位量检查: RV64 使用 6 位移位量，RV32 使用 5 位
+                        if (XLEN == 64) begin
+                            if (instruction[31:26] != 6'b000000) begin
+                                illegal = 1'b1;
+                            end
+                        end else if (funct7 != 7'b0000000) begin
                             illegal = 1'b1;
                         end
-                    end else if (funct7 != 7'b0000000) begin
-                        illegal = 1'b1;
                     end
                 end
-                3'b101: begin                           // srli/srai
+                3'b101: begin                           // srli/srai/bexti
                     if (XLEN == 64) begin
                         if (instruction[31:26] == 6'b000000) begin
                             alu_op = `YH_rv_cpu_ALU_SRL; // srli
                         end else if (instruction[31:26] == 6'b010000) begin
                             alu_op = `YH_rv_cpu_ALU_SRA; // srai
+                        end else if (funct7 == 7'b0100100) begin
+                            if (ENABLE_BITMANIP_EXTENSION == 0) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_BEXT; // bexti
                         end else begin
                             illegal = 1'b1;
                         end
@@ -358,6 +384,9 @@ always @* begin
                             alu_op = `YH_rv_cpu_ALU_SRL;
                         end else if (funct7 == 7'b0100000) begin
                             alu_op = `YH_rv_cpu_ALU_SRA;
+                        end else if (funct7 == 7'b0100100) begin
+                            if (ENABLE_BITMANIP_EXTENSION == 0) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_BEXT;
                         end else begin
                             illegal = 1'b1;
                         end
@@ -379,14 +408,38 @@ always @* begin
             // M扩展指令 (funct7=0000001)
             if (funct7 == 7'b0000001) begin
                 case (funct3)
-                    3'b000: alu_op = `YH_rv_cpu_ALU_MUL;     // mul
-                    3'b001: alu_op = `YH_rv_cpu_ALU_MULH;    // mulh
-                    3'b010: alu_op = `YH_rv_cpu_ALU_MULHSU;  // mulhsu
-                    3'b011: alu_op = `YH_rv_cpu_ALU_MULHU;   // mulhu
-                    3'b100: alu_op = `YH_rv_cpu_ALU_DIV;     // div
-                    3'b101: alu_op = `YH_rv_cpu_ALU_DIVU;    // divu
-                    3'b110: alu_op = `YH_rv_cpu_ALU_REM;     // rem
-                    3'b111: alu_op = `YH_rv_cpu_ALU_REMU;    // remu
+                    3'b000: begin
+                        if ((ENABLE_M_EXTENSION != 0) || (ENABLE_ZMMUL_EXTENSION != 0)) alu_op = `YH_rv_cpu_ALU_MUL;
+                        else illegal = 1'b1;
+                    end
+                    3'b001: begin
+                        if ((ENABLE_M_EXTENSION != 0) || (ENABLE_ZMMUL_EXTENSION != 0)) alu_op = `YH_rv_cpu_ALU_MULH;
+                        else illegal = 1'b1;
+                    end
+                    3'b010: begin
+                        if ((ENABLE_M_EXTENSION != 0) || (ENABLE_ZMMUL_EXTENSION != 0)) alu_op = `YH_rv_cpu_ALU_MULHSU;
+                        else illegal = 1'b1;
+                    end
+                    3'b011: begin
+                        if ((ENABLE_M_EXTENSION != 0) || (ENABLE_ZMMUL_EXTENSION != 0)) alu_op = `YH_rv_cpu_ALU_MULHU;
+                        else illegal = 1'b1;
+                    end
+                    3'b100: begin
+                        if (ENABLE_M_EXTENSION != 0) alu_op = `YH_rv_cpu_ALU_DIV;
+                        else illegal = 1'b1;
+                    end
+                    3'b101: begin
+                        if (ENABLE_M_EXTENSION != 0) alu_op = `YH_rv_cpu_ALU_DIVU;
+                        else illegal = 1'b1;
+                    end
+                    3'b110: begin
+                        if (ENABLE_M_EXTENSION != 0) alu_op = `YH_rv_cpu_ALU_REM;
+                        else illegal = 1'b1;
+                    end
+                    3'b111: begin
+                        if (ENABLE_M_EXTENSION != 0) alu_op = `YH_rv_cpu_ALU_REMU;
+                        else illegal = 1'b1;
+                    end
                     default: illegal = 1'b1;
                 endcase
             end else begin
@@ -400,16 +453,155 @@ always @* begin
                             illegal = 1'b1;
                         end
                     end
-                    3'b001: alu_op = `YH_rv_cpu_ALU_SLL;    // sll
-                    3'b010: alu_op = `YH_rv_cpu_ALU_SLT;    // slt
-                    3'b011: alu_op = `YH_rv_cpu_ALU_SLTU;  // sltu
-                    3'b100: alu_op = `YH_rv_cpu_ALU_XOR;    // xor
-                    3'b101: alu_op = (funct7 == 7'b0100000) ? `YH_rv_cpu_ALU_SRA : `YH_rv_cpu_ALU_SRL; // sra/srl
-                    3'b110: alu_op = `YH_rv_cpu_ALU_OR;     // or
-                    3'b111: alu_op = `YH_rv_cpu_ALU_AND;    // and
+                    3'b001: begin                           // sll/clmul
+                        if (funct7 == 7'b0000000) begin
+                            alu_op = `YH_rv_cpu_ALU_SLL;
+                        end else if (funct7 == 7'b0000101) begin
+                            if (ENABLE_ZBC_EXTENSION == 0) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_CLMUL;
+                        end else begin
+                            illegal = 1'b1;
+                        end
+                    end
+                    3'b010: begin                           // slt/sh1add
+                        if (funct7 == 7'b0000000) begin
+                            alu_op = `YH_rv_cpu_ALU_SLT;
+                        end else if (funct7 == 7'b0010000) begin
+                            if (ENABLE_BITMANIP_EXTENSION == 0) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_SH1ADD;
+                        end else begin
+                            illegal = 1'b1;
+                        end
+                    end
+                    3'b011: begin                           // sltu/clmulh
+                        if (funct7 == 7'b0000000) begin
+                            alu_op = `YH_rv_cpu_ALU_SLTU;
+                        end else if (funct7 == 7'b0000101) begin
+                            if (ENABLE_ZBC_EXTENSION == 0) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_CLMULH;
+                        end else begin
+                            illegal = 1'b1;
+                        end
+                    end
+                    3'b100: begin                           // xor/zext.h/pack/sh2add
+                        if (funct7 == 7'b0000000) begin
+                            alu_op = `YH_rv_cpu_ALU_XOR;
+                        end else if ((funct7 == 7'b0000100) && (rs2_addr == 5'd0)) begin
+                            if (ENABLE_BITMANIP_EXTENSION == 0) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_ZEXT_H;
+                        end else if (funct7 == 7'b0000100) begin
+                            if (ENABLE_ZBKB_EXTENSION == 0) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_PACK;
+                        end else if (funct7 == 7'b0010000) begin
+                            if (ENABLE_BITMANIP_EXTENSION == 0) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_SH2ADD;
+                        end else begin
+                            illegal = 1'b1;
+                        end
+                    end
+                    3'b101: begin                           // srl/sra/czero.eqz
+                        if (funct7 == 7'b0000000) begin
+                            alu_op = `YH_rv_cpu_ALU_SRL;
+                        end else if (funct7 == 7'b0100000) begin
+                            alu_op = `YH_rv_cpu_ALU_SRA;
+                        end else if (funct7 == 7'b0000111) begin
+                            if (ENABLE_ZICOND_EXTENSION == 0) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_CZERO_EQZ;
+                        end else begin
+                            illegal = 1'b1;
+                        end
+                    end
+                    3'b110: begin                           // or/max/sh3add
+                        if (funct7 == 7'b0000000) begin
+                            alu_op = `YH_rv_cpu_ALU_OR;
+                        end else if (funct7 == 7'b0000101) begin
+                            if (ENABLE_BITMANIP_EXTENSION == 0) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_MAX;
+                        end else if (funct7 == 7'b0010000) begin
+                            if (ENABLE_BITMANIP_EXTENSION == 0) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_SH3ADD;
+                        end else begin
+                            illegal = 1'b1;
+                        end
+                    end
+                    3'b111: begin                           // and/andn/czero.nez
+                        if (funct7 == 7'b0000000) begin
+                            alu_op = `YH_rv_cpu_ALU_AND;
+                        end else if (funct7 == 7'b0100000) begin
+                            if (ENABLE_BITMANIP_EXTENSION == 0) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_ANDN;
+                        end else if (funct7 == 7'b0000111) begin
+                            if (ENABLE_ZICOND_EXTENSION == 0) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_CZERO_NEZ;
+                        end else begin
+                            illegal = 1'b1;
+                        end
+                    end
                     default: illegal = 1'b1;
                 endcase
             end
+        end
+
+        // ============================================================
+        // CUSTOM-0: small XThead subset used in compiler experiments
+        // ============================================================
+        `YH_rv_cpu_OPCODE_CUSTOM_0: begin
+            rd_en  = 1'b1;
+            rs1_en = 1'b1;
+
+            case (funct3)
+                3'b001: begin                           // th.addsl
+                    rs2_en = 1'b1;
+                    case (funct7)
+                        7'd1: alu_op = `YH_rv_cpu_ALU_TH_ADDSL1;
+                        7'd2: alu_op = `YH_rv_cpu_ALU_TH_ADDSL2;
+                        7'd3: alu_op = `YH_rv_cpu_ALU_TH_ADDSL3;
+                        7'd32: alu_op = `YH_rv_cpu_ALU_TH_MVEQZ;
+                        7'd33: alu_op = `YH_rv_cpu_ALU_TH_MVNEZ;
+                        default: illegal = 1'b1;
+                    endcase
+                end
+                3'b010: begin                           // th.ext
+                    alu_src2_imm = 1'b1;
+                    imm = {{(XLEN-12){1'b0}}, 1'b1, funct7[6:1], rs2_addr};
+                    alu_op = `YH_rv_cpu_ALU_EXT_RANGE;
+                end
+                3'b011: begin                           // th.extu
+                    alu_src2_imm = 1'b1;
+                    imm = {{(XLEN-12){1'b0}}, 1'b0, funct7[6:1], rs2_addr};
+                    alu_op = `YH_rv_cpu_ALU_EXT_RANGE;
+                end
+                3'b100: begin                           // XTheadMemIdx indexed loads
+                    load = 1'b1;
+                    wb_sel = `YH_rv_cpu_WB_MEM;
+                    mem_index_shift = funct7[1:0];
+                    case (funct7[6:2])
+                        5'h00: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_B; mem_unsigned = 1'b0; end
+                        5'h10: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_B; mem_unsigned = 1'b1; end
+                        5'h04: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_H; mem_unsigned = 1'b0; end
+                        5'h14: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_H; mem_unsigned = 1'b1; end
+                        5'h08: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_W; mem_unsigned = 1'b0; end
+                        5'h11: begin mem_base_update = 1'b1; mem_base_update_before = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_B; mem_unsigned = 1'b1; end
+                        5'h0b: begin mem_base_update = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_W; mem_unsigned = 1'b0; end
+                        default: illegal = 1'b1;
+                    endcase
+                end
+                3'b101: begin                           // XTheadMemIdx indexed stores
+                    rd_en = 1'b0;
+                    store = 1'b1;
+                    mem_index_shift = funct7[1:0];
+                    store_data_from_rd = 1'b1;
+                    case (funct7[6:2])
+                        5'h00: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_B; end
+                        5'h04: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_H; end
+                        5'h08: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_W; end
+                        5'h03: begin mem_base_update = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_B; end
+                        5'h0b: begin mem_base_update = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_W; end
+                        default: illegal = 1'b1;
+                    endcase
+                end
+                default: illegal = 1'b1;
+            endcase
         end
 
         // ============================================================

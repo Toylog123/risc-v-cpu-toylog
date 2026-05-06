@@ -29,8 +29,20 @@ set XSIM=
 set TEST_TOP=YH_rv_cpu_coremark_profile_rv32_tb
 set LOG_FILE=%PROJECT_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%_profile.log
 set XSIM_RUN_DIR=
+set ROM_TARGET=rv32
 
-if /I "%TARGET%"=="rv64" set TEST_TOP=YH_rv_cpu_coremark_profile_rv64_tb
+if /I "%TARGET%"=="rv64" (
+    set TEST_TOP=YH_rv_cpu_coremark_profile_rv64_tb
+    set ROM_TARGET=rv64
+)
+if /I "%TARGET%"=="rv64im" (
+    set TEST_TOP=YH_rv_cpu_coremark_profile_rv64_tb
+    set ROM_TARGET=rv64
+)
+if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_xthead_memidx_noautoinc_o2sched_nocaller_noifconv" (
+    set TEST_TOP=YH_rv_cpu_coremark_profile_rv32_zmmul_bitmanip_zbc_xthead_idbr_tb
+    set ROM_TARGET=rv32
+)
 
 rem Resolve simulator tools dynamically to avoid hard-coded Vivado install paths.
 for %%T in (xvlog.bat xvlog) do (
@@ -80,10 +92,10 @@ if not defined XSIM_RUN_DIR exit /b 1
 
 rem Copy the program image into the throwaway runtime directory expected by the testbench.
 if not exist "%XSIM_RUN_DIR%\build\sw" mkdir "%XSIM_RUN_DIR%\build\sw"
-copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%.hex" >nul
+copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%ROM_TARGET%.hex" >nul
 if errorlevel 1 exit /b 1
 if exist "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.mem32.hex" (
-    copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.mem32.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%.mem32.hex" >nul
+    copy /y "%PROJECT_DIR%\build\sw\%BUILD_OUTPUT_NAME%.mem32.hex" "%XSIM_RUN_DIR%\build\sw\YH_rv_cpu_coremark_%ROM_TARGET%.mem32.hex" >nul
     if errorlevel 1 exit /b 1
 )
 
@@ -120,26 +132,7 @@ if errorlevel 1 goto :fail
 
 echo.
 echo Profile summary:
-findstr /c:"PROFILE: total_cycles=" "%LOG_FILE%"
-findstr /c:"PROFILE: stall_decode_cycles=" "%LOG_FILE%"
-findstr /c:"PROFILE: mem_wait_cycles=" "%LOG_FILE%"
-findstr /c:"PROFILE: ex_trap_valid_cycles=" "%LOG_FILE%"
-findstr /c:"PROFILE: ex_mret_valid_cycles=" "%LOG_FILE%"
-findstr /c:"PROFILE: ex_branch_redirect_cycles=" "%LOG_FILE%"
-findstr /c:"PROFILE: ex_beq_redirect_cycles=" "%LOG_FILE%"
-findstr /c:"PROFILE: ex_bne_redirect_cycles=" "%LOG_FILE%"
-findstr /c:"PROFILE: ex_blt_redirect_cycles=" "%LOG_FILE%"
-findstr /c:"PROFILE: ex_bge_redirect_cycles=" "%LOG_FILE%"
-findstr /c:"PROFILE: ex_bltu_redirect_cycles=" "%LOG_FILE%"
-findstr /c:"PROFILE: ex_bgeu_redirect_cycles=" "%LOG_FILE%"
-findstr /c:"PROFILE: ex_jal_redirect_cycles=" "%LOG_FILE%"
-findstr /c:"PROFILE: ex_jalr_redirect_cycles=" "%LOG_FILE%"
-findstr /c:"PROFILE: ex_fetch_redirect_valid_cycles=" "%LOG_FILE%"
-findstr /c:"PROFILE: fetch_queue_empty_cycles=" "%LOG_FILE%"
-findstr /c:"PROFILE: fetch_redirect_reuse_cycles=" "%LOG_FILE%"
-findstr /c:"PROFILE: fetch_redirect_reuse_miss_cycles=" "%LOG_FILE%"
-findstr /c:"PROFILE: fetch_redirect_buf0_hit_cycles=" "%LOG_FILE%"
-findstr /c:"PROFILE: fetch_redirect_buf1_hit_cycles=" "%LOG_FILE%"
+findstr /c:"PROFILE:" "%LOG_FILE%"
 
 echo.
 echo PASS: coremark profile completed.

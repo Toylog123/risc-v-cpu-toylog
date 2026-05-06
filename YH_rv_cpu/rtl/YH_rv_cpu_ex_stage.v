@@ -12,7 +12,14 @@
 `include "YH_rv_cpu_defs.vh"
 
 module YH_rv_cpu_ex_stage #(
-    parameter integer XLEN = 32  // 数据通路宽度: 32 (RV32) 或 64 (RV64)
+    parameter integer XLEN = 32,  // 数据通路宽度: 32 (RV32) 或 64 (RV64)
+    parameter integer ENABLE_M_EXTENSION = 1,
+    parameter integer ENABLE_ZMMUL_EXTENSION = 0,
+    parameter integer ENABLE_BITMANIP_EXTENSION = 1,
+    parameter integer ENABLE_ZBC_EXTENSION = 0,
+    parameter integer ENABLE_ZICOND_EXTENSION = 0,
+    parameter integer ENABLE_ZBKB_EXTENSION = 0,
+    parameter integer ENABLE_XTHEAD_EXTENSION = 1
 ) (
     // ------------------------------------------------------------
     // 输入信号 (来自 ID/EX 流水线寄存器)
@@ -21,7 +28,7 @@ module YH_rv_cpu_ex_stage #(
     input  wire [XLEN-1:0] rs1_value,       // 源寄存器 1 值 (已转发)
     input  wire [XLEN-1:0] rs2_value,       // 源寄存器 2 值 (已转发)
     input  wire [XLEN-1:0] imm,             // 立即数
-    input  wire [4:0]      alu_op,          // ALU 操作码
+    input  wire [5:0]      alu_op,          // ALU 操作码
     input  wire            alu_src1_pc,     // ALU 源 1 选择: 0=rs1, 1=PC
     input  wire            alu_src2_imm,    // ALU 源 2 选择: 0=rs2, 1=imm
     input  wire            branch,          // 分支指令标志
@@ -31,6 +38,12 @@ module YH_rv_cpu_ex_stage #(
     input  wire            load,            // 加载指令
     input  wire            store,           // 存储指令
     input  wire [1:0]      mem_size,        // 内存访问宽度
+    input  wire            mem_indexed,     // XThead indexed load/store address mode
+    input  wire [1:0]      mem_index_shift, // XThead index scale shift
+    input  wire            store_data_from_rd, // XThead store uses rd as data source
+    input  wire [XLEN-1:0] store_data_value, // optional rd-as-source store data
+    input  wire            mem_base_update, // XThead auto-inc/dec base update mode
+    input  wire            mem_base_update_before,
     input  wire            word_op,         // 32 位字操作 (RV64)
     input  wire            is_lui,          // LUI 指令
 
@@ -39,6 +52,7 @@ module YH_rv_cpu_ex_stage #(
     // ------------------------------------------------------------
     output wire [XLEN-1:0] exec_result,     // 执行结果 (ALU/PC+imm/LUI)
     output wire [XLEN-1:0] mem_addr,        // 内存访问地址
+    output wire [XLEN-1:0] mem_base_update_value,
     output reg  [XLEN-1:0] store_data,      // 存储数据 (格式化后)
     output reg  [XLEN/8-1:0] store_wstrb,  // 存储字节使能
     output wire            redirect_en,     // PC 重定向使能
@@ -61,6 +75,9 @@ wire [XLEN-1:0] alu_lhs;           // ALU 左操作数
 wire [XLEN-1:0] alu_rhs;           // ALU 右操作数
 wire [XLEN-1:0] alu_result;        // ALU 结果
 wire [XLEN-1:0] rs1_plus_imm;     // rs1 + imm (内存地址计算)
+wire [XLEN-1:0] mem_index_offset; // XThead indexed address offset
+wire [XLEN-1:0] mem_update_offset;
+wire [XLEN-1:0] store_data_raw;   // selected store source before size formatting
 wire [XLEN-1:0] pc_plus_imm;      // pc + imm (分支目标)
 wire [XLEN-1:0] jalr_target;      // JALR 目标地址
 reg  [31:0]     word_result;       // 32 位字结果 (RV64)
@@ -86,7 +103,12 @@ assign alu_rhs = alu_src2_imm ? imm : rs2_value;
     // pc_plus_imm: 相对跳转目标 (JAL/分支)
     // jalr_target: JALR 目标 (rs1 + imm) & ~1
     // ------------------------------------------------------------
-assign rs1_plus_imm = rs1_value + imm;
+assign mem_index_offset = rs2_value << mem_index_shift;
+assign mem_update_offset = imm << mem_index_shift;
+assign rs1_plus_imm = mem_base_update ?
+    (mem_base_update_before ? (rs1_value + mem_update_offset) : rs1_value) :
+    (mem_indexed ? (rs1_value + mem_index_offset) : (rs1_value + imm));
+assign store_data_raw = store_data_from_rd ? store_data_value : rs2_value;
 assign pc_plus_imm = pc + imm;
 assign jalr_target = {rs1_plus_imm[XLEN-1:1], 1'b0};  // JALR 要求最低位为 0
 
@@ -106,7 +128,14 @@ assign word_result_sext = {{(XLEN-32){word_result[31]}}, word_result};
     // 执行所有算术逻辑运算
     // ------------------------------------------------------------
 YH_rv_cpu_alu #(
-    .XLEN(XLEN)
+    .XLEN(XLEN),
+    .ENABLE_M_EXTENSION(ENABLE_M_EXTENSION),
+    .ENABLE_ZMMUL_EXTENSION(ENABLE_ZMMUL_EXTENSION),
+    .ENABLE_BITMANIP_EXTENSION(ENABLE_BITMANIP_EXTENSION),
+    .ENABLE_ZBC_EXTENSION(ENABLE_ZBC_EXTENSION),
+    .ENABLE_ZICOND_EXTENSION(ENABLE_ZICOND_EXTENSION),
+    .ENABLE_ZBKB_EXTENSION(ENABLE_ZBKB_EXTENSION),
+    .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION)
 ) u_alu (
     .alu_op (alu_op),
     .lhs    (alu_lhs),
@@ -139,6 +168,7 @@ assign branch_taken =
     // 其他: ALU 结果
     // ------------------------------------------------------------
 assign mem_addr = rs1_plus_imm;  // 内存访问地址始终为 rs1 + imm
+assign mem_base_update_value = rs1_value + mem_update_offset;
 assign exec_result = is_lui ? imm : ((word_op && (XLEN == 64)) ? word_result_sext : alu_result);
 
     // ------------------------------------------------------------
@@ -189,23 +219,23 @@ always @* begin
 
     case (mem_size)
         `YH_rv_cpu_MEM_B: begin
-            store_data = {{(XLEN-8){1'b0}}, rs2_value[7:0]} << {byte_offset, 3'b000};
+            store_data = {{(XLEN-8){1'b0}}, store_data_raw[7:0]} << {byte_offset, 3'b000};
             store_wstrb = {{(STRB_W-1){1'b0}}, 1'b1} << byte_offset;
         end
 
         `YH_rv_cpu_MEM_H: begin
-            store_data = {{(XLEN-16){1'b0}}, rs2_value[15:0]} << {byte_offset, 3'b000};
+            store_data = {{(XLEN-16){1'b0}}, store_data_raw[15:0]} << {byte_offset, 3'b000};
             store_wstrb = {{(STRB_W-2){1'b0}}, 2'b11} << byte_offset;
         end
 
         `YH_rv_cpu_MEM_W: begin
-            store_data = {{(XLEN-32){1'b0}}, rs2_value[31:0]} << {byte_offset, 3'b000};
+            store_data = {{(XLEN-32){1'b0}}, store_data_raw[31:0]} << {byte_offset, 3'b000};
             store_wstrb = {{(STRB_W-4){1'b0}}, 4'hf} << byte_offset;
         end
 
         default: begin
             // 双字访问: 不移位，使用全部字节
-            store_data = rs2_value;
+            store_data = store_data_raw;
             store_wstrb = {STRB_W{1'b1}};
         end
     endcase
