@@ -1,19 +1,21 @@
-﻿# CICC1003618_初赛_源代码
+# CICC1003618_初赛_源代码
 
-本目录用于后续打包生成初赛“技术数据（代码类）”提交文件，保留与复现直接相关的最小工程集合，不包含项目管理文档和重复材料。
+本目录为第十届全国大学生集成电路创新创业大赛初赛“技术数据（代码类）”提交内容，包含 YH_rv_cpu 处理器设计、验证程序、基准测试程序以及 FPGA 原型实现所需的主要源码与脚本。
 
 ## 目录说明
 
 - `rtl/`：CPU、SoC、存储与缓存等 RTL 设计代码
 - `tb/`：功能回归、性能测试、定向诊断 TestBench
-- `sw/`：RISC-V 测试程序、CoreMark/Dhrystone 适配、示例应用与链接脚本
+- `sw/`：RISC-V 测试程序、CoreMark/Dhrystone 适配程序、示例应用与链接脚本
 - `fpga/`：PYNQ-Z2 适配工程、约束文件、Vivado TCL 脚本与顶层封装
 - `scripts/`：构建、仿真、性能测试、Vivado 构建与结果整理脚本
-- `运行环境说明.md`：软硬件环境与基本复现入口
+- `运行环境说明.md`：软硬件环境说明与基本复现入口
 
-## 建议打包方式
+## 代码内容说明
 
-提交前可直接将本目录整体压缩为一个 ZIP 文件，并按大赛命名规则命名为 `CICC1003618_初赛_源代码.zip`。
+- 处理器实现：五级流水 RV32 处理器，支持整数指令、乘法相关扩展和位操作扩展
+- 验证内容：包含功能回归、基准程序、定向诊断和 SoC 烟雾测试
+- FPGA 原型：提供 PYNQ-Z2 顶层、约束文件、构建脚本和板级验证入口
 
 ## 复现入口
 
@@ -22,23 +24,30 @@
 3. Dhrystone：`scripts/run_dhrystone_score.bat`
 4. PYNQ-Z2 工程生成与实现：`scripts/build_pynq_z2_project.bat`
 
-## 串口采集入口
+## 板级串口说明
 
-PL 软核 UART 已通过 Pmod B 引出。PYNQ-Z2 板载 Micro-USB 串口连接 Zynq PS 侧，不直接连接本 RTL-only 软核 UART；录制软核文本输出时，需要外接 `3.3 V` USB-UART 到 Pmod B：
+PYNQ-Z2 板载 Micro-USB 主要用于 JTAG 下载与 PS 侧串口识别。PL 侧软核 UART 通过 Pmod B 引出，如需采集软核输出信息，应外接 `3.3 V` USB-UART 模块：
 
 - FPGA TX：`uart_rxd_out`，`JB1 / Y14`，连接外部 USB-UART 适配器 `RX`
 - FPGA RX：`uart_txd_in`，`JB0 / W14`，可选连接外部 USB-UART 适配器 `TX`
 - GND：外部 USB-UART 与 PYNQ-Z2 共地
 
-采集命令：
+串口采集命令：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\capture_uart.ps1 -List
 powershell -ExecutionPolicy Bypass -File .\scripts\capture_uart.ps1 -Port COMx -Seconds 20
 ```
 
-demo 固件会通过 MMIO UART 输出 `YH_rv_cpu boot`，可用于视频中的软核串口演示。
+示例固件会通过 MMIO UART 输出 `YH_rv_cpu boot`，可用于板级功能演示。
 
-当前冻结提交口径为 `RV32I + Zmmul + Zba/Zbb/Zbs`，对应 `4.137461 CoreMark/MHz`、`2.908287 DMIPS/MHz`、`4934 LUT`、PYNQ-Z2 `PROGRAM_OK`。Zbc、XThead、IDBR 相关代码和测试可作为参数化探索路径参考，但不作为本次冻结 bitstream 的正式能力宣称。源码注释率按提交统计口径约为 `30.27%`，补注释后已从本目录直接运行 `scripts\run_zmmul_test.bat` 并通过。
+## 主要结果
 
-本目录仅保留提交所需代码与脚本。性能日志、材料文稿和阶段性管理文件统一放在提交材料的其他目录中维护。
+- CoreMark：`4.137461 CoreMark/MHz`
+- Dhrystone：`2.908287 DMIPS/MHz`
+- FPGA 实现资源：`4934 LUT / 2327 FF / 4 BRAM / 15 DSP`
+- 板级实现频率：`50.0 MHz`
+
+## 说明
+
+本目录仅保留与设计复现、验证和 FPGA 原型实现直接相关的代码、脚本与说明文件。详细的性能结果、验证数据和提交文档请参见提交材料目录中的对应文件。
