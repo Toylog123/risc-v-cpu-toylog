@@ -46,3 +46,5 @@
 | 2026-05-07 | 补齐 `th.lwib` before-update word load | directed test 新增 `th.lwib x15,(x14),4,0`；decoder 增加 `5'h09` load word before-update | `run_xthead_memidx_test.bat` PASS，`cycles=22` | 修复 XThead memidx Dhrystone 卡死根因 |
 | 2026-05-07 | DMIPS 3+ 复验 | 同一 Dhrystone 优化口径，target `rv32i_zmmul_zba_zbb_zbs_zbc_xthead_idbr` | `3.134092 DMIPS/MHz`，`550660 Dhrystones/s`，`44078 cycles` | DMIPS 目标已达到 |
 | 2026-05-07 | CoreMark 补丁后复验 | `scripts\run_coremark_score.bat rv32i_zmmul_zba_zbb_zbs_zbc_xthead_memidx_noautoinc_o2sched_nocaller_noifconv 10 2000 100000000UL 30000000 build\sw\coremark5_after_lwib_20260507.summary.txt` | `5.162186 CoreMark/MHz`，`1937164 ticks` | `th.lwib` 补丁未造成 CoreMark 回退 |
+| 2026-05-07 | PYNQ-Z2 FPGA 实现 | `50 MHz`，`Zmmul/Zba/Zbb/Zbs/Zbc/XThead/IDBR` 打开，完整 `M`/`Zicond`/`Zbkb` 关闭 | `5918 LUT`，`2382 FF`，`4 BRAM`，`15 DSP`，`WNS +0.358 ns`，`WHS +0.126 ns`，bitstream 生成 | 满足约 `6000 LUT` 放宽边界与 `50 MHz` 时序；可作为高分候选冻结点 |
+| 2026-05-07 | 高分候选材料备份 | `artifacts/coremark5_dmips3_20260507/` | 已复制 bitstream、CoreMark/Dhrystone 日志、综合/实现报告 | 便于明天验收和后续板级复测 |
