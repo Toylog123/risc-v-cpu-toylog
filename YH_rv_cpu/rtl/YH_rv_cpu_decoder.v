@@ -581,6 +581,7 @@ always @* begin
                         5'h04: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_H; mem_unsigned = 1'b0; end
                         5'h14: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_H; mem_unsigned = 1'b1; end
                         5'h08: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_W; mem_unsigned = 1'b0; end
+                        5'h09: begin mem_base_update = 1'b1; mem_base_update_before = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_W; mem_unsigned = 1'b0; end
                         5'h11: begin mem_base_update = 1'b1; mem_base_update_before = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_B; mem_unsigned = 1'b1; end
                         5'h0b: begin mem_base_update = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_W; mem_unsigned = 1'b0; end
                         default: illegal = 1'b1;

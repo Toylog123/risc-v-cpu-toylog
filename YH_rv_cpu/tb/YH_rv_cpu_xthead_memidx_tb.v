@@ -86,7 +86,8 @@ always @(posedge clk) begin
         end
 
         if (dmem_read_req && (dmem_addr != 32'd24) &&
-            (dmem_addr != 32'd41) && (dmem_addr != 32'd64)) begin
+            (dmem_addr != 32'd41) && (dmem_addr != 32'd64) &&
+            (dmem_addr != 32'd68)) begin
             $fatal(1, "FAIL: th indexed load used wrong address %h", dmem_addr);
         end
 
@@ -134,6 +135,9 @@ always @(posedge clk) begin
             if (dut.u_regfile.regs[8] != 32'h1234_5678) begin
                 $fatal(1, "FAIL: th.lwia loaded x8=%h", dut.u_regfile.regs[8]);
             end
+            if (dut.u_regfile.regs[15] != 32'h1234_5678) begin
+                $fatal(1, "FAIL: th.lwib loaded x15=%h", dut.u_regfile.regs[15]);
+            end
             if (dut.u_regfile.regs[10] != 32'd41) begin
                 $fatal(1, "FAIL: th.lbuib base update x10=%h", dut.u_regfile.regs[10]);
             end
@@ -142,6 +146,9 @@ always @(posedge clk) begin
             end
             if (dut.u_regfile.regs[12] != 32'd68) begin
                 $fatal(1, "FAIL: th.lwia base update x12=%h", dut.u_regfile.regs[12]);
+            end
+            if (dut.u_regfile.regs[14] != 32'd68) begin
+                $fatal(1, "FAIL: th.lwib base update x14=%h", dut.u_regfile.regs[14]);
             end
             if (dut.u_regfile.regs[13] != 32'd84) begin
                 $fatal(1, "FAIL: th.swia base update x13=%h", dut.u_regfile.regs[13]);
@@ -182,9 +189,11 @@ initial begin
     imem[9] = th_memidx(5'h03, 2'd0, 5'd1, 5'd11, 3'b101, 5'd7); // th.sbia x7,(x11),1,0
     imem[10] = rv32_i(12'd64, 5'd0, 3'b000, 5'd12, 7'b0010011); // x12 = 64
     imem[11] = th_memidx(5'h0b, 2'd0, 5'd4, 5'd12, 3'b100, 5'd8); // th.lwia x8,(x12),4,0
-    imem[12] = rv32_i(12'd80, 5'd0, 3'b000, 5'd13, 7'b0010011); // x13 = 80
-    imem[13] = th_memidx(5'h0b, 2'd0, 5'd4, 5'd13, 3'b101, 5'd8); // th.swia x8,(x13),4,0
-    imem[14] = rv32_i(12'd9,  5'd0, 3'b000, 5'd9, 7'b0010011); // done marker
+    imem[12] = rv32_i(12'd64, 5'd0, 3'b000, 5'd14, 7'b0010011); // x14 = 64
+    imem[13] = th_memidx(5'h09, 2'd0, 5'd4, 5'd14, 3'b100, 5'd15); // th.lwib x15,(x14),4,0
+    imem[14] = rv32_i(12'd80, 5'd0, 3'b000, 5'd13, 7'b0010011); // x13 = 80
+    imem[15] = th_memidx(5'h0b, 2'd0, 5'd4, 5'd13, 3'b101, 5'd8); // th.swia x8,(x13),4,0
+    imem[16] = rv32_i(12'd9,  5'd0, 3'b000, 5'd9, 7'b0010011); // done marker
 
     #20;
     rst_n = 1'b1;

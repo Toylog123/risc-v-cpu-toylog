@@ -38,3 +38,11 @@
 | 时间 | 实验 | 命令/配置 | 结果 | 结论 |
 | --- | --- | --- | --- | --- |
 | 2026-05-06 | 建立优化节点 | `opt/coremark5-dmips3-20260506` from `634c400` | 待测 | 作为 CoreMark 5+ / DMIPS 3+ 独立探索节点 |
+| 2026-05-06 | 导入高分候选工程路径 | 迁移 `perf/coremark-over-1p5` 的 `rtl/tb/scripts/sw/fpga` 工程层 | `check_toolchain.bat` PASS，`check_syntax.bat` PASS | 初赛冻结提交材料未迁移旧版本，优化在隔离节点进行 |
+| 2026-05-06 | 高分候选定向回归 | `run_zmmul_test.bat`、`run_bitmanip_fast_subset_test.bat`、`run_xthead_memidx_test.bat`、`run_id_branch_fast_diag.bat`、`run_id_jal_fast_diag.bat`、`run_load_use_fast_diag.bat`、`run_sync_dmem_fast_diag.bat`、`run_branch_predict_diag.bat` | 全部 PASS | `Zmmul/Bitmanip/XThead/IDBR/JAL early redirect/load-use` 基础功能可用 |
+| 2026-05-06 | CoreMark 5+ 复验 | `scripts\run_coremark_score.bat rv32i_zmmul_zba_zbb_zbs_zbc_xthead_memidx_noautoinc_o2sched_nocaller_noifconv 10 2000 100000000UL 30000000 build\sw\coremark5_recheck_20260506.summary.txt` | `5.162186 CoreMark/MHz`，`1937164 ticks`，`1971888 cycles` | CoreMark 目标已达到，仍需与 DMIPS、FPGA 资源一起冻结 |
+| 2026-05-06 | Dhrystone 冻结口径复验 | `DHRYSTONE_OPT_LEVEL=-O3`，`DHRYSTONE_EXTRA_CFLAGS=-flto -fwhole-program`，`DHRYSTONE_STRIP_NOINLINE=1`，target `rv32i_zmmul_zba_zbb_zbs` | `2.908287 DMIPS/MHz`，`510986 Dhrystones/s`，`44228 cycles` | 与初赛冻结材料口径一致 |
+| 2026-05-06 | Dhrystone `Zbc/XThead/IDBR` 初跑 | 同一 Dhrystone 优化口径，target `rv32i_zmmul_zba_zbb_zbs_zbc_xthead_idbr` | 10 分钟未收敛；短跑定位 `PC=0x000000e4` 反复 `sync_trap`，`mepc=0x000000dc` | 根因是编译器生成 `th.lwib`，decoder 未覆盖 `funct7[6:2]=5'h09` |
+| 2026-05-07 | 补齐 `th.lwib` before-update word load | directed test 新增 `th.lwib x15,(x14),4,0`；decoder 增加 `5'h09` load word before-update | `run_xthead_memidx_test.bat` PASS，`cycles=22` | 修复 XThead memidx Dhrystone 卡死根因 |
+| 2026-05-07 | DMIPS 3+ 复验 | 同一 Dhrystone 优化口径，target `rv32i_zmmul_zba_zbb_zbs_zbc_xthead_idbr` | `3.134092 DMIPS/MHz`，`550660 Dhrystones/s`，`44078 cycles` | DMIPS 目标已达到 |
+| 2026-05-07 | CoreMark 补丁后复验 | `scripts\run_coremark_score.bat rv32i_zmmul_zba_zbb_zbs_zbc_xthead_memidx_noautoinc_o2sched_nocaller_noifconv 10 2000 100000000UL 30000000 build\sw\coremark5_after_lwib_20260507.summary.txt` | `5.162186 CoreMark/MHz`，`1937164 ticks` | `th.lwib` 补丁未造成 CoreMark 回退 |
