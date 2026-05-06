@@ -37,6 +37,7 @@
 | `reports/synth_timing_summary.rpt` | 综合后时序报告 |
 | `logs/program_pynq_z2_bitstream.log` | 最终 bitstream 硬件下载日志，包含 `PROGRAM_OK` |
 | `logs/pl_uart_capture_COM7_20260506_diag_metrics_verified.txt` | 最终 bitstream 下载后串口抓取日志，连续输出 `YH_rv_cpu CoreMark/MHz=4.137461 DMIPS/MHz=2.908287 tick=XX pc=XXXXXXXX` |
+| `../CICC1003618_初赛_FPGA原型系统上板演示视频.mp4` | FPGA 原型系统上板演示视频，展示 Vivado 下载、PYNQ-Z2 连线和 UART 实时输出 |
 | `BOARD_UART_RESULT_2026-05-06.md` | 上板 UART 复验记录 |
 
 ## 上板连接说明
