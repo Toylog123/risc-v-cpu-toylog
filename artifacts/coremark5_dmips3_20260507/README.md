@@ -7,7 +7,7 @@ This directory freezes the 2026-05-07 exploration candidate for local review and
 | Item | Result |
 | --- | --- |
 | Branch | `opt/coremark5-dmips3-20260506` |
-| Commit | `269e889` plus artifact commit |
+| Commit | `8c0585b` |
 | CPU config | `RV32I + Zmmul + Zba/Zbb/Zbs + Zbc + XThead memidx/condmov + IDBR cmp-cheapALU + JAL early redirect` |
 | CPU clock | `50 MHz` on PYNQ-Z2 |
 | CoreMark/MHz | `5.162186` |
