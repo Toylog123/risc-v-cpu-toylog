@@ -550,6 +550,14 @@ always @* begin
             rs1_en = 1'b1;
 
             case (funct3)
+                3'b000: begin                           // YH custom CRC16 accelerator
+                    rs2_en = 1'b1;
+                    case (funct7)
+                        7'd40: alu_op = `YH_rv_cpu_ALU_XCRC16;
+                        7'd41: alu_op = `YH_rv_cpu_ALU_XCRC32;
+                        default: illegal = 1'b1;
+                    endcase
+                end
                 3'b001: begin                           // th.addsl
                     rs2_en = 1'b1;
                     case (funct7)

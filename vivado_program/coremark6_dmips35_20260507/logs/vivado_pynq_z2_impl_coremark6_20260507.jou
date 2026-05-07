@@ -1,0 +1,24 @@
+#-----------------------------------------------------------
+# Vivado v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Thu May  7 13:01:36 2026
+# Process ID         : 29004
+# Current directory  : W:/project
+# Command line       : vivado.exe -mode batch -notrace -log W:\_tmp\tool_logs\vivado\vivado_pynq_z2_impl.log -journal W:\_tmp\tool_logs\vivado\vivado_pynq_z2_impl.jou -source W:\YH_rv_cpu\scripts\..\fpga\vivado\scripts\build_pynq_z2_project.tcl -tclargs impl
+# Log file           : W:/_tmp/tool_logs/vivado/vivado_pynq_z2_impl.log
+# Journal file       : W:\_tmp\tool_logs\vivado\vivado_pynq_z2_impl.jou
+# Running On         : Toylog_desktop
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26200
+# Processor Detail   : AMD Ryzen 7 7435H
+# CPU Frequency      : 3094 MHz
+# CPU Physical cores : 8
+# CPU Logical cores  : 16
+# Host memory        : 34082 MB
+# Swap memory        : 3355 MB
+# Total Virtual      : 37438 MB
+# Available Virtual  : 12450 MB
+#-----------------------------------------------------------
+source {W:\YH_rv_cpu\scripts\..\fpga\vivado\scripts\build_pynq_z2_project.tcl} -notrace

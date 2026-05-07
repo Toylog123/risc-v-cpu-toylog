@@ -649,9 +649,20 @@ assign id_branch_decode_idex_forward_cheap =
     (
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_ADD) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_SUB) ||
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_SLT) ||
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_SLTU) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_XOR) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_OR)  ||
-        (id_ex_alu_op_r == `YH_rv_cpu_ALU_AND)
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_AND) ||
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_SH1ADD) ||
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_SH2ADD) ||
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_SH3ADD) ||
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_ADDSL1) ||
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_ADDSL2) ||
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_ADDSL3) ||
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_ANDN) ||
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_SEXT_H) ||
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_ZEXT_H)
     );
 assign id_branch_decode_idex_value_available =
     (ENABLE_ID_BRANCH_EX_FORWARD != 0) &&
@@ -699,9 +710,20 @@ assign id_branch_decode_idex_alu_rhs = id_ex_alu_src2_imm_r ? id_ex_imm_r : ex_r
 always @* begin
     case (id_ex_alu_op_r)
         `YH_rv_cpu_ALU_SUB: id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs - id_branch_decode_idex_alu_rhs;
+        `YH_rv_cpu_ALU_SLT: id_branch_decode_idex_cheap_result = {{(XLEN-1){1'b0}}, ($signed(id_branch_decode_idex_alu_lhs) < $signed(id_branch_decode_idex_alu_rhs))};
+        `YH_rv_cpu_ALU_SLTU: id_branch_decode_idex_cheap_result = {{(XLEN-1){1'b0}}, (id_branch_decode_idex_alu_lhs < id_branch_decode_idex_alu_rhs)};
         `YH_rv_cpu_ALU_XOR: id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs ^ id_branch_decode_idex_alu_rhs;
         `YH_rv_cpu_ALU_OR:  id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs | id_branch_decode_idex_alu_rhs;
         `YH_rv_cpu_ALU_AND: id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs & id_branch_decode_idex_alu_rhs;
+        `YH_rv_cpu_ALU_SH1ADD: id_branch_decode_idex_cheap_result = (id_branch_decode_idex_alu_lhs << 1) + id_branch_decode_idex_alu_rhs;
+        `YH_rv_cpu_ALU_SH2ADD: id_branch_decode_idex_cheap_result = (id_branch_decode_idex_alu_lhs << 2) + id_branch_decode_idex_alu_rhs;
+        `YH_rv_cpu_ALU_SH3ADD: id_branch_decode_idex_cheap_result = (id_branch_decode_idex_alu_lhs << 3) + id_branch_decode_idex_alu_rhs;
+        `YH_rv_cpu_ALU_TH_ADDSL1: id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs + (id_branch_decode_idex_alu_rhs << 1);
+        `YH_rv_cpu_ALU_TH_ADDSL2: id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs + (id_branch_decode_idex_alu_rhs << 2);
+        `YH_rv_cpu_ALU_TH_ADDSL3: id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs + (id_branch_decode_idex_alu_rhs << 3);
+        `YH_rv_cpu_ALU_ANDN: id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs & ~id_branch_decode_idex_alu_rhs;
+        `YH_rv_cpu_ALU_SEXT_H: id_branch_decode_idex_cheap_result = {{(XLEN-16){id_branch_decode_idex_alu_lhs[15]}}, id_branch_decode_idex_alu_lhs[15:0]};
+        `YH_rv_cpu_ALU_ZEXT_H: id_branch_decode_idex_cheap_result = {{(XLEN-16){1'b0}}, id_branch_decode_idex_alu_lhs[15:0]};
         default:           id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs + id_branch_decode_idex_alu_rhs;
     endcase
 end
@@ -785,7 +807,6 @@ assign id_branch_predict_redirect_valid =
     id_branch &&
     !id_illegal &&
     id_imm[XLEN-1] &&
-    (id_branch_funct3 == 3'b001) &&
     !id_branch_decode_operands_ready;
 assign id_branch_predict_redirect_pc = if_id_pc_r + id_imm;
 assign id_jal_predict_redirect_valid =
@@ -810,7 +831,7 @@ assign fetch_control_redirect_pc =
     ex_fetch_redirect_valid ? ex_control_redirect_pc :
     id_decode_redirect_valid ? id_decode_redirect_pc :
     id_predict_redirect_pc;
-assign decode_flush_valid = ex_decode_flush_valid || id_decode_redirect_valid;
+assign decode_flush_valid = ex_decode_flush_valid || ((IMEM_SYNC != 0) && id_decode_redirect_valid);
 assign async_redirect_refill_valid =
     (IMEM_SYNC == 0) &&
     (
@@ -1744,8 +1765,8 @@ always @(posedge clk or negedge rst_n) begin
                     id_ex_alu_src2_imm_r <= id_alu_src2_imm;
                     id_ex_branch_r <= id_branch;
                     id_ex_branch_funct3_r <= id_branch_funct3;
-                    id_ex_branch_predict_taken_r <= id_branch_predict_redirect_valid || id_jal_predict_redirect_valid;
-                    id_ex_branch_predict_pc_r <= id_predict_redirect_pc;
+                    id_ex_branch_predict_taken_r <= id_decode_redirect_valid || id_branch_predict_redirect_valid || id_jal_predict_redirect_valid;
+                    id_ex_branch_predict_pc_r <= id_decode_redirect_valid ? id_decode_redirect_pc : id_predict_redirect_pc;
                     id_ex_jump_r <= id_jump;
                     id_ex_jalr_r <= id_jalr;
                     id_ex_load_r <= id_load;

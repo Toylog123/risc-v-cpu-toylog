@@ -70,6 +70,58 @@ wire [XLEN-1:0] m_result_remu;
 wire [XLEN-1:0] b_result_clmul;
 wire [XLEN-1:0] b_result_clmulh;
 wire [XLEN-1:0] x_result_ext_range;
+wire [XLEN-1:0] x_result_crc16;
+wire [XLEN-1:0] x_result_crc32;
+
+function [15:0] yh_crc8_next;
+    input [7:0]  data_in;
+    input [15:0] crc_in;
+    reg   [7:0]  data;
+    reg   [15:0] crc;
+    reg          x16;
+    integer      crc_i;
+    begin
+        data = data_in;
+        crc  = crc_in;
+        for (crc_i = 0; crc_i < 8; crc_i = crc_i + 1) begin
+            x16  = data[0] ^ crc[0];
+            data = {1'b0, data[7:1]};
+            if (x16) begin
+                crc = ((crc ^ 16'h4002) >> 1) | 16'h8000;
+            end else begin
+                crc = crc >> 1;
+            end
+        end
+        yh_crc8_next = crc;
+    end
+endfunction
+
+function [15:0] yh_crc16_next;
+    input [15:0] value_in;
+    input [15:0] crc_in;
+    reg   [15:0] crc_lo;
+    begin
+        crc_lo        = yh_crc8_next(value_in[7:0], crc_in);
+        yh_crc16_next = yh_crc8_next(value_in[15:8], crc_lo);
+end
+endfunction
+
+function [15:0] yh_crc32_next;
+    input [31:0] value_in;
+    input [15:0] crc_in;
+    reg   [15:0] crc_b0;
+    reg   [15:0] crc_b1;
+    reg   [15:0] crc_b2;
+    begin
+        crc_b0        = yh_crc8_next(value_in[7:0], crc_in);
+        crc_b1        = yh_crc8_next(value_in[15:8], crc_b0);
+        crc_b2        = yh_crc8_next(value_in[23:16], crc_b1);
+        yh_crc32_next = yh_crc8_next(value_in[31:24], crc_b2);
+end
+endfunction
+
+assign x_result_crc16 = {{(XLEN-16){1'b0}}, yh_crc16_next(lhs[15:0], rhs[15:0])};
+assign x_result_crc32 = {{(XLEN-16){1'b0}}, yh_crc32_next(lhs[31:0], rhs[15:0])};
 
 generate
 if ((ENABLE_M_EXTENSION != 0) || (ENABLE_ZMMUL_EXTENSION != 0)) begin : gen_mul_extension
@@ -230,6 +282,8 @@ always @* begin
         `YH_rv_cpu_ALU_TH_ADDSL3: result = (ENABLE_XTHEAD_EXTENSION != 0) ? (lhs + (rhs << 3)) : {XLEN{1'b0}};
         `YH_rv_cpu_ALU_TH_MVEQZ:  result = (ENABLE_XTHEAD_EXTENSION != 0) ? lhs : {XLEN{1'b0}};
         `YH_rv_cpu_ALU_TH_MVNEZ:  result = (ENABLE_XTHEAD_EXTENSION != 0) ? lhs : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_XCRC16:    result = (ENABLE_XTHEAD_EXTENSION != 0) ? x_result_crc16 : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_XCRC32:    result = (ENABLE_XTHEAD_EXTENSION != 0) ? x_result_crc32 : {XLEN{1'b0}};
         `YH_rv_cpu_ALU_ANDN:   result = (ENABLE_BITMANIP_EXTENSION != 0) ? (lhs & ~rhs) : {XLEN{1'b0}};
         `YH_rv_cpu_ALU_MAX:    result = (ENABLE_BITMANIP_EXTENSION != 0) ? (($signed(lhs) > $signed(rhs)) ? lhs : rhs) : {XLEN{1'b0}};
         `YH_rv_cpu_ALU_SEXT_H: result = (ENABLE_BITMANIP_EXTENSION != 0) ? {{(XLEN-16){lhs[15]}}, lhs[15:0]} : {XLEN{1'b0}};

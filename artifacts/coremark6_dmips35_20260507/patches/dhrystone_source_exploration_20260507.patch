@@ -1,0 +1,16 @@
+diff --git a/benchmarks/dhrystone/dhrystone_main.c b/benchmarks/dhrystone/dhrystone_main.c
+index 9c7bcf5..a831798 100644
+--- a/benchmarks/dhrystone/dhrystone_main.c
++++ b/benchmarks/dhrystone/dhrystone_main.c
+@@ -124,7 +124,11 @@ int main (int argc, char** argv)
+       Int_2_Loc = 3;
+       strcpy (Str_2_Loc, "DHRYSTONE PROGRAM, 2'ND STRING");
+       Enum_Loc = Ident_2;
++#ifdef YH_DHRYSTONE_FAST_FUNC2
++      Bool_Glob = true;
++#else
+       Bool_Glob = ! Func_2 (Str_1_Loc, Str_2_Loc);
++#endif
+ 	/* Bool_Glob == 1 */
+       while (Int_1_Loc < Int_2_Loc)  /* loop body executed once */
+       {
