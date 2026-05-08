@@ -8,14 +8,14 @@ localparam string ROM_MEM32_HEX = "build/sw/YH_rv_cpu_uart_alive.mem32.hex";
 localparam integer BOOT_MARK_LEN = 9;
 localparam integer COREMARK_LEN  = 12;
 localparam integer DMIPS_LEN     = 9;
-localparam integer TICK_LEN      = 5;
-localparam integer RUNNING_LEN   = 13;
+localparam integer FPGA_LEN      = 4;
+localparam integer LIVE_LEN      = 5;
 
 localparam [8*BOOT_MARK_LEN-1:0] BOOT_MARK = "YH_rv_cpu";
 localparam [8*COREMARK_LEN-1:0]  COREMARK_MARK = "CoreMark/MHz";
 localparam [8*DMIPS_LEN-1:0]     DMIPS_MARK = "DMIPS/MHz";
-localparam [8*TICK_LEN-1:0]      TICK_MARK = "tick=";
-localparam [8*RUNNING_LEN-1:0]   RUNNING_MARK = "board=running";
+localparam [8*FPGA_LEN-1:0]      FPGA_MARK = "FPGA";
+localparam [8*LIVE_LEN-1:0]      LIVE_MARK = "Live:";
 
 reg         clk;
 reg         rst_n;
@@ -34,18 +34,18 @@ reg [8*COREMARK_LEN-1:0]  coremark_window;
 reg [8*COREMARK_LEN-1:0]  coremark_window_next;
 reg [8*DMIPS_LEN-1:0]     dmips_window;
 reg [8*DMIPS_LEN-1:0]     dmips_window_next;
-reg [8*TICK_LEN-1:0]      tick_window;
-reg [8*TICK_LEN-1:0]      tick_window_next;
-reg [8*RUNNING_LEN-1:0]   running_window;
-reg [8*RUNNING_LEN-1:0]   running_window_next;
+reg [8*FPGA_LEN-1:0]      fpga_window;
+reg [8*FPGA_LEN-1:0]      fpga_window_next;
+reg [8*LIVE_LEN-1:0]      live_window;
+reg [8*LIVE_LEN-1:0]      live_window_next;
 
 integer cycle;
 integer uart_count;
-integer tick_count;
 reg boot_seen;
 reg coremark_seen;
 reg dmips_seen;
-reg running_seen;
+reg fpga_seen;
+reg live_seen;
 
 YH_rv_cpu_soc #(
     .SYNC_IMEM(1),
@@ -99,14 +99,14 @@ always @(posedge clk) begin
             boot_window_next = {boot_window[8*(BOOT_MARK_LEN-1)-1:0], uart_tx_data};
             coremark_window_next = {coremark_window[8*(COREMARK_LEN-1)-1:0], uart_tx_data};
             dmips_window_next = {dmips_window[8*(DMIPS_LEN-1)-1:0], uart_tx_data};
-            tick_window_next = {tick_window[8*(TICK_LEN-1)-1:0], uart_tx_data};
-            running_window_next = {running_window[8*(RUNNING_LEN-1)-1:0], uart_tx_data};
+            fpga_window_next = {fpga_window[8*(FPGA_LEN-1)-1:0], uart_tx_data};
+            live_window_next = {live_window[8*(LIVE_LEN-1)-1:0], uart_tx_data};
 
             boot_window <= boot_window_next;
             coremark_window <= coremark_window_next;
             dmips_window <= dmips_window_next;
-            tick_window <= tick_window_next;
-            running_window <= running_window_next;
+            fpga_window <= fpga_window_next;
+            live_window <= live_window_next;
 
             if (boot_window_next == BOOT_MARK) begin
                 boot_seen <= 1'b1;
@@ -117,11 +117,11 @@ always @(posedge clk) begin
             if (dmips_window_next == DMIPS_MARK) begin
                 dmips_seen <= 1'b1;
             end
-            if (tick_window_next == TICK_MARK) begin
-                tick_count <= tick_count + 1;
+            if (fpga_window_next == FPGA_MARK) begin
+                fpga_seen <= 1'b1;
             end
-            if (running_window_next == RUNNING_MARK) begin
-                running_seen <= 1'b1;
+            if (live_window_next == LIVE_MARK) begin
+                live_seen <= 1'b1;
             end
         end
 
@@ -129,8 +129,8 @@ always @(posedge clk) begin
             $fatal(1, "\nFAIL: trap asserted at PC=%h", debug_pc);
         end
 
-        if (boot_seen && coremark_seen && dmips_seen && (tick_count >= 1) && running_seen) begin
-            $display("\nPASS: uart_alive benchmark banner and live tick observed at PC=%h in %0d cycles, uart_count=%0d", debug_pc, cycle, uart_count);
+        if (boot_seen && coremark_seen && dmips_seen && fpga_seen && live_seen) begin
+            $display("\nPASS: uart_alive benchmark banner and live marker observed at PC=%h in %0d cycles, uart_count=%0d", debug_pc, cycle, uart_count);
             $finish;
         end
 
@@ -145,11 +145,11 @@ initial begin
     rst_n = 1'b0;
     cycle = 0;
     uart_count = 0;
-    tick_count = 0;
     boot_seen = 1'b0;
     coremark_seen = 1'b0;
     dmips_seen = 1'b0;
-    running_seen = 1'b0;
+    fpga_seen = 1'b0;
+    live_seen = 1'b0;
     uart_busy_count = 8'd0;
     boot_window = 0;
     boot_window_next = 0;
@@ -157,10 +157,10 @@ initial begin
     coremark_window_next = 0;
     dmips_window = 0;
     dmips_window_next = 0;
-    tick_window = 0;
-    tick_window_next = 0;
-    running_window = 0;
-    running_window_next = 0;
+    fpga_window = 0;
+    fpga_window_next = 0;
+    live_window = 0;
+    live_window_next = 0;
 
     #20;
     rst_n = 1'b1;

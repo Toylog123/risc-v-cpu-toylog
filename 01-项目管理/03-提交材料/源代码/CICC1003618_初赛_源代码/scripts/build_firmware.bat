@@ -66,6 +66,7 @@ set BUILD_DIR=%PROJECT_DIR%\build\sw
 set TARGET=%~1
 set OUTPUT_NAME=YH_rv_cpu_demo
 set SOURCES="%PROJECT_DIR%\sw\src\crt0.S" "%PROJECT_DIR%\sw\src\main.c"
+set MARCH=rv32i_zicsr
 set WORD_HEX_PY=%PROJECT_DIR%\scripts\make_word_hex.py
 set GCC=
 set OBJDUMP=
@@ -87,6 +88,12 @@ if /I "%TARGET%"=="timer_irq_smoke" (
 if /I "%TARGET%"=="uart_alive" (
     set OUTPUT_NAME=YH_rv_cpu_uart_alive
     set SOURCES="%PROJECT_DIR%\sw\src\crt0.S" "%PROJECT_DIR%\sw\src\uart_alive.S"
+)
+
+if /I "%TARGET%"=="fpga_app_demo" (
+    set OUTPUT_NAME=YH_rv_cpu_fpga_app_demo
+    set SOURCES="%PROJECT_DIR%\sw\src\crt0.S" "%PROJECT_DIR%\sw\src\fpga_app_demo.S"
+    set MARCH=rv32im_zicsr
 )
 
 for %%T in (riscv-none-elf-gcc riscv32-unknown-elf-gcc riscv64-unknown-elf-gcc) do (
@@ -166,7 +173,7 @@ if not defined PYTHON_CMD (
 
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
-%GCC% -march=rv32i_zicsr -mabi=ilp32 -nostdlib -ffreestanding -Os ^
+%GCC% -march=%MARCH% -mabi=ilp32 -nostdlib -ffreestanding -Os ^
     -T "%PROJECT_DIR%\sw\linker\YH_rv_cpu.ld" ^
     -o "%BUILD_DIR%\%OUTPUT_NAME%.elf" ^
     %SOURCES%

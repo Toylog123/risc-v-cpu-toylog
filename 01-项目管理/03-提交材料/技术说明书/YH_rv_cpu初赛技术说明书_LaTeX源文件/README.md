@@ -18,5 +18,6 @@ xelatex -interaction=nonstopmode -halt-on-error main.tex
 1. 内容优先对齐初赛设计文档要求，而不是内部工作日志写法。
 2. 英文正文使用 `Times New Roman`，中文正文使用常见宋体口径。
 3. 当前正式板级口径为 PYNQ-Z2、`4.137461 CoreMark/MHz`、`2.908287 DMIPS/MHz`、`4961 LUT`，并已补充 PL UART 实时指标流上板打印证据。
-4. 插图当前采用“结构说明 + 绘制提示词”的轻量形式，便于后续人工统一绘制。
-5. 不维护 Word 版本，最终提交以 PDF 为准。
+4. 位宽口径统一写为：RTL 通过 `XLEN=32/64` 支持 RV32/RV64 编译期参数化切换；初赛冻结上板 bitstream 与性能数据采用 RV32I 配置。
+5. 插图当前采用“结构说明 + 绘制提示词”的轻量形式，便于后续人工统一绘制。
+6. 不维护 Word 版本，最终提交以 PDF 为准。

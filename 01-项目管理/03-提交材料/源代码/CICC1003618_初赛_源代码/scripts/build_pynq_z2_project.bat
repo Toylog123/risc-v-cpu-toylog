@@ -162,6 +162,8 @@ if not defined ROM_INIT_MEM32_HEX_OVERRIDE if exist "%DEFAULT_DEMO_MEM32_HEX%" (
 echo Using mapped repo root: %MAPPED_ROOT%
 if /I "%ROM_INIT_HEX_OVERRIDE%"=="%PACKAGE_ROOT%\build\sw\YH_rv_cpu_uart_alive.hex" set ROM_INIT_HEX_OVERRIDE=%SCRIPT_DIR%..\build\sw\YH_rv_cpu_uart_alive.hex
 if /I "%ROM_INIT_MEM32_HEX_OVERRIDE%"=="%PACKAGE_ROOT%\build\sw\YH_rv_cpu_uart_alive.mem32.hex" set ROM_INIT_MEM32_HEX_OVERRIDE=%SCRIPT_DIR%..\build\sw\YH_rv_cpu_uart_alive.mem32.hex
+if /I "%ROM_INIT_HEX_OVERRIDE%"=="%PACKAGE_ROOT%\build\sw\YH_rv_cpu_fpga_app_demo.hex" set ROM_INIT_HEX_OVERRIDE=%SCRIPT_DIR%..\build\sw\YH_rv_cpu_fpga_app_demo.hex
+if /I "%ROM_INIT_MEM32_HEX_OVERRIDE%"=="%PACKAGE_ROOT%\build\sw\YH_rv_cpu_fpga_app_demo.mem32.hex" set ROM_INIT_MEM32_HEX_OVERRIDE=%SCRIPT_DIR%..\build\sw\YH_rv_cpu_fpga_app_demo.mem32.hex
 if /I "%ROM_INIT_HEX_OVERRIDE%"=="%PACKAGE_ROOT%\build\sw\YH_rv_cpu_demo.hex" set ROM_INIT_HEX_OVERRIDE=%SCRIPT_DIR%..\build\sw\YH_rv_cpu_demo.hex
 if /I "%ROM_INIT_MEM32_HEX_OVERRIDE%"=="%PACKAGE_ROOT%\build\sw\YH_rv_cpu_demo.mem32.hex" set ROM_INIT_MEM32_HEX_OVERRIDE=%SCRIPT_DIR%..\build\sw\YH_rv_cpu_demo.mem32.hex
 if defined ROM_INIT_HEX_OVERRIDE echo Using ROM_INIT_HEX_OVERRIDE=%ROM_INIT_HEX_OVERRIDE%
