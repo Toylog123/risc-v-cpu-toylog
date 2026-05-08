@@ -1,0 +1,27 @@
+
+****** xsim v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Thu Apr 30 17:18:31 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/YH_rv_cpu_id_jal_fast_tb_snapshot/xsim_script.tcl
+# xsim {YH_rv_cpu_id_jal_fast_tb_snapshot} -testplusarg debug_trace -autoloadwcfg -runall -onerror quit
+Time resolution is 1 ps
+run -all
+TRACE cycle=0 pc=00000000 if_id_v=0 if_id_pc=00000000 id_ex_v=0 id_ex_pc=00000000 id_ex_jump=0 id_ex_rd=0 ex_redirect=0 redir_pc=00000000 x1=00000000 x2=00000000 x3=00000000
+TRACE cycle=1 pc=00000004 if_id_v=1 if_id_pc=00000000 id_ex_v=0 id_ex_pc=00000000 id_ex_jump=0 id_ex_rd=0 ex_redirect=0 redir_pc=00000000 x1=00000000 x2=00000000 x3=00000000
+TRACE cycle=2 pc=00000008 if_id_v=1 if_id_pc=00000004 id_ex_v=1 id_ex_pc=00000000 id_ex_jump=0 id_ex_rd=1 ex_redirect=0 redir_pc=00000001 x1=00000000 x2=00000000 x3=00000000
+TRACE cycle=3 pc=00000010 if_id_v=1 if_id_pc=0000000c id_ex_v=0 id_ex_pc=00000000 id_ex_jump=0 id_ex_rd=0 ex_redirect=0 redir_pc=00000001 x1=00000000 x2=00000000 x3=00000000
+TRACE cycle=4 pc=00000014 if_id_v=1 if_id_pc=00000010 id_ex_v=1 id_ex_pc=0000000c id_ex_jump=0 id_ex_rd=2 ex_redirect=0 redir_pc=00000013 x1=00000000 x2=00000000 x3=00000000
+TRACE cycle=5 pc=00000018 if_id_v=1 if_id_pc=00000014 id_ex_v=1 id_ex_pc=00000010 id_ex_jump=0 id_ex_rd=3 ex_redirect=0 redir_pc=00000019 x1=00000001 x2=00000000 x3=00000000
+TRACE cycle=6 pc=0000001c if_id_v=1 if_id_pc=00000018 id_ex_v=1 id_ex_pc=00000014 id_ex_jump=0 id_ex_rd=0 ex_redirect=0 redir_pc=00000014 x1=00000001 x2=00000000 x3=00000000
+TRACE cycle=7 pc=00000020 if_id_v=1 if_id_pc=0000001c id_ex_v=1 id_ex_pc=00000018 id_ex_jump=0 id_ex_rd=0 ex_redirect=0 redir_pc=00000018 x1=00000001 x2=00000007 x3=00000000
+TRACE cycle=8 pc=00000024 if_id_v=1 if_id_pc=00000020 id_ex_v=1 id_ex_pc=0000001c id_ex_jump=0 id_ex_rd=0 ex_redirect=0 redir_pc=0000001c x1=00000001 x2=00000007 x3=00000009
+TRACE cycle=9 pc=00000028 if_id_v=1 if_id_pc=00000024 id_ex_v=1 id_ex_pc=00000020 id_ex_jump=0 id_ex_rd=0 ex_redirect=0 redir_pc=00000020 x1=00000001 x2=00000007 x3=00000009
+PASS: id jal fast diagnostic completed at PC=00000028 cycles=9 ex_jal_x0_redirects=0 require_no_ex_jal_x0_redirect=0
+$finish called at time : 115 ns : File "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark-over-1p5/YH_rv_cpu/tb/YH_rv_cpu_id_jal_fast_tb.v" Line 124
+exit
+INFO: [Common 17-206] Exiting xsim at Thu Apr 30 17:18:33 2026...

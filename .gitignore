@@ -46,3 +46,7 @@ YH_rv_cpu/xsim_*.backup.log
 01-项目管理/03-提交材料/官方模板/
 03-验证测试/01-性能基准/coremark/
 03-验证测试/02-指令验证/riscv-tests/
+
+# Local runtime copies inside submission source bundles
+**/_tmp/
+

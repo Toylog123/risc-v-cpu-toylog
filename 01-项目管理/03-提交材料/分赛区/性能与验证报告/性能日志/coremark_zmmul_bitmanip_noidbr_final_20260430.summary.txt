@@ -1,0 +1,25 @@
+log_path=D:\BaiduSyncdisk\02_icdc_workspace\01-项目管理\03-提交材料\性能与验证报告\性能日志\coremark_zmmul_bitmanip_noidbr_final_20260430.log
+clock_hz=100000000
+coremark_size=666
+total_ticks=2416941
+total_seconds=0.024169
+iterations=10
+iterations_per_sec=413.746136
+coremark_per_mhz=4.137461
+compiler_version=GCC 15.2.0
+compiler_flags=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -march=rv32i_zmmul_zba_zbb_zbs_zicsr -mabi=ilp32
+memory_location=SoC ROM/RAM
+completion_cycles=2451558
+validation_clean=no
+validation_mode=short_runtime_only
+full_workload=yes
+performance_profile_2k=yes
+runtime_floor_violation=yes
+short_runtime_only=yes
+seed_warning=no
+errors_detected=yes
+competition_reportable=yes
+strict_eembc_10s_compliant=no
+competition_report_line=CoreMark/MHz (host-parsed): 4.137461 / GCC 15.2.0 / SoC ROM/RAM
+note=Derived host-side from raw ticks because the HAS_FLOAT=0 portable path truncates in-program integer seconds.
+note_competition=Competition reports may use short reproducible runs; strict EEMBC validity still requires a >=10 second run.
