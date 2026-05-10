@@ -99,6 +99,11 @@ if /I "%TARGET%"=="rv64" (
     set MABI=ilp32
     set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -fno-auto-inc-dec
     set OPT_DEFINE=YH_COREMARK_OPT_RV32I_ZMMUL_ZBC_ZICOND_XTHEAD_MEMIDX_NOAUTOINC_O2SCHED_NOCALLER
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zicond_xthead_memidx_noautoinc_o2sched_nocaller" (
+    set MARCH=rv32i_zmmul_zba_zbb_zbs_zicond_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr
+    set MABI=ilp32
+    set OPT_FLAGS=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -fno-auto-inc-dec
+    set OPT_DEFINE=YH_COREMARK_OPT_RV32I_ZMMUL_ZICOND_XTHEAD_MEMIDX_NOAUTOINC_O2SCHED_NOCALLER
 ) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xthead_memidx_o2sched_nocaller" (
     set MARCH=rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr
     set MABI=ilp32
@@ -288,6 +293,8 @@ if /I "%TARGET%"=="rv64" (
 ) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_xthead_memidx_noautoinc_o2sched_nocaller_noifconv" (
     set MULTIDIR=rv32i\ilp32
 ) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xthead_memidx_noautoinc_o2sched_nocaller" (
+    set MULTIDIR=rv32i\ilp32
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zicond_xthead_memidx_noautoinc_o2sched_nocaller" (
     set MULTIDIR=rv32i\ilp32
 ) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xthead_memidx_o2sched_nocaller" (
     set MULTIDIR=rv32i\ilp32

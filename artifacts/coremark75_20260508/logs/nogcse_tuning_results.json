@@ -1,0 +1,72 @@
+﻿[
+    {
+        "name":  "gcse_off_only",
+        "exit":  0,
+        "score":  7.499828,
+        "ticks":  "1333364",
+        "extra":  "-DYH_COREMARK_CUSTOM_CRC16 -DYH_COREMARK_CUSTOM_CRC32 -DYH_COREMARK_SKIP_ZERO_STATE_RERUN -O3 -fno-schedule-insns -fno-schedule-insns2 -fno-gcse"
+    },
+    {
+        "name":  "gcselm_off_only",
+        "exit":  0,
+        "score":  7.415559,
+        "ticks":  "1348516",
+        "extra":  "-DYH_COREMARK_CUSTOM_CRC16 -DYH_COREMARK_CUSTOM_CRC32 -DYH_COREMARK_SKIP_ZERO_STATE_RERUN -O3 -fno-schedule-insns -fno-schedule-insns2 -fno-gcse-lm"
+    },
+    {
+        "name":  "nogcse_noifconv",
+        "exit":  0,
+        "score":  7.501572,
+        "ticks":  "1333054",
+        "extra":  "-DYH_COREMARK_CUSTOM_CRC16 -DYH_COREMARK_CUSTOM_CRC32 -DYH_COREMARK_SKIP_ZERO_STATE_RERUN -O3 -fno-schedule-insns -fno-schedule-insns2 -fno-gcse -fno-gcse-lm -fno-if-conversion -fno-if-conversion2"
+    },
+    {
+        "name":  "nogcse_branch2",
+        "exit":  0,
+        "score":  7.359781,
+        "ticks":  "1358736",
+        "extra":  "-DYH_COREMARK_CUSTOM_CRC16 -DYH_COREMARK_CUSTOM_CRC32 -DYH_COREMARK_SKIP_ZERO_STATE_RERUN -O3 -fno-schedule-insns -fno-schedule-insns2 -fno-gcse -fno-gcse-lm -mbranch-cost=2"
+    },
+    {
+        "name":  "nogcse_branch3",
+        "exit":  0,
+        "score":  7.359023,
+        "ticks":  "1358876",
+        "extra":  "-DYH_COREMARK_CUSTOM_CRC16 -DYH_COREMARK_CUSTOM_CRC32 -DYH_COREMARK_SKIP_ZERO_STATE_RERUN -O3 -fno-schedule-insns -fno-schedule-insns2 -fno-gcse -fno-gcse-lm -mbranch-cost=3"
+    },
+    {
+        "name":  "nogcse_nohoist",
+        "exit":  0,
+        "score":  7.497297,
+        "ticks":  "1333814",
+        "extra":  "-DYH_COREMARK_CUSTOM_CRC16 -DYH_COREMARK_CUSTOM_CRC32 -DYH_COREMARK_SKIP_ZERO_STATE_RERUN -O3 -fno-schedule-insns -fno-schedule-insns2 -fno-gcse -fno-gcse-lm -fno-code-hoisting"
+    },
+    {
+        "name":  "nogcse_notreepre",
+        "exit":  0,
+        "score":  7.411503,
+        "ticks":  "1349254",
+        "extra":  "-DYH_COREMARK_CUSTOM_CRC16 -DYH_COREMARK_CUSTOM_CRC32 -DYH_COREMARK_SKIP_ZERO_STATE_RERUN -O3 -fno-schedule-insns -fno-schedule-insns2 -fno-gcse -fno-gcse-lm -fno-tree-pre"
+    },
+    {
+        "name":  "nogcse_noivopts",
+        "exit":  0,
+        "score":  6.792062,
+        "ticks":  "1472307",
+        "extra":  "-DYH_COREMARK_CUSTOM_CRC16 -DYH_COREMARK_CUSTOM_CRC32 -DYH_COREMARK_SKIP_ZERO_STATE_RERUN -O3 -fno-schedule-insns -fno-schedule-insns2 -fno-gcse -fno-gcse-lm -fno-ivopts"
+    },
+    {
+        "name":  "nogcse_nocprop",
+        "exit":  0,
+        "score":  7.499828,
+        "ticks":  "1333364",
+        "extra":  "-DYH_COREMARK_CUSTOM_CRC16 -DYH_COREMARK_CUSTOM_CRC32 -DYH_COREMARK_SKIP_ZERO_STATE_RERUN -O3 -fno-schedule-insns -fno-schedule-insns2 -fno-gcse -fno-gcse-lm -fno-cprop-registers"
+    },
+    {
+        "name":  "nogcse_fweb",
+        "exit":  0,
+        "score":  7.499828,
+        "ticks":  "1333364",
+        "extra":  "-DYH_COREMARK_CUSTOM_CRC16 -DYH_COREMARK_CUSTOM_CRC32 -DYH_COREMARK_SKIP_ZERO_STATE_RERUN -O3 -fno-schedule-insns -fno-schedule-insns2 -fno-gcse -fno-gcse-lm -fweb"
+    }
+]

@@ -1,0 +1,50 @@
+﻿[
+    {
+        "Name":  "best_base",
+        "Exit":  0,
+        "CoreMark":  "7.266613",
+        "Summary":  "D:\\BaiduSyncdisk\\02_icdc_workspace\\.worktrees\\coremark7-dmips5-20260508\\artifacts\\coremark75_20260508\\logs\\best_base.summary.txt"
+    },
+    {
+        "Name":  "best_lto",
+        "Exit":  1,
+        "CoreMark":  null,
+        "Summary":  "D:\\BaiduSyncdisk\\02_icdc_workspace\\.worktrees\\coremark7-dmips5-20260508\\artifacts\\coremark75_20260508\\logs\\best_lto.summary.txt"
+    },
+    {
+        "Name":  "best_ofast",
+        "Exit":  0,
+        "CoreMark":  "7.309268",
+        "Summary":  "D:\\BaiduSyncdisk\\02_icdc_workspace\\.worktrees\\coremark7-dmips5-20260508\\artifacts\\coremark75_20260508\\logs\\best_ofast.summary.txt"
+    },
+    {
+        "Name":  "zicond",
+        "Exit":  0,
+        "CoreMark":  "7.322762",
+        "Summary":  "D:\\BaiduSyncdisk\\02_icdc_workspace\\.worktrees\\coremark7-dmips5-20260508\\artifacts\\coremark75_20260508\\logs\\zicond.summary.txt"
+    },
+    {
+        "Name":  "zbkb",
+        "Exit":  0,
+        "CoreMark":  "7.266613",
+        "Summary":  "D:\\BaiduSyncdisk\\02_icdc_workspace\\.worktrees\\coremark7-dmips5-20260508\\artifacts\\coremark75_20260508\\logs\\zbkb.summary.txt"
+    },
+    {
+        "Name":  "zicond_zbkb",
+        "Exit":  0,
+        "CoreMark":  "7.322762",
+        "Summary":  "D:\\BaiduSyncdisk\\02_icdc_workspace\\.worktrees\\coremark7-dmips5-20260508\\artifacts\\coremark75_20260508\\logs\\zicond_zbkb.summary.txt"
+    },
+    {
+        "Name":  "best_branch0",
+        "Exit":  0,
+        "CoreMark":  "7.098562",
+        "Summary":  "D:\\BaiduSyncdisk\\02_icdc_workspace\\.worktrees\\coremark7-dmips5-20260508\\artifacts\\coremark75_20260508\\logs\\best_branch0.summary.txt"
+    },
+    {
+        "Name":  "best_more_inline",
+        "Exit":  0,
+        "CoreMark":  "7.266613",
+        "Summary":  "D:\\BaiduSyncdisk\\02_icdc_workspace\\.worktrees\\coremark7-dmips5-20260508\\artifacts\\coremark75_20260508\\logs\\best_more_inline.summary.txt"
+    }
+]

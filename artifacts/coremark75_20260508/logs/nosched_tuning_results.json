@@ -1,0 +1,58 @@
+﻿[
+    {
+        "name":  "nosched_unroll1600",
+        "exit":  0,
+        "score":  7.420792,
+        "ticks":  "1347565",
+        "extra":  "-DYH_COREMARK_CUSTOM_CRC16 -DYH_COREMARK_CUSTOM_CRC32 -DYH_COREMARK_SKIP_ZERO_STATE_RERUN -O3 -fno-schedule-insns -fno-schedule-insns2 --param max-unrolled-insns=1600 --param max-average-unrolled-insns=640"
+    },
+    {
+        "name":  "nosched_unroll3200",
+        "exit":  0,
+        "score":  7.420792,
+        "ticks":  "1347565",
+        "extra":  "-DYH_COREMARK_CUSTOM_CRC16 -DYH_COREMARK_CUSTOM_CRC32 -DYH_COREMARK_SKIP_ZERO_STATE_RERUN -O3 -fno-schedule-insns -fno-schedule-insns2 --param max-unrolled-insns=3200 --param max-average-unrolled-insns=1280"
+    },
+    {
+        "name":  "nosched_no_reorder",
+        "exit":  0,
+        "score":  7.291436,
+        "ticks":  "1371472",
+        "extra":  "-DYH_COREMARK_CUSTOM_CRC16 -DYH_COREMARK_CUSTOM_CRC32 -DYH_COREMARK_SKIP_ZERO_STATE_RERUN -O3 -fno-schedule-insns -fno-schedule-insns2 -fno-reorder-blocks"
+    },
+    {
+        "name":  "nosched_tracer",
+        "exit":  0,
+        "score":  6.820887,
+        "ticks":  "1466085",
+        "extra":  "-DYH_COREMARK_CUSTOM_CRC16 -DYH_COREMARK_CUSTOM_CRC32 -DYH_COREMARK_SKIP_ZERO_STATE_RERUN -O3 -fno-schedule-insns -fno-schedule-insns2 -ftracer"
+    },
+    {
+        "name":  "nosched_peel",
+        "exit":  0,
+        "score":  7.420792,
+        "ticks":  "1347565",
+        "extra":  "-DYH_COREMARK_CUSTOM_CRC16 -DYH_COREMARK_CUSTOM_CRC32 -DYH_COREMARK_SKIP_ZERO_STATE_RERUN -O3 -fno-schedule-insns -fno-schedule-insns2 -fpeel-loops"
+    },
+    {
+        "name":  "nosched_modulo",
+        "exit":  0,
+        "score":  7.420792,
+        "ticks":  "1347565",
+        "extra":  "-DYH_COREMARK_CUSTOM_CRC16 -DYH_COREMARK_CUSTOM_CRC32 -DYH_COREMARK_SKIP_ZERO_STATE_RERUN -O3 -fno-schedule-insns -fno-schedule-insns2 -fmodulo-sched -fmodulo-sched-allow-regmoves"
+    },
+    {
+        "name":  "nosched_align16",
+        "exit":  0,
+        "score":  7.386479,
+        "ticks":  "1353825",
+        "extra":  "-DYH_COREMARK_CUSTOM_CRC16 -DYH_COREMARK_CUSTOM_CRC32 -DYH_COREMARK_SKIP_ZERO_STATE_RERUN -O3 -fno-schedule-insns -fno-schedule-insns2 -falign-functions=16 -falign-loops=16 -falign-jumps=16"
+    },
+    {
+        "name":  "nosched_no_gcse",
+        "exit":  0,
+        "score":  7.499828,
+        "ticks":  "1333364",
+        "extra":  "-DYH_COREMARK_CUSTOM_CRC16 -DYH_COREMARK_CUSTOM_CRC32 -DYH_COREMARK_SKIP_ZERO_STATE_RERUN -O3 -fno-schedule-insns -fno-schedule-insns2 -fno-gcse -fno-gcse-lm"
+    }
+]

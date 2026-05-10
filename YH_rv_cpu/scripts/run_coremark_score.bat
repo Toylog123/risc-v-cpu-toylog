@@ -75,6 +75,10 @@ if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xthead_memidx_noautoinc_o2
     set TEST_TOP=YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_zicond_xthead_idbr_tb
     set ROM_TARGET=rv32
 )
+if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zicond_xthead_memidx_noautoinc_o2sched_nocaller" (
+    set TEST_TOP=YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zicond_xthead_idbr_tb
+    set ROM_TARGET=rv32
+)
 if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xthead_memidx_o2sched_nocaller" (
     set TEST_TOP=YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_zicond_xthead_idbr_tb
     set ROM_TARGET=rv32
@@ -176,6 +180,7 @@ call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_xthead_noidbr_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_xthead_noidbr_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_zicond_xthead_noidbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zicond_xthead_idbr_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_zbkb_xthead_noidbr_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_zicond_zbkb_xthead_noidbr_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_xthead_idbr_tb.v" ^

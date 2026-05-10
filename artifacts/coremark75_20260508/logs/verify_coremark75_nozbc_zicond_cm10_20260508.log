@@ -1,0 +1,36 @@
+
+****** xsim v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Fri May  8 12:01:09 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zicond_xthead_idbr_tb_score_snapshot/xsim_script.tcl
+# xsim {YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zicond_xthead_idbr_tb_score_snapshot} -testplusarg max_cycles=30000000 -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+Starting CoreMark simulation (MAX_CYCLES=30000000)...
+2K performance run parameters for coremark.
+CoreMark Size    : 666
+Total ticks      : 1333054
+Total time (secs): 0
+ERROR! Must execute for at least 10 secs for a valid result!
+Iterations       : 10
+Compiler version : GCC 15.2.0
+Compiler flags   : -O2 -march=rv32i_zicsr -mabi=ilp32
+Memory location  : SoC ROM/RAM
+seedcrc          : 0xe9f5
+[0]crclist       : 0xe714
+[0]crcmatrix     : 0x1fd7
+[0]crcstate      : 0x8e3a
+[0]crcfinal      : 0xfcaf
+Errors detected
+
+PASS: coremark completed at PC=00003e08 in 1363060 cycles
+$finish called at time : 13630705 ns : File "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/YH_rv_cpu/tb/YH_rv_cpu_coremark_tb.v" Line 152
+run: Time (s): cpu = 00:00:00 ; elapsed = 00:00:34 . Memory (MB): peak = 195.918 ; gain = 0.016
+exit
+INFO: xsimkernel Simulation Memory Usage: 13016 KB (Peak: 13016 KB), Simulation CPU Usage: 33905 ms
+INFO: [Common 17-206] Exiting xsim at Fri May  8 12:01:45 2026...
