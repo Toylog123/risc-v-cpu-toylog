@@ -1139,6 +1139,27 @@ YH_rv_cpu_coremark_profile_tb #(
 
 endmodule
 
+module YH_rv_cpu_coremark_profile_rv32_zmmul_bitmanip_zicond_xthead_idbr_tb;
+
+localparam string ROM_HEX = "build/sw/YH_rv_cpu_coremark_rv32.hex";
+localparam string ROM_MEM32_HEX = "build/sw/YH_rv_cpu_coremark_rv32.mem32.hex";
+
+YH_rv_cpu_coremark_profile_tb #(
+    .XLEN(32),
+    .ROM_HEX(ROM_HEX),
+    .ROM_MEM32_HEX(ROM_MEM32_HEX),
+    .ENABLE_M_EXTENSION(0),
+    .ENABLE_ZMMUL_EXTENSION(1),
+    .ENABLE_BITMANIP_EXTENSION(1),
+    .ENABLE_ZBC_EXTENSION(0),
+    .ENABLE_ZICOND_EXTENSION(1),
+    .ENABLE_XTHEAD_EXTENSION(1),
+    .ENABLE_XTHEAD_COND_MOVE(1),
+    .ENABLE_ID_BRANCH_EX_FORWARD(1)
+) uut ();
+
+endmodule
+
 module YH_rv_cpu_coremark_profile_rv64_tb;
 
 localparam string ROM_HEX = "build/sw/YH_rv_cpu_coremark_rv64.hex";
