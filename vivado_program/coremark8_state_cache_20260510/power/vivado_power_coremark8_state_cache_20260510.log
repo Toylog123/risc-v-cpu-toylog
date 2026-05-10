@@ -1,0 +1,67 @@
+#-----------------------------------------------------------
+# Vivado v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Sun May 10 22:11:55 2026
+# Process ID         : 26908
+# Current directory  : D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508
+# Command line       : vivado.exe -mode batch -notrace -source artifacts\coremark8_20260510\report_power_coremark8_state_cache_20260510.tcl
+# Log file           : D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/vivado.log
+# Journal file       : D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508\vivado.jou
+# Running On         : Toylog_desktop
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26200
+# Processor Detail   : AMD Ryzen 7 7435H
+# CPU Frequency      : 3094 MHz
+# CPU Physical cores : 8
+# CPU Logical cores  : 16
+# Host memory        : 34082 MB
+# Swap memory        : 2147 MB
+# Total Virtual      : 36230 MB
+# Available Virtual  : 15865 MB
+#-----------------------------------------------------------
+source {artifacts\coremark8_20260510\report_power_coremark8_state_cache_20260510.tcl} -notrace
+Command: open_checkpoint D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/vivado_program/coremark8_state_cache_20260510/YH_rv_cpu_pynq_z2_coremark8_state_cache_cpu50_20260510_impl.dcp
+
+Starting open_checkpoint Task
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.061 . Memory (MB): peak = 371.191 ; gain = 4.801
+INFO: [Device 21-403] Loading part xc7z020clg400-1
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.077 . Memory (MB): peak = 837.926 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 689 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2025.2
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Read ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.036 . Memory (MB): peak = 944.316 ; gain = 1.895
+INFO: [Timing 38-478] Restoring timing data from binary archive.
+INFO: [Timing 38-479] Binary timing data restore complete.
+INFO: [Project 1-856] Restoring constraints from binary archive.
+INFO: [Project 1-853] Binary constraint restore complete.
+INFO: [Designutils 20-5722] Start Reading Physical Databases.
+Reading placement.
+Read Netlist Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.013 . Memory (MB): peak = 1524.996 ; gain = 0.000
+Reading placer database...
+Read Device Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.018 . Memory (MB): peak = 1524.996 ; gain = 0.000
+Read PlaceDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 1524.996 ; gain = 0.000
+Read placeStorage: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.322 . Memory (MB): peak = 1524.996 ; gain = 0.000
+Read PulsedLatchDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 1524.996 ; gain = 0.000
+Reading routing.
+Read RouteStorage: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.144 . Memory (MB): peak = 1524.996 ; gain = 0.000
+Read Physdb Files: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.535 . Memory (MB): peak = 1524.996 ; gain = 0.000
+Restored from archive | CPU: 1.000000 secs | Memory: 0.000000 MB |
+Finished XDEF File Restore: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.598 . Memory (MB): peak = 1524.996 ; gain = 7.133
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.003 . Memory (MB): peak = 1524.996 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+INFO: [Project 1-604] Checkpoint was created with Vivado v2025.2 (64-bit) build 6299465
+open_checkpoint: Time (s): cpu = 00:00:26 ; elapsed = 00:00:25 . Memory (MB): peak = 1528.828 ; gain = 1173.762
+Command: report_power -file D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/vivado_program/coremark8_state_cache_20260510/power/impl_power_default_activity.rpt
+Running Vector-less Activity Propagation...
+
+Finished Running Vector-less Activity Propagation
+12 Infos, 0 Warnings, 0 Critical Warnings and 0 Errors encountered.
+report_power completed successfully
+report_power: Time (s): cpu = 00:00:12 ; elapsed = 00:00:07 . Memory (MB): peak = 1606.758 ; gain = 77.930
+INFO: [Common 17-206] Exiting Vivado at Sun May 10 22:12:31 2026...

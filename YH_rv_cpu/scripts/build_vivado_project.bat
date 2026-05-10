@@ -124,8 +124,6 @@ if not exist "%TCL_PATH%" (
 
 set DEFAULT_DEMO_HEX=%SCRIPT_DIR%..\build\sw\YH_rv_cpu_demo.hex
 set DEFAULT_DEMO_MEM32_HEX=%SCRIPT_DIR%..\build\sw\YH_rv_cpu_demo.mem32.hex
-set ROM_BYTES_OVERRIDE=
-set RAM_BYTES_OVERRIDE=
 
 if not defined ROM_INIT_HEX_OVERRIDE (
     if not exist "%DEFAULT_DEMO_HEX%" (
