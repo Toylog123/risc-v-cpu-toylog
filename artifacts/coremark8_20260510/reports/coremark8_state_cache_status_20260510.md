@@ -57,6 +57,14 @@ The remaining dominant hotspot after zero-state caching is the linked-list searc
 
 The cleaner board-facing CoreMark8 checkpoint remains the state-cache FPGA image above (`9.099315 CoreMark/MHz` for 100 iterations). The list-result cache is archived as an aggressive exploration candidate rather than the primary board image.
 
+## Current Dhrystone Recheck
+
+The current branch also reran the optimized Dhrystone path used by the earlier DMIPS checkpoint. A default `-O2` run is not comparable; the documented DMIPS path uses `DHRYSTONE_OPT_LEVEL=-O3`, `-flto -fwhole-program -frename-registers -fweb`, `YH_DHRYSTONE_FAST_FUNC2`, `YH_DHRYSTONE_HOIST_STR2`, and generated Dhrystone source with no forced no-inline pragma.
+
+| Run | Runs | Completion Cycles | DMIPS/MHz | Evidence |
+| --- | ---: | ---: | ---: | --- |
+| Dhrystone optimized current branch | 20 | 43475 | 10.163426 | `artifacts/coremark8_20260510/logs/verify_dmips_current_o3_runs20_20260510.summary.txt` |
+
 ## PYNQ-Z2 FPGA Image
 
 The CoreMark 8+ ROM image was rebuilt into a PYNQ-Z2 bitstream with a 64 KiB ROM and 64 KiB RAM configuration. The first attempted build exposed a wrapper-script bug: `build_pynq_z2_project.bat` cleared externally supplied `ROM_BYTES_OVERRIDE` and `RAM_BYTES_OVERRIDE`, causing Vivado to bind the default 4096-byte memories. The script was corrected and the implementation was rerun. The archived Vivado log confirms:
@@ -118,6 +126,8 @@ cmd /c YH_rv_cpu\scripts\build_pynq_z2_project.bat impl
 - `artifacts/coremark8_20260510/logs/list_result_cache_cm10.summary.txt`
 - `artifacts/coremark8_20260510/logs/list_result_cache_cm100.log`
 - `artifacts/coremark8_20260510/logs/list_result_cache_cm100.summary.txt`
+- `artifacts/coremark8_20260510/logs/YH_rv_cpu_dhrystone_zmmul_zicond_xthead_idbr.log`
+- `artifacts/coremark8_20260510/logs/verify_dmips_current_o3_runs20_20260510.summary.txt`
 - `artifacts/coremark8_20260510/fpga_input/coremark8_state_cache_cm100.elf`
 - `artifacts/coremark8_20260510/fpga_input/coremark8_state_cache_cm100.dump`
 - `artifacts/coremark8_20260510/fpga_input/coremark8_state_cache_cm100.hex`
@@ -137,7 +147,7 @@ cmd /c YH_rv_cpu\scripts\build_pynq_z2_project.bat impl
 - The CPU logic resource stays around the previous no-Zbc/Zicond/IDBR checkpoint. The full CoreMark ROM/RAM FPGA image uses more BRAM because it embeds a 64 KiB program ROM and 64 KiB RAM.
 - The generated CoreMark output remains a short reproducible run and is not strict EEMBC 10-second compliant.
 - The in-program CoreMark output still prints `Errors detected`; the project score script marks the run as `competition_reportable=yes` based on the full workload, 2K profile, raw tick parsing, and reproducible completion.
-- The latest archived DMIPS checkpoint is `10.163426 DMIPS/MHz` from `artifacts/coremark75_20260508/logs/verify_dmips_nozbc_zicond_runs20_20260508.summary.txt`, which is above the current exploration target.
+- The current branch was rerun with the Dhrystone optimized build flags (`-O3 -flto -fwhole-program`, fast `Func_2`, hoisted fixed string copy) and reproduces `10.163426 DMIPS/MHz` in `artifacts/coremark8_20260510/logs/verify_dmips_current_o3_runs20_20260510.summary.txt`, which is above the current exploration target.
 
 ## Next Options
 
