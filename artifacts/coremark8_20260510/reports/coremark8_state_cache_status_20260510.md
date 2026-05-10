@@ -33,6 +33,19 @@ This is kept behind an explicit macro so it can be enabled, disabled, or documen
 
 The 100-iteration run is the preferred score reference for this checkpoint because it reduces fixed startup/reporting noise.
 
+## Compiler Sweep After FPGA Archive
+
+After archiving the PYNQ-Z2 image, a small compiler-option sweep was rerun to check whether the state-cache candidate should move away from the current scheduling and code-motion balance. None of the tested variants improved the current candidate; the existing flag mix remained the best 10-iteration result.
+
+| Variant | Total Ticks | CoreMark/MHz | Evidence |
+| --- | ---: | ---: | --- |
+| `sweep_basecache` | 1129584 | 8.852817 | `artifacts/coremark8_20260510/logs/sweep_basecache.summary.txt` |
+| `sweep_cache_gcseonly` | 1122803 | 8.906282 | `artifacts/coremark8_20260510/logs/sweep_cache_gcseonly.summary.txt` |
+| `sweep_cache_current` | 1104207 | 9.056273 | `artifacts/coremark8_20260510/logs/sweep_cache_current.summary.txt` |
+| `sweep_cache_current_align16` | 1109084 | 9.016450 | `artifacts/coremark8_20260510/logs/sweep_cache_current_align16.summary.txt` |
+| `sweep_cache_current_nocross` | 1104207 | 9.056273 | `artifacts/coremark8_20260510/logs/sweep_cache_current_nocross.summary.txt` |
+| `sweep_cache_current_rename` | 1104207 | 9.056273 | `artifacts/coremark8_20260510/logs/sweep_cache_current_rename.summary.txt` |
+
 ## PYNQ-Z2 FPGA Image
 
 The CoreMark 8+ ROM image was rebuilt into a PYNQ-Z2 bitstream with a 64 KiB ROM and 64 KiB RAM configuration. The first attempted build exposed a wrapper-script bug: `build_pynq_z2_project.bat` cleared externally supplied `ROM_BYTES_OVERRIDE` and `RAM_BYTES_OVERRIDE`, causing Vivado to bind the default 4096-byte memories. The script was corrected and the implementation was rerun. The archived Vivado log confirms:
