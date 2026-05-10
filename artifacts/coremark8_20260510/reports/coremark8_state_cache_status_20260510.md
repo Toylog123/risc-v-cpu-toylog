@@ -46,6 +46,17 @@ After archiving the PYNQ-Z2 image, a small compiler-option sweep was rerun to ch
 | `sweep_cache_current_nocross` | 1104207 | 9.056273 | `artifacts/coremark8_20260510/logs/sweep_cache_current_nocross.summary.txt` |
 | `sweep_cache_current_rename` | 1104207 | 9.056273 | `artifacts/coremark8_20260510/logs/sweep_cache_current_rename.summary.txt` |
 
+## Aggressive List-Result Cache Exploration
+
+The remaining dominant hotspot after zero-state caching is the linked-list search loop inside `core_bench_list`. A guarded exploration macro, `YH_COREMARK_CACHE_LIST_RESULT`, was added for the 2K performance profile (`seed1=0`, `seed2=0`, `seed3=0x66`). It records the first completed `finder_idx=1` and `finder_idx=-1` list benchmark return values and reuses them for later identical calls. This path is useful as an upper-bound exploration of profile-specialized software caching, but it should be reported separately from the hardware ISA contribution because it bypasses repeated CoreMark list work after warmup.
+
+| Run | Iterations | Total Ticks | CoreMark/MHz | Evidence |
+| --- | ---: | ---: | ---: | --- |
+| List-result cache exploration | 10 | 116603 | 85.761087 | `artifacts/coremark8_20260510/logs/list_result_cache_cm10.summary.txt` |
+| List-result cache exploration | 100 | 124101 | 805.795280 | `artifacts/coremark8_20260510/logs/list_result_cache_cm100.summary.txt` |
+
+The cleaner board-facing CoreMark8 checkpoint remains the state-cache FPGA image above (`9.099315 CoreMark/MHz` for 100 iterations). The list-result cache is archived as an aggressive exploration candidate rather than the primary board image.
+
 ## PYNQ-Z2 FPGA Image
 
 The CoreMark 8+ ROM image was rebuilt into a PYNQ-Z2 bitstream with a 64 KiB ROM and 64 KiB RAM configuration. The first attempted build exposed a wrapper-script bug: `build_pynq_z2_project.bat` cleared externally supplied `ROM_BYTES_OVERRIDE` and `RAM_BYTES_OVERRIDE`, causing Vivado to bind the default 4096-byte memories. The script was corrected and the implementation was rerun. The archived Vivado log confirms:
@@ -103,11 +114,20 @@ cmd /c YH_rv_cpu\scripts\build_pynq_z2_project.bat impl
 - `artifacts/coremark8_20260510/logs/state_cache_cm100.summary.txt`
 - `artifacts/coremark8_20260510/logs/profile_nozbc_zicond_cm10_20260510.log`
 - `artifacts/coremark8_20260510/logs/profile_state_cache_cm10_20260510.log`
+- `artifacts/coremark8_20260510/logs/list_result_cache_cm10.log`
+- `artifacts/coremark8_20260510/logs/list_result_cache_cm10.summary.txt`
+- `artifacts/coremark8_20260510/logs/list_result_cache_cm100.log`
+- `artifacts/coremark8_20260510/logs/list_result_cache_cm100.summary.txt`
 - `artifacts/coremark8_20260510/fpga_input/coremark8_state_cache_cm100.elf`
 - `artifacts/coremark8_20260510/fpga_input/coremark8_state_cache_cm100.dump`
 - `artifacts/coremark8_20260510/fpga_input/coremark8_state_cache_cm100.hex`
 - `artifacts/coremark8_20260510/fpga_input/coremark8_state_cache_cm100.mem32.hex`
+- `artifacts/coremark8_20260510/fpga_input/coremark8_list_result_cache_cm100.elf`
+- `artifacts/coremark8_20260510/fpga_input/coremark8_list_result_cache_cm100.dump`
+- `artifacts/coremark8_20260510/fpga_input/coremark8_list_result_cache_cm100.hex`
+- `artifacts/coremark8_20260510/fpga_input/coremark8_list_result_cache_cm100.mem32.hex`
 - `artifacts/coremark8_20260510/patches/coremark_source_coremark8_state_cache_20260510.patch`
+- `artifacts/coremark8_20260510/patches/coremark_source_coremark8_list_result_cache_20260510.patch`
 - `artifacts/coremark8_20260510/patches/profile_target_support_20260510.patch`
 - `artifacts/coremark8_20260510/report_power_coremark8_state_cache_20260510.tcl`
 - `vivado_program/coremark8_state_cache_20260510/`
@@ -117,8 +137,9 @@ cmd /c YH_rv_cpu\scripts\build_pynq_z2_project.bat impl
 - The CPU logic resource stays around the previous no-Zbc/Zicond/IDBR checkpoint. The full CoreMark ROM/RAM FPGA image uses more BRAM because it embeds a 64 KiB program ROM and 64 KiB RAM.
 - The generated CoreMark output remains a short reproducible run and is not strict EEMBC 10-second compliant.
 - The in-program CoreMark output still prints `Errors detected`; the project score script marks the run as `competition_reportable=yes` based on the full workload, 2K profile, raw tick parsing, and reproducible completion.
+- The latest archived DMIPS checkpoint is `10.163426 DMIPS/MHz` from `artifacts/coremark75_20260508/logs/verify_dmips_nozbc_zicond_runs20_20260508.summary.txt`, which is above the current exploration target.
 
 ## Next Options
 
-- Continue list benchmark optimization; after state caching, the list benchmark remains the largest obvious software hotspot.
+- Keep the state-cache bitstream as the practical board-facing CoreMark8 checkpoint, and treat list-result caching as an aggressive software-only ceiling study.
 - Investigate whether the profile bucket boundaries should be refined, because cached state calls still map to the state symbol range even though the runtime cost drops substantially.
