@@ -269,7 +269,7 @@ wire            id_branch_decode_taken;
 wire            id_branch_decode_redirect_valid;
 wire [XLEN-1:0] id_branch_decode_redirect_pc;
 wire            id_jal_x0_decode_redirect_valid;
-wire            id_jalr_x0_decode_redirect_valid;
+wire            id_jalr_decode_redirect_valid;
 wire [XLEN-1:0] id_jalr_decode_target_sum;
 wire [XLEN-1:0] id_jalr_decode_redirect_pc;
 wire            id_decode_redirect_valid;
@@ -800,22 +800,21 @@ assign id_jal_x0_decode_redirect_valid =
     (id_rd_addr == 5'd0);
 assign id_jalr_decode_target_sum = id_branch_decode_rs1_value + id_imm;
 assign id_jalr_decode_redirect_pc = {id_jalr_decode_target_sum[XLEN-1:1], 1'b0};
-assign id_jalr_x0_decode_redirect_valid =
+assign id_jalr_decode_redirect_valid =
     pipeline_run &&
     !ex_fetch_redirect_valid &&
     !stall_decode &&
     if_id_valid_r &&
     id_jump &&
     id_jalr &&
-    (id_rd_addr == 5'd0) &&
     !id_branch_decode_rs1_pending;
 assign id_decode_redirect_valid =
     id_branch_decode_redirect_valid ||
     id_jal_x0_decode_redirect_valid ||
-    id_jalr_x0_decode_redirect_valid;
+    id_jalr_decode_redirect_valid;
 assign id_decode_redirect_pc =
     id_jal_x0_decode_redirect_valid ? (if_id_pc_r + id_imm) :
-    id_jalr_x0_decode_redirect_valid ? id_jalr_decode_redirect_pc :
+    id_jalr_decode_redirect_valid ? id_jalr_decode_redirect_pc :
     id_branch_decode_redirect_pc;
 assign id_branch_predict_redirect_valid =
     pipeline_run &&
@@ -824,7 +823,7 @@ assign id_branch_predict_redirect_valid =
     if_id_valid_r &&
     id_branch &&
     !id_illegal &&
-    id_imm[XLEN-1] &&
+    (id_imm[XLEN-1] || (id_branch_funct3 == 3'b001)) &&
     !id_branch_decode_operands_ready;
 assign id_branch_predict_redirect_pc = if_id_pc_r + id_imm;
 assign id_jal_predict_redirect_valid =

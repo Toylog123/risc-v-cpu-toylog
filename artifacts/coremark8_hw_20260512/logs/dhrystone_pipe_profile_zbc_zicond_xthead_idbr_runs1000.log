@@ -1,0 +1,49 @@
+
+****** xsim v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Thu May 14 09:39:15 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/YH_rv_cpu_dhrystone_rv32_zmmul_zbc_zicond_xthead_idbr_tb_snapshot/xsim_script.tcl
+# xsim {YH_rv_cpu_dhrystone_rv32_zmmul_zbc_zicond_xthead_idbr_tb_snapshot} -testplusarg max_cycles=250000000 -testplusarg dhrystone_runs=1000 -testplusarg profile_pipe -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+Starting Dhrystone simulation (MAX_CYCLES=250000000)...
+DHRYSTONE_RUNS=1000
+Microseconds for one run through Dhrystone: 4
+Dhrystones per Second:                      5174
+PROFILE_PIPE_BEGIN cycles=415013
+PROFILE_PIPE stall_decode=0
+PROFILE_PIPE mem_wait=0
+PROFILE_PIPE ex_redirect=2000
+PROFILE_PIPE decode_redirect=38000
+PROFILE_PIPE branch_predict_redirect=6000
+PROFILE_PIPE jal_predict_redirect=16001
+PROFILE_PIPE decode_flush=3000
+PROFILE_PIPE ex_decode_flush=3000
+PROFILE_PIPE if_id_invalid=0
+PROFILE_PIPE if_id_bubble=0
+PROFILE_PIPE id_ex_valid=412012
+PROFILE_PIPE id_ex_load=83001
+PROFILE_PIPE id_ex_store=61001
+PROFILE_PIPE id_ex_branch=53000
+PROFILE_PIPE id_ex_jump=36002
+PROFILE_PIPE id_ex_mul=0
+PROFILE_PIPE id_ex_mulh=0
+PROFILE_PIPE id_ex_mulhsu=0
+PROFILE_PIPE id_ex_mulhu=0
+PROFILE_PIPE id_ex_div=0
+PROFILE_PIPE id_ex_divu=0
+PROFILE_PIPE id_ex_rem=0
+PROFILE_PIPE id_ex_remu=0
+PROFILE_PIPE_END
+
+PASS: dhrystone completed at PC=00000070 in 458173 cycles
+$finish called at time : 4581835 ns : File "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/YH_rv_cpu/tb/YH_rv_cpu_dhrystone_tb.v" Line 282
+run: Time (s): cpu = 00:00:00 ; elapsed = 00:00:16 . Memory (MB): peak = 204.449 ; gain = 0.070
+exit
+INFO: xsimkernel Simulation Memory Usage: 13656 KB (Peak: 13656 KB), Simulation CPU Usage: 15546 ms
+INFO: [Common 17-206] Exiting xsim at Thu May 14 09:39:33 2026...

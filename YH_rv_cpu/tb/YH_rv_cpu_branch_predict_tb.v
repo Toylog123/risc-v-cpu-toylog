@@ -23,11 +23,16 @@ integer idx;
 integer load_reads;
 integer ex_bne_redirects;
 integer timeout_cycles;
+reg     use_forward_bne;
+reg     use_forward_bne_not_taken;
 
 assign imem_rdata = imem[imem_addr[31:2]];
 assign imem_rvalid = 1'b1;
 assign dmem_rvalid = 1'b1;
-assign dmem_rdata = (load_reads == 0) ? 32'd1 : 32'd0;
+assign dmem_rdata =
+    use_forward_bne_not_taken ? 32'd0 :
+    use_forward_bne ? 32'd1 :
+    ((load_reads == 0) ? 32'd1 : 32'd0);
 
 YH_rv_cpu #(
     .IMEM_SYNC(0),
@@ -96,20 +101,27 @@ always @(posedge clk) begin
         if ((cycle > 8) && (dut.u_regfile.regs[2] == 32'd7)) begin
             if (ex_bne_redirects != 0) begin
                 $fatal(1,
-                    "FAIL: load-dependent backward bne still redirected in EX ex_bne_redirects=%0d",
+                    "FAIL: load-dependent bne still redirected in EX ex_bne_redirects=%0d",
                     ex_bne_redirects);
             end
-            if (load_reads != 2) begin
+            if (!use_forward_bne && !use_forward_bne_not_taken && (load_reads != 2)) begin
                 $fatal(1,
                     "FAIL: expected exactly two load reads before fallthrough, observed %0d",
                     load_reads);
             end
+            if ((use_forward_bne || use_forward_bne_not_taken) && (load_reads != 1)) begin
+                $fatal(1,
+                    "FAIL: expected exactly one load read in forward branch scenario, observed %0d",
+                    load_reads);
+            end
 
             $display(
-                "PASS: branch predict diagnostic completed cycles=%0d load_reads=%0d ex_bne_redirects=%0d",
+                "PASS: branch predict diagnostic completed cycles=%0d load_reads=%0d ex_bne_redirects=%0d forward_bne=%0d forward_bne_not_taken=%0d",
                 cycle,
                 load_reads,
-                ex_bne_redirects);
+                ex_bne_redirects,
+                use_forward_bne,
+                use_forward_bne_not_taken);
             $finish;
         end
 
@@ -133,6 +145,15 @@ initial begin
     load_reads = 0;
     ex_bne_redirects = 0;
     timeout_cycles = 80;
+    use_forward_bne = 1'b0;
+    use_forward_bne_not_taken = 1'b0;
+
+    if ($test$plusargs("forward_bne_taken")) begin
+        use_forward_bne = 1'b1;
+    end
+    if ($test$plusargs("forward_bne_not_taken")) begin
+        use_forward_bne_not_taken = 1'b1;
+    end
 
     for (idx = 0; idx < 16; idx = idx + 1) begin
         imem[idx] = 32'h0000_0013;
@@ -140,8 +161,14 @@ initial begin
 
     imem[0] = rv32_i(12'sd0, 5'd0, 3'b000, 5'd10, 7'b0010011); // addi x10,x0,0
     imem[1] = rv32_i(12'sd0, 5'd10, 3'b010, 5'd1, 7'b0000011); // lw x1,0(x10)
-    imem[2] = rv32_b(-13'sd4, 5'd0, 5'd1, 3'b001, 7'b1100011); // bne x1,x0,-4
-    imem[3] = rv32_i(12'sd7, 5'd0, 3'b000, 5'd2, 7'b0010011);  // addi x2,x0,7
+    if (use_forward_bne || use_forward_bne_not_taken) begin
+        imem[2] = rv32_b(13'sd8, 5'd0, 5'd1, 3'b001, 7'b1100011);  // bne x1,x0,+8
+        imem[3] = rv32_i(12'sd7, 5'd0, 3'b000, 5'd2, 7'b0010011);  // fallthrough result
+        imem[4] = rv32_i(use_forward_bne_not_taken ? 12'sd99 : 12'sd7, 5'd0, 3'b000, 5'd2, 7'b0010011);
+    end else begin
+        imem[2] = rv32_b(-13'sd4, 5'd0, 5'd1, 3'b001, 7'b1100011); // bne x1,x0,-4
+        imem[3] = rv32_i(12'sd7, 5'd0, 3'b000, 5'd2, 7'b0010011);  // addi x2,x0,7
+    end
 
     #20;
     rst_n = 1'b1;

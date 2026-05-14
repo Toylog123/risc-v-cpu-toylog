@@ -29,6 +29,7 @@ reg     require_no_ex_bltu_redirect;
 reg     require_no_ex_jalr_redirect;
 reg     require_async_redirect_refill;
 reg     debug_trace;
+reg     use_link_jalr;
 reg     refill_pending;
 reg     refill_seen;
 reg [31:0] refill_expected_pc;
@@ -159,7 +160,8 @@ always @(posedge clk) begin
             (dut.u_regfile.regs[4] == 32'd9) &&
             (dut.u_regfile.regs[5] == 32'd5) &&
             (dut.u_regfile.regs[6] == 32'd56) &&
-            (dut.u_regfile.regs[7] == 32'd11)) begin
+            (dut.u_regfile.regs[7] == 32'd11) &&
+            (!use_link_jalr || (dut.u_regfile.regs[8] == 32'd52))) begin
             if (require_no_ex_bne_redirect && (ex_bne_redirects != 0)) begin
                 $fatal(1,
                     "FAIL: require_no_ex_bne_redirect set but observed ex_bne_redirects=%0d",
@@ -226,6 +228,7 @@ initial begin
     require_no_ex_jalr_redirect = 1'b0;
     require_async_redirect_refill = 1'b0;
     debug_trace = 1'b0;
+    use_link_jalr = 1'b0;
     refill_pending = 1'b0;
     refill_seen = 1'b0;
     refill_expected_pc = 32'h0000_0000;
@@ -244,6 +247,9 @@ initial begin
     end
     if ($test$plusargs("debug_trace")) begin
         debug_trace = 1'b1;
+    end
+    if ($test$plusargs("use_link_jalr")) begin
+        use_link_jalr = 1'b1;
     end
     if ($test$plusargs("dump_vcd")) begin
         $dumpfile("YH_rv_cpu_id_branch_fast_tb.vcd");
@@ -272,8 +278,8 @@ initial begin
     imem[9] = rv32_i(12'sd7, 5'd0, 3'b000, 5'd3, 7'b0010011);
     imem[10] = rv32_i(12'sd9, 5'd0, 3'b000, 5'd4, 7'b0010011);
     imem[11] = rv32_i(12'sd56, 5'd0, 3'b000, 5'd6, 7'b0010011);
-    // jalr x0 depends on the immediately preceding addi target and has no link writeback.
-    imem[12] = rv32_i(12'sd0, 5'd6, 3'b000, 5'd0, 7'b1100111);
+    // jalr depends on the immediately preceding addi target; use_link_jalr checks the linked form.
+    imem[12] = rv32_i(12'sd0, 5'd6, 3'b000, use_link_jalr ? 5'd8 : 5'd0, 7'b1100111);
     imem[13] = rv32_i(12'sd99, 5'd0, 3'b000, 5'd7, 7'b0010011);
     imem[14] = rv32_i(12'sd11, 5'd0, 3'b000, 5'd7, 7'b0010011);
     imem[15] = rv32_i(12'sd0, 5'd0, 3'b000, 5'd0, 7'b0010011);
