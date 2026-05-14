@@ -44,6 +44,9 @@ if /I "%TARGET%"=="rv32im_zicsr" (
 ) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zicond_xthead_idbr" (
     set MARCH=rv32i_zmmul_zba_zbb_zbs_zicond_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr
     set MULTIDIR=rv32i\ilp32
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_xthead_idbr" (
+    set MARCH=rv32i_zmmul_zba_zbb_zbs_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr
+    set MULTIDIR=rv32i\ilp32
 ) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_xthead_nomemidx_idbr" (
     set MARCH=rv32i_zmmul_zba_zbb_zbs_zbc_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_zicsr
     set MULTIDIR=rv32i\ilp32

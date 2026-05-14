@@ -105,6 +105,7 @@ call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_dhrystone_rv32_zmmul_zbc_xthead_idbr_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_dhrystone_rv32_zmmul_zbc_zicond_xthead_idbr_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_dhrystone_rv32_zmmul_zicond_xthead_idbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_dhrystone_rv32_zmmul_xthead_idbr_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_dhrystone_rv32im_zbc_xthead_idbr_tb.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_soc.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_sync_imem_rom.v" ^
