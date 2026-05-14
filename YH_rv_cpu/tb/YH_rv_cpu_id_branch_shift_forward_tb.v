@@ -101,7 +101,9 @@ always @(posedge clk) begin
             (dut.u_regfile.regs[2] == 32'd2) &&
             (dut.u_regfile.regs[3] == 32'd7) &&
             (dut.u_regfile.regs[6] == 32'd5) &&
-            (dut.u_regfile.regs[7] == 32'd11)) begin
+            (dut.u_regfile.regs[7] == 32'd11) &&
+            (dut.u_regfile.regs[8] == 32'd1) &&
+            (dut.u_regfile.regs[9] == 32'd13)) begin
             if (ex_bne_redirects != 0) begin
                 $fatal(1,
                     "FAIL: ID-forwardable branch was resolved in EX ex_bne_redirects=%0d",
@@ -118,14 +120,16 @@ always @(posedge clk) begin
 
         if (cycle > 80) begin
             $fatal(1,
-                "FAIL: timeout at PC=%h cycle=%0d ex_bne_redirects=%0d x2=%h x3=%h x6=%h x7=%h",
+                "FAIL: timeout at PC=%h cycle=%0d ex_bne_redirects=%0d x2=%h x3=%h x6=%h x7=%h x8=%h x9=%h",
                 debug_pc,
                 cycle,
                 ex_bne_redirects,
                 dut.u_regfile.regs[2],
                 dut.u_regfile.regs[3],
                 dut.u_regfile.regs[6],
-                dut.u_regfile.regs[7]);
+                dut.u_regfile.regs[7],
+                dut.u_regfile.regs[8],
+                dut.u_regfile.regs[9]);
         end
     end
 end
@@ -151,7 +155,11 @@ initial begin
     imem[8] = rv32_b(13'sd8, 5'd0, 5'd6, 3'b001, 7'b1100011); // bne x6, x0, +8
     imem[9] = rv32_i(12'sd99, 5'd0, 3'b000, 5'd7, 7'b0010011); // poison
     imem[10] = rv32_i(12'sd11, 5'd0, 3'b000, 5'd7, 7'b0010011); // target
-    imem[11] = rv32_i(12'sd0, 5'd0, 3'b000, 5'd0, 7'b0010011);
+    imem[11] = rv32_i(12'h480, 5'd4, 3'b101, 5'd8, 7'b0010011); // bexti x8, x4, 0
+    imem[12] = rv32_b(13'sd8, 5'd0, 5'd8, 3'b001, 7'b1100011); // bne x8, x0, +8
+    imem[13] = rv32_i(12'sd99, 5'd0, 3'b000, 5'd9, 7'b0010011); // poison
+    imem[14] = rv32_i(12'sd13, 5'd0, 3'b000, 5'd9, 7'b0010011); // target
+    imem[15] = rv32_i(12'sd0, 5'd0, 3'b000, 5'd0, 7'b0010011);
 
     #20;
     rst_n = 1'b1;

@@ -669,7 +669,8 @@ assign id_branch_decode_idex_forward_cheap =
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_MVNEZ) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_ANDN) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_SEXT_H) ||
-        (id_ex_alu_op_r == `YH_rv_cpu_ALU_ZEXT_H)
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_ZEXT_H) ||
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_BEXT)
     );
 assign id_branch_decode_idex_value_available =
     (ENABLE_ID_BRANCH_EX_FORWARD != 0) &&
@@ -736,6 +737,7 @@ always @* begin
         `YH_rv_cpu_ALU_ANDN: id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs & ~id_branch_decode_idex_alu_rhs;
         `YH_rv_cpu_ALU_SEXT_H: id_branch_decode_idex_cheap_result = {{(XLEN-16){id_branch_decode_idex_alu_lhs[15]}}, id_branch_decode_idex_alu_lhs[15:0]};
         `YH_rv_cpu_ALU_ZEXT_H: id_branch_decode_idex_cheap_result = {{(XLEN-16){1'b0}}, id_branch_decode_idex_alu_lhs[15:0]};
+        `YH_rv_cpu_ALU_BEXT: id_branch_decode_idex_cheap_result = {{(XLEN-1){1'b0}}, id_branch_decode_idex_alu_lhs[id_branch_decode_idex_alu_rhs[SHAMT_W-1:0]]};
         default:           id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs + id_branch_decode_idex_alu_rhs;
     endcase
 end
