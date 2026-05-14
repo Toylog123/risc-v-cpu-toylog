@@ -667,6 +667,8 @@ assign id_branch_decode_idex_forward_cheap =
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_ADDSL3) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_MVEQZ) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_MVNEZ) ||
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_CZERO_EQZ) ||
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_CZERO_NEZ) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_ANDN) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_SEXT_H) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_ZEXT_H) ||
@@ -734,6 +736,8 @@ always @* begin
         `YH_rv_cpu_ALU_TH_ADDSL3: id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs + (id_branch_decode_idex_alu_rhs << 3);
         `YH_rv_cpu_ALU_TH_MVEQZ:  id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs;
         `YH_rv_cpu_ALU_TH_MVNEZ:  id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs;
+        `YH_rv_cpu_ALU_CZERO_EQZ: id_branch_decode_idex_cheap_result = (id_branch_decode_idex_alu_rhs == ZERO_XLEN) ? ZERO_XLEN : id_branch_decode_idex_alu_lhs;
+        `YH_rv_cpu_ALU_CZERO_NEZ: id_branch_decode_idex_cheap_result = (id_branch_decode_idex_alu_rhs != ZERO_XLEN) ? ZERO_XLEN : id_branch_decode_idex_alu_lhs;
         `YH_rv_cpu_ALU_ANDN: id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs & ~id_branch_decode_idex_alu_rhs;
         `YH_rv_cpu_ALU_SEXT_H: id_branch_decode_idex_cheap_result = {{(XLEN-16){id_branch_decode_idex_alu_lhs[15]}}, id_branch_decode_idex_alu_lhs[15:0]};
         `YH_rv_cpu_ALU_ZEXT_H: id_branch_decode_idex_cheap_result = {{(XLEN-16){1'b0}}, id_branch_decode_idex_alu_lhs[15:0]};

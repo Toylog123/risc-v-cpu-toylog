@@ -30,7 +30,8 @@ assign dmem_rvalid = 1'b1;
 YH_rv_cpu #(
     .IMEM_SYNC(0),
     .DMEM_SYNC(0),
-    .RESET_VECTOR(32'h0000_0000)
+    .RESET_VECTOR(32'h0000_0000),
+    .ENABLE_ZICOND_EXTENSION(1)
 ) dut (
     .clk       (clk),
     .rst_n     (rst_n),
@@ -103,7 +104,9 @@ always @(posedge clk) begin
             (dut.u_regfile.regs[6] == 32'd5) &&
             (dut.u_regfile.regs[7] == 32'd11) &&
             (dut.u_regfile.regs[8] == 32'd1) &&
-            (dut.u_regfile.regs[9] == 32'd13)) begin
+            (dut.u_regfile.regs[9] == 32'd13) &&
+            (dut.u_regfile.regs[12] == 32'd9) &&
+            (dut.u_regfile.regs[13] == 32'd17)) begin
             if (ex_bne_redirects != 0) begin
                 $fatal(1,
                     "FAIL: ID-forwardable branch was resolved in EX ex_bne_redirects=%0d",
@@ -120,7 +123,7 @@ always @(posedge clk) begin
 
         if (cycle > 80) begin
             $fatal(1,
-                "FAIL: timeout at PC=%h cycle=%0d ex_bne_redirects=%0d x2=%h x3=%h x6=%h x7=%h x8=%h x9=%h",
+                "FAIL: timeout at PC=%h cycle=%0d ex_bne_redirects=%0d x2=%h x3=%h x6=%h x7=%h x8=%h x9=%h x12=%h x13=%h",
                 debug_pc,
                 cycle,
                 ex_bne_redirects,
@@ -129,7 +132,9 @@ always @(posedge clk) begin
                 dut.u_regfile.regs[6],
                 dut.u_regfile.regs[7],
                 dut.u_regfile.regs[8],
-                dut.u_regfile.regs[9]);
+                dut.u_regfile.regs[9],
+                dut.u_regfile.regs[12],
+                dut.u_regfile.regs[13]);
         end
     end
 end
@@ -159,7 +164,13 @@ initial begin
     imem[12] = rv32_b(13'sd8, 5'd0, 5'd8, 3'b001, 7'b1100011); // bne x8, x0, +8
     imem[13] = rv32_i(12'sd99, 5'd0, 3'b000, 5'd9, 7'b0010011); // poison
     imem[14] = rv32_i(12'sd13, 5'd0, 3'b000, 5'd9, 7'b0010011); // target
-    imem[15] = rv32_i(12'sd0, 5'd0, 3'b000, 5'd0, 7'b0010011);
+    imem[15] = rv32_i(12'sd9, 5'd0, 3'b000, 5'd10, 7'b0010011); // addi x10, x0, 9
+    imem[16] = rv32_i(12'sd0, 5'd0, 3'b000, 5'd11, 7'b0010011); // addi x11, x0, 0
+    imem[17] = rv32_r(7'b0000111, 5'd11, 5'd10, 3'b111, 5'd12, 7'b0110011); // czero.nez x12, x10, x11
+    imem[18] = rv32_b(13'sd8, 5'd0, 5'd12, 3'b001, 7'b1100011); // bne x12, x0, +8
+    imem[19] = rv32_i(12'sd99, 5'd0, 3'b000, 5'd13, 7'b0010011); // poison
+    imem[20] = rv32_i(12'sd17, 5'd0, 3'b000, 5'd13, 7'b0010011); // target
+    imem[21] = rv32_i(12'sd0, 5'd0, 3'b000, 5'd0, 7'b0010011);
 
     #20;
     rst_n = 1'b1;
