@@ -12,6 +12,7 @@ set part_name xc7z020clg400-1
 set flow_mode synth
 set rom_init_hex ""
 set rom_init_mem32_hex ""
+set ram_base_override ""
 set rom_bytes_override ""
 set ram_bytes_override ""
 set input_clock_period_ns 8.000
@@ -37,6 +38,9 @@ if {[info exists ::env(ROM_INIT_HEX_OVERRIDE)] && $::env(ROM_INIT_HEX_OVERRIDE) 
 }
 if {[info exists ::env(ROM_INIT_MEM32_HEX_OVERRIDE)] && $::env(ROM_INIT_MEM32_HEX_OVERRIDE) ne ""} {
     set rom_init_mem32_hex [file normalize $::env(ROM_INIT_MEM32_HEX_OVERRIDE)]
+}
+if {[info exists ::env(RAM_BASE_OVERRIDE)] && $::env(RAM_BASE_OVERRIDE) ne ""} {
+    set ram_base_override $::env(RAM_BASE_OVERRIDE)
 }
 if {[info exists ::env(ROM_BYTES_OVERRIDE)] && $::env(ROM_BYTES_OVERRIDE) ne ""} {
     set rom_bytes_override $::env(ROM_BYTES_OVERRIDE)
@@ -202,6 +206,10 @@ if {$rom_init_hex ne ""} {
 if {$rom_init_mem32_hex ne ""} {
     puts "INFO: ROM_INIT_MEM32_HEX override = $rom_init_mem32_hex"
     lappend synth_cmd -generic "ROM_INIT_MEM32_HEX=$rom_init_mem32_hex"
+}
+if {$ram_base_override ne ""} {
+    puts "INFO: RAM_BASE override = $ram_base_override"
+    lappend synth_cmd -generic "RAM_BASE=$ram_base_override"
 }
 if {$rom_bytes_override ne ""} {
     puts "INFO: ROM_BYTES override = $rom_bytes_override"

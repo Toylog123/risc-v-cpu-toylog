@@ -23,6 +23,13 @@ This directory records hardware optimization candidates for `YH_rv_cpu`. The goa
 
 ## Current Reporting Boundary
 
-`H13` is a hardware resource/power reduction candidate on the no-Zbc/no-Zicond path. It preserves the current audited fixed-image CoreMark score and Dhrystone score, and it has synthesis evidence under `reports/h13_no_zbc_no_zicond_synth_20260514/`. It is not yet a board-grade final result because implementation timing and bitstream evidence still need to be generated.
+`H13` is a hardware resource/power reduction candidate on the no-Zbc/no-Zicond path. It preserves the current audited fixed-image CoreMark score and Dhrystone score, and it has synthesis evidence under `reports/h13_no_zbc_no_zicond_synth_20260514/`.
+
+Two board-grade FPGA evidence paths now exist and must be reported separately:
+
+1. `reports/h14_h13_impl50_20260514/` plus `YH_rv_cpu_pynq_z2_h13_nozbc_nozicond_cpu50_20260514.bit` use the compact demo payload. This path is useful for CPU resource/timing reporting because it uses `4 BRAM`.
+2. `../coremark_method_a_fixed75_20260514/` embeds the fixed CoreMark program image directly into the bitstream. This follows Method A and is useful for on-board CoreMark demonstration. It uses `32 BRAM` because the CoreMark ROM/RAM image is much larger.
 
 The older high CoreMark fixed-image records and the `verify75` records are kept as separate evidence paths. They must not be merged into one claim unless the same RTL parameters, benchmark image, raw log, and FPGA report are all aligned.
+
+Freshly rebuilding the current no-Zicond CoreMark target on 2026-05-14 produced `5.052988 CoreMark/MHz` (`method_a_coremark_preflight_20260514.summary.txt`), while the archived fixed `verify75` image reproduced `7.502641 CoreMark/MHz` on the final code state (`fixedhex_final_h13_method_a_image_cm10.summary.txt`). These are different firmware images and must not be presented as the same measurement.

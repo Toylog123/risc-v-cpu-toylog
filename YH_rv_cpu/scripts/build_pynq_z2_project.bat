@@ -41,6 +41,7 @@ echo PYNQ-Z2 Zbkb extension enable: %PYNQ_ENABLE_ZBKB_EXTENSION_OVERRIDE%
 echo PYNQ-Z2 XThead extension enable: %PYNQ_ENABLE_XTHEAD_EXTENSION_OVERRIDE%
 echo PYNQ-Z2 XThead conditional move enable: %PYNQ_ENABLE_XTHEAD_COND_MOVE_OVERRIDE%
 echo PYNQ-Z2 ID branch EX-forward enable: %PYNQ_ENABLE_ID_BRANCH_EX_FORWARD_OVERRIDE%
+if defined RAM_BASE_OVERRIDE echo PYNQ-Z2 RAM base override: %RAM_BASE_OVERRIDE%
 
 set VIVADO_CMD=
 set PHYSICAL_SCRIPT_DIR=%~dp0
@@ -162,6 +163,7 @@ if not defined ROM_INIT_MEM32_HEX_OVERRIDE if exist "%DEFAULT_DEMO_MEM32_HEX%" (
 echo Using mapped repo root: %MAPPED_ROOT%
 if defined ROM_INIT_HEX_OVERRIDE echo Using ROM_INIT_HEX_OVERRIDE=%ROM_INIT_HEX_OVERRIDE%
 if defined ROM_INIT_MEM32_HEX_OVERRIDE echo Using ROM_INIT_MEM32_HEX_OVERRIDE=%ROM_INIT_MEM32_HEX_OVERRIDE%
+if defined RAM_BASE_OVERRIDE echo Using RAM_BASE_OVERRIDE=%RAM_BASE_OVERRIDE%
 
 if exist "%SCRIPT_DIR%organize_tool_logs.bat" call "%SCRIPT_DIR%organize_tool_logs.bat"
 
