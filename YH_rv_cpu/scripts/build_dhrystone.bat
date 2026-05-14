@@ -172,19 +172,17 @@ set CRT0_OBJ=%BUILD_DIR%\%OUTPUT_NAME%_crt0.o
 set MAIN_OBJ=%BUILD_DIR%\%OUTPUT_NAME%_main.o
 set CORE_OBJ=%BUILD_DIR%\%OUTPUT_NAME%_core.o
 set PORT_OBJ=%BUILD_DIR%\%OUTPUT_NAME%_port.o
-set MAIN_SRC=%PROJECT_DIR%\build\external\riscv-tests\benchmarks\dhrystone\dhrystone_main.c
-set CORE_SRC=%PROJECT_DIR%\build\external\riscv-tests\benchmarks\dhrystone\dhrystone.c
+set UPSTREAM_MAIN_SRC=%PROJECT_DIR%\build\external\riscv-tests\benchmarks\dhrystone\dhrystone_main.c
+set UPSTREAM_CORE_SRC=%PROJECT_DIR%\build\external\riscv-tests\benchmarks\dhrystone\dhrystone.c
+set GEN_DHRY_DIR=%BUILD_DIR%\generated_dhrystone\%OUTPUT_NAME%
+set STRIP_NOINLINE_FLAG=0
+if /I "%DHRYSTONE_STRIP_NOINLINE%"=="1" set STRIP_NOINLINE_FLAG=1
 
-if /I "%DHRYSTONE_STRIP_NOINLINE%"=="1" (
-    set GEN_DHRY_DIR=%BUILD_DIR%\generated_dhrystone
-    if not exist "!GEN_DHRY_DIR!" mkdir "!GEN_DHRY_DIR!"
-    findstr /V /C:"#pragma GCC optimize" "%PROJECT_DIR%\build\external\riscv-tests\benchmarks\dhrystone\dhrystone_main.c" > "!GEN_DHRY_DIR!\dhrystone_main.c"
-    if errorlevel 1 exit /b 1
-    findstr /V /C:"#pragma GCC optimize" "%PROJECT_DIR%\build\external\riscv-tests\benchmarks\dhrystone\dhrystone.c" > "!GEN_DHRY_DIR!\dhrystone.c"
-    if errorlevel 1 exit /b 1
-    set MAIN_SRC=!GEN_DHRY_DIR!\dhrystone_main.c
-    set CORE_SRC=!GEN_DHRY_DIR!\dhrystone.c
-)
+"%PYTHON_CMD%" "%PROJECT_DIR%\scripts\patch_dhrystone_sources.py" "%UPSTREAM_MAIN_SRC%" "%UPSTREAM_CORE_SRC%" "%GEN_DHRY_DIR%" "%STRIP_NOINLINE_FLAG%"
+if errorlevel 1 exit /b 1
+
+set MAIN_SRC=%GEN_DHRY_DIR%\dhrystone_main.c
+set CORE_SRC=%GEN_DHRY_DIR%\dhrystone.c
 
 echo Dhrystone target: %TARGET%
 echo Dhrystone march: %MARCH%
