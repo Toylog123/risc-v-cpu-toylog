@@ -1,5 +1,31 @@
 # CURRENT_STATUS
 
+> Updated: `2026-05-14 17:50`
+> Branch: `opt/coremark8-hw-20260512`
+> Current freeze: Method A sync BRAM PYNQ-Z2 CoreMark artifact
+
+## 2026-05-14 Method A sync BRAM freeze
+
+- Main handoff: `YH_rv_cpu/doc/METHOD_A_SYNCBRAM_HANDOFF_20260514.md`
+- Artifact: `artifacts/coremark_method_a_20260514_172753`
+- Vivado English package:
+  `vivado_program/coremark_method_a_syncbram_20260514`
+- Program bitstream:
+  `vivado_program/coremark_method_a_syncbram_20260514/YH_rv_cpu_pynq_z2_method_a_syncbram_20260514.bit`
+- Root quick-copy:
+  `vivado_program/YH_rv_cpu_pynq_z2_method_a_syncbram_20260514.bit`
+- Method A FPGA-like sync ROM/RAM evidence:
+  `3.757530 CoreMark/MHz`, `CoreMark Size=666`, `Iterations=10`,
+  `Total ticks=2661323`, `seedcrc=0xe9f5`, `crcfinal=0xfcaf`,
+  `acceptance_pass=yes`
+- PYNQ-Z2 implementation evidence:
+  `5963 LUT / 2645 FF / 32 BRAM / 15 DSP`,
+  `WNS +0.120 ns / WHS +0.050 ns`
+
+Boundary: this is the board-facing Method A synchronous Block RAM path. Earlier
+async/profile higher-score artifacts remain exploration evidence and must not be
+merged into this Method A score without a matching sync BRAM run.
+
 > Updated: `2026-04-28 10:55`
 > Branch: `fix/dcache-icache-integration`
 > Live repo state: verify with `git status --short --branch` and

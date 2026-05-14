@@ -43,6 +43,7 @@ module YH_rv_cpu_hazard_unit #(
     // MEM/WB 阶段流水线寄存器
     // ------------------------------------------------------------
     input  wire        mem_wb_valid,       // MEM/WB 流水线有效标志
+    input  wire        mem_wb_load,
     input  wire        mem_wb_rd_en,       // rd 写回使能
     input  wire [4:0]  mem_wb_rd_addr,     // rd 地址
 
@@ -74,6 +75,8 @@ module YH_rv_cpu_hazard_unit #(
     // 情况 1: ID/EX 阶段有加载指令，ID 阶段的指令需要 EX 阶段的结果
     // ------------------------------------------------------------
 wire load_use_hazard;
+wire ex_mem_load_use_hazard;
+wire mem_wb_load_use_hazard;
 
     // ID/EX 加载冒险: 当前译码指令需要 ID/EX 阶段加载的结果
 assign load_use_hazard =
@@ -84,12 +87,28 @@ assign load_use_hazard =
         (if_id_rs2_en && (if_id_rs2_addr == id_ex_rd_addr))
     );
 
+assign ex_mem_load_use_hazard =
+    (LOAD_USE_FAST_FORWARD == 0) &&
+    ex_mem_valid && ex_mem_load && ex_mem_rd_en && (ex_mem_rd_addr != 5'd0) &&
+    (
+        (if_id_rs1_en && (if_id_rs1_addr == ex_mem_rd_addr)) ||
+        (if_id_rs2_en && (if_id_rs2_addr == ex_mem_rd_addr))
+    );
+
+assign mem_wb_load_use_hazard =
+    (LOAD_USE_FAST_FORWARD == 0) &&
+    mem_wb_valid && mem_wb_load && mem_wb_rd_en && (mem_wb_rd_addr != 5'd0) &&
+    (
+        (if_id_rs1_en && (if_id_rs1_addr == mem_wb_rd_addr)) ||
+        (if_id_rs2_en && (if_id_rs2_addr == mem_wb_rd_addr))
+    );
+
     // 停顿条件: load-use冒险 或 DCache等待 或 ICache等待
     // DCACHE_EN=0时dcache_wait=0，不影响
     // DCACHE_EN=1时dcache_wait会阻止流水线直到dcache完成访问
     // ICACHE_EN=0时icache_wait=0，不影响
     // ICACHE_EN=1时icache_wait会阻止流水线直到icache完成取指
-assign stall_decode = load_use_hazard || dcache_wait || icache_wait;
+assign stall_decode = load_use_hazard || ex_mem_load_use_hazard || mem_wb_load_use_hazard || dcache_wait || icache_wait;
 
     // ------------------------------------------------------------
     // 数据转发选择逻辑

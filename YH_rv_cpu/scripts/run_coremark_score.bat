@@ -14,12 +14,17 @@ set BUILD_OUTPUT_NAME=
 set OUTPUT_DIR=
 set OUTPUT_STEM=
 set XSIM_TRACE_ARGS=
+set EXPECTED_COREMARK_SIZE=
+set EXEC_ALGO_COUNT=
 
 if "%TARGET%"=="" set TARGET=rv32
 if "%ITERATIONS%"=="" set ITERATIONS=10
 if "%DATA_SIZE%"=="" set DATA_SIZE=2000
 if "%TIMER_HZ%"=="" set TIMER_HZ=100000000UL
 if "%MAX_CYCLES%"=="" set MAX_CYCLES=20000000
+
+set EXEC_ALGO_COUNT=3
+set /a EXPECTED_COREMARK_SIZE=%DATA_SIZE% / %EXEC_ALGO_COUNT%
 
 rem Default summary lives beside the software build outputs unless overridden.
 if "%SUMMARY_FILE%"=="" (
@@ -215,7 +220,7 @@ rem The score flow only succeeds if both the simulation and the post-processed s
 findstr /c:"PASS: coremark completed" "%LOG_FILE%" >nul
 if errorlevel 1 goto :fail
 
-call %PYTHON_CMD% "%~dp0report_coremark_result.py" "%LOG_FILE%" "%TIMER_HZ%" "%SUMMARY_FILE%"
+call %PYTHON_CMD% "%~dp0report_coremark_result.py" "%LOG_FILE%" "%TIMER_HZ%" "%SUMMARY_FILE%" "%EXPECTED_COREMARK_SIZE%" "%ITERATIONS%"
 if errorlevel 1 goto :fail
 
 findstr /c:"competition_reportable=yes" "%SUMMARY_FILE%" >nul

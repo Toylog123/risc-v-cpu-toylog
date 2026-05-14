@@ -7,6 +7,8 @@
     "01-项目管理/README.md"
   ],
   "handoff_files": [
+    "YH_rv_cpu/doc/METHOD_A_SYNCBRAM_HANDOFF_20260514.md",
+    "artifacts/coremark_method_a_20260514_172753/METHOD_A_FREEZE_HANDOFF.md",
     "01-项目管理/02-执行管理/05-工作交接/工作交接.md",
     "YH_rv_cpu/doc/YH_rv_cpu_handoff.md"
   ],
@@ -28,6 +30,8 @@
     "03-工具链/YH_rv_cpu_toolchain/队伍安装清单.md"
   ],
   "read_order": [
+    "YH_rv_cpu/doc/METHOD_A_SYNCBRAM_HANDOFF_20260514.md",
+    "artifacts/coremark_method_a_20260514_172753/METHOD_A_FREEZE_HANDOFF.md",
     "README.md",
     "YH_rv_cpu/doc/技术文档.md",
     "01-项目管理/README.md",

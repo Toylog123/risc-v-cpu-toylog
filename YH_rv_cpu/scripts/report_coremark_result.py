@@ -22,9 +22,10 @@ def yes_no(flag: bool) -> str:
 
 
 def main() -> int:
-    if len(sys.argv) not in (3, 4):
+    if len(sys.argv) not in (3, 4, 6):
         print(
-            "usage: report_coremark_result.py <log_path> <clock_hz> [summary_path]",
+            "usage: report_coremark_result.py <log_path> <clock_hz> "
+            "[summary_path [expected_coremark_size expected_iterations]]",
             file=sys.stderr,
         )
         return 2
@@ -33,9 +34,11 @@ def main() -> int:
     clock_hz = parse_clock_hz(sys.argv[2])
     summary_path = (
         pathlib.Path(sys.argv[3])
-        if len(sys.argv) == 4
+        if len(sys.argv) in (4, 6)
         else log_path.with_suffix(".summary.txt")
     )
+    expected_coremark_size = int(sys.argv[4]) if len(sys.argv) == 6 else None
+    expected_iterations = int(sys.argv[5]) if len(sys.argv) == 6 else None
 
     text = log_path.read_text(encoding="utf-8", errors="replace")
 
@@ -50,6 +53,10 @@ def main() -> int:
     )
     memory_location = require(
         r"^Memory location\s*:\s*(.+?)\s*$", text, "Memory location"
+    )
+    seed_crc = require(r"^seedcrc\s*:\s*(0x[0-9a-fA-F]+)\s*$", text, "seedcrc")
+    final_crc = require(
+        r"^\[0\]crcfinal\s*:\s*(0x[0-9a-fA-F]+)\s*$", text, "crcfinal"
     )
     completion_cycles = int(
         require(
@@ -99,6 +106,30 @@ def main() -> int:
     else:
         validation_mode = "unknown"
 
+    acceptance_issues = []
+    if coremark_size <= 0:
+        acceptance_issues.append("coremark_size_must_be_positive")
+    if total_ticks <= 0:
+        acceptance_issues.append("total_ticks_must_be_positive")
+    if iterations <= 0:
+        acceptance_issues.append("iterations_must_be_positive")
+    if memory_location.strip().lower() in ("", "null", "<null>"):
+        acceptance_issues.append("memory_location_must_be_valid")
+    if expected_coremark_size is not None and coremark_size != expected_coremark_size:
+        acceptance_issues.append(
+            f"coremark_size_expected_{expected_coremark_size}_got_{coremark_size}"
+        )
+    if expected_iterations is not None and iterations != expected_iterations:
+        acceptance_issues.append(
+            f"iterations_expected_{expected_iterations}_got_{iterations}"
+        )
+    if not (validation_clean or short_runtime_only):
+        acceptance_issues.append("coremark_validation_not_clean")
+    if errors_detected and not short_runtime_only:
+        acceptance_issues.append("errors_detected_without_accepted_short_runtime")
+
+    acceptance_pass = not acceptance_issues
+
     report_lines = [
         f"log_path={log_path}",
         f"clock_hz={clock_hz}",
@@ -111,6 +142,8 @@ def main() -> int:
         f"compiler_version={compiler_version}",
         f"compiler_flags={compiler_flags}",
         f"memory_location={memory_location}",
+        f"seedcrc={seed_crc}",
+        f"crcfinal={final_crc}",
         f"completion_cycles={completion_cycles}",
         f"validation_clean={yes_no(validation_clean)}",
         f"validation_mode={validation_mode}",
@@ -122,6 +155,8 @@ def main() -> int:
         f"errors_detected={yes_no(errors_detected)}",
         f"competition_reportable={yes_no(competition_reportable)}",
         f"strict_eembc_10s_compliant={yes_no(strict_eembc_10s)}",
+        f"acceptance_pass={yes_no(acceptance_pass)}",
+        "acceptance_issues=" + ",".join(acceptance_issues),
         (
             "competition_report_line="
             f"CoreMark/MHz (host-parsed): {coremark_per_mhz:.6f} / "
@@ -138,6 +173,10 @@ def main() -> int:
     ]
 
     summary_path.write_text("\n".join(report_lines) + "\n", encoding="utf-8")
+    if not acceptance_pass:
+        for issue in acceptance_issues:
+            print(f"CoreMark acceptance failure: {issue}", file=sys.stderr)
+        return 1
     return 0
 
 

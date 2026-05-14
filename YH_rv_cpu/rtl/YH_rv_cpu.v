@@ -90,6 +90,9 @@ reg [XLEN-1:0] fetch_pc_r;             // 取指 PC (用于同步内存)
 reg [XLEN-1:0] fetch_pc_d1_r;          // 取指 PC 延迟 1 拍
 reg            fetch_valid_r;           // 取指有效标志
 reg            fetch_valid_d1_r;       // 取指有效延迟 1 拍
+reg            fetch_epoch_r;
+reg            fetch_req_epoch_r;
+reg            fetch_req_epoch_d1_r;
 reg [1:0]      fetch_drop_count_r;     // 取指丢弃计数 (用于流水线冲刷)
 reg            fetch_buf0_valid_r;      // 取指缓冲区 0 有效
 reg [XLEN-1:0] fetch_buf0_pc_r;       // 取指缓冲区 0 PC
@@ -340,6 +343,7 @@ wire [XLEN-1:0] fetch_control_redirect_pc;
 wire            async_redirect_refill_valid;
 wire [XLEN-1:0] async_redirect_refill_next_pc;
 wire            decode_flush_valid;
+wire            if_id_duplicate_fetch;
 
     // 访存阶段输出
 wire [XLEN-1:0] mem_load_data;
@@ -471,7 +475,7 @@ wire            fetch_buf1_valid_next;
     // 常量定义
     // ================================================================
 localparam [XLEN-1:0] ZERO_XLEN = {XLEN{1'b0}};
-localparam [1:0] IMEM_DROP_COUNT = (IMEM_OUTPUT_REG != 0) ? 2'd1 : 2'd0;
+localparam [1:0] IMEM_DROP_COUNT = 2'd0;
 
     // ================================================================
     // 输出信号分配
@@ -483,11 +487,15 @@ assign debug_pc = pc_r;
 wire [XLEN-1:0] ifetch_addr;          // 取指地址中间信号
 wire [31:0]     instr_data_from_mem;  // 来自内存/缓存的指令数据
 wire            fetch_request_ok;
+wire            fetch_request_epoch;
+wire            fetch_rsp_epoch;
+wire            fetch_rsp_epoch_match;
 wire            fetch_redirect_target_request;
 wire            fetch_regular_request;
 wire            fetch_imem_req;
 
 assign instr_data_from_mem = (ICACHE_EN != 0) ? icache_cpu_rdata : imem_rdata;
+assign fetch_request_epoch = fetch_control_redirect_valid ? !fetch_epoch_r : fetch_epoch_r;
 
     // ================================================================
     // 取指请求逻辑
@@ -879,6 +887,8 @@ assign mem_wait = DCACHE_EN ? dcache_cpu_wait : ((DMEM_SYNC != 0) && ex_mem_vali
     // ================================================================
 assign fetch_rsp_pc = (IMEM_OUTPUT_REG != 0) ? fetch_pc_d1_r : fetch_pc_r;
 assign fetch_rsp_valid = (IMEM_OUTPUT_REG != 0) ? fetch_valid_d1_r : fetch_valid_r;
+assign fetch_rsp_epoch = (IMEM_OUTPUT_REG != 0) ? fetch_req_epoch_d1_r : fetch_req_epoch_r;
+assign fetch_rsp_epoch_match = (fetch_rsp_epoch == fetch_epoch_r) && !fetch_control_redirect_valid;
 
     // ================================================================
     // 取指丢弃响应
@@ -888,7 +898,9 @@ assign fetch_drop_response = (fetch_drop_count_r != 2'd0);
     // ================================================================
     // 取指流水线有效性
     // ================================================================
-assign fetch_pipe_valid = (IMEM_SYNC != 0) ? (fetch_rsp_valid && imem_rvalid && !fetch_drop_response) : 1'b0;
+assign fetch_pipe_valid = (IMEM_SYNC != 0) ?
+    (fetch_rsp_valid && imem_rvalid && !fetch_drop_response && fetch_rsp_epoch_match) :
+    1'b0;
 
     // ================================================================
     // 取指缓冲区有效性
@@ -953,17 +965,25 @@ assign fetch_redirect_pipe_hit =
     !fetch_buffer_valid &&
     fetch_pipe_valid &&
     (fetch_rsp_pc == fetch_reuse_redirect_pc);
-assign fetch_redirect_reuse_valid =
-    fetch_redirect_buf0_hit ||
-    fetch_redirect_buf1_hit ||
-    fetch_redirect_pipe_hit;
+assign fetch_redirect_reuse_valid = 1'b0;
 
     // ================================================================
     // IF/ID 流水线控制
     // ================================================================
 assign if_id_fetch_valid = (IMEM_SYNC != 0) ? fetch_queue_valid : 1'b1;
 assign if_id_write_en = pipeline_run && (!stall_decode || decode_flush_valid);
-assign if_id_load_bubble = (decode_flush_valid && !async_redirect_refill_valid) || !if_id_fetch_valid;
+assign if_id_duplicate_fetch =
+    (IMEM_SYNC != 0) &&
+    if_id_valid_r &&
+    if_id_fetch_valid &&
+    !stall_decode &&
+    !decode_flush_valid &&
+    (fetch_queue_pc == if_id_pc_r) &&
+    (fetch_queue_instruction == if_id_instruction_r);
+assign if_id_load_bubble =
+    (decode_flush_valid && !async_redirect_refill_valid) ||
+    ((IMEM_SYNC != 0) && fetch_control_redirect_valid) ||
+    !if_id_fetch_valid;
 assign if_id_next_valid = if_id_load_bubble ? 1'b0 : 1'b1;
 assign if_id_data_write_en =
     (IMEM_SYNC != 0) ?
@@ -1255,6 +1275,7 @@ YH_rv_cpu_hazard_unit #(
     .ex_mem_rd_en   (ex_mem_rd_en_r),
     .ex_mem_rd_addr (ex_mem_rd_addr_r),
     .mem_wb_valid   (mem_wb_valid_r),
+    .mem_wb_load    (mem_wb_wb_sel_r == `YH_rv_cpu_WB_MEM),
     .mem_wb_rd_en   (mem_wb_rd_en_r),
     .mem_wb_rd_addr (mem_wb_rd_addr_r),
     .stall_decode   (hazard_stall_decode),
@@ -1496,6 +1517,9 @@ always @(posedge clk or negedge rst_n) begin
         fetch_pc_d1_r <= ZERO_XLEN;
         fetch_valid_r <= 1'b0;
         fetch_valid_d1_r <= 1'b0;
+        fetch_epoch_r <= 1'b0;
+        fetch_req_epoch_r <= 1'b0;
+        fetch_req_epoch_d1_r <= 1'b0;
 
         id_ex_valid_r <= 1'b0;
         id_ex_pc_r <= ZERO_XLEN;
@@ -1575,7 +1599,14 @@ always @(posedge clk or negedge rst_n) begin
         if (IMEM_SYNC != 0) begin
             fetch_pc_d1_r <= fetch_pc_r;
             fetch_valid_d1_r <= fetch_valid_r;
+            fetch_req_epoch_d1_r <= fetch_req_epoch_r;
             fetch_pc_r <= imem_req ? ifetch_addr : ZERO_XLEN;
+            if (imem_req) begin
+                fetch_req_epoch_r <= fetch_request_epoch;
+            end
+            if (fetch_control_redirect_valid) begin
+                fetch_epoch_r <= !fetch_epoch_r;
+            end
             // For ICACHE_EN=1: set fetch_valid_r when cache miss (icache_cpu_wait=1), clear when data arrives (icache_cpu_rvalid=1)
             fetch_valid_r <= ((ICACHE_EN != 0) && icache_cpu_wait && !icache_cpu_rvalid) ||
                  ((ICACHE_EN == 0) && imem_req);
@@ -1584,6 +1615,9 @@ always @(posedge clk or negedge rst_n) begin
             fetch_pc_d1_r <= ZERO_XLEN;
             fetch_valid_r <= 1'b0;
             fetch_valid_d1_r <= 1'b0;
+            fetch_epoch_r <= 1'b0;
+            fetch_req_epoch_r <= 1'b0;
+            fetch_req_epoch_d1_r <= 1'b0;
         end
 
         if (mem_wait) begin
@@ -1651,7 +1685,11 @@ always @(posedge clk or negedge rst_n) begin
                 id_ex_mret_r <= id_ex_mret_r;
             end else begin
                 if (fetch_control_redirect_valid || !stall_decode) begin
-                    pc_r <= async_redirect_refill_valid ? async_redirect_refill_next_pc : if_pc_next;
+                    pc_r <=
+                        ((IMEM_SYNC != 0) && fetch_redirect_target_request) ?
+                            (fetch_control_redirect_pc + {{(XLEN-3){1'b0}}, 3'd4}) :
+                        async_redirect_refill_valid ? async_redirect_refill_next_pc :
+                        if_pc_next;
                 end
 
                 ex_mem_valid_r <= id_ex_valid_r;

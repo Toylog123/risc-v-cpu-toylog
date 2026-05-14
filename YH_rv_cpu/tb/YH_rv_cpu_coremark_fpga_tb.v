@@ -7,7 +7,16 @@ module YH_rv_cpu_coremark_fpga_tb #(
     parameter [31:0] RAM_BASE = 32'h0001_0000,
     parameter integer ROM_BYTES = 65536,
     parameter integer RAM_BYTES = 65536,
-    parameter integer MAX_CYCLES = 1000000000
+    parameter integer MAX_CYCLES = 1000000000,
+    parameter integer ENABLE_M_EXTENSION = 1,
+    parameter integer ENABLE_ZMMUL_EXTENSION = 0,
+    parameter integer ENABLE_BITMANIP_EXTENSION = 1,
+    parameter integer ENABLE_ZBC_EXTENSION = 0,
+    parameter integer ENABLE_ZICOND_EXTENSION = 0,
+    parameter integer ENABLE_ZBKB_EXTENSION = 0,
+    parameter integer ENABLE_XTHEAD_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_COND_MOVE = 1,
+    parameter integer ENABLE_ID_BRANCH_EX_FORWARD = 1
 ) ();
 
 localparam integer VALID_MSG_LEN = 13;
@@ -31,6 +40,12 @@ integer valid_match_idx;
 integer score_match_idx;
 reg     valid_found;
 reg     score_found;
+integer trace_cycles;
+integer trace_stride;
+integer trace_start;
+integer trace_end;
+integer plusarg_seen;
+reg     debug_trace;
 
 YH_rv_cpu_soc #(
     .XLEN(XLEN),
@@ -42,7 +57,16 @@ YH_rv_cpu_soc #(
     .ROM_BYTES(ROM_BYTES),
     .RAM_BYTES(RAM_BYTES),
     .ROM_INIT_HEX(ROM_HEX),
-    .ROM_INIT_MEM32_HEX(ROM_MEM32_HEX)
+    .ROM_INIT_MEM32_HEX(ROM_MEM32_HEX),
+    .ENABLE_M_EXTENSION(ENABLE_M_EXTENSION),
+    .ENABLE_ZMMUL_EXTENSION(ENABLE_ZMMUL_EXTENSION),
+    .ENABLE_BITMANIP_EXTENSION(ENABLE_BITMANIP_EXTENSION),
+    .ENABLE_ZBC_EXTENSION(ENABLE_ZBC_EXTENSION),
+    .ENABLE_ZICOND_EXTENSION(ENABLE_ZICOND_EXTENSION),
+    .ENABLE_ZBKB_EXTENSION(ENABLE_ZBKB_EXTENSION),
+    .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION),
+    .ENABLE_XTHEAD_COND_MOVE(ENABLE_XTHEAD_COND_MOVE),
+    .ENABLE_ID_BRANCH_EX_FORWARD(ENABLE_ID_BRANCH_EX_FORWARD)
 ) dut (
     .clk          (clk),
     .rst_n        (rst_n),
@@ -95,6 +119,123 @@ always @(posedge clk) begin
             $display("CYCLE=%0d PC=%h", cycle, debug_pc);
         end
 
+        if (debug_trace && (
+            (cycle < trace_cycles) ||
+            ((trace_stride > 0) && ((cycle % trace_stride) == 0)) ||
+            ((cycle >= trace_start) && (cycle <= trace_end))
+        )) begin
+            $display(
+                "TRACE_IF cycle=%0d pc=%h ifid_v=%b idex_v=%b exmem_v=%b memwb_v=%b wr=%b data_wr=%b next_v=%b load_bub=%b dup=%b stall=%b dflush=%b q_valid=%b pipe_valid=%b buffer_valid=%b buf0_v=%b buf1_v=%b rsp_valid=%b imem_rvalid=%b drop_count=%0d drop_rsp=%b live=%b consume=%b enqueue=%b data_issue=%b live_data=%b enqueue_data=%b redir=%b redir_pc=%h ifid_pc=%h idex_pc=%h q_pc=%h rsp_pc=%h buf0_pc=%h buf1_pc=%h ifid_instr=%h q_instr=%h",
+                cycle,
+                debug_pc,
+                dut.u_cpu.if_id_valid_r,
+                dut.u_cpu.id_ex_valid_r,
+                dut.u_cpu.ex_mem_valid_r,
+                dut.u_cpu.mem_wb_valid_r,
+                dut.u_cpu.if_id_write_en,
+                dut.u_cpu.if_id_data_write_en,
+                dut.u_cpu.if_id_next_valid,
+                dut.u_cpu.if_id_load_bubble,
+                dut.u_cpu.if_id_duplicate_fetch,
+                dut.u_cpu.stall_decode,
+                dut.u_cpu.decode_flush_valid,
+                dut.u_cpu.fetch_queue_valid,
+                dut.u_cpu.fetch_pipe_valid,
+                dut.u_cpu.fetch_buffer_valid,
+                dut.u_cpu.fetch_buf0_valid_r,
+                dut.u_cpu.fetch_buf1_valid_r,
+                dut.u_cpu.fetch_rsp_valid,
+                dut.imem_rvalid,
+                dut.u_cpu.fetch_drop_count_r,
+                dut.u_cpu.fetch_drop_response,
+                dut.u_cpu.fetch_live_to_ifid,
+                dut.u_cpu.fetch_queue_consume,
+                dut.u_cpu.fetch_queue_enqueue,
+                dut.u_cpu.fetch_data_issue,
+                dut.u_cpu.fetch_live_to_ifid_data,
+                dut.u_cpu.fetch_queue_enqueue_data,
+                dut.u_cpu.fetch_control_redirect_valid,
+                dut.u_cpu.fetch_control_redirect_pc,
+                dut.u_cpu.if_id_pc_r,
+                dut.u_cpu.id_ex_pc_r,
+                dut.u_cpu.fetch_queue_pc,
+                dut.u_cpu.fetch_rsp_pc,
+                dut.u_cpu.fetch_buf0_pc_r,
+                dut.u_cpu.fetch_buf1_pc_r,
+                dut.u_cpu.if_id_instruction_r,
+                dut.u_cpu.fetch_queue_instruction
+            );
+            $display(
+                "TRACE cycle=%0d pc=%h ifid=%h idex=%h exmem_pc4=%h ex_redir=%b ex_redir_pc=%h fwdA=%b fwdB=%b idex_rs1=%0d idex_rs2=%0d idex_rd=%0d exmem_rd=%0d memwb_rd=%0d ex_rs1=%h ex_rs2=%h trap=%b done=%b x5=%h x6=%h x7=%h x10=%h x11=%h x12=%h x13=%h x14=%h x15=%h x16=%h x17=%h x28=%h x29=%h x30=%h x31=%h daddr=%h drdata=%h drvalid=%b dwdata=%h dwstrb=%h",
+                cycle,
+                debug_pc,
+                dut.u_cpu.if_id_pc_r,
+                dut.u_cpu.id_ex_pc_r,
+                dut.u_cpu.ex_mem_pc4_r,
+                dut.u_cpu.ex_redirect_en,
+                dut.u_cpu.ex_redirect_pc,
+                dut.u_cpu.forward_a_sel,
+                dut.u_cpu.forward_b_sel,
+                dut.u_cpu.id_ex_rs1_addr_r,
+                dut.u_cpu.id_ex_rs2_addr_r,
+                dut.u_cpu.id_ex_rd_addr_r,
+                dut.u_cpu.ex_mem_rd_addr_r,
+                dut.u_cpu.mem_wb_rd_addr_r,
+                dut.u_cpu.ex_rs1_forwarded,
+                dut.u_cpu.ex_rs2_forwarded,
+                trap,
+                done,
+                dut.u_cpu.u_regfile.regs[5],
+                dut.u_cpu.u_regfile.regs[6],
+                dut.u_cpu.u_regfile.regs[7],
+                dut.u_cpu.u_regfile.regs[10],
+                dut.u_cpu.u_regfile.regs[11],
+                dut.u_cpu.u_regfile.regs[12],
+                dut.u_cpu.u_regfile.regs[13],
+                dut.u_cpu.u_regfile.regs[14],
+                dut.u_cpu.u_regfile.regs[15],
+                dut.u_cpu.u_regfile.regs[16],
+                dut.u_cpu.u_regfile.regs[17],
+                dut.u_cpu.u_regfile.regs[28],
+                dut.u_cpu.u_regfile.regs[29],
+                dut.u_cpu.u_regfile.regs[30],
+                dut.u_cpu.u_regfile.regs[31],
+                dut.dmem_addr,
+                dut.dmem_rdata,
+                dut.dmem_rvalid,
+                dut.dmem_wdata,
+                dut.dmem_wstrb
+            );
+            $display(
+                "TRACE_WB cycle=%0d exmem_v=%b exmem_load=%b exmem_rd_en=%b exmem_rd=%0d memwb_v=%b memwb_rd_en=%b memwb_sel=%b memwb_rd=%0d mem_load=%h memwb_load=%h wb_data=%h",
+                cycle,
+                dut.u_cpu.ex_mem_valid_r,
+                dut.u_cpu.ex_mem_load_r,
+                dut.u_cpu.ex_mem_rd_en_r,
+                dut.u_cpu.ex_mem_rd_addr_r,
+                dut.u_cpu.mem_wb_valid_r,
+                dut.u_cpu.mem_wb_rd_en_r,
+                dut.u_cpu.mem_wb_wb_sel_r,
+                dut.u_cpu.mem_wb_rd_addr_r,
+                dut.u_cpu.mem_load_data,
+                dut.u_cpu.mem_wb_load_data_r,
+                dut.u_cpu.wb_data
+            );
+        end
+
+        if (debug_trace && (cycle == 260)) begin
+            $display(
+                "TRACE_RAM_INIT cycle=%0d ram0=%h ram1=%h ram2=%h ram3=%h ram4=%h ram5=%h",
+                cycle,
+                dut.u_dmem_ram.g_sync_ram.ram_mem[0],
+                dut.u_dmem_ram.g_sync_ram.ram_mem[1],
+                dut.u_dmem_ram.g_sync_ram.ram_mem[2],
+                dut.u_dmem_ram.g_sync_ram.ram_mem[3],
+                dut.u_dmem_ram.g_sync_ram.ram_mem[4],
+                dut.u_dmem_ram.g_sync_ram.ram_mem[5]
+            );
+        end
+
         if (trap) begin
             $fatal(1, "\nFAIL: coremark trap asserted at PC=%h cycle=%0d", debug_pc, cycle);
         end
@@ -129,6 +270,12 @@ initial begin
     score_match_idx = 0;
     valid_found = 1'b0;
     score_found = 1'b0;
+    debug_trace = 1'b0;
+    trace_cycles = 200;
+    trace_stride = 0;
+    trace_start = 1;
+    trace_end = 0;
+    plusarg_seen = 0;
 
     valid_msg[0]  = "C";
     valid_msg[1]  = "o";
@@ -164,6 +311,14 @@ initial begin
     if (!$value$plusargs("max_cycles=%d", max_cycles_runtime)) begin
         max_cycles_runtime = MAX_CYCLES;
     end
+
+    if ($test$plusargs("debug_trace")) begin
+        debug_trace = 1'b1;
+    end
+    plusarg_seen = $value$plusargs("trace_cycles=%d", trace_cycles);
+    plusarg_seen = $value$plusargs("trace_stride=%d", trace_stride);
+    plusarg_seen = $value$plusargs("trace_start=%d", trace_start);
+    plusarg_seen = $value$plusargs("trace_end=%d", trace_end);
 
     #100;
     rst_n = 1'b1;

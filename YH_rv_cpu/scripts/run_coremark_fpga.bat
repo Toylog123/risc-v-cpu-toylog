@@ -10,7 +10,13 @@ set MAX_CYCLES=%~5
 set SUMMARY_FILE=%~6
 set EXEC_MASK=%~7
 set BUILD_OUTPUT_NAME=
+set OUTPUT_DIR=
+set OUTPUT_STEM=
+set XSIM_TRACE_ARGS=
 set XSIM_RUN_DIR=
+set EXPECTED_COREMARK_SIZE=
+set EXEC_ALGO_COUNT=
+set EXEC_MASK_NUM=
 
 if "%TARGET%"=="" set TARGET=rv32
 if "%ITERATIONS%"=="" set ITERATIONS=1
@@ -18,11 +24,27 @@ if "%DATA_SIZE%"=="" set DATA_SIZE=400
 if "%TIMER_HZ%"=="" set TIMER_HZ=100000000UL
 if "%MAX_CYCLES%"=="" set MAX_CYCLES=20000000
 if "%EXEC_MASK%"=="" set EXEC_MASK=1
-set BUILD_OUTPUT_NAME=YH_rv_cpu_coremark_%TARGET%_fpga
+
+if "%EXEC_MASK%"=="0" (
+    set EXEC_ALGO_COUNT=3
+) else (
+    set /a EXEC_MASK_NUM=%EXEC_MASK%
+    set /a EXEC_ALGO_COUNT=^(EXEC_MASK_NUM ^& 1^) + ^(^(EXEC_MASK_NUM ^>^> 1^) ^& 1^) + ^(^(EXEC_MASK_NUM ^>^> 2^) ^& 1^)
+    if "!EXEC_ALGO_COUNT!"=="0" set EXEC_ALGO_COUNT=3
+)
+set /a EXPECTED_COREMARK_SIZE=%DATA_SIZE% / !EXEC_ALGO_COUNT!
 
 if "%SUMMARY_FILE%"=="" (
     set SUMMARY_FILE=%PROJECT_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%_fpga.summary.txt
 )
+for %%I in ("%SUMMARY_FILE%") do (
+    set SUMMARY_FILE=%%~fI
+    set OUTPUT_DIR=%%~dpI
+    set OUTPUT_STEM=%%~nI
+)
+if /I "!OUTPUT_STEM:~-8!"==".summary" set OUTPUT_STEM=!OUTPUT_STEM:~0,-8!
+if not defined OUTPUT_STEM set OUTPUT_STEM=YH_rv_cpu_coremark_%TARGET%_fpga
+set BUILD_OUTPUT_NAME=!OUTPUT_STEM!
 
 call "%~dp0build_coremark.bat" %TARGET% %ITERATIONS% %DATA_SIZE% %TIMER_HZ% %EXEC_MASK% %BUILD_OUTPUT_NAME%
 if errorlevel 1 exit /b 1
@@ -32,11 +54,40 @@ set XELAB=
 set XSIM=
 set PYTHON_CMD=
 set TEST_TOP=YH_rv_cpu_coremark_fpga_tb
-set LOG_FILE=%PROJECT_DIR%\build\sw\YH_rv_cpu_coremark_%TARGET%_fpga.log
+set LOG_FILE=!OUTPUT_DIR!!OUTPUT_STEM!.log
 set ROM_TARGET=rv32
+set ENABLE_M_EXTENSION=1
+set ENABLE_ZMMUL_EXTENSION=0
+set ENABLE_BITMANIP_EXTENSION=1
+set ENABLE_ZBC_EXTENSION=0
+set ENABLE_ZICOND_EXTENSION=0
+set ENABLE_ZBKB_EXTENSION=0
+set ENABLE_XTHEAD_EXTENSION=1
+set ENABLE_XTHEAD_COND_MOVE=1
+set ENABLE_ID_BRANCH_EX_FORWARD=1
 
 if /I "%TARGET%"=="rv64" set ROM_TARGET=rv64
 if /I "%TARGET%"=="rv64im" set ROM_TARGET=rv64
+echo %TARGET% | findstr /I "rv32i_zmmul" >nul
+if not errorlevel 1 (
+    set ENABLE_M_EXTENSION=0
+    set ENABLE_ZMMUL_EXTENSION=1
+)
+echo %TARGET% | findstr /I "zba zbb zbs bitmanip" >nul
+if not errorlevel 1 set ENABLE_BITMANIP_EXTENSION=1
+echo %TARGET% | findstr /I "zbc" >nul
+if not errorlevel 1 set ENABLE_ZBC_EXTENSION=1
+echo %TARGET% | findstr /I "zicond" >nul
+if not errorlevel 1 set ENABLE_ZICOND_EXTENSION=1
+echo %TARGET% | findstr /I "zbkb" >nul
+if not errorlevel 1 set ENABLE_ZBKB_EXTENSION=1
+echo %TARGET% | findstr /I "xthead" >nul
+if not errorlevel 1 (
+    set ENABLE_XTHEAD_EXTENSION=1
+    set ENABLE_XTHEAD_COND_MOVE=1
+)
+echo %TARGET% | findstr /I "noidbr" >nul
+if not errorlevel 1 set ENABLE_ID_BRANCH_EX_FORWARD=0
 
 for %%T in (xvlog.bat xvlog) do (
     where %%T >nul 2>nul
@@ -86,6 +137,22 @@ if not defined PYTHON_CMD (
     exit /b 1
 )
 
+if not "%YH_XSIM_DEBUG_TRACE%"=="" (
+    set XSIM_TRACE_ARGS=!XSIM_TRACE_ARGS! -testplusarg debug_trace
+)
+if not "%YH_XSIM_TRACE_CYCLES%"=="" (
+    set XSIM_TRACE_ARGS=!XSIM_TRACE_ARGS! -testplusarg "trace_cycles=%YH_XSIM_TRACE_CYCLES%"
+)
+if not "%YH_XSIM_TRACE_START%"=="" (
+    set XSIM_TRACE_ARGS=!XSIM_TRACE_ARGS! -testplusarg "trace_start=%YH_XSIM_TRACE_START%"
+)
+if not "%YH_XSIM_TRACE_END%"=="" (
+    set XSIM_TRACE_ARGS=!XSIM_TRACE_ARGS! -testplusarg "trace_end=%YH_XSIM_TRACE_END%"
+)
+if not "%YH_XSIM_TRACE_STRIDE%"=="" (
+    set XSIM_TRACE_ARGS=!XSIM_TRACE_ARGS! -testplusarg "trace_stride=%YH_XSIM_TRACE_STRIDE%"
+)
+
 call "%~dp0prepare_xsim_runtime.bat" coremark_fpga XSIM_RUN_DIR
 if not defined XSIM_RUN_DIR exit /b 1
 
@@ -117,16 +184,26 @@ call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_alu.v"
 if errorlevel 1 goto :fail
 
-call %XELAB% %TEST_TOP% -s %TEST_TOP%_snapshot
+call %XELAB% %TEST_TOP% ^
+    -generic_top "ENABLE_M_EXTENSION=%ENABLE_M_EXTENSION%" ^
+    -generic_top "ENABLE_ZMMUL_EXTENSION=%ENABLE_ZMMUL_EXTENSION%" ^
+    -generic_top "ENABLE_BITMANIP_EXTENSION=%ENABLE_BITMANIP_EXTENSION%" ^
+    -generic_top "ENABLE_ZBC_EXTENSION=%ENABLE_ZBC_EXTENSION%" ^
+    -generic_top "ENABLE_ZICOND_EXTENSION=%ENABLE_ZICOND_EXTENSION%" ^
+    -generic_top "ENABLE_ZBKB_EXTENSION=%ENABLE_ZBKB_EXTENSION%" ^
+    -generic_top "ENABLE_XTHEAD_EXTENSION=%ENABLE_XTHEAD_EXTENSION%" ^
+    -generic_top "ENABLE_XTHEAD_COND_MOVE=%ENABLE_XTHEAD_COND_MOVE%" ^
+    -generic_top "ENABLE_ID_BRANCH_EX_FORWARD=%ENABLE_ID_BRANCH_EX_FORWARD%" ^
+    -s %TEST_TOP%_snapshot
 if errorlevel 1 goto :fail
 
-call %XSIM% %TEST_TOP%_snapshot -testplusarg "max_cycles=%MAX_CYCLES%" -runall > "%LOG_FILE%" 2>&1
+call %XSIM% %TEST_TOP%_snapshot -testplusarg "max_cycles=%MAX_CYCLES%" !XSIM_TRACE_ARGS! %YH_XSIM_EXTRA_ARGS% -runall > "%LOG_FILE%" 2>&1
 type "%LOG_FILE%"
 
 findstr /c:"PASS: coremark completed" "%LOG_FILE%" >nul
 if errorlevel 1 goto :fail
 
-call %PYTHON_CMD% "%~dp0report_coremark_result.py" "%LOG_FILE%" "%TIMER_HZ%" "%SUMMARY_FILE%"
+call %PYTHON_CMD% "%~dp0report_coremark_result.py" "%LOG_FILE%" "%TIMER_HZ%" "%SUMMARY_FILE%" "%EXPECTED_COREMARK_SIZE%" "%ITERATIONS%"
 if errorlevel 1 goto :fail
 
 echo.
