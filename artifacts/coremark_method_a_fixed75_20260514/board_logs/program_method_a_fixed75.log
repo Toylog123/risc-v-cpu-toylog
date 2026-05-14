@@ -1,0 +1,71 @@
+#-----------------------------------------------------------
+# Vivado v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Thu May 14 13:09:36 2026
+# Process ID         : 29428
+# Current directory  : D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508
+# Command line       : vivado.exe -mode batch -notrace -log V:\artifacts\coremark_method_a_fixed75_20260514\board_logs\program_method_a_fixed75.log -journal V:\artifacts\coremark_method_a_fixed75_20260514\board_logs\program_method_a_fixed75.jou -source V:\YH_rv_cpu\fpga\vivado\scripts\program_hw_bitstream.tcl -tclargs V:\artifacts\coremark_method_a_fixed75_20260514\YH_rv_cpu_pynq_z2_method_a_fixed75_20260514.bit
+# Log file           : V:/artifacts/coremark_method_a_fixed75_20260514/board_logs/program_method_a_fixed75.log
+# Journal file       : V:\artifacts\coremark_method_a_fixed75_20260514\board_logs\program_method_a_fixed75.jou
+# Running On         : Toylog_desktop
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26200
+# Processor Detail   : AMD Ryzen 7 7435H
+# CPU Frequency      : 3094 MHz
+# CPU Physical cores : 8
+# CPU Logical cores  : 16
+# Host memory        : 34082 MB
+# Swap memory        : 2147 MB
+# Total Virtual      : 36230 MB
+# Available Virtual  : 18077 MB
+#-----------------------------------------------------------
+source {V:\YH_rv_cpu\fpga\vivado\scripts\program_hw_bitstream.tcl} -notrace
+open_hw_manager: Time (s): cpu = 00:00:08 ; elapsed = 00:00:06 . Memory (MB): peak = 580.273 ; gain = 223.203
+INFO: [Labtools 27-2285] Connecting to hw_server url TCP:localhost:3121
+INFO: [Labtools 27-2222] Launching hw_server...
+INFO: [Labtools 27-2221] Launch Output:
+
+****** Xilinx hw_server v2025.2
+  **** Build date : Oct 28 2025 at 10:03:13
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+
+
+INFO: [Labtools 27-3415] Connecting to cs_server url TCP:localhost:0
+INFO: [Labtools 27-3417] Launching cs_server...
+INFO: [Labtools 27-2221] Launch Output:
+
+
+******** Xilinx cs_server v2025.2.0
+  ****** Build date   : Nov 14 2025-07:16:52
+    **** Build number : 2025.2.1763075812
+      ** Copyright 2017-2022 Xilinx, Inc. All Rights Reserved.
+      ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+
+
+connect_hw_server: Time (s): cpu = 00:00:00 ; elapsed = 00:00:07 . Memory (MB): peak = 586.555 ; gain = 6.281
+WARNING: [Labtoolstcl 44-27] No hardware targets exist on the server [localhost:3121]
+Check to make sure the cable targets connected to this machine are properly connected
+and powered up, then use the refresh_hw_server command to re-register the hardware targets.
+INFO: no HW target found on attempt 1, retrying...
+WARNING: [Labtoolstcl 44-27] No hardware targets exist on the server [localhost:3121]
+Check to make sure the cable targets connected to this machine are properly connected
+and powered up, then use the refresh_hw_server command to re-register the hardware targets.
+INFO: no HW target found on attempt 2, retrying...
+WARNING: [Labtoolstcl 44-27] No hardware targets exist on the server [localhost:3121]
+Check to make sure the cable targets connected to this machine are properly connected
+and powered up, then use the refresh_hw_server command to re-register the hardware targets.
+INFO: no HW target found on attempt 3, retrying...
+WARNING: [Labtoolstcl 44-27] No hardware targets exist on the server [localhost:3121]
+Check to make sure the cable targets connected to this machine are properly connected
+and powered up, then use the refresh_hw_server command to re-register the hardware targets.
+INFO: no HW target found on attempt 4, retrying...
+WARNING: [Labtoolstcl 44-27] No hardware targets exist on the server [localhost:3121]
+Check to make sure the cable targets connected to this machine are properly connected
+and powered up, then use the refresh_hw_server command to re-register the hardware targets.
+INFO: no HW target found on attempt 5, retrying...
+INFO: HW targets: 
+ERROR: no hardware targets detected
+INFO: [Common 17-206] Exiting Vivado at Thu May 14 13:09:58 2026...

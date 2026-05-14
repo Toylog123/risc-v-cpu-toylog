@@ -1,0 +1,13 @@
+log_path=D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\coremark7-dmips5-20260508\artifacts\coremark8_hw_20260512\logs\profiles\YH_rv_cpu_dhrystone_rv32im_zbc_xthead_idbr.log
+clock_hz=100000000
+runs=1000
+microseconds_per_run=3
+dhrystones_per_second=257721
+dmips=146.682413
+dmips_per_mhz=1.466824
+total_seconds=0.003880
+estimated_total_ticks=388016
+completion_cycles=431031
+benchmark=Dhrystone 2.2
+measurement_mode=host-parsed-from-uart-log
+competition_report_line=DMIPS/MHz (host-parsed): 1.466824 / Dhrystones/s 257721 / runs 1000

@@ -12,7 +12,15 @@ if {![file exists $bitstream_file]} {
 open_hw_manager
 connect_hw_server -allow_non_jtag
 
-set targets [get_hw_targets]
+set targets {}
+for {set attempt 1} {$attempt <= 5 && [llength $targets] == 0} {incr attempt} {
+    catch {refresh_hw_server} refresh_msg
+    catch {set targets [get_hw_targets -quiet *]} target_msg
+    if {[llength $targets] == 0} {
+        puts "INFO: no HW target found on attempt $attempt, retrying..."
+        after 1000
+    }
+}
 puts "INFO: HW targets: $targets"
 if {[llength $targets] == 0} {
     puts stderr "ERROR: no hardware targets detected"

@@ -1,0 +1,24 @@
+#-----------------------------------------------------------
+# Vivado v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Thu May 14 13:09:36 2026
+# Process ID         : 29428
+# Current directory  : D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508
+# Command line       : vivado.exe -mode batch -notrace -log V:\artifacts\coremark_method_a_fixed75_20260514\board_logs\program_method_a_fixed75.log -journal V:\artifacts\coremark_method_a_fixed75_20260514\board_logs\program_method_a_fixed75.jou -source V:\YH_rv_cpu\fpga\vivado\scripts\program_hw_bitstream.tcl -tclargs V:\artifacts\coremark_method_a_fixed75_20260514\YH_rv_cpu_pynq_z2_method_a_fixed75_20260514.bit
+# Log file           : V:/artifacts/coremark_method_a_fixed75_20260514/board_logs/program_method_a_fixed75.log
+# Journal file       : V:\artifacts\coremark_method_a_fixed75_20260514\board_logs\program_method_a_fixed75.jou
+# Running On         : Toylog_desktop
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26200
+# Processor Detail   : AMD Ryzen 7 7435H
+# CPU Frequency      : 3094 MHz
+# CPU Physical cores : 8
+# CPU Logical cores  : 16
+# Host memory        : 34082 MB
+# Swap memory        : 2147 MB
+# Total Virtual      : 36230 MB
+# Available Virtual  : 18077 MB
+#-----------------------------------------------------------
+source {V:\YH_rv_cpu\fpga\vivado\scripts\program_hw_bitstream.tcl} -notrace
