@@ -12,10 +12,11 @@ All candidates in this log follow `HARDWARE_ONLY_BENCHMARK.md`.
 | H04 | Formalize CRC16/CRC32 `CUSTOM-0` hardware ISA accelerator evidence | `run_custom_crc_diag.bat` pass, `crc16=00003ea2`, `crc32=00007d6e` | ISA-accelerated rebuild result `6.209618 CoreMark/MHz`, `1644639 cycles` in `custom_crc_after_hwcleanup_cm10.summary.txt` | Not applicable | Keep as formal hardware ISA acceleration evidence |
 | H05 | Add ID-branch forwarding for low-cost `bext/bexti` results from ID/EX | Extended shift/XThead/BEXT diagnostic red before fix, pass after fix | `9.056273 CoreMark/MHz`, `1139272 cycles` in `fixedhex_bext_forward_cm10.summary.txt` | Not rerun yet | Keep as hardware coverage improvement, not score driver |
 | H06 | Add ID-branch forwarding for low-cost `czero.eqz/czero.nez` results from ID/EX | Extended shift/XThead/BEXT/Zicond diagnostic red before fix, pass after fix; `run_id_branch_fast_diag.bat`, `run_id_jal_fast_diag.bat`, `run_load_use_fast_diag.bat` pass | `9.056273 CoreMark/MHz`, `1139272 cycles` in `fixedhex_czero_forward_cm10.summary.txt` | `10.163426 DMIPS/MHz`, `43475 completion cycles` in `dhrystone_fixedhex_czero_forward_zbc_zicond_xthead_idbr.summary.txt`; short benchmark log, keep as candidate evidence until a longer benchmark image is generated | Keep as hardware coverage improvement; score unchanged on fixed CoreMark image |
+| H07 | Reuse an in-flight synchronous fetch response when an EX redirect target matches `fetch_rsp_pc` | `run_fetch_redirect_reuse_diag.bat require_pipe_hit require_branch_reuse require_queue_preserve` pass with `pipe_hits=1`; `run_branch_predict_diag.bat` and `run_load_use_fast_diag.bat` pass | `9.056273 CoreMark/MHz`, `1139272 cycles` in `fixedhex_fetch_pipe_reuse_cm10.summary.txt`; profile shows branch/redirect is not the main remaining bottleneck in `profile_after_fetch_pipe_reuse.log` | Not rerun yet | Keep behind resource/timing review; no fixed-image score gain |
 
 ## Next Candidates
 
 | ID | Hypothesis | Evidence Needed |
 |---|---|---|
-| H07 | Evaluate a very small loop/backward branch predictor for Dhrystone control flow | Branch profile before/after, DMIPS fixed image A/B |
-| H08 | Run FPGA resource/timing check on H02-H05 hardware set | LUT/FF/BRAM/DSP/WNS summary |
+| H08 | Run FPGA resource/timing check on H02-H07 hardware set | LUT/FF/BRAM/DSP/WNS summary |
+| H09 | Evaluate hardware execution-unit candidates rather than more branch work | Directed red/green tests plus CoreMark/DMIPS A/B; branch profile indicates control-flow headroom is small |

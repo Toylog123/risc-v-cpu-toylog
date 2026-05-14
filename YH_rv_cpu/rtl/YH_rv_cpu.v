@@ -948,7 +948,12 @@ assign fetch_redirect_buf1_hit =
     fetch_reuse_redirect_valid &&
     fetch_buf1_valid_r &&
     (fetch_buf1_pc_r == fetch_reuse_redirect_pc);
-assign fetch_redirect_pipe_hit = 1'b0;
+assign fetch_redirect_pipe_hit =
+    (IMEM_SYNC != 0) &&
+    fetch_reuse_redirect_valid &&
+    !fetch_buffer_valid &&
+    fetch_pipe_valid &&
+    (fetch_rsp_pc == fetch_reuse_redirect_pc);
 assign fetch_redirect_reuse_valid =
     fetch_redirect_buf0_hit ||
     fetch_redirect_buf1_hit ||
