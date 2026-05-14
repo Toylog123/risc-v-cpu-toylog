@@ -399,6 +399,7 @@ wire [XLEN-1:0] wb_data;
 
     // 前递数据
 wire [XLEN-1:0] ex_mem_forward_data;
+wire            ex_mem_load_data_ready;
 
     // CSR 寄存器
 reg  [XLEN-1:0] csr_mstatus_r;
@@ -516,8 +517,12 @@ assign fetch_imem_req = fetch_regular_request || fetch_redirect_target_request;
     // 执行阶段前递数据选择
     // ================================================================
 assign ex_mem_forward_data =
-    ((LOAD_USE_FAST_FORWARD != 0) && (ex_mem_wb_sel_r == `YH_rv_cpu_WB_MEM)) ? mem_load_data :
+    ((ex_mem_wb_sel_r == `YH_rv_cpu_WB_MEM) && ((LOAD_USE_FAST_FORWARD != 0) || ex_mem_load_data_ready)) ? mem_load_data :
     (ex_mem_wb_sel_r == `YH_rv_cpu_WB_PC4) ? ex_mem_pc4_r : ex_mem_exec_result_r;
+assign ex_mem_load_data_ready =
+    (DCACHE_EN != 0) ? dcache_cpu_rvalid :
+    (DMEM_SYNC == 0) ? 1'b1 :
+    dmem_rvalid;
 
 assign store_data_load_use_hazard =
     (LOAD_USE_FAST_FORWARD == 0) &&
@@ -689,7 +694,7 @@ assign id_branch_decode_idex_value_available =
     !id_ex_load_r &&
     !id_ex_csr_valid_r;
 assign id_branch_decode_exmem_value_available =
-    ((LOAD_USE_FAST_FORWARD != 0) || !ex_mem_load_r);
+    !ex_mem_load_r || ex_mem_load_data_ready || (LOAD_USE_FAST_FORWARD != 0);
 assign id_branch_decode_rs1_idex_match =
     id_rs1_en &&
     id_ex_valid_r &&
@@ -1272,6 +1277,7 @@ YH_rv_cpu_hazard_unit #(
     .id_ex_rs2_addr (id_ex_rs2_addr_r),
     .ex_mem_valid   (ex_mem_valid_r),
     .ex_mem_load    (ex_mem_load_r),
+    .ex_mem_load_ready(ex_mem_load_data_ready),
     .ex_mem_rd_en   (ex_mem_rd_en_r),
     .ex_mem_rd_addr (ex_mem_rd_addr_r),
     .mem_wb_valid   (mem_wb_valid_r),

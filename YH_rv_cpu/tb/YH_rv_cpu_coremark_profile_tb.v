@@ -10,6 +10,8 @@ module YH_rv_cpu_coremark_profile_tb #(
     parameter integer ROM_BYTES = 65536,
     parameter integer RAM_BYTES = 65536,
     parameter integer MAX_CYCLES = 1000000000,
+    parameter integer SYNC_IMEM = 0,
+    parameter integer IMEM_OUTPUT_REG = 0,
     parameter integer ENABLE_M_EXTENSION = 1,
     parameter integer ENABLE_ZMMUL_EXTENSION = 0,
     parameter integer ENABLE_BITMANIP_EXTENSION = 0,
@@ -35,6 +37,9 @@ wire               done;
 wire               timer_irq;
 
 wire stall_decode;
+wire load_use_hazard;
+wire ex_mem_load_use_hazard;
+wire mem_wb_load_use_hazard;
 wire mem_wait;
 wire ex_trap_valid;
 wire ex_mret_valid;
@@ -154,6 +159,9 @@ integer timed_cycles;
 integer timed_id_ex_valid_cycles;
 integer timed_non_idex_cycles;
 integer timed_stall_decode_cycles;
+integer timed_load_use_hazard_cycles;
+integer timed_ex_mem_load_use_hazard_cycles;
+integer timed_mem_wb_load_use_hazard_cycles;
 integer timed_mem_wait_cycles;
 integer timed_ex_redirect_cycles;
 integer timed_decode_flush_cycles;
@@ -221,8 +229,8 @@ reg     timed_active;
 // Profile runs reuse the same SoC wrapper as the score flow so comparisons stay fair.
 YH_rv_cpu_soc #(
     .XLEN(XLEN),
-    .SYNC_IMEM(0),
-    .IMEM_OUTPUT_REG(0),
+    .SYNC_IMEM(SYNC_IMEM),
+    .IMEM_OUTPUT_REG(IMEM_OUTPUT_REG),
     .SYNC_DMEM(1),
     .DMEM_OUTPUT_REG(0),
     .DMEM_NEGEDGE_READ(1),
@@ -252,6 +260,9 @@ YH_rv_cpu_soc #(
 );
 
 assign stall_decode = dut.u_cpu.stall_decode;
+assign load_use_hazard = dut.u_cpu.u_hazard_unit.load_use_hazard;
+assign ex_mem_load_use_hazard = dut.u_cpu.u_hazard_unit.ex_mem_load_use_hazard;
+assign mem_wb_load_use_hazard = dut.u_cpu.u_hazard_unit.mem_wb_load_use_hazard;
 assign mem_wait = dut.u_cpu.mem_wait;
 assign ex_trap_valid = dut.u_cpu.ex_trap_valid;
 assign ex_mret_valid = dut.u_cpu.ex_mret_valid;
@@ -568,6 +579,9 @@ always @(posedge clk) begin
         if (timed_active) begin
             timed_cycles <= timed_cycles + 1;
             if (stall_decode) timed_stall_decode_cycles <= timed_stall_decode_cycles + 1;
+            if (load_use_hazard) timed_load_use_hazard_cycles <= timed_load_use_hazard_cycles + 1;
+            if (ex_mem_load_use_hazard) timed_ex_mem_load_use_hazard_cycles <= timed_ex_mem_load_use_hazard_cycles + 1;
+            if (mem_wb_load_use_hazard) timed_mem_wb_load_use_hazard_cycles <= timed_mem_wb_load_use_hazard_cycles + 1;
             if (mem_wait) timed_mem_wait_cycles <= timed_mem_wait_cycles + 1;
             if (ex_redirect_valid) timed_ex_redirect_cycles <= timed_ex_redirect_cycles + 1;
             if (decode_flush_valid) timed_decode_flush_cycles <= timed_decode_flush_cycles + 1;
@@ -670,6 +684,9 @@ always @(posedge clk) begin
             $display("PROFILE: timed_id_ex_valid_cycles=%0d", timed_id_ex_valid_cycles);
             $display("PROFILE: timed_non_idex_cycles=%0d", timed_non_idex_cycles);
             $display("PROFILE: timed_stall_decode_cycles=%0d", timed_stall_decode_cycles);
+            $display("PROFILE: timed_load_use_hazard_cycles=%0d", timed_load_use_hazard_cycles);
+            $display("PROFILE: timed_ex_mem_load_use_hazard_cycles=%0d", timed_ex_mem_load_use_hazard_cycles);
+            $display("PROFILE: timed_mem_wb_load_use_hazard_cycles=%0d", timed_mem_wb_load_use_hazard_cycles);
             $display("PROFILE: timed_mem_wait_cycles=%0d", timed_mem_wait_cycles);
             $display("PROFILE: timed_ex_redirect_cycles=%0d", timed_ex_redirect_cycles);
             $display("PROFILE: timed_decode_flush_cycles=%0d", timed_decode_flush_cycles);
@@ -949,6 +966,9 @@ initial begin
     timed_id_ex_valid_cycles = 0;
     timed_non_idex_cycles = 0;
     timed_stall_decode_cycles = 0;
+    timed_load_use_hazard_cycles = 0;
+    timed_ex_mem_load_use_hazard_cycles = 0;
+    timed_mem_wb_load_use_hazard_cycles = 0;
     timed_mem_wait_cycles = 0;
     timed_ex_redirect_cycles = 0;
     timed_decode_flush_cycles = 0;
@@ -1148,6 +1168,29 @@ YH_rv_cpu_coremark_profile_tb #(
     .XLEN(32),
     .ROM_HEX(ROM_HEX),
     .ROM_MEM32_HEX(ROM_MEM32_HEX),
+    .ENABLE_M_EXTENSION(0),
+    .ENABLE_ZMMUL_EXTENSION(1),
+    .ENABLE_BITMANIP_EXTENSION(1),
+    .ENABLE_ZBC_EXTENSION(0),
+    .ENABLE_ZICOND_EXTENSION(1),
+    .ENABLE_XTHEAD_EXTENSION(1),
+    .ENABLE_XTHEAD_COND_MOVE(1),
+    .ENABLE_ID_BRANCH_EX_FORWARD(1)
+) uut ();
+
+endmodule
+
+module YH_rv_cpu_coremark_profile_fpga_rv32_zmmul_bitmanip_zicond_xthead_idbr_tb;
+
+localparam string ROM_HEX = "build/sw/YH_rv_cpu_coremark_rv32.hex";
+localparam string ROM_MEM32_HEX = "build/sw/YH_rv_cpu_coremark_rv32.mem32.hex";
+
+YH_rv_cpu_coremark_profile_tb #(
+    .XLEN(32),
+    .ROM_HEX(ROM_HEX),
+    .ROM_MEM32_HEX(ROM_MEM32_HEX),
+    .SYNC_IMEM(1),
+    .IMEM_OUTPUT_REG(0),
     .ENABLE_M_EXTENSION(0),
     .ENABLE_ZMMUL_EXTENSION(1),
     .ENABLE_BITMANIP_EXTENSION(1),

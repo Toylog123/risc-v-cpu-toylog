@@ -36,6 +36,7 @@ module YH_rv_cpu_hazard_unit #(
     // ------------------------------------------------------------
     input  wire        ex_mem_valid,       // EX/MEM 流水线有效标志
     input  wire        ex_mem_load,        // EX/MEM 是加载指令
+    input  wire        ex_mem_load_ready,  // EX/MEM load data can retire without another decode stall
     input  wire        ex_mem_rd_en,       // rd 写回使能
     input  wire [4:0]  ex_mem_rd_addr,     // rd 地址
 
@@ -89,7 +90,7 @@ assign load_use_hazard =
 
 assign ex_mem_load_use_hazard =
     (LOAD_USE_FAST_FORWARD == 0) &&
-    ex_mem_valid && ex_mem_load && ex_mem_rd_en && (ex_mem_rd_addr != 5'd0) &&
+    ex_mem_valid && ex_mem_load && !ex_mem_load_ready && ex_mem_rd_en && (ex_mem_rd_addr != 5'd0) &&
     (
         (if_id_rs1_en && (if_id_rs1_addr == ex_mem_rd_addr)) ||
         (if_id_rs2_en && (if_id_rs2_addr == ex_mem_rd_addr))
@@ -108,7 +109,7 @@ assign mem_wb_load_use_hazard =
     // DCACHE_EN=1时dcache_wait会阻止流水线直到dcache完成访问
     // ICACHE_EN=0时icache_wait=0，不影响
     // ICACHE_EN=1时icache_wait会阻止流水线直到icache完成取指
-assign stall_decode = load_use_hazard || ex_mem_load_use_hazard || mem_wb_load_use_hazard || dcache_wait || icache_wait;
+assign stall_decode = load_use_hazard || ex_mem_load_use_hazard || dcache_wait || icache_wait;
 
     // ------------------------------------------------------------
     // 数据转发选择逻辑
