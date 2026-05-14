@@ -75,6 +75,8 @@ module YH_rv_cpu #(
     output wire [XLEN-1:0] debug_pc         // 调试 PC 值
 );
 
+localparam integer SHAMT_W = $clog2(XLEN);
+
     // ================================================================
     // 流水线寄存器定义
     // ================================================================
@@ -654,12 +656,17 @@ assign id_branch_decode_idex_forward_cheap =
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_XOR) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_OR)  ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_AND) ||
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_SLL) ||
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_SRL) ||
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_SRA) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_SH1ADD) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_SH2ADD) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_SH3ADD) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_ADDSL1) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_ADDSL2) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_ADDSL3) ||
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_MVEQZ) ||
+        (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_MVNEZ) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_ANDN) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_SEXT_H) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_ZEXT_H)
@@ -715,12 +722,17 @@ always @* begin
         `YH_rv_cpu_ALU_XOR: id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs ^ id_branch_decode_idex_alu_rhs;
         `YH_rv_cpu_ALU_OR:  id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs | id_branch_decode_idex_alu_rhs;
         `YH_rv_cpu_ALU_AND: id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs & id_branch_decode_idex_alu_rhs;
+        `YH_rv_cpu_ALU_SLL: id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs << id_branch_decode_idex_alu_rhs[SHAMT_W-1:0];
+        `YH_rv_cpu_ALU_SRL: id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs >> id_branch_decode_idex_alu_rhs[SHAMT_W-1:0];
+        `YH_rv_cpu_ALU_SRA: id_branch_decode_idex_cheap_result = $signed(id_branch_decode_idex_alu_lhs) >>> id_branch_decode_idex_alu_rhs[SHAMT_W-1:0];
         `YH_rv_cpu_ALU_SH1ADD: id_branch_decode_idex_cheap_result = (id_branch_decode_idex_alu_lhs << 1) + id_branch_decode_idex_alu_rhs;
         `YH_rv_cpu_ALU_SH2ADD: id_branch_decode_idex_cheap_result = (id_branch_decode_idex_alu_lhs << 2) + id_branch_decode_idex_alu_rhs;
         `YH_rv_cpu_ALU_SH3ADD: id_branch_decode_idex_cheap_result = (id_branch_decode_idex_alu_lhs << 3) + id_branch_decode_idex_alu_rhs;
         `YH_rv_cpu_ALU_TH_ADDSL1: id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs + (id_branch_decode_idex_alu_rhs << 1);
         `YH_rv_cpu_ALU_TH_ADDSL2: id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs + (id_branch_decode_idex_alu_rhs << 2);
         `YH_rv_cpu_ALU_TH_ADDSL3: id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs + (id_branch_decode_idex_alu_rhs << 3);
+        `YH_rv_cpu_ALU_TH_MVEQZ:  id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs;
+        `YH_rv_cpu_ALU_TH_MVNEZ:  id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs;
         `YH_rv_cpu_ALU_ANDN: id_branch_decode_idex_cheap_result = id_branch_decode_idex_alu_lhs & ~id_branch_decode_idex_alu_rhs;
         `YH_rv_cpu_ALU_SEXT_H: id_branch_decode_idex_cheap_result = {{(XLEN-16){id_branch_decode_idex_alu_lhs[15]}}, id_branch_decode_idex_alu_lhs[15:0]};
         `YH_rv_cpu_ALU_ZEXT_H: id_branch_decode_idex_cheap_result = {{(XLEN-16){1'b0}}, id_branch_decode_idex_alu_lhs[15:0]};

@@ -1,0 +1,13 @@
+log_path=D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\coremark7-dmips5-20260508\artifacts\coremark8_hw_20260512\logs\dhrystone_fixedhex_shift_xthead_forward_zbc_xthead_idbr.log
+clock_hz=100000000
+runs=10
+microseconds_per_run=4
+dhrystones_per_second=240038
+dmips=136.618099
+dmips_per_mhz=1.366181
+total_seconds=0.000042
+estimated_total_ticks=4166
+completion_cycles=47399
+benchmark=Dhrystone 2.2
+measurement_mode=host-parsed-from-uart-log
+competition_report_line=DMIPS/MHz (host-parsed): 1.366181 / Dhrystones/s 240038 / runs 10
