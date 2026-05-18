@@ -38,6 +38,7 @@ module YH_rv_cpu #(
     parameter integer ENABLE_REDIRECT_TARGET_CACHE = 1,
     parameter integer ENABLE_ID_BRANCH_FOLD = 0,
     parameter integer ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD = 0,
+    parameter integer ENABLE_ID_ALU_PAIR_FOLD = 0,
     parameter integer ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP = 1,
     parameter integer ENABLE_FETCH_REDIRECT_REUSE = 0,
     parameter integer REDIRECT_CACHE_ENTRIES = 1024,
@@ -340,6 +341,23 @@ wire [31:0]     not_taken_next_cache_instruction;
 wire [XLEN-1:0] fold_decode_pc;
 wire [31:0]     fold_decode_instruction;
 wire            id_branch_any_fold_valid;
+wire            id_any_fold_valid;
+wire            id_early_alu_pair_candidate;
+wire            id_early_alu_pair_valid;
+wire            id_early_alu_pair_fetch_deliver;
+wire            id_early_alu_pair_cache_deliver;
+wire [31:0]     id_early_alu_pair_instruction;
+wire            id_early_alu_current_simple;
+wire            id_early_alu_current_ready;
+wire            id_early_alu_current_rs1_pending;
+wire            id_early_alu_current_rs2_pending;
+wire            id_early_alu_current_self_dep;
+wire            id_early_alu_current_waw_pending;
+wire            id_early_alu_fold_simple;
+wire            id_early_alu_fold_dep;
+wire [XLEN-1:0] id_early_alu_lhs;
+wire [XLEN-1:0] id_early_alu_rhs;
+reg  [XLEN-1:0] id_early_alu_result;
 wire            branch_bht_ex_update_valid;
 wire            branch_bht_id_update_valid;
 wire            branch_bht_update_valid;
@@ -402,6 +420,9 @@ wire [XLEN-1:0] fold_id_rs1_value;
 wire [XLEN-1:0] fold_id_rs2_value;
 wire            fold_id_hazard;
 wire            fold_id_control_or_trap;
+wire            rf_rd2_wen;
+wire [4:0]      rf_rd2_addr;
+wire [XLEN-1:0] rf_rd2_wdata;
 
 assign id_rs3_addr = id_rd_addr;
 assign id_rs3_en = id_store_data_from_rd ||
@@ -411,6 +432,13 @@ assign fold_id_rs3_addr = fold_id_rd_addr;
 assign fold_id_rs3_en = fold_id_store_data_from_rd ||
     (fold_id_alu_op == `YH_rv_cpu_ALU_TH_MULA) ||
     (fold_id_alu_op == `YH_rv_cpu_ALU_TH_MULAH);
+assign rf_rd2_wen =
+    (mem_wb_valid_r && mem_wb_base_update_en_r && !trap_r) ||
+    (id_early_alu_pair_valid && !trap_r);
+assign rf_rd2_addr =
+    id_early_alu_pair_valid ? id_rd_addr : mem_wb_base_update_addr_r;
+assign rf_rd2_wdata =
+    id_early_alu_pair_valid ? id_early_alu_result : mem_wb_base_update_value_r;
 
     // 冒险检测信号
 wire            hazard_stall_decode;
@@ -1096,6 +1124,172 @@ assign id_branch_not_taken_fold_valid =
 assign id_branch_any_fold_valid =
     id_branch_fold_valid ||
     id_branch_not_taken_fold_valid;
+assign id_any_fold_valid =
+    id_branch_any_fold_valid ||
+    id_early_alu_pair_valid;
+
+assign id_early_alu_current_simple =
+    (ENABLE_ID_ALU_PAIR_FOLD != 0) &&
+    if_id_valid_r &&
+    !id_illegal &&
+    !id_branch &&
+    !id_jump &&
+    !id_load &&
+    !id_store &&
+    !id_csr_valid &&
+    !id_ecall &&
+    !id_ebreak &&
+    !id_mret &&
+    id_rd_en &&
+    (id_rd_addr != 5'd0) &&
+    (id_wb_sel == `YH_rv_cpu_WB_ALU) &&
+    (
+        (id_alu_op == `YH_rv_cpu_ALU_ADD) ||
+        (id_alu_op == `YH_rv_cpu_ALU_SUB) ||
+        (id_alu_op == `YH_rv_cpu_ALU_SLT) ||
+        (id_alu_op == `YH_rv_cpu_ALU_SLTU) ||
+        (id_alu_op == `YH_rv_cpu_ALU_XOR) ||
+        (id_alu_op == `YH_rv_cpu_ALU_OR)  ||
+        (id_alu_op == `YH_rv_cpu_ALU_AND) ||
+        (id_alu_op == `YH_rv_cpu_ALU_SLL) ||
+        (id_alu_op == `YH_rv_cpu_ALU_SRL) ||
+        (id_alu_op == `YH_rv_cpu_ALU_SRA) ||
+        (id_alu_op == `YH_rv_cpu_ALU_SH1ADD) ||
+        (id_alu_op == `YH_rv_cpu_ALU_SH2ADD) ||
+        (id_alu_op == `YH_rv_cpu_ALU_SH3ADD) ||
+        (id_alu_op == `YH_rv_cpu_ALU_TH_ADDSL1) ||
+        (id_alu_op == `YH_rv_cpu_ALU_TH_ADDSL2) ||
+        (id_alu_op == `YH_rv_cpu_ALU_TH_ADDSL3) ||
+        (id_alu_op == `YH_rv_cpu_ALU_TH_MVEQZ) ||
+        (id_alu_op == `YH_rv_cpu_ALU_TH_MVNEZ) ||
+        (id_alu_op == `YH_rv_cpu_ALU_CZERO_EQZ) ||
+        (id_alu_op == `YH_rv_cpu_ALU_CZERO_NEZ) ||
+        (id_alu_op == `YH_rv_cpu_ALU_ANDN) ||
+        (id_alu_op == `YH_rv_cpu_ALU_SEXT_H) ||
+        (id_alu_op == `YH_rv_cpu_ALU_ZEXT_H) ||
+        (id_alu_op == `YH_rv_cpu_ALU_BEXT)
+    );
+assign id_early_alu_current_rs1_pending =
+    id_rs1_en &&
+    (
+        (id_ex_valid_r &&
+         ((id_ex_rd_en_r && (id_ex_rd_addr_r != 5'd0) && (id_ex_rd_addr_r == id_rs1_addr)) ||
+          ((id_ex_mem_base_update_r || (id_ex_mem_pair_r && id_ex_load_r)) &&
+           (id_ex_rs1_addr_r != 5'd0) && (id_ex_rs1_addr_r == id_rs1_addr)))) ||
+        (ex_mem_valid_r &&
+         ((ex_mem_rd_en_r && (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == id_rs1_addr)) ||
+          (ex_mem_base_update_en_r && (ex_mem_base_update_addr_r != 5'd0) &&
+           (ex_mem_base_update_addr_r == id_rs1_addr))))
+    );
+assign id_early_alu_current_rs2_pending =
+    id_rs2_en &&
+    (
+        (id_ex_valid_r &&
+         ((id_ex_rd_en_r && (id_ex_rd_addr_r != 5'd0) && (id_ex_rd_addr_r == id_rs2_addr)) ||
+          ((id_ex_mem_base_update_r || (id_ex_mem_pair_r && id_ex_load_r)) &&
+           (id_ex_rs1_addr_r != 5'd0) && (id_ex_rs1_addr_r == id_rs2_addr)))) ||
+        (ex_mem_valid_r &&
+         ((ex_mem_rd_en_r && (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == id_rs2_addr)) ||
+          (ex_mem_base_update_en_r && (ex_mem_base_update_addr_r != 5'd0) &&
+           (ex_mem_base_update_addr_r == id_rs2_addr))))
+    );
+assign id_early_alu_current_self_dep =
+    id_rd_en &&
+    (id_rd_addr != 5'd0) &&
+    (
+        (id_rs1_en && (id_rs1_addr == id_rd_addr)) ||
+        (id_rs2_en && (id_rs2_addr == id_rd_addr))
+    );
+assign id_early_alu_current_waw_pending =
+    id_rd_en &&
+    (id_rd_addr != 5'd0) &&
+    (
+        (id_ex_valid_r &&
+         ((id_ex_rd_en_r && (id_ex_rd_addr_r == id_rd_addr)) ||
+          ((id_ex_mem_base_update_r || (id_ex_mem_pair_r && id_ex_load_r)) &&
+           (id_ex_rs1_addr_r == id_rd_addr)))) ||
+        (ex_mem_valid_r &&
+         ((ex_mem_rd_en_r && (ex_mem_rd_addr_r == id_rd_addr)) ||
+          (ex_mem_base_update_en_r && (ex_mem_base_update_addr_r == id_rd_addr))))
+    );
+assign id_early_alu_current_ready =
+    id_early_alu_current_simple &&
+    !id_early_alu_current_rs1_pending &&
+    !id_early_alu_current_rs2_pending &&
+    !id_early_alu_current_self_dep &&
+    !id_early_alu_current_waw_pending;
+assign id_early_alu_fold_simple =
+    !fold_id_illegal &&
+    !fold_id_branch &&
+    !fold_id_jump &&
+    !fold_id_load &&
+    !fold_id_store &&
+    !fold_id_csr_valid &&
+    !fold_id_ecall &&
+    !fold_id_ebreak &&
+    !fold_id_mret &&
+    (fold_id_wb_sel == `YH_rv_cpu_WB_ALU);
+assign id_early_alu_fold_dep =
+    id_rd_en &&
+    (id_rd_addr != 5'd0) &&
+    (
+        (fold_id_rs1_en && (fold_id_rs1_addr == id_rd_addr)) ||
+        (fold_id_rs2_en && (fold_id_rs2_addr == id_rd_addr)) ||
+        (fold_id_rs3_en && (fold_id_rs3_addr == id_rd_addr))
+    );
+assign id_early_alu_pair_fetch_deliver =
+    fetch_queue_valid &&
+    (fetch_queue_pc == id_branch_not_taken_fold_pc);
+assign id_early_alu_pair_cache_deliver =
+    regular_cache_deliver &&
+    (ifetch_addr == id_branch_not_taken_fold_pc);
+assign id_early_alu_pair_instruction =
+    id_early_alu_pair_fetch_deliver ? fetch_queue_instruction : regular_cache_instruction;
+assign id_early_alu_pair_candidate =
+    (ENABLE_ID_ALU_PAIR_FOLD != 0) &&
+    pipeline_run &&
+    !ex_fetch_redirect_valid &&
+    !stall_decode &&
+    if_id_valid_r &&
+    (id_early_alu_pair_fetch_deliver || id_early_alu_pair_cache_deliver);
+assign id_early_alu_pair_valid =
+    id_early_alu_pair_candidate &&
+    id_early_alu_current_ready &&
+    id_early_alu_fold_simple &&
+    !id_early_alu_fold_dep &&
+    !fold_id_hazard &&
+    !(mem_wb_valid_r && mem_wb_base_update_en_r);
+assign id_early_alu_lhs = id_is_lui ? ZERO_XLEN : (id_alu_src1_pc ? if_id_pc_r : id_rs1_value);
+assign id_early_alu_rhs = id_alu_src2_imm ? id_imm : id_rs2_value;
+always @* begin
+    case (id_alu_op)
+        `YH_rv_cpu_ALU_SUB: id_early_alu_result = id_early_alu_lhs - id_early_alu_rhs;
+        `YH_rv_cpu_ALU_SLT: id_early_alu_result = {{(XLEN-1){1'b0}}, ($signed(id_early_alu_lhs) < $signed(id_early_alu_rhs))};
+        `YH_rv_cpu_ALU_SLTU: id_early_alu_result = {{(XLEN-1){1'b0}}, (id_early_alu_lhs < id_early_alu_rhs)};
+        `YH_rv_cpu_ALU_XOR: id_early_alu_result = id_early_alu_lhs ^ id_early_alu_rhs;
+        `YH_rv_cpu_ALU_OR:  id_early_alu_result = id_early_alu_lhs | id_early_alu_rhs;
+        `YH_rv_cpu_ALU_AND: id_early_alu_result = id_early_alu_lhs & id_early_alu_rhs;
+        `YH_rv_cpu_ALU_SLL: id_early_alu_result = id_early_alu_lhs << id_early_alu_rhs[SHAMT_W-1:0];
+        `YH_rv_cpu_ALU_SRL: id_early_alu_result = id_early_alu_lhs >> id_early_alu_rhs[SHAMT_W-1:0];
+        `YH_rv_cpu_ALU_SRA: id_early_alu_result = $signed(id_early_alu_lhs) >>> id_early_alu_rhs[SHAMT_W-1:0];
+        `YH_rv_cpu_ALU_SH1ADD: id_early_alu_result = (id_early_alu_lhs << 1) + id_early_alu_rhs;
+        `YH_rv_cpu_ALU_SH2ADD: id_early_alu_result = (id_early_alu_lhs << 2) + id_early_alu_rhs;
+        `YH_rv_cpu_ALU_SH3ADD: id_early_alu_result = (id_early_alu_lhs << 3) + id_early_alu_rhs;
+        `YH_rv_cpu_ALU_TH_ADDSL1: id_early_alu_result = id_early_alu_lhs + (id_early_alu_rhs << 1);
+        `YH_rv_cpu_ALU_TH_ADDSL2: id_early_alu_result = id_early_alu_lhs + (id_early_alu_rhs << 2);
+        `YH_rv_cpu_ALU_TH_ADDSL3: id_early_alu_result = id_early_alu_lhs + (id_early_alu_rhs << 3);
+        `YH_rv_cpu_ALU_TH_MVEQZ:  id_early_alu_result = id_early_alu_lhs;
+        `YH_rv_cpu_ALU_TH_MVNEZ:  id_early_alu_result = id_early_alu_lhs;
+        `YH_rv_cpu_ALU_CZERO_EQZ: id_early_alu_result = (id_early_alu_rhs == ZERO_XLEN) ? ZERO_XLEN : id_early_alu_lhs;
+        `YH_rv_cpu_ALU_CZERO_NEZ: id_early_alu_result = (id_early_alu_rhs != ZERO_XLEN) ? ZERO_XLEN : id_early_alu_lhs;
+        `YH_rv_cpu_ALU_ANDN: id_early_alu_result = id_early_alu_lhs & ~id_early_alu_rhs;
+        `YH_rv_cpu_ALU_SEXT_H: id_early_alu_result = {{(XLEN-16){id_early_alu_lhs[15]}}, id_early_alu_lhs[15:0]};
+        `YH_rv_cpu_ALU_ZEXT_H: id_early_alu_result = {{(XLEN-16){1'b0}}, id_early_alu_lhs[15:0]};
+        `YH_rv_cpu_ALU_BEXT: id_early_alu_result = {{(XLEN-1){1'b0}}, id_early_alu_lhs[id_early_alu_rhs[SHAMT_W-1:0]]};
+        default: id_early_alu_result = id_early_alu_lhs + id_early_alu_rhs;
+    endcase
+end
+
 assign id_jal_predict_redirect_valid =
     pipeline_run &&
     !ex_fetch_redirect_valid &&
@@ -1281,7 +1475,7 @@ assign not_taken_next_cache_lookup_index_xor =
 assign not_taken_next_cache_lookup_index =
     (REDIRECT_CACHE_XOR_INDEX != 0) ? not_taken_next_cache_lookup_index_xor : not_taken_next_cache_lookup_index_direct;
 assign not_taken_next_cache_hit =
-    id_branch_not_taken_fold_valid &&
+    (id_branch_not_taken_fold_valid || id_early_alu_pair_valid) &&
     redirect_cache_valid_r[not_taken_next_cache_lookup_index] &&
     (redirect_cache_pc_r[not_taken_next_cache_lookup_index] == id_branch_not_taken_next_pc);
 assign not_taken_next_cache_deliver = not_taken_next_cache_hit;
@@ -1328,6 +1522,7 @@ assign if_id_duplicate_fetch =
 assign if_id_load_bubble =
     (id_branch_fold_valid && !fold_next_cache_deliver) ||
     (id_branch_not_taken_fold_valid && !not_taken_next_cache_deliver) ||
+    (id_early_alu_pair_valid && !not_taken_next_cache_deliver) ||
     (decode_flush_valid && !async_redirect_refill_valid && !redirect_cache_deliver) ||
     ((IMEM_SYNC != 0) && fetch_control_redirect_valid && !redirect_cache_deliver) ||
     !if_id_fetch_valid;
@@ -1337,9 +1532,10 @@ assign if_id_data_write_en =
     (pipeline_run && !stall_decode && if_id_fetch_valid) :
     (pipeline_run && !stall_decode);
 assign fold_decode_pc =
-    id_branch_not_taken_fold_candidate ? id_branch_not_taken_fold_pc :
+    (id_branch_not_taken_fold_candidate || id_early_alu_pair_candidate) ? id_branch_not_taken_fold_pc :
     fetch_control_redirect_pc;
 assign fold_decode_instruction =
+    id_early_alu_pair_candidate ? id_early_alu_pair_instruction :
     id_branch_not_taken_fold_candidate ? id_branch_not_taken_fold_instruction :
     redirect_cache_instruction;
 assign redirect_cache_update_valid =
@@ -1570,9 +1766,9 @@ YH_rv_cpu_regfile #(
     .rd_wen    (mem_wb_valid_r && mem_wb_rd_en_r && !trap_r),
     .rd_addr   (mem_wb_rd_addr_r),
     .rd_wdata  (wb_data),
-    .rd2_wen   (mem_wb_valid_r && mem_wb_base_update_en_r && !trap_r),
-    .rd2_addr  (mem_wb_base_update_addr_r),
-    .rd2_wdata (mem_wb_base_update_value_r)
+    .rd2_wen   (rf_rd2_wen),
+    .rd2_addr  (rf_rd2_addr),
+    .rd2_wdata (rf_rd2_wdata)
 );
 
     // 译码阶段
@@ -2142,7 +2338,7 @@ always @(posedge clk or negedge rst_n) begin
             end else begin
                 if (fetch_control_redirect_valid || !stall_decode) begin
                     pc_r <=
-                        id_branch_not_taken_fold_valid ?
+                        (id_branch_not_taken_fold_valid || id_early_alu_pair_valid) ?
                             (id_branch_not_taken_fold_pc +
                              (not_taken_next_cache_deliver ? {{(XLEN-4){1'b0}}, 4'd8} :
                               {{(XLEN-3){1'b0}}, 3'd4})) :
@@ -2271,7 +2467,7 @@ always @(posedge clk or negedge rst_n) begin
                     id_ex_ebreak_r <= id_ex_ebreak_r;
                     id_ex_mret_r <= id_ex_mret_r;
                 end else begin
-                    if (id_branch_any_fold_valid) begin
+                    if (id_any_fold_valid) begin
                         id_ex_valid_r <= 1'b1;
                         id_ex_pc_r <= fold_decode_pc;
                         id_ex_pc4_r <= fold_id_pc4;
