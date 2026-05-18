@@ -59,6 +59,32 @@ integer plusarg_seen;
 reg     debug_trace;
 reg     fail_on_low_pc_after_startup;
 integer low_pc_min_cycle;
+integer profile_cycles;
+integer profile_ifid_valid_cycles;
+integer profile_idex_valid_cycles;
+integer profile_stall_decode_cycles;
+integer profile_mem_wait_cycles;
+integer profile_decode_flush_cycles;
+integer profile_ifid_load_bubble_cycles;
+integer profile_redirect_events;
+integer profile_ex_redirect_events;
+integer profile_id_decode_redirect_events;
+integer profile_branch_predict_redirect_events;
+integer profile_jal_predict_redirect_events;
+integer profile_redirect_cache_deliver_events;
+integer profile_regular_cache_deliver_events;
+integer profile_fold_candidate_events;
+integer profile_fold_valid_events;
+integer profile_fold_next_events;
+integer profile_fold_hazard_events;
+integer profile_fold_control_events;
+integer profile_fetch_request_events;
+integer profile_fetch_redirect_request_events;
+integer profile_fetch_regular_request_events;
+integer profile_fetch_data_issue_events;
+integer profile_fetch_queue_enqueue_events;
+integer profile_fetch_queue_consume_events;
+integer profile_fetch_drop_response_events;
 
 YH_rv_cpu_soc #(
     .XLEN(XLEN),
@@ -107,6 +133,83 @@ always #5 clk = ~clk;
 always @(posedge clk) begin
     if (rst_n) begin
         cycle <= cycle + 1;
+        profile_cycles <= profile_cycles + 1;
+
+        if (dut.u_cpu.if_id_valid_r) begin
+            profile_ifid_valid_cycles <= profile_ifid_valid_cycles + 1;
+        end
+        if (dut.u_cpu.id_ex_valid_r) begin
+            profile_idex_valid_cycles <= profile_idex_valid_cycles + 1;
+        end
+        if (dut.u_cpu.stall_decode) begin
+            profile_stall_decode_cycles <= profile_stall_decode_cycles + 1;
+        end
+        if (dut.u_cpu.mem_wait) begin
+            profile_mem_wait_cycles <= profile_mem_wait_cycles + 1;
+        end
+        if (dut.u_cpu.decode_flush_valid) begin
+            profile_decode_flush_cycles <= profile_decode_flush_cycles + 1;
+        end
+        if (dut.u_cpu.if_id_load_bubble) begin
+            profile_ifid_load_bubble_cycles <= profile_ifid_load_bubble_cycles + 1;
+        end
+        if (dut.u_cpu.fetch_control_redirect_valid) begin
+            profile_redirect_events <= profile_redirect_events + 1;
+        end
+        if (dut.u_cpu.ex_redirect_valid) begin
+            profile_ex_redirect_events <= profile_ex_redirect_events + 1;
+        end
+        if (dut.u_cpu.id_decode_redirect_valid) begin
+            profile_id_decode_redirect_events <= profile_id_decode_redirect_events + 1;
+        end
+        if (dut.u_cpu.id_branch_predict_redirect_valid) begin
+            profile_branch_predict_redirect_events <= profile_branch_predict_redirect_events + 1;
+        end
+        if (dut.u_cpu.id_jal_predict_redirect_valid) begin
+            profile_jal_predict_redirect_events <= profile_jal_predict_redirect_events + 1;
+        end
+        if (dut.u_cpu.redirect_cache_deliver) begin
+            profile_redirect_cache_deliver_events <= profile_redirect_cache_deliver_events + 1;
+        end
+        if (dut.u_cpu.regular_cache_deliver) begin
+            profile_regular_cache_deliver_events <= profile_regular_cache_deliver_events + 1;
+        end
+        if (dut.u_cpu.id_branch_fold_candidate) begin
+            profile_fold_candidate_events <= profile_fold_candidate_events + 1;
+        end
+        if (dut.u_cpu.id_branch_fold_valid) begin
+            profile_fold_valid_events <= profile_fold_valid_events + 1;
+        end
+        if (dut.u_cpu.fold_next_cache_deliver) begin
+            profile_fold_next_events <= profile_fold_next_events + 1;
+        end
+        if (dut.u_cpu.fold_id_hazard) begin
+            profile_fold_hazard_events <= profile_fold_hazard_events + 1;
+        end
+        if (dut.u_cpu.fold_id_control_or_trap) begin
+            profile_fold_control_events <= profile_fold_control_events + 1;
+        end
+        if (dut.u_cpu.fetch_imem_req) begin
+            profile_fetch_request_events <= profile_fetch_request_events + 1;
+        end
+        if (dut.u_cpu.fetch_redirect_target_request) begin
+            profile_fetch_redirect_request_events <= profile_fetch_redirect_request_events + 1;
+        end
+        if (dut.u_cpu.fetch_regular_request) begin
+            profile_fetch_regular_request_events <= profile_fetch_regular_request_events + 1;
+        end
+        if (dut.u_cpu.fetch_data_issue) begin
+            profile_fetch_data_issue_events <= profile_fetch_data_issue_events + 1;
+        end
+        if (dut.u_cpu.fetch_queue_enqueue) begin
+            profile_fetch_queue_enqueue_events <= profile_fetch_queue_enqueue_events + 1;
+        end
+        if (dut.u_cpu.fetch_queue_consume) begin
+            profile_fetch_queue_consume_events <= profile_fetch_queue_consume_events + 1;
+        end
+        if (dut.u_cpu.fetch_drop_response) begin
+            profile_fetch_drop_response_events <= profile_fetch_drop_response_events + 1;
+        end
 
         if (uart_tx_valid) begin
             uart_count <= uart_count + 1;
@@ -312,6 +415,35 @@ always @(posedge clk) begin
                 $fatal(1, "\nFAIL: coremark missing compiler banner at PC=%h", debug_pc);
             end
 
+            $display(
+                "PROFILE_EVENTS cycles=%0d ifid_valid=%0d idex_valid=%0d stall_decode=%0d mem_wait=%0d decode_flush=%0d ifid_load_bubble=%0d redirects=%0d ex_redirect=%0d id_redirect=%0d branch_predict_redirect=%0d jal_predict_redirect=%0d redirect_cache_deliver=%0d regular_cache_deliver=%0d fold_candidate=%0d fold_valid=%0d fold_next=%0d fold_hazard=%0d fold_control=%0d fetch_req=%0d fetch_redirect_req=%0d fetch_regular_req=%0d fetch_data_issue=%0d fetch_queue_enqueue=%0d fetch_queue_consume=%0d fetch_drop_response=%0d",
+                profile_cycles,
+                profile_ifid_valid_cycles,
+                profile_idex_valid_cycles,
+                profile_stall_decode_cycles,
+                profile_mem_wait_cycles,
+                profile_decode_flush_cycles,
+                profile_ifid_load_bubble_cycles,
+                profile_redirect_events,
+                profile_ex_redirect_events,
+                profile_id_decode_redirect_events,
+                profile_branch_predict_redirect_events,
+                profile_jal_predict_redirect_events,
+                profile_redirect_cache_deliver_events,
+                profile_regular_cache_deliver_events,
+                profile_fold_candidate_events,
+                profile_fold_valid_events,
+                profile_fold_next_events,
+                profile_fold_hazard_events,
+                profile_fold_control_events,
+                profile_fetch_request_events,
+                profile_fetch_redirect_request_events,
+                profile_fetch_regular_request_events,
+                profile_fetch_data_issue_events,
+                profile_fetch_queue_enqueue_events,
+                profile_fetch_queue_consume_events,
+                profile_fetch_drop_response_events
+            );
             $display("\nPASS: coremark completed at PC=%h in %0d cycles", debug_pc, cycle);
             $finish;
         end
@@ -341,6 +473,32 @@ initial begin
     plusarg_seen = 0;
     fail_on_low_pc_after_startup = 1'b0;
     low_pc_min_cycle = 9000;
+    profile_cycles = 0;
+    profile_ifid_valid_cycles = 0;
+    profile_idex_valid_cycles = 0;
+    profile_stall_decode_cycles = 0;
+    profile_mem_wait_cycles = 0;
+    profile_decode_flush_cycles = 0;
+    profile_ifid_load_bubble_cycles = 0;
+    profile_redirect_events = 0;
+    profile_ex_redirect_events = 0;
+    profile_id_decode_redirect_events = 0;
+    profile_branch_predict_redirect_events = 0;
+    profile_jal_predict_redirect_events = 0;
+    profile_redirect_cache_deliver_events = 0;
+    profile_regular_cache_deliver_events = 0;
+    profile_fold_candidate_events = 0;
+    profile_fold_valid_events = 0;
+    profile_fold_next_events = 0;
+    profile_fold_hazard_events = 0;
+    profile_fold_control_events = 0;
+    profile_fetch_request_events = 0;
+    profile_fetch_redirect_request_events = 0;
+    profile_fetch_regular_request_events = 0;
+    profile_fetch_data_issue_events = 0;
+    profile_fetch_queue_enqueue_events = 0;
+    profile_fetch_queue_consume_events = 0;
+    profile_fetch_drop_response_events = 0;
 
     valid_msg[0]  = "C";
     valid_msg[1]  = "o";
