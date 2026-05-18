@@ -1,0 +1,44 @@
+
+****** xsim v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Fri May 15 09:37:27 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/YH_rv_cpu_coremark_fpga_tb_snapshot/xsim_script.tcl
+# xsim {YH_rv_cpu_coremark_fpga_tb_snapshot} -testplusarg max_cycles=200000000 -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+Starting FPGA-like CoreMark simulation (MAX_CYCLES=200000000)...
+CYCLE=10000000 PC=ffffffb0
+CYCLE=20000000 PC=ffffffb0
+CYCLE=30000000 PC=ffffffb0
+CYCLE=40000000 PC=ffffffb0
+CYCLE=50000000 PC=ffffffb0
+CYCLE=60000000 PC=ffffffb0
+CYCLE=70000000 PC=ffffffb0
+CYCLE=80000000 PC=ffffffb0
+CYCLE=90000000 PC=ffffffb0
+CYCLE=100000000 PC=ffffffb0
+CYCLE=110000000 PC=ffffffb0
+CYCLE=120000000 PC=ffffffb0
+CYCLE=130000000 PC=ffffffb0
+CYCLE=140000000 PC=ffffffb0
+CYCLE=150000000 PC=ffffffb0
+CYCLE=160000000 PC=ffffffb0
+CYCLE=170000000 PC=ffffffb0
+CYCLE=180000000 PC=ffffffb0
+CYCLE=190000000 PC=ffffffb0
+CYCLE=200000000 PC=ffffffb0
+
+FAIL: coremark timeout at PC=ffffffb0 after 200000001 cycles
+Fatal: 
+FAIL: coremark timeout
+Time: 2000000115 ns  Iteration: 0  Process: /YH_rv_cpu_coremark_fpga_tb(ENABLE_M_EXTENSION=0,ENABLE_ZMMUL_EXTENSION=1,ENABLE_ZBC_EXTENSION=1,ENABLE_ZICOND_EXTENSION=1,DMEM_NEGEDGE_READ=1,ICACHE_EN=1)/Always91_49  Scope: YH_rv_cpu_coremark_fpga_tb(ENABLE_M_EXTENSION=0,ENABLE_ZMMUL_EXTENSION=1,ENABLE_ZBC_EXTENSION=1,ENABLE_ZICOND_EXTENSION=1,DMEM_NEGEDGE_READ=1,ICACHE_EN=1)  File: D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/YH_rv_cpu/tb/YH_rv_cpu_coremark_fpga_tb.v Line: 305
+$finish called at time : 2000000115 ns
+run: Time (s): cpu = 00:00:00 ; elapsed = 00:02:32 . Memory (MB): peak = 195.402 ; gain = 0.016
+exit
+INFO: xsimkernel Simulation Memory Usage: 13316 KB (Peak: 13316 KB), Simulation CPU Usage: 150593 ms
+INFO: [Common 17-206] Exiting xsim at Fri May 15 09:40:01 2026...

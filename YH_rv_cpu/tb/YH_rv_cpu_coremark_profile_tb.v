@@ -20,7 +20,16 @@ module YH_rv_cpu_coremark_profile_tb #(
     parameter integer ENABLE_ZBKB_EXTENSION = 0,
     parameter integer ENABLE_XTHEAD_EXTENSION = 0,
     parameter integer ENABLE_XTHEAD_COND_MOVE = 0,
-    parameter integer ENABLE_ID_BRANCH_EX_FORWARD = 1
+    parameter integer ENABLE_ID_BRANCH_EX_FORWARD = 1,
+    parameter integer ENABLE_ID_BRANCH_FOLD = 0,
+    parameter integer ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP = 1,
+    parameter integer ENABLE_FETCH_REDIRECT_REUSE = 0,
+    parameter integer REDIRECT_CACHE_ENTRIES = 1024,
+    parameter integer REDIRECT_CACHE_XOR_INDEX = 0,
+    parameter integer ENABLE_DYNAMIC_BRANCH_PREDICT = 0,
+    parameter integer BRANCH_BHT_ENTRIES = 64,
+    parameter integer BRANCH_STATIC_PREDICT_MODE = 0,
+    parameter integer BRANCH_BHT_STRONG_ONLY = 0
 ) ();
 
 localparam integer VALID_MSG_LEN = 13;
@@ -78,6 +87,22 @@ wire id_jal_predict_redirect_valid;
 wire if_id_valid;
 wire if_id_load_bubble;
 wire [31:0] if_id_pc32;
+wire [31:0] fetch_queue_pc32;
+wire [31:0] fetch_queue_instruction;
+wire        fetch_queue_valid;
+wire [31:0] if_id_instruction;
+wire        fetch_buf_pair_valid;
+wire        load_store_fuse_candidate;
+wire        load_store_fuse_pairbuf_candidate;
+wire        if_id_load_branch_fuse_candidate;
+wire        if_id_branch_fold_ready_candidate;
+wire        if_id_branch_fold_not_taken_queue_candidate;
+wire        if_id_branch_fold_taken_cache_candidate;
+wire        if_id_branch_fold_any_next_candidate;
+wire        next_instr_branch;
+wire [4:0]  next_branch_rs1;
+wire [4:0]  next_branch_rs2;
+wire [2:0]  next_branch_funct3;
 
 reg [7:0] valid_msg [0:VALID_MSG_LEN-1];
 reg [7:0] score_msg [0:SCORE_MSG_LEN-1];
@@ -147,6 +172,9 @@ integer pc_port_cycles;
 integer pc_unknown_cycles;
 integer pc_exec_bins [0:65535];
 integer timed_pc_exec_bins [0:65535];
+integer timed_id_branch_pending_pc_bins [0:65535];
+integer timed_load_branch_fuse_load_pc_bins [0:65535];
+integer timed_load_branch_fuse_branch_pc_bins [0:65535];
 integer timed_id_redirect_pc_bins [0:65535];
 integer timed_predict_redirect_pc_bins [0:65535];
 integer timed_non_idex_prev_pc_bins [0:65535];
@@ -185,11 +213,42 @@ integer timed_id_bgeu_decode_redirect_cycles;
 integer timed_id_branch_decode_candidate_cycles;
 integer timed_id_branch_decode_pending_cycles;
 integer timed_id_branch_decode_redirect_cycles;
+integer timed_id_beq_decode_pending_cycles;
+integer timed_id_bne_decode_pending_cycles;
+integer timed_id_blt_decode_pending_cycles;
+integer timed_id_bge_decode_pending_cycles;
+integer timed_id_bltu_decode_pending_cycles;
+integer timed_id_bgeu_decode_pending_cycles;
+integer timed_load_branch_fuse_candidate_cycles;
+integer timed_load_beq_fuse_candidate_cycles;
+integer timed_load_bne_fuse_candidate_cycles;
+integer timed_load_store_fuse_candidate_cycles;
+integer timed_load_store_fuse_pairbuf_cycles;
+integer timed_id_branch_fold_ready_cycles;
+integer timed_id_branch_fold_not_taken_queue_cycles;
+integer timed_id_branch_fold_taken_cache_cycles;
+integer timed_id_branch_fold_any_next_cycles;
 integer timed_id_ex_load_cycles;
 integer timed_id_ex_store_cycles;
 integer timed_id_ex_branch_cycles;
 integer timed_id_ex_jump_cycles;
 integer timed_id_ex_mul_cycles;
+integer timed_id_ex_mulh_cycles;
+integer timed_id_ex_mulhsu_cycles;
+integer timed_id_ex_mulhu_cycles;
+integer timed_id_ex_clmul_cycles;
+integer timed_id_ex_clmulh_cycles;
+integer timed_id_ex_shadd_cycles;
+integer timed_id_ex_xthead_addsl_cycles;
+integer timed_id_ex_xthead_ext_cycles;
+integer timed_id_ex_xthead_condmove_cycles;
+integer timed_id_ex_xthead_mula_cycles;
+integer timed_id_ex_xthead_mulah_cycles;
+integer timed_id_ex_zicond_cycles;
+integer timed_id_ex_bitextract_cycles;
+integer timed_id_ex_max_cycles;
+integer timed_id_ex_pack_cycles;
+integer timed_id_ex_xcrc_cycles;
 integer timed_pc_startup_cycles;
 integer timed_pc_calc_cycles;
 integer timed_pc_list_cycles;
@@ -210,6 +269,14 @@ integer id_branch_decode_rs1_idex_pending_cycles;
 integer id_branch_decode_rs2_idex_pending_cycles;
 integer id_branch_decode_rs1_exmem_pending_cycles;
 integer id_branch_decode_rs2_exmem_pending_cycles;
+integer id_branch_decode_rs1_idex_load_pending_cycles;
+integer id_branch_decode_rs2_idex_load_pending_cycles;
+integer id_branch_decode_rs1_idex_lui_pending_cycles;
+integer id_branch_decode_rs2_idex_lui_pending_cycles;
+integer id_branch_decode_rs1_idex_pc4_pending_cycles;
+integer id_branch_decode_rs2_idex_pc4_pending_cycles;
+integer id_branch_decode_rs1_idex_alu_pending_cycles;
+integer id_branch_decode_rs2_idex_alu_pending_cycles;
 integer id_beq_decode_candidate_cycles;
 integer id_bne_decode_candidate_cycles;
 integer id_blt_decode_candidate_cycles;
@@ -247,7 +314,16 @@ YH_rv_cpu_soc #(
     .ENABLE_ZBKB_EXTENSION(ENABLE_ZBKB_EXTENSION),
     .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION),
     .ENABLE_XTHEAD_COND_MOVE(ENABLE_XTHEAD_COND_MOVE),
-    .ENABLE_ID_BRANCH_EX_FORWARD(ENABLE_ID_BRANCH_EX_FORWARD)
+    .ENABLE_ID_BRANCH_EX_FORWARD(ENABLE_ID_BRANCH_EX_FORWARD),
+    .ENABLE_ID_BRANCH_FOLD(ENABLE_ID_BRANCH_FOLD),
+    .ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP(ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP),
+    .ENABLE_FETCH_REDIRECT_REUSE(ENABLE_FETCH_REDIRECT_REUSE),
+    .REDIRECT_CACHE_ENTRIES(REDIRECT_CACHE_ENTRIES),
+    .REDIRECT_CACHE_XOR_INDEX(REDIRECT_CACHE_XOR_INDEX),
+    .ENABLE_DYNAMIC_BRANCH_PREDICT(ENABLE_DYNAMIC_BRANCH_PREDICT),
+    .BRANCH_BHT_ENTRIES(BRANCH_BHT_ENTRIES),
+    .BRANCH_STATIC_PREDICT_MODE(BRANCH_STATIC_PREDICT_MODE),
+    .BRANCH_BHT_STRONG_ONLY(BRANCH_BHT_STRONG_ONLY)
 ) dut (
     .clk          (clk),
     .rst_n        (rst_n),
@@ -310,6 +386,57 @@ assign id_jal_predict_redirect_valid = dut.u_cpu.id_jal_predict_redirect_valid;
 assign if_id_valid = dut.u_cpu.if_id_valid_r;
 assign if_id_load_bubble = dut.u_cpu.if_id_load_bubble;
 assign if_id_pc32 = dut.u_cpu.if_id_pc_r[31:0];
+assign if_id_instruction = dut.u_cpu.if_id_instruction_r;
+assign fetch_queue_valid = dut.u_cpu.fetch_queue_valid;
+assign fetch_queue_pc32 = dut.u_cpu.fetch_queue_pc[31:0];
+assign fetch_queue_instruction = dut.u_cpu.fetch_queue_instruction;
+assign fetch_buf_pair_valid = dut.u_cpu.fetch_buf0_valid_r && dut.u_cpu.fetch_buf1_valid_r;
+assign load_store_fuse_candidate =
+    if_id_valid &&
+    fetch_queue_valid &&
+    (fetch_queue_pc32 == (if_id_pc32 + 32'd4)) &&
+    (if_id_instruction[6:0] == 7'b0000011) &&
+    (fetch_queue_instruction[6:0] == 7'b0100011) &&
+    (if_id_instruction[14:12] == 3'b010) &&
+    (fetch_queue_instruction[14:12] == 3'b010) &&
+    (if_id_instruction[19:15] == fetch_queue_instruction[19:15]) &&
+    ({{20{if_id_instruction[31]}}, if_id_instruction[31:20]} ==
+     {{20{fetch_queue_instruction[31]}}, fetch_queue_instruction[31:25], fetch_queue_instruction[11:7]});
+assign load_store_fuse_pairbuf_candidate =
+    load_store_fuse_candidate &&
+    fetch_buf_pair_valid;
+assign next_instr_branch = (fetch_queue_instruction[6:0] == 7'b1100011);
+assign next_branch_rs1 = fetch_queue_instruction[19:15];
+assign next_branch_rs2 = fetch_queue_instruction[24:20];
+assign next_branch_funct3 = fetch_queue_instruction[14:12];
+assign if_id_load_branch_fuse_candidate =
+    if_id_valid &&
+    dut.u_cpu.id_load &&
+    dut.u_cpu.id_rd_en &&
+    (dut.u_cpu.id_rd_addr != 5'd0) &&
+    fetch_queue_valid &&
+    (fetch_queue_pc32 == (if_id_pc32 + 32'd4)) &&
+    next_instr_branch &&
+    ((next_branch_funct3 == 3'b000) || (next_branch_funct3 == 3'b001)) &&
+    ((next_branch_rs1 == dut.u_cpu.id_rd_addr) || (next_branch_rs2 == dut.u_cpu.id_rd_addr));
+assign if_id_branch_fold_ready_candidate =
+    if_id_valid &&
+    id_branch_decode_candidate &&
+    id_branch_decode_operands_ready &&
+    !stall_decode &&
+    !ex_fetch_redirect_valid;
+assign if_id_branch_fold_not_taken_queue_candidate =
+    if_id_branch_fold_ready_candidate &&
+    !dut.u_cpu.id_branch_decode_taken &&
+    fetch_queue_valid &&
+    (fetch_queue_pc32 == (if_id_pc32 + 32'd4));
+assign if_id_branch_fold_taken_cache_candidate =
+    if_id_branch_fold_ready_candidate &&
+    dut.u_cpu.id_branch_decode_taken &&
+    dut.u_cpu.redirect_cache_deliver;
+assign if_id_branch_fold_any_next_candidate =
+    if_id_branch_fold_not_taken_queue_candidate ||
+    if_id_branch_fold_taken_cache_candidate;
 
 always #5 clk = ~clk;
 
@@ -541,6 +668,30 @@ always @(posedge clk) begin
             if (id_branch_decode_rs2_exmem_pending) begin
                 id_branch_decode_rs2_exmem_pending_cycles <= id_branch_decode_rs2_exmem_pending_cycles + 1;
             end
+            if (id_branch_decode_rs1_idex_pending && dut.u_cpu.id_ex_load_r) begin
+                id_branch_decode_rs1_idex_load_pending_cycles <= id_branch_decode_rs1_idex_load_pending_cycles + 1;
+            end
+            if (id_branch_decode_rs2_idex_pending && dut.u_cpu.id_ex_load_r) begin
+                id_branch_decode_rs2_idex_load_pending_cycles <= id_branch_decode_rs2_idex_load_pending_cycles + 1;
+            end
+            if (id_branch_decode_rs1_idex_pending && dut.u_cpu.id_ex_is_lui_r) begin
+                id_branch_decode_rs1_idex_lui_pending_cycles <= id_branch_decode_rs1_idex_lui_pending_cycles + 1;
+            end
+            if (id_branch_decode_rs2_idex_pending && dut.u_cpu.id_ex_is_lui_r) begin
+                id_branch_decode_rs2_idex_lui_pending_cycles <= id_branch_decode_rs2_idex_lui_pending_cycles + 1;
+            end
+            if (id_branch_decode_rs1_idex_pending && (dut.u_cpu.id_ex_wb_sel_r == `YH_rv_cpu_WB_PC4)) begin
+                id_branch_decode_rs1_idex_pc4_pending_cycles <= id_branch_decode_rs1_idex_pc4_pending_cycles + 1;
+            end
+            if (id_branch_decode_rs2_idex_pending && (dut.u_cpu.id_ex_wb_sel_r == `YH_rv_cpu_WB_PC4)) begin
+                id_branch_decode_rs2_idex_pc4_pending_cycles <= id_branch_decode_rs2_idex_pc4_pending_cycles + 1;
+            end
+            if (id_branch_decode_rs1_idex_pending && !dut.u_cpu.id_ex_load_r && !dut.u_cpu.id_ex_is_lui_r && (dut.u_cpu.id_ex_wb_sel_r != `YH_rv_cpu_WB_PC4)) begin
+                id_branch_decode_rs1_idex_alu_pending_cycles <= id_branch_decode_rs1_idex_alu_pending_cycles + 1;
+            end
+            if (id_branch_decode_rs2_idex_pending && !dut.u_cpu.id_ex_load_r && !dut.u_cpu.id_ex_is_lui_r && (dut.u_cpu.id_ex_wb_sel_r != `YH_rv_cpu_WB_PC4)) begin
+                id_branch_decode_rs2_idex_alu_pending_cycles <= id_branch_decode_rs2_idex_alu_pending_cycles + 1;
+            end
 
             case (id_branch_funct3)
                 3'b000: begin
@@ -605,6 +756,19 @@ always @(posedge clk) begin
                 timed_id_branch_decode_candidate_cycles <= timed_id_branch_decode_candidate_cycles + 1;
                 if (!id_branch_decode_operands_ready) begin
                     timed_id_branch_decode_pending_cycles <= timed_id_branch_decode_pending_cycles + 1;
+                    if (if_id_pc32[31:18] == 14'd0) begin
+                        timed_id_branch_pending_pc_bins[if_id_pc32[17:2]] <= timed_id_branch_pending_pc_bins[if_id_pc32[17:2]] + 1;
+                    end
+                    case (id_branch_funct3)
+                        3'b000: timed_id_beq_decode_pending_cycles <= timed_id_beq_decode_pending_cycles + 1;
+                        3'b001: timed_id_bne_decode_pending_cycles <= timed_id_bne_decode_pending_cycles + 1;
+                        3'b100: timed_id_blt_decode_pending_cycles <= timed_id_blt_decode_pending_cycles + 1;
+                        3'b101: timed_id_bge_decode_pending_cycles <= timed_id_bge_decode_pending_cycles + 1;
+                        3'b110: timed_id_bltu_decode_pending_cycles <= timed_id_bltu_decode_pending_cycles + 1;
+                        3'b111: timed_id_bgeu_decode_pending_cycles <= timed_id_bgeu_decode_pending_cycles + 1;
+                        default: begin
+                        end
+                    endcase
                 end
             end
             if (id_branch_decode_redirect_valid) begin
@@ -621,6 +785,39 @@ always @(posedge clk) begin
                 endcase
             end
 
+            if (if_id_load_branch_fuse_candidate) begin
+                timed_load_branch_fuse_candidate_cycles <= timed_load_branch_fuse_candidate_cycles + 1;
+                if (if_id_pc32[31:18] == 14'd0) begin
+                    timed_load_branch_fuse_load_pc_bins[if_id_pc32[17:2]] <= timed_load_branch_fuse_load_pc_bins[if_id_pc32[17:2]] + 1;
+                end
+                if (fetch_queue_pc32[31:18] == 14'd0) begin
+                    timed_load_branch_fuse_branch_pc_bins[fetch_queue_pc32[17:2]] <= timed_load_branch_fuse_branch_pc_bins[fetch_queue_pc32[17:2]] + 1;
+                end
+                if (next_branch_funct3 == 3'b000) begin
+                    timed_load_beq_fuse_candidate_cycles <= timed_load_beq_fuse_candidate_cycles + 1;
+                end else begin
+                    timed_load_bne_fuse_candidate_cycles <= timed_load_bne_fuse_candidate_cycles + 1;
+                end
+            end
+            if (load_store_fuse_candidate) begin
+                timed_load_store_fuse_candidate_cycles <= timed_load_store_fuse_candidate_cycles + 1;
+            end
+            if (load_store_fuse_pairbuf_candidate) begin
+                timed_load_store_fuse_pairbuf_cycles <= timed_load_store_fuse_pairbuf_cycles + 1;
+            end
+            if (if_id_branch_fold_ready_candidate) begin
+                timed_id_branch_fold_ready_cycles <= timed_id_branch_fold_ready_cycles + 1;
+            end
+            if (if_id_branch_fold_not_taken_queue_candidate) begin
+                timed_id_branch_fold_not_taken_queue_cycles <= timed_id_branch_fold_not_taken_queue_cycles + 1;
+            end
+            if (if_id_branch_fold_taken_cache_candidate) begin
+                timed_id_branch_fold_taken_cache_cycles <= timed_id_branch_fold_taken_cache_cycles + 1;
+            end
+            if (if_id_branch_fold_any_next_candidate) begin
+                timed_id_branch_fold_any_next_cycles <= timed_id_branch_fold_any_next_cycles + 1;
+            end
+
             if (id_ex_valid) begin
                 timed_id_ex_valid_cycles <= timed_id_ex_valid_cycles + 1;
                 if (id_ex_pc32[31:18] == 14'd0) begin
@@ -630,7 +827,34 @@ always @(posedge clk) begin
                 if (id_ex_store) timed_id_ex_store_cycles <= timed_id_ex_store_cycles + 1;
                 if (id_ex_branch) timed_id_ex_branch_cycles <= timed_id_ex_branch_cycles + 1;
                 if (id_ex_jump) timed_id_ex_jump_cycles <= timed_id_ex_jump_cycles + 1;
-                if (id_ex_alu_op == `YH_rv_cpu_ALU_MUL) timed_id_ex_mul_cycles <= timed_id_ex_mul_cycles + 1;
+                case (id_ex_alu_op)
+                    `YH_rv_cpu_ALU_MUL: timed_id_ex_mul_cycles <= timed_id_ex_mul_cycles + 1;
+                    `YH_rv_cpu_ALU_MULH: timed_id_ex_mulh_cycles <= timed_id_ex_mulh_cycles + 1;
+                    `YH_rv_cpu_ALU_MULHSU: timed_id_ex_mulhsu_cycles <= timed_id_ex_mulhsu_cycles + 1;
+                    `YH_rv_cpu_ALU_MULHU: timed_id_ex_mulhu_cycles <= timed_id_ex_mulhu_cycles + 1;
+                    `YH_rv_cpu_ALU_CLMUL: timed_id_ex_clmul_cycles <= timed_id_ex_clmul_cycles + 1;
+                    `YH_rv_cpu_ALU_CLMULH: timed_id_ex_clmulh_cycles <= timed_id_ex_clmulh_cycles + 1;
+                    `YH_rv_cpu_ALU_SH1ADD,
+                    `YH_rv_cpu_ALU_SH2ADD,
+                    `YH_rv_cpu_ALU_SH3ADD: timed_id_ex_shadd_cycles <= timed_id_ex_shadd_cycles + 1;
+                    `YH_rv_cpu_ALU_TH_ADDSL1,
+                    `YH_rv_cpu_ALU_TH_ADDSL2,
+                    `YH_rv_cpu_ALU_TH_ADDSL3: timed_id_ex_xthead_addsl_cycles <= timed_id_ex_xthead_addsl_cycles + 1;
+                    `YH_rv_cpu_ALU_EXT_RANGE: timed_id_ex_xthead_ext_cycles <= timed_id_ex_xthead_ext_cycles + 1;
+                    `YH_rv_cpu_ALU_TH_MVEQZ,
+                    `YH_rv_cpu_ALU_TH_MVNEZ: timed_id_ex_xthead_condmove_cycles <= timed_id_ex_xthead_condmove_cycles + 1;
+                    `YH_rv_cpu_ALU_TH_MULA: timed_id_ex_xthead_mula_cycles <= timed_id_ex_xthead_mula_cycles + 1;
+                    `YH_rv_cpu_ALU_TH_MULAH: timed_id_ex_xthead_mulah_cycles <= timed_id_ex_xthead_mulah_cycles + 1;
+                    `YH_rv_cpu_ALU_CZERO_EQZ,
+                    `YH_rv_cpu_ALU_CZERO_NEZ: timed_id_ex_zicond_cycles <= timed_id_ex_zicond_cycles + 1;
+                    `YH_rv_cpu_ALU_BEXT: timed_id_ex_bitextract_cycles <= timed_id_ex_bitextract_cycles + 1;
+                    `YH_rv_cpu_ALU_MAX: timed_id_ex_max_cycles <= timed_id_ex_max_cycles + 1;
+                    `YH_rv_cpu_ALU_PACK: timed_id_ex_pack_cycles <= timed_id_ex_pack_cycles + 1;
+                    `YH_rv_cpu_ALU_XCRC16,
+                    `YH_rv_cpu_ALU_XCRC32: timed_id_ex_xcrc_cycles <= timed_id_ex_xcrc_cycles + 1;
+                    default: begin
+                    end
+                endcase
 
                 case (1'b1)
                     (id_ex_pc32 < 32'h0000_0060): timed_pc_startup_cycles <= timed_pc_startup_cycles + 1;
@@ -710,11 +934,42 @@ always @(posedge clk) begin
             $display("PROFILE: timed_id_branch_decode_candidate_cycles=%0d", timed_id_branch_decode_candidate_cycles);
             $display("PROFILE: timed_id_branch_decode_pending_cycles=%0d", timed_id_branch_decode_pending_cycles);
             $display("PROFILE: timed_id_branch_decode_redirect_cycles=%0d", timed_id_branch_decode_redirect_cycles);
+            $display("PROFILE: timed_id_beq_decode_pending_cycles=%0d", timed_id_beq_decode_pending_cycles);
+            $display("PROFILE: timed_id_bne_decode_pending_cycles=%0d", timed_id_bne_decode_pending_cycles);
+            $display("PROFILE: timed_id_blt_decode_pending_cycles=%0d", timed_id_blt_decode_pending_cycles);
+            $display("PROFILE: timed_id_bge_decode_pending_cycles=%0d", timed_id_bge_decode_pending_cycles);
+            $display("PROFILE: timed_id_bltu_decode_pending_cycles=%0d", timed_id_bltu_decode_pending_cycles);
+            $display("PROFILE: timed_id_bgeu_decode_pending_cycles=%0d", timed_id_bgeu_decode_pending_cycles);
+            $display("PROFILE: timed_load_branch_fuse_candidate_cycles=%0d", timed_load_branch_fuse_candidate_cycles);
+            $display("PROFILE: timed_load_beq_fuse_candidate_cycles=%0d", timed_load_beq_fuse_candidate_cycles);
+            $display("PROFILE: timed_load_bne_fuse_candidate_cycles=%0d", timed_load_bne_fuse_candidate_cycles);
+            $display("PROFILE: timed_load_store_fuse_candidate_cycles=%0d", timed_load_store_fuse_candidate_cycles);
+            $display("PROFILE: timed_load_store_fuse_pairbuf_cycles=%0d", timed_load_store_fuse_pairbuf_cycles);
+            $display("PROFILE: timed_id_branch_fold_ready_cycles=%0d", timed_id_branch_fold_ready_cycles);
+            $display("PROFILE: timed_id_branch_fold_not_taken_queue_cycles=%0d", timed_id_branch_fold_not_taken_queue_cycles);
+            $display("PROFILE: timed_id_branch_fold_taken_cache_cycles=%0d", timed_id_branch_fold_taken_cache_cycles);
+            $display("PROFILE: timed_id_branch_fold_any_next_cycles=%0d", timed_id_branch_fold_any_next_cycles);
             $display("PROFILE: timed_id_ex_load_cycles=%0d", timed_id_ex_load_cycles);
             $display("PROFILE: timed_id_ex_store_cycles=%0d", timed_id_ex_store_cycles);
             $display("PROFILE: timed_id_ex_branch_cycles=%0d", timed_id_ex_branch_cycles);
             $display("PROFILE: timed_id_ex_jump_cycles=%0d", timed_id_ex_jump_cycles);
             $display("PROFILE: timed_id_ex_mul_cycles=%0d", timed_id_ex_mul_cycles);
+            $display("PROFILE: timed_id_ex_mulh_cycles=%0d", timed_id_ex_mulh_cycles);
+            $display("PROFILE: timed_id_ex_mulhsu_cycles=%0d", timed_id_ex_mulhsu_cycles);
+            $display("PROFILE: timed_id_ex_mulhu_cycles=%0d", timed_id_ex_mulhu_cycles);
+            $display("PROFILE: timed_id_ex_clmul_cycles=%0d", timed_id_ex_clmul_cycles);
+            $display("PROFILE: timed_id_ex_clmulh_cycles=%0d", timed_id_ex_clmulh_cycles);
+            $display("PROFILE: timed_id_ex_shadd_cycles=%0d", timed_id_ex_shadd_cycles);
+            $display("PROFILE: timed_id_ex_xthead_addsl_cycles=%0d", timed_id_ex_xthead_addsl_cycles);
+            $display("PROFILE: timed_id_ex_xthead_ext_cycles=%0d", timed_id_ex_xthead_ext_cycles);
+            $display("PROFILE: timed_id_ex_xthead_condmove_cycles=%0d", timed_id_ex_xthead_condmove_cycles);
+            $display("PROFILE: timed_id_ex_xthead_mula_cycles=%0d", timed_id_ex_xthead_mula_cycles);
+            $display("PROFILE: timed_id_ex_xthead_mulah_cycles=%0d", timed_id_ex_xthead_mulah_cycles);
+            $display("PROFILE: timed_id_ex_zicond_cycles=%0d", timed_id_ex_zicond_cycles);
+            $display("PROFILE: timed_id_ex_bitextract_cycles=%0d", timed_id_ex_bitextract_cycles);
+            $display("PROFILE: timed_id_ex_max_cycles=%0d", timed_id_ex_max_cycles);
+            $display("PROFILE: timed_id_ex_pack_cycles=%0d", timed_id_ex_pack_cycles);
+            $display("PROFILE: timed_id_ex_xcrc_cycles=%0d", timed_id_ex_xcrc_cycles);
             $display("PROFILE: timed_pc_startup_cycles=%0d", timed_pc_startup_cycles);
             $display("PROFILE: timed_pc_calc_cycles=%0d", timed_pc_calc_cycles);
             $display("PROFILE: timed_pc_list_cycles=%0d", timed_pc_list_cycles);
@@ -818,6 +1073,51 @@ always @(posedge clk) begin
                 hist_top_count = 0;
                 hist_top_index = 0;
                 for (hist_i = 0; hist_i < 65536; hist_i = hist_i + 1) begin
+                    if (timed_id_branch_pending_pc_bins[hist_i] > hist_top_count) begin
+                        hist_top_count = timed_id_branch_pending_pc_bins[hist_i];
+                        hist_top_index = hist_i;
+                    end
+                end
+                if (hist_top_count != 0) begin
+                    $display("PROFILE: timed_id_branch_pending_pc_top rank=%0d pc=%08x cycles=%0d",
+                             hist_j, hist_top_index * 4, hist_top_count);
+                    timed_id_branch_pending_pc_bins[hist_top_index] = 0;
+                end
+            end
+            for (hist_j = 0; hist_j < 20; hist_j = hist_j + 1) begin
+                hist_top_count = 0;
+                hist_top_index = 0;
+                for (hist_i = 0; hist_i < 65536; hist_i = hist_i + 1) begin
+                    if (timed_load_branch_fuse_load_pc_bins[hist_i] > hist_top_count) begin
+                        hist_top_count = timed_load_branch_fuse_load_pc_bins[hist_i];
+                        hist_top_index = hist_i;
+                    end
+                end
+                if (hist_top_count != 0) begin
+                    $display("PROFILE: timed_load_branch_fuse_load_pc_top rank=%0d pc=%08x cycles=%0d",
+                             hist_j, hist_top_index * 4, hist_top_count);
+                    timed_load_branch_fuse_load_pc_bins[hist_top_index] = 0;
+                end
+            end
+            for (hist_j = 0; hist_j < 20; hist_j = hist_j + 1) begin
+                hist_top_count = 0;
+                hist_top_index = 0;
+                for (hist_i = 0; hist_i < 65536; hist_i = hist_i + 1) begin
+                    if (timed_load_branch_fuse_branch_pc_bins[hist_i] > hist_top_count) begin
+                        hist_top_count = timed_load_branch_fuse_branch_pc_bins[hist_i];
+                        hist_top_index = hist_i;
+                    end
+                end
+                if (hist_top_count != 0) begin
+                    $display("PROFILE: timed_load_branch_fuse_branch_pc_top rank=%0d pc=%08x cycles=%0d",
+                             hist_j, hist_top_index * 4, hist_top_count);
+                    timed_load_branch_fuse_branch_pc_bins[hist_top_index] = 0;
+                end
+            end
+            for (hist_j = 0; hist_j < 20; hist_j = hist_j + 1) begin
+                hist_top_count = 0;
+                hist_top_index = 0;
+                for (hist_i = 0; hist_i < 65536; hist_i = hist_i + 1) begin
                     if (timed_id_redirect_pc_bins[hist_i] > hist_top_count) begin
                         hist_top_count = timed_id_redirect_pc_bins[hist_i];
                         hist_top_index = hist_i;
@@ -869,6 +1169,14 @@ always @(posedge clk) begin
             $display("PROFILE: id_branch_decode_rs2_idex_pending_cycles=%0d", id_branch_decode_rs2_idex_pending_cycles);
             $display("PROFILE: id_branch_decode_rs1_exmem_pending_cycles=%0d", id_branch_decode_rs1_exmem_pending_cycles);
             $display("PROFILE: id_branch_decode_rs2_exmem_pending_cycles=%0d", id_branch_decode_rs2_exmem_pending_cycles);
+            $display("PROFILE: id_branch_decode_rs1_idex_load_pending_cycles=%0d", id_branch_decode_rs1_idex_load_pending_cycles);
+            $display("PROFILE: id_branch_decode_rs2_idex_load_pending_cycles=%0d", id_branch_decode_rs2_idex_load_pending_cycles);
+            $display("PROFILE: id_branch_decode_rs1_idex_lui_pending_cycles=%0d", id_branch_decode_rs1_idex_lui_pending_cycles);
+            $display("PROFILE: id_branch_decode_rs2_idex_lui_pending_cycles=%0d", id_branch_decode_rs2_idex_lui_pending_cycles);
+            $display("PROFILE: id_branch_decode_rs1_idex_pc4_pending_cycles=%0d", id_branch_decode_rs1_idex_pc4_pending_cycles);
+            $display("PROFILE: id_branch_decode_rs2_idex_pc4_pending_cycles=%0d", id_branch_decode_rs2_idex_pc4_pending_cycles);
+            $display("PROFILE: id_branch_decode_rs1_idex_alu_pending_cycles=%0d", id_branch_decode_rs1_idex_alu_pending_cycles);
+            $display("PROFILE: id_branch_decode_rs2_idex_alu_pending_cycles=%0d", id_branch_decode_rs2_idex_alu_pending_cycles);
             $display("PROFILE: id_beq_decode_candidate_cycles=%0d", id_beq_decode_candidate_cycles);
             $display("PROFILE: id_bne_decode_candidate_cycles=%0d", id_bne_decode_candidate_cycles);
             $display("PROFILE: id_blt_decode_candidate_cycles=%0d", id_blt_decode_candidate_cycles);
@@ -992,11 +1300,42 @@ initial begin
     timed_id_branch_decode_candidate_cycles = 0;
     timed_id_branch_decode_pending_cycles = 0;
     timed_id_branch_decode_redirect_cycles = 0;
+    timed_id_beq_decode_pending_cycles = 0;
+    timed_id_bne_decode_pending_cycles = 0;
+    timed_id_blt_decode_pending_cycles = 0;
+    timed_id_bge_decode_pending_cycles = 0;
+    timed_id_bltu_decode_pending_cycles = 0;
+    timed_id_bgeu_decode_pending_cycles = 0;
+    timed_load_branch_fuse_candidate_cycles = 0;
+    timed_load_beq_fuse_candidate_cycles = 0;
+    timed_load_bne_fuse_candidate_cycles = 0;
+    timed_load_store_fuse_candidate_cycles = 0;
+    timed_load_store_fuse_pairbuf_cycles = 0;
+    timed_id_branch_fold_ready_cycles = 0;
+    timed_id_branch_fold_not_taken_queue_cycles = 0;
+    timed_id_branch_fold_taken_cache_cycles = 0;
+    timed_id_branch_fold_any_next_cycles = 0;
     timed_id_ex_load_cycles = 0;
     timed_id_ex_store_cycles = 0;
     timed_id_ex_branch_cycles = 0;
     timed_id_ex_jump_cycles = 0;
     timed_id_ex_mul_cycles = 0;
+    timed_id_ex_mulh_cycles = 0;
+    timed_id_ex_mulhsu_cycles = 0;
+    timed_id_ex_mulhu_cycles = 0;
+    timed_id_ex_clmul_cycles = 0;
+    timed_id_ex_clmulh_cycles = 0;
+    timed_id_ex_shadd_cycles = 0;
+    timed_id_ex_xthead_addsl_cycles = 0;
+    timed_id_ex_xthead_ext_cycles = 0;
+    timed_id_ex_xthead_condmove_cycles = 0;
+    timed_id_ex_xthead_mula_cycles = 0;
+    timed_id_ex_xthead_mulah_cycles = 0;
+    timed_id_ex_zicond_cycles = 0;
+    timed_id_ex_bitextract_cycles = 0;
+    timed_id_ex_max_cycles = 0;
+    timed_id_ex_pack_cycles = 0;
+    timed_id_ex_xcrc_cycles = 0;
     timed_pc_startup_cycles = 0;
     timed_pc_calc_cycles = 0;
     timed_pc_list_cycles = 0;
@@ -1010,6 +1349,9 @@ initial begin
     for (hist_i = 0; hist_i < 65536; hist_i = hist_i + 1) begin
         pc_exec_bins[hist_i] = 0;
         timed_pc_exec_bins[hist_i] = 0;
+        timed_id_branch_pending_pc_bins[hist_i] = 0;
+        timed_load_branch_fuse_load_pc_bins[hist_i] = 0;
+        timed_load_branch_fuse_branch_pc_bins[hist_i] = 0;
         timed_id_redirect_pc_bins[hist_i] = 0;
         timed_predict_redirect_pc_bins[hist_i] = 0;
         timed_non_idex_prev_pc_bins[hist_i] = 0;
@@ -1027,6 +1369,14 @@ initial begin
     id_branch_decode_rs2_idex_pending_cycles = 0;
     id_branch_decode_rs1_exmem_pending_cycles = 0;
     id_branch_decode_rs2_exmem_pending_cycles = 0;
+    id_branch_decode_rs1_idex_load_pending_cycles = 0;
+    id_branch_decode_rs2_idex_load_pending_cycles = 0;
+    id_branch_decode_rs1_idex_lui_pending_cycles = 0;
+    id_branch_decode_rs2_idex_lui_pending_cycles = 0;
+    id_branch_decode_rs1_idex_pc4_pending_cycles = 0;
+    id_branch_decode_rs2_idex_pc4_pending_cycles = 0;
+    id_branch_decode_rs1_idex_alu_pending_cycles = 0;
+    id_branch_decode_rs2_idex_alu_pending_cycles = 0;
     id_beq_decode_candidate_cycles = 0;
     id_bne_decode_candidate_cycles = 0;
     id_blt_decode_candidate_cycles = 0;
@@ -1195,6 +1545,29 @@ YH_rv_cpu_coremark_profile_tb #(
     .ENABLE_ZMMUL_EXTENSION(1),
     .ENABLE_BITMANIP_EXTENSION(1),
     .ENABLE_ZBC_EXTENSION(0),
+    .ENABLE_ZICOND_EXTENSION(1),
+    .ENABLE_XTHEAD_EXTENSION(1),
+    .ENABLE_XTHEAD_COND_MOVE(1),
+    .ENABLE_ID_BRANCH_EX_FORWARD(1)
+) uut ();
+
+endmodule
+
+module YH_rv_cpu_coremark_profile_fpga_rv32_zmmul_bitmanip_zbc_zicond_xthead_idbr_tb;
+
+localparam string ROM_HEX = "build/sw/YH_rv_cpu_coremark_rv32.hex";
+localparam string ROM_MEM32_HEX = "build/sw/YH_rv_cpu_coremark_rv32.mem32.hex";
+
+YH_rv_cpu_coremark_profile_tb #(
+    .XLEN(32),
+    .ROM_HEX(ROM_HEX),
+    .ROM_MEM32_HEX(ROM_MEM32_HEX),
+    .SYNC_IMEM(1),
+    .IMEM_OUTPUT_REG(0),
+    .ENABLE_M_EXTENSION(0),
+    .ENABLE_ZMMUL_EXTENSION(1),
+    .ENABLE_BITMANIP_EXTENSION(1),
+    .ENABLE_ZBC_EXTENSION(1),
     .ENABLE_ZICOND_EXTENSION(1),
     .ENABLE_XTHEAD_EXTENSION(1),
     .ENABLE_XTHEAD_COND_MOVE(1),

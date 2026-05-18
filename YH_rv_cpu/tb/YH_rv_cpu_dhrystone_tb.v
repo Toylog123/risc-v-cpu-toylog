@@ -12,7 +12,8 @@ module YH_rv_cpu_dhrystone_tb #(
     parameter integer ENABLE_ZBKB_EXTENSION = 0,
     parameter integer ENABLE_XTHEAD_EXTENSION = 0,
     parameter integer ENABLE_XTHEAD_COND_MOVE = 0,
-    parameter integer ENABLE_ID_BRANCH_EX_FORWARD = 1
+    parameter integer ENABLE_ID_BRANCH_EX_FORWARD = 1,
+    parameter integer ENABLE_ID_BRANCH_FOLD = 0
 );
 
 localparam integer MAX_CYCLES = 250000000;
@@ -80,6 +81,7 @@ YH_rv_cpu_soc #(
     .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION),
     .ENABLE_XTHEAD_COND_MOVE(ENABLE_XTHEAD_COND_MOVE),
     .ENABLE_ID_BRANCH_EX_FORWARD(ENABLE_ID_BRANCH_EX_FORWARD),
+    .ENABLE_ID_BRANCH_FOLD(ENABLE_ID_BRANCH_FOLD),
     .ROM_INIT_HEX(ROM_HEX)
 ) dut (
     .clk          (clk),

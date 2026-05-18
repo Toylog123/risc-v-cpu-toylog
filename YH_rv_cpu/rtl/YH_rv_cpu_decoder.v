@@ -77,6 +77,7 @@ module YH_rv_cpu_decoder #(
     output reg             mem_unsigned,     // 加载无符号扩展标志
     output reg             mem_indexed,
     output reg  [1:0]      mem_index_shift,
+    output reg             mem_pair,
     output reg             store_data_from_rd,
     output reg             mem_base_update,
     output reg             mem_base_update_before,
@@ -172,6 +173,7 @@ always @* begin
     mem_unsigned  = 1'b0;
     mem_indexed   = 1'b0;
     mem_index_shift = 2'b00;
+    mem_pair = 1'b0;
     store_data_from_rd = 1'b0;
     mem_base_update = 1'b0;
     mem_base_update_before = 1'b0;
@@ -564,6 +566,8 @@ always @* begin
                         7'd1: alu_op = `YH_rv_cpu_ALU_TH_ADDSL1;
                         7'd2: alu_op = `YH_rv_cpu_ALU_TH_ADDSL2;
                         7'd3: alu_op = `YH_rv_cpu_ALU_TH_ADDSL3;
+                        7'd16: alu_op = `YH_rv_cpu_ALU_TH_MULA;
+                        7'd20: alu_op = `YH_rv_cpu_ALU_TH_MULAH;
                         7'd32: alu_op = `YH_rv_cpu_ALU_TH_MVEQZ;
                         7'd33: alu_op = `YH_rv_cpu_ALU_TH_MVNEZ;
                         default: illegal = 1'b1;
@@ -589,9 +593,12 @@ always @* begin
                         5'h04: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_H; mem_unsigned = 1'b0; end
                         5'h14: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_H; mem_unsigned = 1'b1; end
                         5'h08: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_W; mem_unsigned = 1'b0; end
+                        5'h1c: begin mem_pair = 1'b1; mem_size = `YH_rv_cpu_MEM_W; mem_unsigned = 1'b0; imm = {{(XLEN-5){1'b0}}, funct7[1:0], 3'b000}; end
                         5'h09: begin mem_base_update = 1'b1; mem_base_update_before = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_W; mem_unsigned = 1'b0; end
                         5'h11: begin mem_base_update = 1'b1; mem_base_update_before = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_B; mem_unsigned = 1'b1; end
+                        5'h07: begin mem_base_update = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_H; mem_unsigned = 1'b0; end
                         5'h0b: begin mem_base_update = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_W; mem_unsigned = 1'b0; end
+                        5'h13: begin mem_base_update = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_B; mem_unsigned = 1'b1; end
                         default: illegal = 1'b1;
                     endcase
                 end
@@ -604,7 +611,9 @@ always @* begin
                         5'h00: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_B; end
                         5'h04: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_H; end
                         5'h08: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_W; end
+                        5'h1c: begin rs2_en = 1'b1; mem_pair = 1'b1; imm = {{(XLEN-5){1'b0}}, funct7[1:0], 3'b000}; mem_size = `YH_rv_cpu_MEM_W; end
                         5'h03: begin mem_base_update = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_B; end
+                        5'h07: begin mem_base_update = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_H; end
                         5'h0b: begin mem_base_update = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_W; end
                         default: illegal = 1'b1;
                     endcase

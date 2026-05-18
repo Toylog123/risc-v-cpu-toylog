@@ -31,6 +31,15 @@ module YH_rv_cpu_soc #(
     parameter integer ENABLE_XTHEAD_EXTENSION = 1,
     parameter integer ENABLE_XTHEAD_COND_MOVE = 1, // XThead 条件移动写回门控使能
     parameter integer ENABLE_ID_BRANCH_EX_FORWARD = 1, // ID 早分支允许使用 EX 本周期结果
+    parameter integer ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP = 1,
+    parameter integer ENABLE_ID_BRANCH_FOLD = 0,
+    parameter integer ENABLE_FETCH_REDIRECT_REUSE = 0,
+    parameter integer REDIRECT_CACHE_ENTRIES = 1024,
+    parameter integer REDIRECT_CACHE_XOR_INDEX = 0,
+    parameter integer ENABLE_DYNAMIC_BRANCH_PREDICT = 0,
+    parameter integer BRANCH_BHT_ENTRIES = 64,
+    parameter integer BRANCH_STATIC_PREDICT_MODE = 0,
+    parameter integer BRANCH_BHT_STRONG_ONLY = 0,
     parameter [XLEN-1:0] RESET_VECTOR = {XLEN{1'b0}}, // 复位向量
     parameter [31:0] ROM_BASE = 32'h0000_0000,  // ROM 基地址
     parameter [31:0] RAM_BASE = 32'h0000_4000,  // RAM 基地址
@@ -84,12 +93,16 @@ wire [31:0]     imem_rdata;     // 指令数据
 wire            imem_rvalid;    // 指令读取有效
 wire [XLEN-1:0] dmem_addr;     // 数据存储器地址
 wire [XLEN-1:0] dmem_rdata;    // 数据存储器读数据
+wire [XLEN-1:0] dmem_pair_rdata;
 wire            dmem_rvalid;    // 数据读取有效
 wire            dmem_read_req;   // 数据读取请求
+wire            dmem_pair_read_req;
 wire            dmem_we;        // 数据写使能
 wire            dmem_ready;     // 写完成/内存就绪
 wire [XLEN-1:0] dmem_wdata;    // 数据写入数据
 wire [XLEN/8-1:0] dmem_wstrb; // 写字节使能
+wire [XLEN-1:0] dmem_pair_wdata;
+wire [XLEN/8-1:0] dmem_pair_wstrb;
 
     // ================================================================
     // 地址和数据转换信号
@@ -97,7 +110,9 @@ wire [XLEN/8-1:0] dmem_wstrb; // 写字节使能
 wire [31:0] imem_addr32;       // 指令地址 (32 位)
 wire [31:0] imem_word_index;   // 指令字索引
 wire [31:0] dmem_addr32;       // 数据地址 (32 位)
+wire [31:0] dmem_pair_addr32;
 wire [31:0] dmem_bus_base32;   // 总线对齐后的地址
+wire [31:0] dmem_pair_bus_base32;
 wire [31:0] rom_read_word_index; // ROM 读取字索引
 wire [63:0] dmem_wdata_ext;    // 扩展的写数据
 wire [7:0]  dmem_wstrb_ext;    // 扩展的字节使能
@@ -126,11 +141,15 @@ wire        dmem_write_en;       // 数据写使能
 wire        imem_hit;            // 指令地址命中 ROM
 wire        rom_read_hit;        // ROM 读取命中
 wire        ram_read_hit;        // RAM 读取命中
+wire        ram_pair_read_hit;
 wire        ram_write_hit;       // RAM 写入命中
+wire        ram_pair_write_hit;
 wire        mmio_word_hit;       // MMIO 访问命中
 wire [31:0] rom_read_offset;    // ROM 读取偏移
 wire [31:0] ram_read_offset;    // RAM 读取偏移
+wire [31:0] ram_pair_read_offset;
 wire [31:0] ram_bus_offset;     // RAM 总线偏移
+wire [31:0] ram_pair_bus_offset;
 wire        ram_read_issue;      // RAM 读取发起
 wire        dmem_read_accept;    // 数据读取接受
 
@@ -142,6 +161,7 @@ wire [31:0] sync_shared_imem_rdata;     // 同步共享指令数据
 wire        sync_shared_imem_rvalid;     // 同步共享指令有效
 wire [31:0] sync_shared_rom_read_data;  // 同步共享 ROM 数据
 wire [XLEN-1:0] ram_read_data;         // RAM 读取数据
+wire [XLEN-1:0] ram_pair_read_data;
 wire [31:0] sync_imem_rdata;            // 同步指令数据
 wire        sync_imem_rvalid;            // 同步指令有效
 wire [XLEN-1:0] dmem_rdata_comb;       // 数据读数据组合
@@ -172,7 +192,7 @@ localparam integer BUS_ALIGN_LSB = (XLEN == 64) ? 3 : 2;
 localparam integer USE_SHARED_SYNC_ROM = ((XLEN == 32) && (SYNC_IMEM != 0) && (SYNC_DMEM != 0)) ? 1 : 0;
 localparam integer USE_IMEM_OUTPUT_REG = ((SYNC_IMEM != 0) && (IMEM_OUTPUT_REG != 0)) ? 1 : 0;
 localparam integer USE_DMEM_OUTPUT_REG = ((SYNC_DMEM != 0) && (DMEM_OUTPUT_REG != 0)) ? 1 : 0;
-localparam integer USE_DMEM_NEGEDGE_READ = ((SYNC_DMEM != 0) && (DMEM_OUTPUT_REG == 0) && (DMEM_NEGEDGE_READ != 0) && (USE_SHARED_SYNC_ROM == 0)) ? 1 : 0;
+localparam integer USE_DMEM_NEGEDGE_READ = ((SYNC_DMEM != 0) && (DMEM_OUTPUT_REG == 0) && (DMEM_NEGEDGE_READ != 0)) ? 1 : 0;
 localparam integer USE_LOAD_USE_FAST_FORWARD = ((DCACHE_EN == 0) && ((SYNC_DMEM == 0) || (USE_DMEM_NEGEDGE_READ != 0))) ? 1 : 0;
 localparam [1:0] DMEM_SRC_NONE = 2'b00; // 无数据源
 localparam [1:0] DMEM_SRC_RAM  = 2'b01; // RAM 数据源
@@ -202,6 +222,7 @@ endfunction
 assign imem_addr32 = imem_addr[31:0];
 assign imem_word_index = (imem_addr32 - ROM_BASE) >> 2;
 assign dmem_addr32 = dmem_addr[31:0];
+assign dmem_pair_addr32 = dmem_addr32 + 32'd4;
 assign dmem_wdata_ext = {{(64-XLEN){1'b0}}, dmem_wdata};
 assign dmem_wstrb_ext = {{(8-STRB_W){1'b0}}, dmem_wstrb};
 assign dmem_write_en = |dmem_wstrb;
@@ -212,6 +233,7 @@ assign dmem_ready = 1'b1;        // 同步内存始终就绪
     // 总线地址对齐
     // ================================================================
 assign dmem_bus_base32 = {dmem_addr32[31:BUS_ALIGN_LSB], {BUS_ALIGN_LSB{1'b0}}};
+assign dmem_pair_bus_base32 = {dmem_pair_addr32[31:BUS_ALIGN_LSB], {BUS_ALIGN_LSB{1'b0}}};
 assign dmem_mmio_addr32 = (XLEN == 64) ? {dmem_addr32[31:3], dmem_addr32[2], 2'b00} : {dmem_addr32[31:2], 2'b00};
 assign dmem_mmio_wdata32 = ((XLEN == 64) && dmem_addr32[2]) ? dmem_wdata_ext[63:32] : dmem_wdata_ext[31:0];
 assign dmem_mmio_wstrb4 = ((XLEN == 64) && dmem_addr32[2]) ? dmem_wstrb_ext[7:4] : dmem_wstrb_ext[3:0];
@@ -227,7 +249,9 @@ assign timer_ctrl_next = apply_wstrb({31'b0, timer_irq_en_r}, dmem_mmio_wdata32,
 assign imem_hit      = (imem_addr32 >= ROM_BASE) && (imem_addr32 <= (ROM_BASE + ROM_BYTES - 4));
 assign rom_read_hit  = (dmem_bus_base32 >= ROM_BASE) && (dmem_bus_base32 <= (ROM_BASE + ROM_BYTES - STRB_W));
 assign ram_read_hit  = (dmem_bus_base32 >= RAM_BASE) && (dmem_bus_base32 <= (RAM_BASE + RAM_BYTES - STRB_W));
+assign ram_pair_read_hit  = (dmem_pair_bus_base32 >= RAM_BASE) && (dmem_pair_bus_base32 <= (RAM_BASE + RAM_BYTES - STRB_W));
 assign ram_write_hit = (dmem_addr32 >= RAM_BASE) && (dmem_addr32 < (RAM_BASE + RAM_BYTES));
+assign ram_pair_write_hit = (dmem_pair_addr32 >= RAM_BASE) && (dmem_pair_addr32 < (RAM_BASE + RAM_BYTES));
 assign mmio_word_hit = (dmem_mmio_addr32 == UART_TX_ADDR) || (dmem_mmio_addr32 == DONE_ADDR) ||
     (dmem_mmio_addr32 == TIMER_VALUE_LO) || (dmem_mmio_addr32 == TIMER_VALUE_HI) ||
     (dmem_mmio_addr32 == TIMER_CMP_LO) || (dmem_mmio_addr32 == TIMER_CMP_HI) ||
@@ -239,7 +263,9 @@ assign mmio_word_hit = (dmem_mmio_addr32 == UART_TX_ADDR) || (dmem_mmio_addr32 =
 assign rom_read_offset = dmem_bus_base32 - ROM_BASE;
 assign rom_read_word_index = rom_read_offset >> 2;
 assign ram_read_offset = dmem_bus_base32 - RAM_BASE;
+assign ram_pair_read_offset = dmem_pair_bus_base32 - RAM_BASE;
 assign ram_bus_offset = dmem_bus_base32 - RAM_BASE;
+assign ram_pair_bus_offset = dmem_pair_bus_base32 - RAM_BASE;
 
     // ================================================================
     // 读取接受和发起
@@ -258,7 +284,8 @@ generate
         YH_rv_sync_rom32 #(
             .ROM_WORDS       (ROM_WORDS),
             .ROM_INIT_HEX    (ROM_INIT_MEM32_HEX),
-            .IMEM_OUTPUT_REG (USE_IMEM_OUTPUT_REG)
+            .IMEM_OUTPUT_REG (USE_IMEM_OUTPUT_REG),
+            .DATA_READ_NEGEDGE(USE_DMEM_NEGEDGE_READ)
         ) u_sync_rom (
             .clk            (clk),
             .rst_n          (rst_n),
@@ -339,10 +366,17 @@ YH_rv_dmem_ram #(
     .read_req   (ram_read_issue),
     .read_offset(ram_read_offset),
     .read_data  (ram_read_data),
+    .pair_read_req(ram_pair_read_hit && dmem_pair_read_req && dmem_read_accept),
+    .pair_read_offset(ram_pair_read_offset),
+    .pair_read_data(ram_pair_read_data),
     .write_en   (ram_write_hit && dmem_write_en),
     .write_offset(ram_bus_offset),
     .write_data (dmem_wdata),
-    .write_wstrb(dmem_wstrb)
+    .write_wstrb(dmem_wstrb),
+    .pair_write_en(ram_pair_write_hit && (|dmem_pair_wstrb)),
+    .pair_write_offset(ram_pair_bus_offset),
+    .pair_write_data(dmem_pair_wdata),
+    .pair_write_wstrb(dmem_pair_wstrb)
 );
 
     // ================================================================
@@ -393,6 +427,7 @@ assign dmem_rdata = (SYNC_DMEM != 0) ?
          (dmem_read_src_r == DMEM_SRC_ROM) ? rom_read_data :
          dmem_nonram_rdata_r)) :
     dmem_rdata_comb;
+assign dmem_pair_rdata = ram_pair_read_data;
 assign dmem_rvalid = (SYNC_DMEM != 0) ?
     ((USE_DMEM_OUTPUT_REG != 0) ? dmem_rvalid_sync_d1_r : dmem_rvalid_sync_r) :
     1'b1;
@@ -423,6 +458,15 @@ YH_rv_cpu #(
     .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION),
     .ENABLE_XTHEAD_COND_MOVE(ENABLE_XTHEAD_COND_MOVE),
     .ENABLE_ID_BRANCH_EX_FORWARD(ENABLE_ID_BRANCH_EX_FORWARD),
+    .ENABLE_ID_BRANCH_FOLD(ENABLE_ID_BRANCH_FOLD),
+    .ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP(ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP),
+    .ENABLE_FETCH_REDIRECT_REUSE(ENABLE_FETCH_REDIRECT_REUSE),
+    .REDIRECT_CACHE_ENTRIES(REDIRECT_CACHE_ENTRIES),
+    .REDIRECT_CACHE_XOR_INDEX(REDIRECT_CACHE_XOR_INDEX),
+    .ENABLE_DYNAMIC_BRANCH_PREDICT(ENABLE_DYNAMIC_BRANCH_PREDICT),
+    .BRANCH_BHT_ENTRIES(BRANCH_BHT_ENTRIES),
+    .BRANCH_STATIC_PREDICT_MODE(BRANCH_STATIC_PREDICT_MODE),
+    .BRANCH_BHT_STRONG_ONLY(BRANCH_BHT_STRONG_ONLY),
     .RESET_VECTOR   (RESET_VECTOR)
 ) u_cpu (
     .clk       (clk),
@@ -434,12 +478,16 @@ YH_rv_cpu #(
     .imem_rvalid(imem_rvalid),
     .dmem_addr (dmem_addr),
     .dmem_rdata(dmem_rdata),
+    .dmem_pair_rdata(dmem_pair_rdata),
     .dmem_rvalid(dmem_rvalid),
     .dmem_ready(dmem_ready),
     .dmem_read_req(dmem_read_req),
+    .dmem_pair_read_req(dmem_pair_read_req),
     .dmem_we   (dmem_we),
     .dmem_wdata(dmem_wdata),
     .dmem_wstrb(dmem_wstrb),
+    .dmem_pair_wdata(dmem_pair_wdata),
+    .dmem_pair_wstrb(dmem_pair_wstrb),
     .trap      (trap),
     .debug_pc  (debug_pc)
 );

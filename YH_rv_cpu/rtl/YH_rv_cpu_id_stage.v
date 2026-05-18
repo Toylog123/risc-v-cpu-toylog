@@ -68,6 +68,7 @@ module YH_rv_cpu_id_stage #(
     output wire            mem_unsigned,    // 无符号加载
     output wire            mem_indexed,
     output wire [1:0]      mem_index_shift,
+    output wire            mem_pair,
     output wire            store_data_from_rd,
     output wire            mem_base_update,
     output wire            mem_base_update_before,
@@ -159,6 +160,7 @@ YH_rv_cpu_decoder #(
     .mem_unsigned  (mem_unsigned),
     .mem_indexed   (mem_indexed),
     .mem_index_shift(mem_index_shift),
+    .mem_pair      (mem_pair),
     .store_data_from_rd(store_data_from_rd),
     .mem_base_update(mem_base_update),
     .mem_base_update_before(mem_base_update_before),

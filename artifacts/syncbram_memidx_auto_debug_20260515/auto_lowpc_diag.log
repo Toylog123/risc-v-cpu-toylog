@@ -1,0 +1,21 @@
+
+****** xsim v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Fri May 15 09:15:44 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/YH_rv_cpu_coremark_fpga_tb_snapshot/xsim_script.tcl
+# xsim {YH_rv_cpu_coremark_fpga_tb_snapshot} -testplusarg max_cycles=1000000 -testplusarg fail_on_low_pc_after_startup -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+Starting FPGA-like CoreMark simulation (MAX_CYCLES=1000000)...
+LOW_PC_DIAG cycle=13412 pc=00000000 ifid_pc=000077c4 idex_pc=00000000 exmem_pc4=000077c0 ex_redir=0 ex_redir_pc=00000000 ifid_instr=001a0a13 x1=00003738 x2=00013f50 x5=000000a2 x6=0000000a x7=00000012 x10=00000009 x11=8000ffff x12=00000001 x13=00010352 x14=000000a2 x15=000102b0 x16=00000003 x17=00000002 x28=ffff0000 x29=000102b0 x30=00000000 x31=00000001 daddr=00000102 drdata=00000000 drvalid=0 dwdata=00000000 dwstrb=0
+Fatal: 
+FAIL: low PC after startup
+Time: 134225 ns  Iteration: 0  Process: /YH_rv_cpu_coremark_fpga_tb(ENABLE_M_EXTENSION=0,ENABLE_ZMMUL_EXTENSION=1,ENABLE_ZBC_EXTENSION=1,ENABLE_ZICOND_EXTENSION=1,DMEM_NEGEDGE_READ=1)/Always91_39  Scope: YH_rv_cpu_coremark_fpga_tb(ENABLE_M_EXTENSION=0,ENABLE_ZMMUL_EXTENSION=1,ENABLE_ZBC_EXTENSION=1,ENABLE_ZICOND_EXTENSION=1,DMEM_NEGEDGE_READ=1)  File: D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/YH_rv_cpu/tb/YH_rv_cpu_coremark_fpga_tb.v Line: 283
+$finish called at time : 134225 ns
+exit
+INFO: [Common 17-206] Exiting xsim at Fri May 15 09:15:47 2026...

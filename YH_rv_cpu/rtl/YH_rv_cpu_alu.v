@@ -29,6 +29,7 @@ module YH_rv_cpu_alu #(
     // 数据输入
     input  wire [XLEN-1:0] lhs,      // 左手操作数 (left-hand side)
     input  wire [XLEN-1:0] rhs,       // 右手操作数 (right-hand side)
+    input  wire [XLEN-1:0] acc,       // rd-as-source accumulator for custom MAC ops
     // 结果输出
     output reg  [XLEN-1:0] result,    // 运算结果
     // 比较结果输出 (组合逻辑，不经过寄存器)
@@ -67,6 +68,8 @@ wire [XLEN-1:0] m_result_div;
 wire [XLEN-1:0] m_result_divu;
 wire [XLEN-1:0] m_result_rem;
 wire [XLEN-1:0] m_result_remu;
+wire [XLEN-1:0] x_result_th_mula;
+wire [XLEN-1:0] x_result_th_mulah;
 wire [XLEN-1:0] b_result_clmul;
 wire [XLEN-1:0] b_result_clmulh;
 wire [XLEN-1:0] x_result_ext_range;
@@ -122,6 +125,34 @@ endfunction
 
 assign x_result_crc16 = {{(XLEN-16){1'b0}}, yh_crc16_next(lhs[15:0], rhs[15:0])};
 assign x_result_crc32 = {{(XLEN-16){1'b0}}, yh_crc32_next(lhs[31:0], rhs[15:0])};
+
+assign x_result_th_mula = acc + (lhs * rhs);
+
+generate
+if (XLEN == 32) begin : gen_th_mulah_rv32
+    wire signed [31:0] th_mulah_lhs16;
+    wire signed [31:0] th_mulah_rhs16;
+    wire signed [31:0] th_mulah_acc32;
+    wire signed [31:0] th_mulah_sum32;
+
+    assign th_mulah_lhs16 = {{16{lhs[15]}}, lhs[15:0]};
+    assign th_mulah_rhs16 = {{16{rhs[15]}}, rhs[15:0]};
+    assign th_mulah_acc32 = acc[31:0];
+    assign th_mulah_sum32 = th_mulah_acc32 + (th_mulah_lhs16 * th_mulah_rhs16);
+    assign x_result_th_mulah = th_mulah_sum32;
+end else begin : gen_th_mulah_rv64
+    wire signed [31:0] th_mulah_lhs16;
+    wire signed [31:0] th_mulah_rhs16;
+    wire signed [31:0] th_mulah_acc32;
+    wire signed [31:0] th_mulah_sum32;
+
+    assign th_mulah_lhs16 = {{16{lhs[15]}}, lhs[15:0]};
+    assign th_mulah_rhs16 = {{16{rhs[15]}}, rhs[15:0]};
+    assign th_mulah_acc32 = acc[31:0];
+    assign th_mulah_sum32 = th_mulah_acc32 + (th_mulah_lhs16 * th_mulah_rhs16);
+    assign x_result_th_mulah = {{(XLEN-32){th_mulah_sum32[31]}}, th_mulah_sum32};
+end
+endgenerate
 
 generate
 if ((ENABLE_M_EXTENSION != 0) || (ENABLE_ZMMUL_EXTENSION != 0)) begin : gen_mul_extension
@@ -284,6 +315,8 @@ always @* begin
         `YH_rv_cpu_ALU_TH_MVNEZ:  result = (ENABLE_XTHEAD_EXTENSION != 0) ? lhs : {XLEN{1'b0}};
         `YH_rv_cpu_ALU_XCRC16:    result = (ENABLE_XTHEAD_EXTENSION != 0) ? x_result_crc16 : {XLEN{1'b0}};
         `YH_rv_cpu_ALU_XCRC32:    result = (ENABLE_XTHEAD_EXTENSION != 0) ? x_result_crc32 : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_TH_MULA:   result = (ENABLE_XTHEAD_EXTENSION != 0) ? x_result_th_mula : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_TH_MULAH:  result = (ENABLE_XTHEAD_EXTENSION != 0) ? x_result_th_mulah : {XLEN{1'b0}};
         `YH_rv_cpu_ALU_ANDN:   result = (ENABLE_BITMANIP_EXTENSION != 0) ? (lhs & ~rhs) : {XLEN{1'b0}};
         `YH_rv_cpu_ALU_MAX:    result = (ENABLE_BITMANIP_EXTENSION != 0) ? (($signed(lhs) > $signed(rhs)) ? lhs : rhs) : {XLEN{1'b0}};
         `YH_rv_cpu_ALU_SEXT_H: result = (ENABLE_BITMANIP_EXTENSION != 0) ? {{(XLEN-16){lhs[15]}}, lhs[15:0]} : {XLEN{1'b0}};

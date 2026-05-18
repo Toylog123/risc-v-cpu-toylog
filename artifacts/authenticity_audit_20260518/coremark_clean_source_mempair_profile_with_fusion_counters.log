@@ -1,0 +1,393 @@
+
+****** xsim v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Mon May 18 11:14:03 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/YH_rv_cpu_coremark_profile_tb_snapshot/xsim_script.tcl
+# xsim {YH_rv_cpu_coremark_profile_tb_snapshot} -testplusarg max_cycles=20000000 -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+Starting CoreMark profiling simulation (MAX_CYCLES=20000000)...
+2K performance run parameters for coremark.
+CoreMark Size    : 666
+Total ticks      : 1873322
+Total time (secs): 0
+ERROR! Must execute for at least 10 secs for a valid result!
+Iterations       : 10
+Compiler version : GCC 15.2.0
+Compiler flags   : -O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -march=rv32i_zmmul_zba_zbb_zbs_zbc_zicond_zbkb_zbkx_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_xtheadmac_xtheadmempair_zicsr -mabi=ilp32
+Memory location  : SoC ROM/RAM
+seedcrc          : 0xe9f5
+[0]crclist       : 0xe714
+[0]crcmatrix     : 0x1fd7
+[0]crcstate      : 0x8e3a
+[0]crcfinal      : 0xfcaf
+Errors detected
+
+PASS: coremark profile completed at PC=00003cdc in 1907482 cycles
+PROFILE: total_cycles=1907482
+PROFILE: timer_lo_read_count=2
+PROFILE: timed_cycles=1873322
+PROFILE: timed_id_ex_valid_cycles=1871083
+PROFILE: timed_non_idex_cycles=2239
+PROFILE: timed_stall_decode_cycles=0
+PROFILE: timed_load_use_hazard_cycles=0
+PROFILE: timed_ex_mem_load_use_hazard_cycles=0
+PROFILE: timed_mem_wb_load_use_hazard_cycles=0
+PROFILE: timed_mem_wait_cycles=0
+PROFILE: timed_ex_redirect_cycles=1861
+PROFILE: timed_decode_flush_cycles=1941
+PROFILE: timed_ex_decode_flush_cycles=1941
+PROFILE: timed_id_decode_redirect_cycles=154550
+PROFILE: timed_branch_predict_redirect_cycles=29550
+PROFILE: timed_jal_predict_redirect_cycles=2342
+PROFILE: timed_if_id_invalid_cycles=298
+PROFILE: timed_if_id_bubble_cycles=298
+PROFILE: timed_non_idex_decode_flush_cycles=0
+PROFILE: timed_non_idex_id_redirect_cycles=16
+PROFILE: timed_non_idex_predict_redirect_cycles=2
+PROFILE: timed_non_idex_ex_redirect_cycles=0
+PROFILE: timed_non_idex_if_id_invalid_cycles=6
+PROFILE: timed_id_beq_decode_redirect_cycles=28531
+PROFILE: timed_id_bne_decode_redirect_cycles=67327
+PROFILE: timed_id_blt_decode_redirect_cycles=3258
+PROFILE: timed_id_bge_decode_redirect_cycles=6346
+PROFILE: timed_id_bltu_decode_redirect_cycles=15380
+PROFILE: timed_id_bgeu_decode_redirect_cycles=13200
+PROFILE: timed_id_branch_decode_candidate_cycles=466749
+PROFILE: timed_id_branch_decode_pending_cycles=114071
+PROFILE: timed_id_branch_decode_redirect_cycles=134042
+PROFILE: timed_id_beq_decode_pending_cycles=84521
+PROFILE: timed_id_bne_decode_pending_cycles=29550
+PROFILE: timed_id_blt_decode_pending_cycles=0
+PROFILE: timed_id_bge_decode_pending_cycles=0
+PROFILE: timed_id_bltu_decode_pending_cycles=0
+PROFILE: timed_id_bgeu_decode_pending_cycles=0
+PROFILE: timed_load_branch_fuse_candidate_cycles=24
+PROFILE: timed_load_beq_fuse_candidate_cycles=17
+PROFILE: timed_load_bne_fuse_candidate_cycles=7
+PROFILE: timed_load_store_fuse_candidate_cycles=8
+PROFILE: timed_load_store_fuse_pairbuf_cycles=0
+PROFILE: timed_id_branch_fold_ready_cycles=352678
+PROFILE: timed_id_branch_fold_not_taken_queue_cycles=248
+PROFILE: timed_id_branch_fold_taken_cache_cycles=133911
+PROFILE: timed_id_branch_fold_any_next_cycles=134159
+PROFILE: timed_id_ex_load_cycles=516888
+PROFILE: timed_id_ex_store_cycles=140233
+PROFILE: timed_id_ex_branch_cycles=466749
+PROFILE: timed_id_ex_jump_cycles=22850
+PROFILE: timed_id_ex_mul_cycles=35640
+PROFILE: timed_id_ex_mulh_cycles=0
+PROFILE: timed_id_ex_mulhsu_cycles=0
+PROFILE: timed_id_ex_mulhu_cycles=0
+PROFILE: timed_id_ex_clmul_cycles=5840
+PROFILE: timed_id_ex_clmulh_cycles=5840
+PROFILE: timed_id_ex_shadd_cycles=26620
+PROFILE: timed_id_ex_xthead_addsl_cycles=0
+PROFILE: timed_id_ex_xthead_ext_cycles=77412
+PROFILE: timed_id_ex_xthead_condmove_cycles=0
+PROFILE: timed_id_ex_xthead_mula_cycles=25920
+PROFILE: timed_id_ex_xthead_mulah_cycles=32400
+PROFILE: timed_id_ex_zicond_cycles=0
+PROFILE: timed_id_ex_bitextract_cycles=120
+PROFILE: timed_id_ex_max_cycles=0
+PROFILE: timed_id_ex_pack_cycles=0
+PROFILE: timed_id_ex_xcrc_cycles=0
+PROFILE: timed_pc_startup_cycles=0
+PROFILE: timed_pc_calc_cycles=118120
+PROFILE: timed_pc_list_cycles=639459
+PROFILE: timed_pc_iterate_cycles=0
+PROFILE: timed_pc_main_cycles=0
+PROFILE: timed_pc_matrix_cycles=55373
+PROFILE: timed_pc_state_cycles=470760
+PROFILE: timed_pc_crc_cycles=71040
+PROFILE: timed_pc_port_cycles=458200
+PROFILE: timed_pc_unknown_cycles=58131
+PROFILE: stall_decode_cycles=0
+PROFILE: mem_wait_cycles=0
+PROFILE: ex_trap_valid_cycles=0
+PROFILE: ex_mret_valid_cycles=0
+PROFILE: ex_branch_redirect_cycles=1911
+PROFILE: ex_beq_redirect_cycles=1877
+PROFILE: ex_bne_redirect_cycles=0
+PROFILE: ex_blt_redirect_cycles=0
+PROFILE: ex_bge_redirect_cycles=0
+PROFILE: ex_bltu_redirect_cycles=34
+PROFILE: ex_bgeu_redirect_cycles=0
+PROFILE: ex_jal_redirect_cycles=0
+PROFILE: ex_jalr_redirect_cycles=26
+PROFILE: ex_fetch_redirect_valid_cycles=2034
+PROFILE: fetch_queue_empty_cycles=1903284
+PROFILE: fetch_redirect_reuse_cycles=0
+PROFILE: fetch_redirect_reuse_miss_cycles=1937
+PROFILE: fetch_redirect_buf0_hit_cycles=0
+PROFILE: fetch_redirect_buf1_hit_cycles=0
+PROFILE: id_ex_valid_cycles=1904940
+PROFILE: id_ex_load_cycles=521399
+PROFILE: id_ex_store_cycles=146012
+PROFILE: id_ex_branch_cycles=474958
+PROFILE: id_ex_jump_cycles=25569
+PROFILE: id_ex_jal_cycles=23069
+PROFILE: id_ex_jalr_cycles=2500
+PROFILE: id_ex_csr_cycles=0
+PROFILE: id_ex_mul_cycles=35733
+PROFILE: id_ex_mulh_cycles=0
+PROFILE: id_ex_mulhsu_cycles=0
+PROFILE: id_ex_mulhu_cycles=5
+PROFILE: id_ex_div_cycles=0
+PROFILE: id_ex_divu_cycles=0
+PROFILE: id_ex_rem_cycles=0
+PROFILE: id_ex_remu_cycles=0
+PROFILE: pc_startup_cycles=8167
+PROFILE: pc_calc_cycles=118120
+PROFILE: pc_list_cycles=641103
+PROFILE: pc_list_init_cycles=13524
+PROFILE: pc_list_runtime_cycles=627579
+PROFILE: pc_iterate_cycles=2350
+PROFILE: pc_main_cycles=856
+PROFILE: pc_matrix_cycles=55711
+PROFILE: pc_matrix_test_cycles=386
+PROFILE: pc_core_bench_matrix_cycles=15
+PROFILE: pc_core_init_matrix_cycles=48
+PROFILE: pc_matrix_sum_cycles=11
+PROFILE: pc_matrix_mul_const_cycles=22
+PROFILE: pc_matrix_add_const_cycles=14
+PROFILE: pc_matrix_mul_vect_cycles=1415
+PROFILE: pc_matrix_mul_matrix_cycles=32120
+PROFILE: pc_matrix_bitextract_cycles=21680
+PROFILE: pc_state_cycles=470760
+PROFILE: pc_core_init_state_cycles=23760
+PROFILE: pc_state_transition_cycles=185560
+PROFILE: pc_core_bench_state_cycles=261440
+PROFILE: pc_crc_cycles=71040
+PROFILE: pc_port_cycles=461957
+PROFILE: pc_unknown_cycles=74876
+PROFILE: pc_top rank=0 pc=00000450 cycles=28950
+PROFILE: pc_top rank=1 pc=00000454 cycles=28950
+PROFILE: pc_top rank=2 pc=00000458 cycles=28950
+PROFILE: pc_top rank=3 pc=0000045c cycles=28950
+PROFILE: pc_top rank=4 pc=00000448 cycles=28870
+PROFILE: pc_top rank=5 pc=0000044c cycles=28870
+PROFILE: pc_top rank=6 pc=00000588 cycles=27910
+PROFILE: pc_top rank=7 pc=0000058c cycles=27910
+PROFILE: pc_top rank=8 pc=00000590 cycles=27910
+PROFILE: pc_top rank=9 pc=00000594 cycles=27910
+PROFILE: pc_top rank=10 pc=00000580 cycles=27780
+PROFILE: pc_top rank=11 pc=00000584 cycles=27780
+PROFILE: pc_top rank=12 pc=00000470 cycles=8160
+PROFILE: pc_top rank=13 pc=00000474 cycles=8160
+PROFILE: pc_top rank=14 pc=00000478 cycles=8160
+PROFILE: pc_top rank=15 pc=0000047c cycles=8160
+PROFILE: pc_top rank=16 pc=00000480 cycles=8160
+PROFILE: pc_top rank=17 pc=00000484 cycles=8160
+PROFILE: pc_top rank=18 pc=00000488 cycles=8160
+PROFILE: pc_top rank=19 pc=0000048c cycles=8160
+PROFILE: pc_top rank=20 pc=00000490 cycles=8160
+PROFILE: pc_top rank=21 pc=00000494 cycles=8160
+PROFILE: pc_top rank=22 pc=00000498 cycles=8160
+PROFILE: pc_top rank=23 pc=0000049c cycles=8160
+PROFILE: pc_top rank=24 pc=000004a0 cycles=8160
+PROFILE: pc_top rank=25 pc=000004a4 cycles=8160
+PROFILE: pc_top rank=26 pc=000004a8 cycles=8160
+PROFILE: pc_top rank=27 pc=000004ac cycles=8160
+PROFILE: pc_top rank=28 pc=000004b0 cycles=8160
+PROFILE: pc_top rank=29 pc=000004b4 cycles=8160
+PROFILE: pc_top rank=30 pc=000004b8 cycles=8160
+PROFILE: pc_top rank=31 pc=000004bc cycles=8160
+PROFILE: pc_top rank=32 pc=00008148 cycles=7400
+PROFILE: pc_top rank=33 pc=0000814c cycles=7400
+PROFILE: pc_top rank=34 pc=00008150 cycles=7400
+PROFILE: pc_top rank=35 pc=00008154 cycles=7400
+PROFILE: pc_top rank=36 pc=0000822c cycles=7400
+PROFILE: pc_top rank=37 pc=00008230 cycles=7400
+PROFILE: pc_top rank=38 pc=00008234 cycles=7400
+PROFILE: pc_top rank=39 pc=00008238 cycles=7400
+PROFILE: timed_pc_top rank=0 pc=00000450 cycles=28950
+PROFILE: timed_pc_top rank=1 pc=00000454 cycles=28950
+PROFILE: timed_pc_top rank=2 pc=00000458 cycles=28950
+PROFILE: timed_pc_top rank=3 pc=0000045c cycles=28950
+PROFILE: timed_pc_top rank=4 pc=00000448 cycles=28870
+PROFILE: timed_pc_top rank=5 pc=0000044c cycles=28870
+PROFILE: timed_pc_top rank=6 pc=00000588 cycles=27910
+PROFILE: timed_pc_top rank=7 pc=0000058c cycles=27910
+PROFILE: timed_pc_top rank=8 pc=00000590 cycles=27910
+PROFILE: timed_pc_top rank=9 pc=00000594 cycles=27910
+PROFILE: timed_pc_top rank=10 pc=00000580 cycles=27780
+PROFILE: timed_pc_top rank=11 pc=00000584 cycles=27780
+PROFILE: timed_pc_top rank=12 pc=00000470 cycles=8160
+PROFILE: timed_pc_top rank=13 pc=00000474 cycles=8160
+PROFILE: timed_pc_top rank=14 pc=00000478 cycles=8160
+PROFILE: timed_pc_top rank=15 pc=0000047c cycles=8160
+PROFILE: timed_pc_top rank=16 pc=00000480 cycles=8160
+PROFILE: timed_pc_top rank=17 pc=00000484 cycles=8160
+PROFILE: timed_pc_top rank=18 pc=00000488 cycles=8160
+PROFILE: timed_pc_top rank=19 pc=0000048c cycles=8160
+PROFILE: timed_pc_top rank=20 pc=00000490 cycles=8160
+PROFILE: timed_pc_top rank=21 pc=00000494 cycles=8160
+PROFILE: timed_pc_top rank=22 pc=00000498 cycles=8160
+PROFILE: timed_pc_top rank=23 pc=0000049c cycles=8160
+PROFILE: timed_pc_top rank=24 pc=000004a0 cycles=8160
+PROFILE: timed_pc_top rank=25 pc=000004a4 cycles=8160
+PROFILE: timed_pc_top rank=26 pc=000004a8 cycles=8160
+PROFILE: timed_pc_top rank=27 pc=000004ac cycles=8160
+PROFILE: timed_pc_top rank=28 pc=000004b0 cycles=8160
+PROFILE: timed_pc_top rank=29 pc=000004b4 cycles=8160
+PROFILE: timed_id_branch_pending_pc_top rank=0 pc=0000045c cycles=28950
+PROFILE: timed_id_branch_pending_pc_top rank=1 pc=0000044c cycles=28870
+PROFILE: timed_id_branch_pending_pc_top rank=2 pc=00000584 cycles=27780
+PROFILE: timed_id_branch_pending_pc_top rank=3 pc=00008160 cycles=6320
+PROFILE: timed_id_branch_pending_pc_top rank=4 pc=0000836c cycles=6320
+PROFILE: timed_id_branch_pending_pc_top rank=5 pc=00007f2c cycles=4840
+PROFILE: timed_id_branch_pending_pc_top rank=6 pc=000082f4 cycles=4840
+PROFILE: timed_id_branch_pending_pc_top rank=7 pc=00007f10 cycles=1680
+PROFILE: timed_id_branch_pending_pc_top rank=8 pc=0000803c cycles=1680
+PROFILE: timed_id_branch_pending_pc_top rank=9 pc=00000570 cycles=1020
+PROFILE: timed_id_branch_pending_pc_top rank=10 pc=00000614 cycles=290
+PROFILE: timed_id_branch_pending_pc_top rank=11 pc=00000624 cycles=290
+PROFILE: timed_id_branch_pending_pc_top rank=12 pc=00000898 cycles=290
+PROFILE: timed_id_branch_pending_pc_top rank=13 pc=000008a8 cycles=290
+PROFILE: timed_id_branch_pending_pc_top rank=14 pc=00000518 cycles=210
+PROFILE: timed_id_branch_pending_pc_top rank=15 pc=000081e8 cycles=160
+PROFILE: timed_id_branch_pending_pc_top rank=16 pc=000082dc cycles=160
+PROFILE: timed_id_branch_pending_pc_top rank=17 pc=00007fa0 cycles=40
+PROFILE: timed_id_branch_pending_pc_top rank=18 pc=00000c2c cycles=20
+PROFILE: timed_id_branch_pending_pc_top rank=19 pc=000013d0 cycles=20
+PROFILE: timed_load_branch_fuse_load_pc_top rank=0 pc=00000458 cycles=2
+PROFILE: timed_load_branch_fuse_load_pc_top rank=1 pc=00000620 cycles=2
+PROFILE: timed_load_branch_fuse_load_pc_top rank=2 pc=000008a4 cycles=2
+PROFILE: timed_load_branch_fuse_load_pc_top rank=3 pc=00007f28 cycles=2
+PROFILE: timed_load_branch_fuse_load_pc_top rank=4 pc=00000448 cycles=1
+PROFILE: timed_load_branch_fuse_load_pc_top rank=5 pc=00000514 cycles=1
+PROFILE: timed_load_branch_fuse_load_pc_top rank=6 pc=00000580 cycles=1
+PROFILE: timed_load_branch_fuse_load_pc_top rank=7 pc=00000610 cycles=1
+PROFILE: timed_load_branch_fuse_load_pc_top rank=8 pc=00000894 cycles=1
+PROFILE: timed_load_branch_fuse_load_pc_top rank=9 pc=00000c28 cycles=1
+PROFILE: timed_load_branch_fuse_load_pc_top rank=10 pc=000013cc cycles=1
+PROFILE: timed_load_branch_fuse_load_pc_top rank=11 pc=00007f0c cycles=1
+PROFILE: timed_load_branch_fuse_load_pc_top rank=12 pc=00007f9c cycles=1
+PROFILE: timed_load_branch_fuse_load_pc_top rank=13 pc=00008038 cycles=1
+PROFILE: timed_load_branch_fuse_load_pc_top rank=14 pc=0000815c cycles=1
+PROFILE: timed_load_branch_fuse_load_pc_top rank=15 pc=000081e4 cycles=1
+PROFILE: timed_load_branch_fuse_load_pc_top rank=16 pc=000082d8 cycles=1
+PROFILE: timed_load_branch_fuse_load_pc_top rank=17 pc=000082f0 cycles=1
+PROFILE: timed_load_branch_fuse_load_pc_top rank=18 pc=00008368 cycles=1
+PROFILE: timed_load_branch_fuse_load_pc_top rank=19 pc=00008ed0 cycles=1
+PROFILE: timed_load_branch_fuse_branch_pc_top rank=0 pc=0000045c cycles=2
+PROFILE: timed_load_branch_fuse_branch_pc_top rank=1 pc=00000624 cycles=2
+PROFILE: timed_load_branch_fuse_branch_pc_top rank=2 pc=000008a8 cycles=2
+PROFILE: timed_load_branch_fuse_branch_pc_top rank=3 pc=00007f2c cycles=2
+PROFILE: timed_load_branch_fuse_branch_pc_top rank=4 pc=0000044c cycles=1
+PROFILE: timed_load_branch_fuse_branch_pc_top rank=5 pc=00000518 cycles=1
+PROFILE: timed_load_branch_fuse_branch_pc_top rank=6 pc=00000584 cycles=1
+PROFILE: timed_load_branch_fuse_branch_pc_top rank=7 pc=00000614 cycles=1
+PROFILE: timed_load_branch_fuse_branch_pc_top rank=8 pc=00000898 cycles=1
+PROFILE: timed_load_branch_fuse_branch_pc_top rank=9 pc=00000c2c cycles=1
+PROFILE: timed_load_branch_fuse_branch_pc_top rank=10 pc=000013d0 cycles=1
+PROFILE: timed_load_branch_fuse_branch_pc_top rank=11 pc=00007f10 cycles=1
+PROFILE: timed_load_branch_fuse_branch_pc_top rank=12 pc=00007fa0 cycles=1
+PROFILE: timed_load_branch_fuse_branch_pc_top rank=13 pc=0000803c cycles=1
+PROFILE: timed_load_branch_fuse_branch_pc_top rank=14 pc=00008160 cycles=1
+PROFILE: timed_load_branch_fuse_branch_pc_top rank=15 pc=000081e8 cycles=1
+PROFILE: timed_load_branch_fuse_branch_pc_top rank=16 pc=000082dc cycles=1
+PROFILE: timed_load_branch_fuse_branch_pc_top rank=17 pc=000082f4 cycles=1
+PROFILE: timed_load_branch_fuse_branch_pc_top rank=18 pc=0000836c cycles=1
+PROFILE: timed_load_branch_fuse_branch_pc_top rank=19 pc=00008ed4 cycles=1
+PROFILE: timed_id_redirect_pc_top rank=0 pc=00000594 cycles=27780
+PROFILE: timed_id_redirect_pc_top rank=1 pc=0000823c cycles=6320
+PROFILE: timed_id_redirect_pc_top rank=2 pc=000004f0 cycles=6120
+PROFILE: timed_id_redirect_pc_top rank=3 pc=00008164 cycles=5440
+PROFILE: timed_id_redirect_pc_top rank=4 pc=00008370 cycles=5440
+PROFILE: timed_id_redirect_pc_top rank=5 pc=00008050 cycles=4840
+PROFILE: timed_id_redirect_pc_top rank=6 pc=00007f4c cycles=3480
+PROFILE: timed_id_redirect_pc_top rank=7 pc=00007f30 cycles=3280
+PROFILE: timed_id_redirect_pc_top rank=8 pc=000082f8 cycles=3280
+PROFILE: timed_id_redirect_pc_top rank=9 pc=000046ec cycles=3240
+PROFILE: timed_id_redirect_pc_top rank=10 pc=00004a10 cycles=3240
+PROFILE: timed_id_redirect_pc_top rank=11 pc=0000485c cycles=2880
+PROFILE: timed_id_redirect_pc_top rank=12 pc=00004c24 cycles=2880
+PROFILE: timed_id_redirect_pc_top rank=13 pc=00007ee0 cycles=2160
+PROFILE: timed_id_redirect_pc_top rank=14 pc=0000800c cycles=2160
+PROFILE: timed_id_redirect_pc_top rank=15 pc=000004bc cycles=2040
+PROFILE: timed_id_redirect_pc_top rank=16 pc=000004f4 cycles=1830
+PROFILE: timed_id_redirect_pc_top rank=17 pc=000005bc cycles=1830
+PROFILE: timed_id_redirect_pc_top rank=18 pc=0000812c cycles=1600
+PROFILE: timed_id_redirect_pc_top rank=19 pc=00008330 cycles=1600
+PROFILE: timed_predict_redirect_pc_top rank=0 pc=0000045c cycles=28950
+PROFILE: timed_predict_redirect_pc_top rank=1 pc=000080c4 cycles=320
+PROFILE: timed_predict_redirect_pc_top rank=2 pc=000080d8 cycles=320
+PROFILE: timed_predict_redirect_pc_top rank=3 pc=00000624 cycles=290
+PROFILE: timed_predict_redirect_pc_top rank=4 pc=000008a8 cycles=290
+PROFILE: timed_predict_redirect_pc_top rank=5 pc=000011f0 cycles=150
+PROFILE: timed_predict_redirect_pc_top rank=6 pc=00001170 cycles=130
+PROFILE: timed_predict_redirect_pc_top rank=7 pc=00000634 cycles=80
+PROFILE: timed_predict_redirect_pc_top rank=8 pc=00000650 cycles=80
+PROFILE: timed_predict_redirect_pc_top rank=9 pc=0000066c cycles=80
+PROFILE: timed_predict_redirect_pc_top rank=10 pc=00000688 cycles=80
+PROFILE: timed_predict_redirect_pc_top rank=11 pc=00000c3c cycles=80
+PROFILE: timed_predict_redirect_pc_top rank=12 pc=00000c58 cycles=80
+PROFILE: timed_predict_redirect_pc_top rank=13 pc=00000c74 cycles=80
+PROFILE: timed_predict_redirect_pc_top rank=14 pc=00000c90 cycles=80
+PROFILE: timed_predict_redirect_pc_top rank=15 pc=00000cac cycles=80
+PROFILE: timed_predict_redirect_pc_top rank=16 pc=000006a4 cycles=60
+PROFILE: timed_predict_redirect_pc_top rank=17 pc=000006c0 cycles=60
+PROFILE: timed_predict_redirect_pc_top rank=18 pc=000006dc cycles=60
+PROFILE: timed_predict_redirect_pc_top rank=19 pc=000006f8 cycles=60
+PROFILE: timed_non_idex_prev_pc_top rank=0 pc=0000059c cycles=940
+PROFILE: timed_non_idex_prev_pc_top rank=1 pc=000005c0 cycles=890
+PROFILE: timed_non_idex_prev_pc_top rank=2 pc=00000460 cycles=80
+PROFILE: timed_non_idex_prev_pc_top rank=3 pc=000013cc cycles=20
+PROFILE: timed_non_idex_prev_pc_top rank=4 pc=000005c8 cycles=10
+PROFILE: timed_non_idex_prev_pc_top rank=5 pc=00000448 cycles=2
+PROFILE: timed_non_idex_prev_pc_top rank=6 pc=00000450 cycles=2
+PROFILE: timed_non_idex_prev_pc_top rank=7 pc=00000588 cycles=2
+PROFILE: timed_non_idex_prev_pc_top rank=8 pc=00000618 cycles=2
+PROFILE: timed_non_idex_prev_pc_top rank=9 pc=000003d0 cycles=1
+PROFILE: timed_non_idex_prev_pc_top rank=10 pc=00000418 cycles=1
+PROFILE: timed_non_idex_prev_pc_top rank=11 pc=0000041c cycles=1
+PROFILE: timed_non_idex_prev_pc_top rank=12 pc=00000420 cycles=1
+PROFILE: timed_non_idex_prev_pc_top rank=13 pc=00000428 cycles=1
+PROFILE: timed_non_idex_prev_pc_top rank=14 pc=000004f4 cycles=1
+PROFILE: timed_non_idex_prev_pc_top rank=15 pc=00000568 cycles=1
+PROFILE: timed_non_idex_prev_pc_top rank=16 pc=00000574 cycles=1
+PROFILE: timed_non_idex_prev_pc_top rank=17 pc=00000580 cycles=1
+PROFILE: timed_non_idex_prev_pc_top rank=18 pc=00000598 cycles=1
+PROFILE: timed_non_idex_prev_pc_top rank=19 pc=000005a4 cycles=1
+PROFILE: id_branch_decode_candidate_cycles=474973
+PROFILE: id_branch_decode_ready_cycles=360258
+PROFILE: id_branch_decode_pending_cycles=114715
+PROFILE: id_branch_decode_redirect_cycles=135972
+PROFILE: id_branch_decode_rs1_pending_cycles=113344
+PROFILE: id_branch_decode_rs2_pending_cycles=1371
+PROFILE: id_branch_decode_rs1_idex_pending_cycles=113344
+PROFILE: id_branch_decode_rs2_idex_pending_cycles=1371
+PROFILE: id_branch_decode_rs1_exmem_pending_cycles=0
+PROFILE: id_branch_decode_rs2_exmem_pending_cycles=0
+PROFILE: id_branch_decode_rs1_idex_load_pending_cycles=113344
+PROFILE: id_branch_decode_rs2_idex_load_pending_cycles=295
+PROFILE: id_branch_decode_rs1_idex_lui_pending_cycles=0
+PROFILE: id_branch_decode_rs2_idex_lui_pending_cycles=0
+PROFILE: id_branch_decode_rs1_idex_pc4_pending_cycles=0
+PROFILE: id_branch_decode_rs2_idex_pc4_pending_cycles=0
+PROFILE: id_branch_decode_rs1_idex_alu_pending_cycles=0
+PROFILE: id_branch_decode_rs2_idex_alu_pending_cycles=1076
+PROFILE: id_beq_decode_candidate_cycles=268893
+PROFILE: id_bne_decode_candidate_cycles=107761
+PROFILE: id_blt_decode_candidate_cycles=8637
+PROFILE: id_bge_decode_candidate_cycles=17954
+PROFILE: id_bltu_decode_candidate_cycles=47256
+PROFILE: id_bgeu_decode_candidate_cycles=24472
+PROFILE: id_beq_decode_pending_cycles=84614
+PROFILE: id_bne_decode_pending_cycles=30045
+PROFILE: id_blt_decode_pending_cycles=0
+PROFILE: id_bge_decode_pending_cycles=0
+PROFILE: id_bltu_decode_pending_cycles=56
+PROFILE: id_bgeu_decode_pending_cycles=0
+$finish called at time : 19074925 ns : File "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/YH_rv_cpu/tb/YH_rv_cpu_coremark_profile_tb.v" Line 1192
+run: Time (s): cpu = 00:00:00 ; elapsed = 00:01:07 . Memory (MB): peak = 196.477 ; gain = 0.406
+exit
+INFO: xsimkernel Simulation Memory Usage: 19296 KB (Peak: 19296 KB), Simulation CPU Usage: 66202 ms
+INFO: [Common 17-206] Exiting xsim at Mon May 18 11:15:11 2026...

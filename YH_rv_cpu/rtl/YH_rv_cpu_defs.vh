@@ -96,6 +96,8 @@
 `define YH_rv_cpu_ALU_TH_MVNEZ   6'd36
 `define YH_rv_cpu_ALU_XCRC16     6'd37
 `define YH_rv_cpu_ALU_XCRC32     6'd38
+`define YH_rv_cpu_ALU_TH_MULA     6'd39
+`define YH_rv_cpu_ALU_TH_MULAH    6'd40
 
 // ------------------------------------------------------------
 // 写回来源控制 (2位)

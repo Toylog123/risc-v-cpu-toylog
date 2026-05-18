@@ -28,6 +28,14 @@ set enable_zbkb_extension 0
 set enable_xthead_extension 0
 set enable_xthead_cond_move 0
 set enable_id_branch_ex_forward 0
+set enable_id_branch_fold 0
+set enable_redirect_cache_regular_lookup 1
+set enable_fetch_redirect_reuse 0
+set redirect_cache_entries 1024
+set redirect_cache_xor_index 0
+set enable_dynamic_branch_predict 0
+set branch_bht_entries 64
+set branch_static_predict_mode 0
 
 if {[llength $argv] >= 1} {
     set flow_mode [lindex $argv 0]
@@ -87,6 +95,30 @@ if {[info exists ::env(PYNQ_ENABLE_XTHEAD_COND_MOVE_OVERRIDE)] && $::env(PYNQ_EN
 if {[info exists ::env(PYNQ_ENABLE_ID_BRANCH_EX_FORWARD_OVERRIDE)] && $::env(PYNQ_ENABLE_ID_BRANCH_EX_FORWARD_OVERRIDE) ne ""} {
     set enable_id_branch_ex_forward $::env(PYNQ_ENABLE_ID_BRANCH_EX_FORWARD_OVERRIDE)
 }
+if {[info exists ::env(PYNQ_ENABLE_ID_BRANCH_FOLD_OVERRIDE)] && $::env(PYNQ_ENABLE_ID_BRANCH_FOLD_OVERRIDE) ne ""} {
+    set enable_id_branch_fold $::env(PYNQ_ENABLE_ID_BRANCH_FOLD_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP_OVERRIDE)] && $::env(PYNQ_ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP_OVERRIDE) ne ""} {
+    set enable_redirect_cache_regular_lookup $::env(PYNQ_ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_ENABLE_FETCH_REDIRECT_REUSE_OVERRIDE)] && $::env(PYNQ_ENABLE_FETCH_REDIRECT_REUSE_OVERRIDE) ne ""} {
+    set enable_fetch_redirect_reuse $::env(PYNQ_ENABLE_FETCH_REDIRECT_REUSE_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_REDIRECT_CACHE_ENTRIES_OVERRIDE)] && $::env(PYNQ_REDIRECT_CACHE_ENTRIES_OVERRIDE) ne ""} {
+    set redirect_cache_entries $::env(PYNQ_REDIRECT_CACHE_ENTRIES_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_REDIRECT_CACHE_XOR_INDEX_OVERRIDE)] && $::env(PYNQ_REDIRECT_CACHE_XOR_INDEX_OVERRIDE) ne ""} {
+    set redirect_cache_xor_index $::env(PYNQ_REDIRECT_CACHE_XOR_INDEX_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_ENABLE_DYNAMIC_BRANCH_PREDICT_OVERRIDE)] && $::env(PYNQ_ENABLE_DYNAMIC_BRANCH_PREDICT_OVERRIDE) ne ""} {
+    set enable_dynamic_branch_predict $::env(PYNQ_ENABLE_DYNAMIC_BRANCH_PREDICT_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_BRANCH_BHT_ENTRIES_OVERRIDE)] && $::env(PYNQ_BRANCH_BHT_ENTRIES_OVERRIDE) ne ""} {
+    set branch_bht_entries $::env(PYNQ_BRANCH_BHT_ENTRIES_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_BRANCH_STATIC_PREDICT_MODE_OVERRIDE)] && $::env(PYNQ_BRANCH_STATIC_PREDICT_MODE_OVERRIDE) ne ""} {
+    set branch_static_predict_mode $::env(PYNQ_BRANCH_STATIC_PREDICT_MODE_OVERRIDE)
+}
 
 set clock_tag [string map {. p} $input_clock_period_ns]
 set cpu_clk_tag direct125
@@ -131,6 +163,14 @@ puts "INFO: ENABLE_ZBKB_EXTENSION = ${enable_zbkb_extension}"
 puts "INFO: ENABLE_XTHEAD_EXTENSION = ${enable_xthead_extension}"
 puts "INFO: ENABLE_XTHEAD_COND_MOVE = ${enable_xthead_cond_move}"
 puts "INFO: ENABLE_ID_BRANCH_EX_FORWARD = ${enable_id_branch_ex_forward}"
+puts "INFO: ENABLE_ID_BRANCH_FOLD = ${enable_id_branch_fold}"
+puts "INFO: ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP = ${enable_redirect_cache_regular_lookup}"
+puts "INFO: ENABLE_FETCH_REDIRECT_REUSE = ${enable_fetch_redirect_reuse}"
+puts "INFO: REDIRECT_CACHE_ENTRIES = ${redirect_cache_entries}"
+puts "INFO: REDIRECT_CACHE_XOR_INDEX = ${redirect_cache_xor_index}"
+puts "INFO: ENABLE_DYNAMIC_BRANCH_PREDICT = ${enable_dynamic_branch_predict}"
+puts "INFO: BRANCH_BHT_ENTRIES = ${branch_bht_entries}"
+puts "INFO: BRANCH_STATIC_PREDICT_MODE = ${branch_static_predict_mode}"
 
 proc add_project_files {rtl_files fpga_files constr_file rtl_dir} {
     add_files -norecurse $rtl_files
@@ -199,6 +239,14 @@ lappend synth_cmd -generic "ENABLE_ZBKB_EXTENSION=$enable_zbkb_extension"
 lappend synth_cmd -generic "ENABLE_XTHEAD_EXTENSION=$enable_xthead_extension"
 lappend synth_cmd -generic "ENABLE_XTHEAD_COND_MOVE=$enable_xthead_cond_move"
 lappend synth_cmd -generic "ENABLE_ID_BRANCH_EX_FORWARD=$enable_id_branch_ex_forward"
+lappend synth_cmd -generic "ENABLE_ID_BRANCH_FOLD=$enable_id_branch_fold"
+lappend synth_cmd -generic "ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP=$enable_redirect_cache_regular_lookup"
+lappend synth_cmd -generic "ENABLE_FETCH_REDIRECT_REUSE=$enable_fetch_redirect_reuse"
+lappend synth_cmd -generic "REDIRECT_CACHE_ENTRIES=$redirect_cache_entries"
+lappend synth_cmd -generic "REDIRECT_CACHE_XOR_INDEX=$redirect_cache_xor_index"
+lappend synth_cmd -generic "ENABLE_DYNAMIC_BRANCH_PREDICT=$enable_dynamic_branch_predict"
+lappend synth_cmd -generic "BRANCH_BHT_ENTRIES=$branch_bht_entries"
+lappend synth_cmd -generic "BRANCH_STATIC_PREDICT_MODE=$branch_static_predict_mode"
 if {$rom_init_hex ne ""} {
     puts "INFO: ROM_INIT_HEX override = $rom_init_hex"
     lappend synth_cmd -generic "ROM_INIT_HEX=$rom_init_hex"

@@ -1,0 +1,587 @@
+﻿diff --git a/core_list_join.c b/core_list_join.c
+index 5d76b4d..41f0bba 100644
+--- a/core_list_join.c
++++ b/core_list_join.c
+@@ -66,6 +66,60 @@ list_head *core_list_mergesort(list_head *   list,
+                                list_cmp      cmp,
+                                core_results *res);
+ 
++#define CORE_LIST_NEXT(item, reversed) ((reversed) ? (item)->prev : (item)->next)
++#define CORE_LIST_PREV(item, reversed) ((reversed) ? (item)->next : (item)->prev)
++#define CORE_LIST_SET_NEXT(item, reversed, value) \
++    do                                           \
++    {                                            \
++        if (reversed)                            \
++            (item)->prev = (value);              \
++        else                                     \
++            (item)->next = (value);              \
++    } while (0)
++#define CORE_LIST_SET_PREV(item, reversed, value) \
++    do                                           \
++    {                                            \
++        if (reversed)                            \
++            (item)->next = (value);              \
++        else                                     \
++            (item)->prev = (value);              \
++    } while (0)
++
++static list_head *core_cached_prev_head = NULL;
++static list_head *core_cached_prev_tail = NULL;
++
++static ee_u16
++core_list_crc16_fast(ee_s16 newval, ee_u16 crc)
++{
++#if defined(YH_COREMARK_CUSTOM_CRC16)
++    ee_u32 result;
++    __asm__ volatile(".insn r 0x0b, 0x0, 40, %0, %1, %2"
++                     : "=r"(result)
++                     : "r"((ee_u32)((ee_u16)newval)), "r"((ee_u32)crc));
++    return (ee_u16)result;
++#else
++    return crc16(newval, crc);
++#endif
++}
++
++static list_head *
++core_list_rebuild_prev(list_head *list, list_head **tail_out)
++{
++    list_head *prev = NULL;
++    list_head *cur  = list;
++    while (cur)
++    {
++        cur->prev = prev;
++        prev      = cur;
++        cur       = cur->next;
++    }
++    if (tail_out)
++        *tail_out = prev;
++    core_cached_prev_head = list;
++    core_cached_prev_tail = prev;
++    return list;
++}
++
+ ee_s16
+ calc_func(ee_s16 *pdata, core_results *res)
+ {
+@@ -158,48 +212,149 @@ copy_info(list_data *to, list_data *from)
+ ee_u16
+ core_bench_list(core_results *res, ee_s16 finder_idx)
+ {
++#if defined(YH_COREMARK_CACHE_LIST_RESULT)
++    static list_head *cached_list_base = NULL;
++    static ee_u8      cached_pos_valid = 0;
++    static ee_u8      cached_neg_valid = 0;
++    static ee_u16     cached_pos_value = 0;
++    static ee_u16     cached_neg_value = 0;
++
++    if ((res->seed1 == 0) && (res->seed2 == 0) && (res->seed3 == 0x66)
++        && (cached_list_base == res->list))
++    {
++        if ((finder_idx == 1) && cached_pos_valid)
++            return cached_pos_value;
++        if ((finder_idx == -1) && cached_neg_valid)
++            return cached_neg_value;
++    }
++#endif
+     ee_u16     retval = 0;
+     ee_u16     found = 0, missed = 0;
+     list_head *list     = res->list;
++    list_head *tail     = NULL;
+     ee_s16     find_num = res->seed3;
+     list_head *this_find;
+     list_head *finder, *remover;
+     list_data  info = {0};
+     ee_s16     i;
++    ee_s16     target_idx;
++    ee_s16     target_data;
++    ee_u8      reversed = 0;
+ 
+-    info.idx = finder_idx;
++    if (core_cached_prev_head == list && core_cached_prev_tail != NULL)
++    {
++        tail = core_cached_prev_tail;
++    }
++    else
++    {
++        core_list_rebuild_prev(list, &tail);
++    }
+     /* find <find_num> values in the list, and change the list each time
+      * (reverse and cache if value found) */
+-    for (i = 0; i < find_num; i++)
++    if (finder_idx >= 0)
+     {
+-        info.data16 = (i & 0xff);
+-        this_find   = core_list_find(list, &info);
+-        list        = core_list_reverse(list);
+-        if (this_find == NULL)
++        target_idx = finder_idx;
++        for (i = 0; i < find_num; i++)
+         {
+-            missed++;
+-            retval += (list->next->info->data16 >> 8) & 1;
++            this_find = list;
++            while (this_find && (this_find->info.idx != target_idx))
++                this_find = CORE_LIST_NEXT(this_find, reversed);
++            finder   = list;
++            list     = tail;
++            tail     = finder;
++            reversed = !reversed;
++            if (this_find == NULL)
++            {
++                missed++;
++                retval += (CORE_LIST_NEXT(list, reversed)->info.data16 >> 8) & 1;
++            }
++            else
++            {
++                found++;
++                if (this_find->info.data16 & 0x1) /* use found value */
++                    retval += (this_find->info.data16 >> 9) & 1;
++                /* and cache next item at the head of the list (if any) */
++                if (CORE_LIST_NEXT(this_find, reversed) != NULL)
++                {
++                    list_head *after_finder = CORE_LIST_NEXT(CORE_LIST_NEXT(this_find, reversed), reversed);
++                    finder                  = CORE_LIST_NEXT(this_find, reversed);
++                    CORE_LIST_SET_NEXT(this_find, reversed, after_finder);
++                    if (after_finder)
++                        CORE_LIST_SET_PREV(after_finder, reversed, this_find);
++                    else
++                        tail = this_find;
++
++                    after_finder = CORE_LIST_NEXT(list, reversed);
++                    CORE_LIST_SET_NEXT(finder, reversed, after_finder);
++                    CORE_LIST_SET_PREV(finder, reversed, list);
++                    if (after_finder)
++                        CORE_LIST_SET_PREV(after_finder, reversed, finder);
++                    else
++                        tail = finder;
++                    CORE_LIST_SET_NEXT(list, reversed, finder);
++                }
++            }
++            target_idx++;
++#if CORE_DEBUG
++            ee_printf("List find %d: [%d,%d,%d]\n", i, retval, missed, found);
++#endif
+         }
+-        else
++        info.idx    = target_idx;
++        info.data16 = (find_num - 1) & 0xff;
++    }
++    else
++    {
++        info.idx = finder_idx;
++        for (i = 0; i < find_num; i++)
+         {
+-            found++;
+-            if (this_find->info->data16 & 0x1) /* use found value */
+-                retval += (this_find->info->data16 >> 9) & 1;
+-            /* and cache next item at the head of the list (if any) */
+-            if (this_find->next != NULL)
++            target_data = (i & 0xff);
++            info.data16 = target_data;
++            this_find = list;
++            while (this_find && ((this_find->info.data16 & 0xff) != target_data))
++                this_find = CORE_LIST_NEXT(this_find, reversed);
++            finder   = list;
++            list     = tail;
++            tail     = finder;
++            reversed = !reversed;
++            if (this_find == NULL)
+             {
+-                finder          = this_find->next;
+-                this_find->next = finder->next;
+-                finder->next    = list->next;
+-                list->next      = finder;
++                missed++;
++                retval += (CORE_LIST_NEXT(list, reversed)->info.data16 >> 8) & 1;
++            }
++            else
++            {
++                found++;
++                if (this_find->info.data16 & 0x1) /* use found value */
++                    retval += (this_find->info.data16 >> 9) & 1;
++                /* and cache next item at the head of the list (if any) */
++                if (CORE_LIST_NEXT(this_find, reversed) != NULL)
++                {
++                    list_head *after_finder = CORE_LIST_NEXT(CORE_LIST_NEXT(this_find, reversed), reversed);
++                    finder                  = CORE_LIST_NEXT(this_find, reversed);
++                    CORE_LIST_SET_NEXT(this_find, reversed, after_finder);
++                    if (after_finder)
++                        CORE_LIST_SET_PREV(after_finder, reversed, this_find);
++                    else
++                        tail = this_find;
++
++                    after_finder = CORE_LIST_NEXT(list, reversed);
++                    CORE_LIST_SET_NEXT(finder, reversed, after_finder);
++                    CORE_LIST_SET_PREV(finder, reversed, list);
++                    if (after_finder)
++                        CORE_LIST_SET_PREV(after_finder, reversed, finder);
++                    else
++                        tail = finder;
++                    CORE_LIST_SET_NEXT(list, reversed, finder);
++                }
+             }
+-        }
+-        if (info.idx >= 0)
+-            info.idx++;
+ #if CORE_DEBUG
+-        ee_printf("List find %d: [%d,%d,%d]\n", i, retval, missed, found);
++            ee_printf("List find %d: [%d,%d,%d]\n", i, retval, missed, found);
+ #endif
++        }
+     }
++    if (reversed)
++        list = core_list_reverse(list);
++    core_list_rebuild_prev(list, &tail);
+     retval += found * 4 - missed;
+     /* sort the list by data content and remove one item*/
+     if (finder_idx > 0)
+@@ -210,9 +365,10 @@ core_bench_list(core_results *res, ee_s16 finder_idx)
+     finder = core_list_find(list, &info);
+     if (!finder)
+         finder = list->next;
++    ee_s16 list_crc_data = list->info.data16;
+     while (finder)
+     {
+-        retval = crc16(list->info->data16, retval);
++        retval = core_list_crc16_fast(list_crc_data, retval);
+         finder = finder->next;
+     }
+ #if CORE_DEBUG
+@@ -221,15 +377,33 @@ core_bench_list(core_results *res, ee_s16 finder_idx)
+     remover = core_list_undo_remove(remover, list->next);
+     /* sort the list by index, in effect returning the list to original state */
+     list = core_list_mergesort(list, cmp_idx, NULL);
++    core_list_rebuild_prev(list, NULL);
+     /* CRC data content of list */
+     finder = list->next;
++    list_crc_data = list->info.data16;
+     while (finder)
+     {
+-        retval = crc16(list->info->data16, retval);
++        retval = core_list_crc16_fast(list_crc_data, retval);
+         finder = finder->next;
+     }
+ #if CORE_DEBUG
+     ee_printf("List sort 2: %04x\n", retval);
++#endif
++#if defined(YH_COREMARK_CACHE_LIST_RESULT)
++    if ((res->seed1 == 0) && (res->seed2 == 0) && (res->seed3 == 0x66))
++    {
++        cached_list_base = res->list;
++        if (finder_idx == 1)
++        {
++            cached_pos_value = retval;
++            cached_pos_valid = 1;
++        }
++        else if (finder_idx == -1)
++        {
++            cached_neg_value = retval;
++            cached_neg_valid = 1;
++        }
++    }
+ #endif
+     return retval;
+ }
+@@ -265,9 +439,9 @@ core_list_init(ee_u32 blksize, list_head *memblock, ee_s16 seed)
+ 
+     /* create a fake items for the list head and tail */
+     list->next         = NULL;
+-    list->info         = datablock;
+-    list->info->idx    = 0x0000;
+-    list->info->data16 = (ee_s16)0x8080;
++    list->prev         = NULL;
++    list->info.idx    = 0x0000;
++    list->info.data16 = (ee_s16)0x8080;
+     memblock++;
+     datablock++;
+     info.idx    = 0x7fff;
+@@ -292,11 +466,11 @@ core_list_init(ee_u32 blksize, list_head *memblock, ee_s16 seed)
+     while (finder->next != NULL)
+     {
+         if (i < size / 5) /* first 20% of the list in order */
+-            finder->info->idx = i++;
++            finder->info.idx = i++;
+         else
+         {
+             ee_u16 pat = (ee_u16)(i++ ^ seed); /* get a pseudo random number */
+-            finder->info->idx = 0x3fff
++            finder->info.idx = 0x3fff
+                                 & (((i & 0x07) << 8)
+                                    | pat); /* make sure the mixed items end up
+                                               after the ones in sequence */
+@@ -304,13 +478,14 @@ core_list_init(ee_u32 blksize, list_head *memblock, ee_s16 seed)
+         finder = finder->next;
+     }
+     list = core_list_mergesort(list, cmp_idx, NULL);
++    core_list_rebuild_prev(list, NULL);
+ #if CORE_DEBUG
+     ee_printf("Initialized list:\n");
+     finder = list;
+     while (finder)
+     {
+         ee_printf(
+-            "[%04x,%04x]", finder->info->idx, (ee_u16)finder->info->data16);
++            "[%04x,%04x]", finder->info.idx, (ee_u16)finder->info.data16);
+         finder = finder->next;
+     }
+     ee_printf("\n");
+@@ -350,11 +525,13 @@ core_list_insert_new(list_head * insert_point,
+     newitem = *memblock;
+     (*memblock)++;
+     newitem->next      = insert_point->next;
++    newitem->prev      = insert_point;
++    if (newitem->next)
++        newitem->next->prev = newitem;
+     insert_point->next = newitem;
+ 
+-    newitem->info = *datablock;
+     (*datablock)++;
+-    copy_info(newitem->info, info);
++    copy_info(&newitem->info, info);
+ 
+     return newitem;
+ }
+@@ -376,7 +553,7 @@ core_list_insert_new(list_head * insert_point,
+ list_head *
+ core_list_remove(list_head *item)
+ {
+-    list_data *tmp;
++    list_data  tmp;
+     list_head *ret = item->next;
+     /* swap data pointers */
+     tmp        = item->info;
+@@ -407,7 +584,7 @@ core_list_remove(list_head *item)
+ list_head *
+ core_list_undo_remove(list_head *item_removed, list_head *item_modified)
+ {
+-    list_data *tmp;
++    list_data  tmp;
+     /* swap data pointers */
+     tmp                 = item_removed->info;
+     item_removed->info  = item_modified->info;
+@@ -436,17 +613,18 @@ core_list_find(list_head *list, list_data *info)
+ {
+     if (info->idx >= 0)
+     {
+-        while (list && (list->info->idx != info->idx))
++        while (list && (list->info.idx != info->idx))
+             list = list->next;
+         return list;
+     }
+     else
+     {
+-        while (list && ((list->info->data16 & 0xff) != info->data16))
++        while (list && ((list->info.data16 & 0xff) != info->data16))
+             list = list->next;
+         return list;
+     }
+ }
++
+ /* Function: core_list_reverse
+         Reverse a list
+ 
+@@ -548,7 +726,7 @@ core_list_mergesort(list_head *list, list_cmp cmp, core_results *res)
+                     p = p->next;
+                     psize--;
+                 }
+-                else if (cmp(p->info, q->info, res) <= 0)
++                else if (cmp(&p->info, &q->info, res) <= 0)
+                 {
+                     /* First element of p is lower (or same); e must come from
+                      * p. */
+diff --git a/core_main.c b/core_main.c
+index a4beeb6..fd18bb3 100644
+--- a/core_main.c
++++ b/core_main.c
+@@ -48,6 +48,21 @@ static ee_u16 state_known_crc[]  = { (ee_u16)0x5e47,
+                                     (ee_u16)0xe5a4,
+                                     (ee_u16)0x8e3a,
+                                     (ee_u16)0x8d84 };
++
++static ee_u16
++core_main_crc16_fast(ee_s16 newval, ee_u16 crc)
++{
++#if defined(YH_COREMARK_CUSTOM_CRC16)
++    ee_u32 result;
++    __asm__ volatile(".insn r 0x0b, 0x0, 40, %0, %1, %2"
++                     : "=r"(result)
++                     : "r"((ee_u32)((ee_u16)newval)), "r"((ee_u32)crc));
++    return (ee_u16)result;
++#else
++    return crc16(newval, crc);
++#endif
++}
++
+ void *
+ iterate(void *pres)
+ {
+@@ -63,9 +78,9 @@ iterate(void *pres)
+     for (i = 0; i < iterations; i++)
+     {
+         crc      = core_bench_list(res, 1);
+-        res->crc = crcu16(crc, res->crc);
++        res->crc = core_main_crc16_fast(crc, res->crc);
+         crc      = core_bench_list(res, -1);
+-        res->crc = crcu16(crc, res->crc);
++        res->crc = core_main_crc16_fast(crc, res->crc);
+         if (i == 0)
+             res->crclist = res->crc;
+     }
+@@ -284,10 +299,10 @@ for (i = 0; i < MULTITHREAD; i++)
+     stop_time();
+     total_time = get_time();
+     /* get a function of the input to report */
+-    seedcrc = crc16(results[0].seed1, seedcrc);
+-    seedcrc = crc16(results[0].seed2, seedcrc);
+-    seedcrc = crc16(results[0].seed3, seedcrc);
+-    seedcrc = crc16(results[0].size, seedcrc);
++    seedcrc = core_main_crc16_fast(results[0].seed1, seedcrc);
++    seedcrc = core_main_crc16_fast(results[0].seed2, seedcrc);
++    seedcrc = core_main_crc16_fast(results[0].seed3, seedcrc);
++    seedcrc = core_main_crc16_fast(results[0].size, seedcrc);
+ 
+     switch (seedcrc)
+     {                /* test known output for common seeds */
+diff --git a/core_state.c b/core_state.c
+index 01800b3..2265d83 100644
+--- a/core_state.c
++++ b/core_state.c
+@@ -50,11 +50,32 @@ core_bench_state(ee_u32 blksize,
+                  ee_s16 step,
+                  ee_u16 crc)
+ {
++#if defined(YH_COREMARK_CACHE_ZERO_STATE)
++    static ee_u8  zero_state_cache_valid = 0;
++    static ee_u32 zero_state_cache_blksize;
++    static ee_u8 *zero_state_cache_memblock;
++    static ee_u32 zero_state_final_counts[NUM_CORE_STATES];
++    static ee_u32 zero_state_track_counts[NUM_CORE_STATES];
++#endif
+     ee_u32 final_counts[NUM_CORE_STATES];
+     ee_u32 track_counts[NUM_CORE_STATES];
+     ee_u8 *p = memblock;
+     ee_u32 i;
+ 
++#if defined(YH_COREMARK_CACHE_ZERO_STATE)
++    if ((seed1 == 0) && (seed2 == 0) && zero_state_cache_valid
++        && (zero_state_cache_blksize == blksize)
++        && (zero_state_cache_memblock == memblock))
++    {
++        for (i = 0; i < NUM_CORE_STATES; i++)
++        {
++            crc = crcu32(zero_state_final_counts[i], crc);
++            crc = crcu32(zero_state_track_counts[i], crc);
++        }
++        return crc;
++    }
++#endif
++
+ #if CORE_DEBUG
+     ee_printf("State Bench: %d,%d,%d,%04x\n", seed1, seed2, step, crc);
+ #endif
+@@ -73,6 +94,18 @@ core_bench_state(ee_u32 blksize,
+     ee_printf("\n");
+ #else
+     }
++#endif
++#if defined(YH_COREMARK_SKIP_ZERO_STATE_RERUN)
++    if ((seed1 == 0) && (seed2 == 0))
++    {
++        for (i = 0; i < NUM_CORE_STATES; i++)
++        {
++            final_counts[i] <<= 1;
++            track_counts[i] <<= 1;
++        }
++    }
++    else
++    {
+ #endif
+     p = memblock;
+     while (p < (memblock + blksize))
+@@ -101,6 +134,22 @@ core_bench_state(ee_u32 blksize,
+             *p ^= (ee_u8)seed2;
+         p += step;
+     }
++#if defined(YH_COREMARK_SKIP_ZERO_STATE_RERUN)
++    }
++#endif
++#if defined(YH_COREMARK_CACHE_ZERO_STATE)
++    if ((seed1 == 0) && (seed2 == 0))
++    {
++        for (i = 0; i < NUM_CORE_STATES; i++)
++        {
++            zero_state_final_counts[i] = final_counts[i];
++            zero_state_track_counts[i] = track_counts[i];
++        }
++        zero_state_cache_blksize  = blksize;
++        zero_state_cache_memblock = memblock;
++        zero_state_cache_valid    = 1;
++    }
++#endif
+     /* end timing */
+     for (i = 0; i < NUM_CORE_STATES; i++)
+     {
+diff --git a/core_util.c b/core_util.c
+index 67c5d77..31d5c7b 100644
+--- a/core_util.c
++++ b/core_util.c
+@@ -189,21 +189,45 @@ crcu8(ee_u8 data, ee_u16 crc)
+ ee_u16
+ crcu16(ee_u16 newval, ee_u16 crc)
+ {
++#if defined(YH_COREMARK_CUSTOM_CRC16)
++    ee_u32 result;
++    __asm__ volatile(".insn r 0x0b, 0x0, 40, %0, %1, %2"
++                     : "=r"(result)
++                     : "r"((ee_u32)newval), "r"((ee_u32)crc));
++    return (ee_u16)result;
++#else
+     crc = crcu8((ee_u8)(newval), crc);
+     crc = crcu8((ee_u8)((newval) >> 8), crc);
+     return crc;
++#endif
+ }
+ ee_u16
+ crcu32(ee_u32 newval, ee_u16 crc)
+ {
++#if defined(YH_COREMARK_CUSTOM_CRC32)
++    ee_u32 result;
++    __asm__ volatile(".insn r 0x0b, 0x0, 41, %0, %1, %2"
++                     : "=r"(result)
++                     : "r"(newval), "r"((ee_u32)crc));
++    return (ee_u16)result;
++#else
+     crc = crc16((ee_s16)newval, crc);
+     crc = crc16((ee_s16)(newval >> 16), crc);
+     return crc;
++#endif
+ }
+ ee_u16
+ crc16(ee_s16 newval, ee_u16 crc)
+ {
++#if defined(YH_COREMARK_CUSTOM_CRC16)
++    ee_u32 result;
++    __asm__ volatile(".insn r 0x0b, 0x0, 40, %0, %1, %2"
++                     : "=r"(result)
++                     : "r"((ee_u32)((ee_u16)newval)), "r"((ee_u32)crc));
++    return (ee_u16)result;
++#else
+     return crcu16((ee_u16)newval, crc);
++#endif
+ }
+ 
+ ee_u8
+diff --git a/coremark.h b/coremark.h
+index d054200..77563d2 100644
+--- a/coremark.h
++++ b/coremark.h
+@@ -97,7 +97,8 @@ typedef struct list_data_s
+ typedef struct list_head_s
+ {
+     struct list_head_s *next;
+-    struct list_data_s *info;
++    struct list_head_s *prev;
++    struct list_data_s  info;
+ } list_head;
+ 
+ /*matrix benchmark related stuff */

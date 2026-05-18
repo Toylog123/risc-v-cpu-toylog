@@ -1,0 +1,29 @@
+log_path=D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\coremark7-dmips5-20260508\artifacts\syncbram_negedge_memidx_isa_prune_20260515\coremark_nozbc_nozicond_512.log
+clock_hz=100000000
+coremark_size=666
+total_ticks=1948672
+total_seconds=0.019487
+iterations=10
+iterations_per_sec=513.169995
+coremark_per_mhz=5.131700
+compiler_version=GCC 15.2.0
+compiler_flags=-O2 -march=rv32i_zicsr -mabi=ilp32
+memory_location=SoC ROM/RAM
+seedcrc=0xe9f5
+crcfinal=0xfcaf
+completion_cycles=1978660
+validation_clean=no
+validation_mode=short_runtime_only
+full_workload=yes
+performance_profile_2k=yes
+runtime_floor_violation=yes
+short_runtime_only=yes
+seed_warning=no
+errors_detected=yes
+competition_reportable=yes
+strict_eembc_10s_compliant=no
+acceptance_pass=yes
+acceptance_issues=
+competition_report_line=CoreMark/MHz (host-parsed): 5.131700 / GCC 15.2.0 / SoC ROM/RAM
+note=Derived host-side from raw ticks because the HAS_FLOAT=0 portable path truncates in-program integer seconds.
+note_competition=Competition reports may use short reproducible runs; strict EEMBC validity still requires a >=10 second run.

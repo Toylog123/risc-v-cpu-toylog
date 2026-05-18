@@ -52,6 +52,14 @@ if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xthead_idbr" (
     set OUTPUT_NAME=YH_rv_cpu_dhrystone_zmmul_zbc_zicond_xthead_idbr
     set TEST_TOP=YH_rv_cpu_dhrystone_rv32_zmmul_zbc_zicond_xthead_idbr_tb
 )
+if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xthead_mac_idbr" (
+    set OUTPUT_NAME=YH_rv_cpu_dhrystone_zmmul_zbc_zicond_xthead_mac_idbr
+    set TEST_TOP=YH_rv_cpu_dhrystone_rv32_zmmul_zbc_zicond_xthead_idbr_tb
+)
+if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xthead_mac_idbr_fold" (
+    set OUTPUT_NAME=YH_rv_cpu_dhrystone_zmmul_zbc_zicond_xthead_mac_idbr
+    set TEST_TOP=YH_rv_cpu_dhrystone_rv32_zmmul_zbc_zicond_xthead_idbr_fold_tb
+)
 if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zicond_xthead_idbr" (
     set OUTPUT_NAME=YH_rv_cpu_dhrystone_zmmul_zicond_xthead_idbr
     set TEST_TOP=YH_rv_cpu_dhrystone_rv32_zmmul_zicond_xthead_idbr_tb
@@ -145,6 +153,7 @@ call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_dhrystone_rv32_zmmul_zbc_xthead_noidbr_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_dhrystone_rv32_zmmul_zbc_xthead_idbr_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_dhrystone_rv32_zmmul_zbc_zicond_xthead_idbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_dhrystone_rv32_zmmul_zbc_zicond_xthead_idbr_fold_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_dhrystone_rv32_zmmul_zicond_xthead_idbr_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_dhrystone_rv32_zmmul_xthead_idbr_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_dhrystone_rv32im_zbc_xthead_idbr_tb.v" ^

@@ -1,0 +1,29 @@
+log_path=D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\coremark7-dmips5-20260508\artifacts\authenticity_audit_20260518\coremark_reproduce_h22_target_clean_source.log
+clock_hz=100000000
+coremark_size=666
+total_ticks=1912182
+total_seconds=0.019122
+iterations=10
+iterations_per_sec=522.962772
+coremark_per_mhz=5.229628
+compiler_version=GCC 15.2.0
+compiler_flags=-O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -march=rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr -mabi=ilp32
+memory_location=SoC ROM/RAM
+seedcrc=0xe9f5
+crcfinal=0xfcaf
+completion_cycles=1946025
+validation_clean=no
+validation_mode=short_runtime_only
+full_workload=yes
+performance_profile_2k=yes
+runtime_floor_violation=yes
+short_runtime_only=yes
+seed_warning=no
+errors_detected=yes
+competition_reportable=yes
+strict_eembc_10s_compliant=no
+acceptance_pass=yes
+acceptance_issues=
+competition_report_line=CoreMark/MHz (host-parsed): 5.229628 / GCC 15.2.0 / SoC ROM/RAM
+note=Derived host-side from raw ticks because the HAS_FLOAT=0 portable path truncates in-program integer seconds.
+note_competition=Competition reports may use short reproducible runs; strict EEMBC validity still requires a >=10 second run.

@@ -1,0 +1,29 @@
+log_path=D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\coremark7-dmips5-20260508\artifacts\superscalar_branch_target_issue_20260518\coremark_fold_l0_16384_xor.log
+clock_hz=100000000
+coremark_size=133
+total_ticks=269114
+total_seconds=0.002691
+iterations=10
+iterations_per_sec=3715.897352
+coremark_per_mhz=37.158974
+compiler_version=GCC 15.2.0
+compiler_flags=-O2 -march=rv32i_zicsr -mabi=ilp32
+memory_location=SoC ROM/RAM
+seedcrc=0xe97b
+crcfinal=0xacf4
+completion_cycles=287886
+validation_clean=yes
+validation_mode=eembc_validated
+full_workload=yes
+performance_profile_2k=no
+runtime_floor_violation=yes
+short_runtime_only=no
+seed_warning=no
+errors_detected=no
+competition_reportable=no
+strict_eembc_10s_compliant=no
+acceptance_pass=yes
+acceptance_issues=
+competition_report_line=CoreMark/MHz (host-parsed): 37.158974 / GCC 15.2.0 / SoC ROM/RAM
+note=Derived host-side from raw ticks because the HAS_FLOAT=0 portable path truncates in-program integer seconds.
+note_competition=Competition reports may use short reproducible runs; strict EEMBC validity still requires a >=10 second run.

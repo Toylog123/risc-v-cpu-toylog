@@ -20,9 +20,12 @@ module YH_rv_cpu_mem_stage #(
     input  wire            valid,             // 流水线有效标志
     input  wire            load,              // 加载指令
     input  wire            store,             // 存储指令
+    input  wire            mem_pair,
     input  wire [XLEN-1:0] mem_addr,         // 内存访问地址
     input  wire [XLEN-1:0] store_data_in,    // 存储数据 (格式化后)
     input  wire [XLEN/8-1:0] store_wstrb_in, // 存储字节使能
+    input  wire [XLEN-1:0] pair_store_data_in,
+    input  wire [XLEN/8-1:0] pair_store_wstrb_in,
     input  wire [1:0]      mem_size,         // 内存访问宽度
     input  wire            mem_unsigned,     // 无符号加载标志
 
@@ -30,15 +33,20 @@ module YH_rv_cpu_mem_stage #(
     // 数据存储器接口
     // ------------------------------------------------------------
     input  wire [XLEN-1:0] dmem_rdata,       // 数据存储器读数据
+    input  wire [XLEN-1:0] dmem_pair_rdata,
 
     // ------------------------------------------------------------
     // 输出信号 (到 MEM/WB 流水线寄存器)
     // ------------------------------------------------------------
     output wire [XLEN-1:0] dmem_addr,        // 数据存储器地址
     output wire            dmem_read_req,     // 读请求
+    output wire            dmem_pair_read_req,
     output wire [XLEN-1:0] dmem_wdata,       // 写数据
     output wire [XLEN/8-1:0] dmem_wstrb,    // 写字节使能
-    output reg  [XLEN-1:0] load_data        // 加载数据 (格式化后)
+    output wire [XLEN-1:0] dmem_pair_wdata,
+    output wire [XLEN/8-1:0] dmem_pair_wstrb,
+    output reg  [XLEN-1:0] load_data,       // 加载数据 (格式化后)
+    output wire [XLEN-1:0] pair_load_data
 );
 
     // ------------------------------------------------------------
@@ -65,6 +73,7 @@ assign dmem_addr = mem_addr;
     // 当流水线有效且为加载指令时发起读请求
     // ------------------------------------------------------------
 assign dmem_read_req = valid && load;
+assign dmem_pair_read_req = valid && load && mem_pair;
 
     // ------------------------------------------------------------
     // 写数据和写字节使能生成
@@ -72,6 +81,8 @@ assign dmem_read_req = valid && load;
     // ------------------------------------------------------------
 assign dmem_wdata = (valid && store) ? store_data_in : {XLEN{1'b0}};
 assign dmem_wstrb = (valid && store) ? store_wstrb_in : {STRB_W{1'b0}};
+assign dmem_pair_wdata = (valid && store && mem_pair) ? pair_store_data_in : {XLEN{1'b0}};
+assign dmem_pair_wstrb = (valid && store && mem_pair) ? pair_store_wstrb_in : {STRB_W{1'b0}};
 
     // ------------------------------------------------------------
     // 字节偏移计算
@@ -84,6 +95,8 @@ assign byte_offset = mem_addr[BYTE_OFFSET_W-1:0];
     // 根据字节偏移将目标字节移动到最低位
     // ------------------------------------------------------------
 assign shifted_rdata = dmem_rdata >> {byte_offset, 3'b000};
+assign pair_load_data = (XLEN == 32) ? dmem_pair_rdata :
+    {{(XLEN-32){dmem_pair_rdata[31]}}, dmem_pair_rdata[31:0]};
 
     // ------------------------------------------------------------
     // 加载数据格式化

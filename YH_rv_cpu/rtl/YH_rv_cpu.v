@@ -35,6 +35,16 @@ module YH_rv_cpu #(
     parameter integer ENABLE_XTHEAD_EXTENSION = 1,
     parameter integer ENABLE_XTHEAD_COND_MOVE = 1, // XThead 条件移动写回门控使能
     parameter integer ENABLE_ID_BRANCH_EX_FORWARD = 1, // ID 早分支允许使用 EX 本周期结果
+    parameter integer ENABLE_REDIRECT_TARGET_CACHE = 1,
+    parameter integer ENABLE_ID_BRANCH_FOLD = 0,
+    parameter integer ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP = 1,
+    parameter integer ENABLE_FETCH_REDIRECT_REUSE = 0,
+    parameter integer REDIRECT_CACHE_ENTRIES = 1024,
+    parameter integer REDIRECT_CACHE_XOR_INDEX = 0,
+    parameter integer ENABLE_DYNAMIC_BRANCH_PREDICT = 0,
+    parameter integer BRANCH_BHT_ENTRIES = 64,
+    parameter integer BRANCH_STATIC_PREDICT_MODE = 0,
+    parameter integer BRANCH_BHT_STRONG_ONLY = 0,
     parameter [XLEN-1:0] RESET_VECTOR = {XLEN{1'b0}}  // 复位向量地址
 ) (
     // ------------------------------------------------------------
@@ -61,12 +71,16 @@ module YH_rv_cpu #(
     // ------------------------------------------------------------
     output wire [XLEN-1:0] dmem_addr,       // 访存地址
     input  wire [XLEN-1:0] dmem_rdata,      // 加载数据
+    input  wire [XLEN-1:0] dmem_pair_rdata,
     input  wire            dmem_rvalid,      // 加载有效
     input  wire            dmem_ready,       // 写完成/内存就绪
     output wire            dmem_read_req,     // 读请求
+    output wire            dmem_pair_read_req,
     output wire            dmem_we,          // 写使能
     output wire [XLEN-1:0] dmem_wdata,      // 写数据
     output wire [XLEN/8-1:0] dmem_wstrb,   // 写字节使能
+    output wire [XLEN-1:0] dmem_pair_wdata,
+    output wire [XLEN/8-1:0] dmem_pair_wstrb,
 
     // ------------------------------------------------------------
     // 调试和状态信号
@@ -76,6 +90,9 @@ module YH_rv_cpu #(
 );
 
 localparam integer SHAMT_W = $clog2(XLEN);
+localparam integer REDIRECT_CACHE_INDEX_BITS = $clog2(REDIRECT_CACHE_ENTRIES);
+localparam integer REDIRECT_CACHE_INDEX_MSB = REDIRECT_CACHE_INDEX_BITS + 1;
+localparam integer BRANCH_BHT_INDEX_BITS = $clog2(BRANCH_BHT_ENTRIES);
 
     // ================================================================
     // 流水线寄存器定义
@@ -100,6 +117,19 @@ reg [31:0]     fetch_buf0_instruction_r; // 取指缓冲区 0 指令
 reg            fetch_buf1_valid_r;      // 取指缓冲区 1 有效
 reg [XLEN-1:0] fetch_buf1_pc_r;       // 取指缓冲区 1 PC
 reg [31:0]     fetch_buf1_instruction_r; // 取指缓冲区 1 指令
+reg            redirect_cache_valid_r [0:REDIRECT_CACHE_ENTRIES-1];
+(* ram_style = "distributed" *)
+reg [XLEN-1:0] redirect_cache_pc_r [0:REDIRECT_CACHE_ENTRIES-1];
+(* ram_style = "distributed" *)
+reg [31:0]     redirect_cache_instruction_r [0:REDIRECT_CACHE_ENTRIES-1];
+integer        redirect_cache_reset_idx;
+reg            branch_bht_valid_r [0:BRANCH_BHT_ENTRIES-1];
+reg [XLEN-1:0] branch_bht_pc_r [0:BRANCH_BHT_ENTRIES-1];
+reg [1:0]      branch_bht_counter_r [0:BRANCH_BHT_ENTRIES-1];
+integer        branch_bht_reset_idx;
+reg            id_branch_predict_pending_r;
+reg [XLEN-1:0] id_branch_predict_pending_branch_pc_r;
+reg [XLEN-1:0] id_branch_predict_pending_pc_r;
 
     // ------------------------------------------------------------
     // IF/ID 流水线寄存器
@@ -145,6 +175,7 @@ reg [1:0]      id_ex_mem_size_r;                   // 内存访问宽度
 reg            id_ex_mem_unsigned_r;                 // 无符号加载
 reg            id_ex_mem_indexed_r;                  // XThead indexed 访存
 reg [1:0]      id_ex_mem_index_shift_r;              // XThead indexed scale
+reg            id_ex_mem_pair_r;
 reg            id_ex_mem_base_update_r;              // XThead auto-inc/dec base update
 reg            id_ex_mem_base_update_before_r;
 reg            id_ex_store_data_from_rd_r;           // XThead store 数据来自 rd 字段
@@ -177,6 +208,9 @@ reg [XLEN-1:0] ex_mem_exec_result_r;              // 执行结果
 reg [XLEN-1:0] ex_mem_mem_addr_r;                // 内存地址
 reg [XLEN-1:0] ex_mem_store_data_r;              // 存储数据
 reg [XLEN/8-1:0] ex_mem_store_wstrb_r;           // 写字节使能
+reg            ex_mem_mem_pair_r;
+reg [XLEN-1:0] ex_mem_pair_store_data_r;
+reg [XLEN/8-1:0] ex_mem_pair_store_wstrb_r;
 reg            ex_mem_base_update_en_r;
 reg [4:0]      ex_mem_base_update_addr_r;
 reg [XLEN-1:0] ex_mem_base_update_value_r;
@@ -228,6 +262,7 @@ wire [1:0]      id_mem_size;
 wire            id_mem_unsigned;
 wire            id_mem_indexed;
 wire [1:0]      id_mem_index_shift;
+wire            id_mem_pair;
 wire            id_mem_base_update;
 wire            id_mem_base_update_before;
 wire            id_store_data_from_rd;
@@ -279,6 +314,22 @@ wire            id_decode_redirect_valid;
 wire [XLEN-1:0] id_decode_redirect_pc;
 wire            id_branch_predict_redirect_valid;
 wire [XLEN-1:0] id_branch_predict_redirect_pc;
+wire [BRANCH_BHT_INDEX_BITS-1:0] id_branch_bht_lookup_index;
+wire            id_branch_bht_hit;
+wire            id_branch_dynamic_predict_taken;
+wire            id_branch_static_predict_taken;
+wire            id_branch_predict_request_valid;
+wire            id_branch_predict_pending_hit;
+wire            id_branch_predict_pending_latch_valid;
+wire            id_branch_predict_pending_clear_valid;
+wire            id_branch_fold_candidate;
+wire            id_branch_fold_valid;
+wire            branch_bht_ex_update_valid;
+wire            branch_bht_id_update_valid;
+wire            branch_bht_update_valid;
+wire [BRANCH_BHT_INDEX_BITS-1:0] branch_bht_update_index;
+wire [XLEN-1:0] branch_bht_update_pc;
+wire            branch_bht_update_taken;
 wire            id_jal_predict_redirect_valid;
 wire [XLEN-1:0] id_jal_predict_redirect_pc;
 wire [XLEN-1:0] id_predict_redirect_pc;
@@ -287,9 +338,63 @@ wire [XLEN-1:0] id_predict_redirect_pc;
 wire [XLEN-1:0] rs1_rdata;
 wire [XLEN-1:0] rs2_rdata;
 wire [XLEN-1:0] rs3_rdata;
+wire [XLEN-1:0] fold_rs1_rdata;
+wire [XLEN-1:0] fold_rs2_rdata;
+wire [XLEN-1:0] fold_rs3_rdata;
+
+wire [XLEN-1:0] fold_id_pc4;
+wire [4:0]      fold_id_rs1_addr;
+wire [4:0]      fold_id_rs2_addr;
+wire [4:0]      fold_id_rs3_addr;
+wire [4:0]      fold_id_rd_addr;
+wire            fold_id_rs1_en;
+wire            fold_id_rs2_en;
+wire            fold_id_rs3_en;
+wire            fold_id_rd_en;
+wire            fold_id_illegal;
+wire [XLEN-1:0] fold_id_imm;
+wire [5:0]      fold_id_alu_op;
+wire            fold_id_alu_src1_pc;
+wire            fold_id_alu_src2_imm;
+wire            fold_id_branch;
+wire [2:0]      fold_id_branch_funct3;
+wire            fold_id_jump;
+wire            fold_id_jalr;
+wire            fold_id_load;
+wire            fold_id_store;
+wire [1:0]      fold_id_wb_sel;
+wire [1:0]      fold_id_mem_size;
+wire            fold_id_mem_unsigned;
+wire            fold_id_mem_indexed;
+wire [1:0]      fold_id_mem_index_shift;
+wire            fold_id_mem_pair;
+wire            fold_id_mem_base_update;
+wire            fold_id_mem_base_update_before;
+wire            fold_id_store_data_from_rd;
+wire            fold_id_word_op;
+wire            fold_id_is_lui;
+wire            fold_id_csr_valid;
+wire [1:0]      fold_id_csr_cmd;
+wire            fold_id_csr_use_imm;
+wire [2:0]      fold_id_csr_sel;
+wire            fold_id_csr_read_valid;
+wire            fold_id_csr_write_allowed;
+wire            fold_id_ecall;
+wire            fold_id_ebreak;
+wire            fold_id_mret;
+wire [XLEN-1:0] fold_id_rs1_value;
+wire [XLEN-1:0] fold_id_rs2_value;
+wire            fold_id_hazard;
+wire            fold_id_control_or_trap;
 
 assign id_rs3_addr = id_rd_addr;
-assign id_rs3_en = id_store_data_from_rd;
+assign id_rs3_en = id_store_data_from_rd ||
+    (id_alu_op == `YH_rv_cpu_ALU_TH_MULA) ||
+    (id_alu_op == `YH_rv_cpu_ALU_TH_MULAH);
+assign fold_id_rs3_addr = fold_id_rd_addr;
+assign fold_id_rs3_en = fold_id_store_data_from_rd ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_TH_MULA) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_TH_MULAH);
 
     // 冒险检测信号
 wire            hazard_stall_decode;
@@ -309,6 +414,8 @@ wire [XLEN-1:0] ex_mem_addr;
 wire [XLEN-1:0] ex_mem_base_update_value;
 wire [XLEN-1:0] ex_store_data;
 wire [XLEN/8-1:0] ex_store_wstrb;
+wire [XLEN-1:0] ex_pair_store_data;
+wire [XLEN/8-1:0] ex_pair_store_wstrb;
 wire            ex_redirect_en;
 wire            ex_redirect_valid_raw;
 wire            ex_redirect_valid;
@@ -355,6 +462,8 @@ wire            mem_stage_dmem_read_req;
 wire [XLEN-1:0] mem_stage_dmem_wdata;
 wire [XLEN/8-1:0] mem_stage_dmem_wstrb;
 wire [XLEN-1:0] mem_stage_dmem_rdata;
+wire [XLEN-1:0] mem_pair_load_data;
+wire [XLEN-1:0] ex_mem_base_update_forward_data;
 wire [XLEN-1:0] mem_stage_load_data;
 
     // DCache CPU接口信号 (当DCACHE_EN=1时使用)
@@ -451,6 +560,24 @@ wire            fetch_redirect_buf0_hit;
 wire            fetch_redirect_buf1_hit;
 wire            fetch_redirect_pipe_hit;
 wire            fetch_redirect_reuse_valid;
+wire [REDIRECT_CACHE_INDEX_BITS-1:0] redirect_cache_lookup_index_direct;
+wire [REDIRECT_CACHE_INDEX_BITS-1:0] redirect_cache_lookup_index_xor;
+wire [REDIRECT_CACHE_INDEX_BITS-1:0] redirect_cache_lookup_index;
+wire [REDIRECT_CACHE_INDEX_BITS-1:0] redirect_cache_update_index_direct;
+wire [REDIRECT_CACHE_INDEX_BITS-1:0] redirect_cache_update_index_xor;
+wire [REDIRECT_CACHE_INDEX_BITS-1:0] redirect_cache_update_index;
+wire            redirect_cache_lookup_valid;
+wire            redirect_cache_hit;
+wire            redirect_cache_deliver;
+wire            redirect_cache_update_valid;
+wire [31:0]     redirect_cache_instruction;
+wire [REDIRECT_CACHE_INDEX_BITS-1:0] regular_cache_lookup_index_direct;
+wire [REDIRECT_CACHE_INDEX_BITS-1:0] regular_cache_lookup_index_xor;
+wire [REDIRECT_CACHE_INDEX_BITS-1:0] regular_cache_lookup_index;
+wire            regular_cache_lookup_valid;
+wire            regular_cache_hit;
+wire            regular_cache_deliver;
+wire [31:0]     regular_cache_instruction;
 wire            if_id_fetch_valid;
 (* max_fanout = 8 *) wire if_id_write_en;
 wire            if_id_load_bubble;
@@ -509,8 +636,9 @@ assign fetch_redirect_target_request =
     (IMEM_OUTPUT_REG == 0) &&
     (ICACHE_EN == 0) &&
     fetch_control_redirect_valid &&
-    !fetch_redirect_reuse_valid;
-assign fetch_regular_request = fetch_request_ok && !fetch_control_redirect_valid;
+    !fetch_redirect_reuse_valid &&
+    !redirect_cache_deliver;
+assign fetch_regular_request = fetch_request_ok && !fetch_control_redirect_valid && !regular_cache_deliver;
 assign fetch_imem_req = fetch_regular_request || fetch_redirect_target_request;
 
     // ================================================================
@@ -519,6 +647,9 @@ assign fetch_imem_req = fetch_regular_request || fetch_redirect_target_request;
 assign ex_mem_forward_data =
     ((ex_mem_wb_sel_r == `YH_rv_cpu_WB_MEM) && ((LOAD_USE_FAST_FORWARD != 0) || ex_mem_load_data_ready)) ? mem_load_data :
     (ex_mem_wb_sel_r == `YH_rv_cpu_WB_PC4) ? ex_mem_pc4_r : ex_mem_exec_result_r;
+assign ex_mem_base_update_forward_data =
+    (ex_mem_mem_pair_r && ex_mem_load_r && ((LOAD_USE_FAST_FORWARD != 0) || ex_mem_load_data_ready)) ?
+        mem_pair_load_data : ex_mem_base_update_value_r;
 assign ex_mem_load_data_ready =
     (DCACHE_EN != 0) ? dcache_cpu_rvalid :
     (DMEM_SYNC == 0) ? 1'b1 :
@@ -527,12 +658,13 @@ assign ex_mem_load_data_ready =
 assign store_data_load_use_hazard =
     (LOAD_USE_FAST_FORWARD == 0) &&
     if_id_valid_r &&
-    id_store_data_from_rd &&
-    id_ex_valid_r &&
-    id_ex_load_r &&
-    id_ex_rd_en_r &&
-    (id_ex_rd_addr_r != 5'd0) &&
-    (id_ex_rd_addr_r == id_rs3_addr);
+    id_rs3_en &&
+    (
+        (id_ex_valid_r && id_ex_load_r && id_ex_rd_en_r &&
+         (id_ex_rd_addr_r != 5'd0) && (id_ex_rd_addr_r == id_rs3_addr)) ||
+        (ex_mem_valid_r && ex_mem_load_r && !ex_mem_load_data_ready && ex_mem_rd_en_r &&
+         (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == id_rs3_addr))
+    );
 
 assign stall_decode = hazard_stall_decode || store_data_load_use_hazard;
 
@@ -829,16 +961,87 @@ assign id_decode_redirect_pc =
     id_jal_x0_decode_redirect_valid ? (if_id_pc_r + id_imm) :
     id_jalr_decode_redirect_valid ? id_jalr_decode_redirect_pc :
     id_branch_decode_redirect_pc;
-assign id_branch_predict_redirect_valid =
+assign id_branch_bht_lookup_index = if_id_pc_r[BRANCH_BHT_INDEX_BITS+1:2];
+assign id_branch_bht_hit =
+    (ENABLE_DYNAMIC_BRANCH_PREDICT != 0) &&
+    branch_bht_valid_r[id_branch_bht_lookup_index] &&
+    (branch_bht_pc_r[id_branch_bht_lookup_index] == if_id_pc_r);
+assign id_branch_dynamic_predict_taken =
+    id_branch_bht_hit &&
+    ((BRANCH_BHT_STRONG_ONLY != 0) ?
+        (branch_bht_counter_r[id_branch_bht_lookup_index] == 2'b11) :
+        branch_bht_counter_r[id_branch_bht_lookup_index][1]);
+assign id_branch_static_predict_taken =
+    (BRANCH_STATIC_PREDICT_MODE >= 2) ? 1'b1 :
+    (BRANCH_STATIC_PREDICT_MODE == 1) ?
+        (id_imm[XLEN-1] || (id_branch_funct3 == 3'b001) || (id_branch_funct3 == 3'b111)) :
+        (id_imm[XLEN-1] || (id_branch_funct3 == 3'b001));
+assign id_branch_predict_pending_hit =
+    id_branch_predict_pending_r &&
+    (id_branch_predict_pending_branch_pc_r == if_id_pc_r);
+assign id_branch_predict_request_valid =
     pipeline_run &&
     !ex_fetch_redirect_valid &&
-    !stall_decode &&
     if_id_valid_r &&
     id_branch &&
     !id_illegal &&
-    (id_imm[XLEN-1] || (id_branch_funct3 == 3'b001)) &&
+    (id_branch_static_predict_taken || id_branch_dynamic_predict_taken) &&
+    (!stall_decode || id_branch_dynamic_predict_taken) &&
     !id_branch_decode_operands_ready;
+assign id_branch_predict_redirect_valid =
+    id_branch_predict_request_valid &&
+    !id_branch_predict_pending_hit;
 assign id_branch_predict_redirect_pc = if_id_pc_r + id_imm;
+assign id_branch_predict_pending_latch_valid =
+    id_branch_predict_redirect_valid &&
+    stall_decode;
+assign id_branch_predict_pending_clear_valid =
+    pipeline_run &&
+    !stall_decode &&
+    if_id_valid_r &&
+    id_branch_predict_pending_hit;
+assign branch_bht_ex_update_valid =
+    (ENABLE_DYNAMIC_BRANCH_PREDICT != 0) &&
+    id_ex_valid_r &&
+    id_ex_branch_r &&
+    !id_ex_illegal_r &&
+    !ex_trap_valid;
+assign branch_bht_id_update_valid =
+    (ENABLE_DYNAMIC_BRANCH_PREDICT != 0) &&
+    id_branch_decode_redirect_valid;
+assign branch_bht_update_valid = branch_bht_ex_update_valid || branch_bht_id_update_valid;
+assign branch_bht_update_pc = branch_bht_ex_update_valid ? id_ex_pc_r : if_id_pc_r;
+assign branch_bht_update_taken = branch_bht_ex_update_valid ? ex_redirect_en : 1'b1;
+assign branch_bht_update_index = branch_bht_update_pc[BRANCH_BHT_INDEX_BITS+1:2];
+assign id_branch_fold_candidate =
+    (ENABLE_ID_BRANCH_FOLD != 0) &&
+    id_branch_decode_redirect_valid &&
+    redirect_cache_deliver;
+assign fold_id_control_or_trap =
+    fold_id_illegal ||
+    fold_id_branch ||
+    fold_id_jump ||
+    fold_id_csr_valid ||
+    fold_id_ecall ||
+    fold_id_ebreak ||
+    fold_id_mret;
+assign fold_id_hazard =
+    (fold_id_rs1_en && id_ex_valid_r && id_ex_load_r && id_ex_rd_en_r &&
+     (id_ex_rd_addr_r != 5'd0) && (id_ex_rd_addr_r == fold_id_rs1_addr)) ||
+    (fold_id_rs2_en && id_ex_valid_r && id_ex_load_r && id_ex_rd_en_r &&
+     (id_ex_rd_addr_r != 5'd0) && (id_ex_rd_addr_r == fold_id_rs2_addr)) ||
+    (fold_id_rs3_en && id_ex_valid_r && id_ex_load_r && id_ex_rd_en_r &&
+     (id_ex_rd_addr_r != 5'd0) && (id_ex_rd_addr_r == fold_id_rs3_addr)) ||
+    (fold_id_rs1_en && ex_mem_valid_r && ex_mem_load_r && !ex_mem_load_data_ready && ex_mem_rd_en_r &&
+     (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == fold_id_rs1_addr)) ||
+    (fold_id_rs2_en && ex_mem_valid_r && ex_mem_load_r && !ex_mem_load_data_ready && ex_mem_rd_en_r &&
+     (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == fold_id_rs2_addr)) ||
+    (fold_id_rs3_en && ex_mem_valid_r && ex_mem_load_r && !ex_mem_load_data_ready && ex_mem_rd_en_r &&
+     (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == fold_id_rs3_addr));
+assign id_branch_fold_valid =
+    id_branch_fold_candidate &&
+    !fold_id_control_or_trap &&
+    !fold_id_hazard;
 assign id_jal_predict_redirect_valid =
     pipeline_run &&
     !ex_fetch_redirect_valid &&
@@ -861,7 +1064,7 @@ assign fetch_control_redirect_pc =
     ex_fetch_redirect_valid ? ex_control_redirect_pc :
     id_decode_redirect_valid ? id_decode_redirect_pc :
     id_predict_redirect_pc;
-assign decode_flush_valid = ex_decode_flush_valid || ((IMEM_SYNC != 0) && id_decode_redirect_valid);
+assign decode_flush_valid = ex_decode_flush_valid;
 assign async_redirect_refill_valid =
     (IMEM_SYNC == 0) &&
     (
@@ -970,12 +1173,67 @@ assign fetch_redirect_pipe_hit =
     !fetch_buffer_valid &&
     fetch_pipe_valid &&
     (fetch_rsp_pc == fetch_reuse_redirect_pc);
-assign fetch_redirect_reuse_valid = 1'b0;
+assign fetch_redirect_reuse_valid =
+    (ENABLE_FETCH_REDIRECT_REUSE != 0) &&
+    (fetch_redirect_buf0_hit || fetch_redirect_buf1_hit || fetch_redirect_pipe_hit);
+
+assign redirect_cache_lookup_index_direct =
+    fetch_control_redirect_pc[REDIRECT_CACHE_INDEX_MSB:2];
+assign redirect_cache_lookup_index_xor =
+    fetch_control_redirect_pc[REDIRECT_CACHE_INDEX_MSB:2] ^
+    fetch_control_redirect_pc[(2*REDIRECT_CACHE_INDEX_MSB-1):(REDIRECT_CACHE_INDEX_MSB+1)];
+assign redirect_cache_lookup_index =
+    (REDIRECT_CACHE_XOR_INDEX != 0) ? redirect_cache_lookup_index_xor : redirect_cache_lookup_index_direct;
+assign redirect_cache_update_index_direct =
+    fetch_queue_pc[REDIRECT_CACHE_INDEX_MSB:2];
+assign redirect_cache_update_index_xor =
+    fetch_queue_pc[REDIRECT_CACHE_INDEX_MSB:2] ^
+    fetch_queue_pc[(2*REDIRECT_CACHE_INDEX_MSB-1):(REDIRECT_CACHE_INDEX_MSB+1)];
+assign redirect_cache_update_index =
+    (REDIRECT_CACHE_XOR_INDEX != 0) ? redirect_cache_update_index_xor : redirect_cache_update_index_direct;
+assign redirect_cache_lookup_valid =
+    (IMEM_SYNC != 0) &&
+    (ICACHE_EN == 0) &&
+    (IMEM_OUTPUT_REG == 0) &&
+    (ENABLE_REDIRECT_TARGET_CACHE != 0) &&
+    fetch_control_redirect_valid &&
+    !ex_trap_valid &&
+    !ex_mret_valid;
+assign redirect_cache_hit =
+    redirect_cache_lookup_valid &&
+    redirect_cache_valid_r[redirect_cache_lookup_index] &&
+    (redirect_cache_pc_r[redirect_cache_lookup_index] == fetch_control_redirect_pc);
+assign redirect_cache_deliver = redirect_cache_hit;
+assign redirect_cache_instruction = redirect_cache_instruction_r[redirect_cache_lookup_index];
+assign regular_cache_lookup_index_direct =
+    ifetch_addr[REDIRECT_CACHE_INDEX_MSB:2];
+assign regular_cache_lookup_index_xor =
+    ifetch_addr[REDIRECT_CACHE_INDEX_MSB:2] ^
+    ifetch_addr[(2*REDIRECT_CACHE_INDEX_MSB-1):(REDIRECT_CACHE_INDEX_MSB+1)];
+assign regular_cache_lookup_index =
+    (REDIRECT_CACHE_XOR_INDEX != 0) ? regular_cache_lookup_index_xor : regular_cache_lookup_index_direct;
+assign regular_cache_lookup_valid =
+    (IMEM_SYNC != 0) &&
+    (ICACHE_EN == 0) &&
+    (IMEM_OUTPUT_REG == 0) &&
+    (ENABLE_REDIRECT_TARGET_CACHE != 0) &&
+    (ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP != 0) &&
+    fetch_request_ok &&
+    !fetch_control_redirect_valid &&
+    !fetch_queue_valid;
+assign regular_cache_hit =
+    regular_cache_lookup_valid &&
+    redirect_cache_valid_r[regular_cache_lookup_index] &&
+    (redirect_cache_pc_r[regular_cache_lookup_index] == ifetch_addr);
+assign regular_cache_deliver = regular_cache_hit;
+assign regular_cache_instruction = redirect_cache_instruction_r[regular_cache_lookup_index];
 
     // ================================================================
     // IF/ID 流水线控制
     // ================================================================
-assign if_id_fetch_valid = (IMEM_SYNC != 0) ? fetch_queue_valid : 1'b1;
+assign if_id_fetch_valid = (IMEM_SYNC != 0) ?
+    (fetch_queue_valid || (redirect_cache_deliver && !id_branch_fold_valid) || regular_cache_deliver) :
+    1'b1;
 assign if_id_write_en = pipeline_run && (!stall_decode || decode_flush_valid);
 assign if_id_duplicate_fetch =
     (IMEM_SYNC != 0) &&
@@ -986,14 +1244,23 @@ assign if_id_duplicate_fetch =
     (fetch_queue_pc == if_id_pc_r) &&
     (fetch_queue_instruction == if_id_instruction_r);
 assign if_id_load_bubble =
-    (decode_flush_valid && !async_redirect_refill_valid) ||
-    ((IMEM_SYNC != 0) && fetch_control_redirect_valid) ||
+    id_branch_fold_valid ||
+    (decode_flush_valid && !async_redirect_refill_valid && !redirect_cache_deliver) ||
+    ((IMEM_SYNC != 0) && fetch_control_redirect_valid && !redirect_cache_deliver) ||
     !if_id_fetch_valid;
 assign if_id_next_valid = if_id_load_bubble ? 1'b0 : 1'b1;
 assign if_id_data_write_en =
     (IMEM_SYNC != 0) ?
     (pipeline_run && !stall_decode && if_id_fetch_valid) :
     (pipeline_run && !stall_decode);
+assign redirect_cache_update_valid =
+    (IMEM_SYNC != 0) &&
+    (ICACHE_EN == 0) &&
+    (IMEM_OUTPUT_REG == 0) &&
+    (ENABLE_REDIRECT_TARGET_CACHE != 0) &&
+    if_id_data_write_en &&
+    fetch_queue_valid &&
+    !redirect_cache_deliver;
 
 assign id_ex_flush_valid_local = decode_flush_valid;
 assign id_ex_stall_bubble_local = stall_decode;
@@ -1001,8 +1268,14 @@ assign id_ex_stall_bubble_local = stall_decode;
     // ================================================================
     // IF/ID 下一拍数据和指令
     // ================================================================
-assign if_id_next_pc = if_id_load_bubble ? ZERO_XLEN : ((IMEM_SYNC != 0) ? fetch_queue_pc : ifetch_addr);
-assign if_id_next_instruction = if_id_load_bubble ? 32'h0000_0013 : ((IMEM_SYNC != 0) ? fetch_queue_instruction : instr_data_from_mem);
+assign if_id_next_pc = if_id_load_bubble ? ZERO_XLEN :
+    redirect_cache_deliver ? fetch_control_redirect_pc :
+    regular_cache_deliver ? ifetch_addr :
+    ((IMEM_SYNC != 0) ? fetch_queue_pc : ifetch_addr);
+assign if_id_next_instruction = if_id_load_bubble ? 32'h0000_0013 :
+    redirect_cache_deliver ? redirect_cache_instruction :
+    regular_cache_deliver ? regular_cache_instruction :
+    ((IMEM_SYNC != 0) ? fetch_queue_instruction : instr_data_from_mem);
 
     // ================================================================
     // 控制流重定向 PC 选择
@@ -1162,8 +1435,8 @@ always @* begin
     // Flush only clears IF/ID valid. The payload can stay unchanged because
     // hazard and ID/EX consume it only when if_id_valid_r is asserted.
     if (if_id_data_write_en) begin
-        if_id_pc_next_data = (IMEM_SYNC != 0) ? fetch_queue_pc : ifetch_addr;
-        if_id_instruction_next_data = (IMEM_SYNC != 0) ? fetch_queue_instruction : instr_data_from_mem;
+        if_id_pc_next_data = if_id_next_pc;
+        if_id_instruction_next_data = if_id_next_instruction;
     end
 end
 
@@ -1195,6 +1468,12 @@ YH_rv_cpu_regfile #(
     .rs1_rdata (rs1_rdata),
     .rs2_rdata (rs2_rdata),
     .rs3_rdata (rs3_rdata),
+    .fold_rs1_addr  (fold_id_rs1_addr),
+    .fold_rs1_rdata (fold_rs1_rdata),
+    .fold_rs2_addr  (fold_id_rs2_addr),
+    .fold_rs2_rdata (fold_rs2_rdata),
+    .fold_rs3_addr  (fold_id_rs3_addr),
+    .fold_rs3_rdata (fold_rs3_rdata),
     .rd_wen    (mem_wb_valid_r && mem_wb_rd_en_r && !trap_r),
     .rd_addr   (mem_wb_rd_addr_r),
     .rd_wdata  (wb_data),
@@ -1241,6 +1520,7 @@ YH_rv_cpu_id_stage #(
     .mem_unsigned  (id_mem_unsigned),
     .mem_indexed   (id_mem_indexed),
     .mem_index_shift(id_mem_index_shift),
+    .mem_pair      (id_mem_pair),
     .mem_base_update(id_mem_base_update),
     .mem_base_update_before(id_mem_base_update_before),
     .store_data_from_rd(id_store_data_from_rd),
@@ -1260,6 +1540,62 @@ YH_rv_cpu_id_stage #(
 );
 
     // 冒险检测单元
+YH_rv_cpu_id_stage #(
+    .XLEN(XLEN),
+    .ENABLE_M_EXTENSION(ENABLE_M_EXTENSION),
+    .ENABLE_ZMMUL_EXTENSION(ENABLE_ZMMUL_EXTENSION),
+    .ENABLE_BITMANIP_EXTENSION(ENABLE_BITMANIP_EXTENSION),
+    .ENABLE_ZBC_EXTENSION(ENABLE_ZBC_EXTENSION),
+    .ENABLE_ZICOND_EXTENSION(ENABLE_ZICOND_EXTENSION),
+    .ENABLE_ZBKB_EXTENSION(ENABLE_ZBKB_EXTENSION),
+    .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION)
+) u_fold_target_id_stage (
+    .pc            (fetch_control_redirect_pc),
+    .instruction   (redirect_cache_instruction),
+    .rs1_rdata     (fold_rs1_rdata),
+    .rs2_rdata     (fold_rs2_rdata),
+    .pc4           (fold_id_pc4),
+    .rs1_addr      (fold_id_rs1_addr),
+    .rs2_addr      (fold_id_rs2_addr),
+    .rd_addr       (fold_id_rd_addr),
+    .rs1_en        (fold_id_rs1_en),
+    .rs2_en        (fold_id_rs2_en),
+    .rd_en         (fold_id_rd_en),
+    .illegal       (fold_id_illegal),
+    .imm           (fold_id_imm),
+    .alu_op        (fold_id_alu_op),
+    .alu_src1_pc   (fold_id_alu_src1_pc),
+    .alu_src2_imm  (fold_id_alu_src2_imm),
+    .branch        (fold_id_branch),
+    .branch_funct3 (fold_id_branch_funct3),
+    .jump          (fold_id_jump),
+    .jalr          (fold_id_jalr),
+    .load          (fold_id_load),
+    .store         (fold_id_store),
+    .wb_sel        (fold_id_wb_sel),
+    .mem_size      (fold_id_mem_size),
+    .mem_unsigned  (fold_id_mem_unsigned),
+    .mem_indexed   (fold_id_mem_indexed),
+    .mem_index_shift(fold_id_mem_index_shift),
+    .mem_pair      (fold_id_mem_pair),
+    .mem_base_update(fold_id_mem_base_update),
+    .mem_base_update_before(fold_id_mem_base_update_before),
+    .store_data_from_rd(fold_id_store_data_from_rd),
+    .word_op       (fold_id_word_op),
+    .is_lui        (fold_id_is_lui),
+    .csr_valid     (fold_id_csr_valid),
+    .csr_cmd       (fold_id_csr_cmd),
+    .csr_use_imm   (fold_id_csr_use_imm),
+    .csr_sel       (fold_id_csr_sel),
+    .csr_read_valid(fold_id_csr_read_valid),
+    .csr_write_allowed(fold_id_csr_write_allowed),
+    .ecall         (fold_id_ecall),
+    .ebreak        (fold_id_ebreak),
+    .mret          (fold_id_mret),
+    .rs1_value     (fold_id_rs1_value),
+    .rs2_value     (fold_id_rs2_value)
+);
+
 YH_rv_cpu_hazard_unit #(
     .LOAD_USE_FAST_FORWARD(LOAD_USE_FAST_FORWARD)
 ) u_hazard_unit (
@@ -1299,29 +1635,31 @@ always @* begin
     ex_rs2_forwarded = id_ex_rs2_value_r;
     ex_store_src_forwarded = id_ex_rs3_value_r;
 
-    case (forward_a_sel)
-        2'b01: ex_rs1_forwarded = ex_mem_forward_data;
-        2'b10: ex_rs1_forwarded = wb_data;
-        default: ex_rs1_forwarded = id_ex_rs1_value_r;
-    endcase
-
-    case (forward_b_sel)
-        2'b01: ex_rs2_forwarded = ex_mem_forward_data;
-        2'b10: ex_rs2_forwarded = wb_data;
-        default: ex_rs2_forwarded = id_ex_rs2_value_r;
-    endcase
-
-    if (id_ex_rs1_en_r && ex_mem_valid_r && ex_mem_base_update_en_r &&
-        (ex_mem_base_update_addr_r != 5'd0) && (ex_mem_base_update_addr_r == id_ex_rs1_addr_r)) begin
-        ex_rs1_forwarded = ex_mem_base_update_value_r;
+    if (id_ex_rs1_en_r && ex_mem_valid_r && ex_mem_rd_en_r &&
+        ((LOAD_USE_FAST_FORWARD != 0) || !ex_mem_load_r) &&
+        (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == id_ex_rs1_addr_r)) begin
+        ex_rs1_forwarded = ex_mem_forward_data;
+    end else if (id_ex_rs1_en_r && ex_mem_valid_r && ex_mem_base_update_en_r &&
+                 (ex_mem_base_update_addr_r != 5'd0) && (ex_mem_base_update_addr_r == id_ex_rs1_addr_r)) begin
+        ex_rs1_forwarded = ex_mem_base_update_forward_data;
+    end else if (id_ex_rs1_en_r && mem_wb_valid_r && mem_wb_rd_en_r &&
+                 (mem_wb_rd_addr_r != 5'd0) && (mem_wb_rd_addr_r == id_ex_rs1_addr_r)) begin
+        ex_rs1_forwarded = wb_data;
     end else if (id_ex_rs1_en_r && mem_wb_valid_r && mem_wb_base_update_en_r &&
                  (mem_wb_base_update_addr_r != 5'd0) && (mem_wb_base_update_addr_r == id_ex_rs1_addr_r)) begin
         ex_rs1_forwarded = mem_wb_base_update_value_r;
     end
 
-    if (id_ex_rs2_en_r && ex_mem_valid_r && ex_mem_base_update_en_r &&
-        (ex_mem_base_update_addr_r != 5'd0) && (ex_mem_base_update_addr_r == id_ex_rs2_addr_r)) begin
-        ex_rs2_forwarded = ex_mem_base_update_value_r;
+    if (id_ex_rs2_en_r && ex_mem_valid_r && ex_mem_rd_en_r &&
+        ((LOAD_USE_FAST_FORWARD != 0) || !ex_mem_load_r) &&
+        (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == id_ex_rs2_addr_r)) begin
+        ex_rs2_forwarded = ex_mem_forward_data;
+    end else if (id_ex_rs2_en_r && ex_mem_valid_r && ex_mem_base_update_en_r &&
+                 (ex_mem_base_update_addr_r != 5'd0) && (ex_mem_base_update_addr_r == id_ex_rs2_addr_r)) begin
+        ex_rs2_forwarded = ex_mem_base_update_forward_data;
+    end else if (id_ex_rs2_en_r && mem_wb_valid_r && mem_wb_rd_en_r &&
+                 (mem_wb_rd_addr_r != 5'd0) && (mem_wb_rd_addr_r == id_ex_rs2_addr_r)) begin
+        ex_rs2_forwarded = wb_data;
     end else if (id_ex_rs2_en_r && mem_wb_valid_r && mem_wb_base_update_en_r &&
                  (mem_wb_base_update_addr_r != 5'd0) && (mem_wb_base_update_addr_r == id_ex_rs2_addr_r)) begin
         ex_rs2_forwarded = mem_wb_base_update_value_r;
@@ -1331,12 +1669,12 @@ always @* begin
         ((LOAD_USE_FAST_FORWARD != 0) || !ex_mem_load_r) &&
         (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == id_ex_rs3_addr_r)) begin
         ex_store_src_forwarded = ex_mem_forward_data;
+    end else if (id_ex_rs3_en_r && ex_mem_valid_r && ex_mem_base_update_en_r &&
+                 (ex_mem_base_update_addr_r != 5'd0) && (ex_mem_base_update_addr_r == id_ex_rs3_addr_r)) begin
+        ex_store_src_forwarded = ex_mem_base_update_forward_data;
     end else if (id_ex_rs3_en_r && mem_wb_valid_r && mem_wb_rd_en_r &&
                  (mem_wb_rd_addr_r != 5'd0) && (mem_wb_rd_addr_r == id_ex_rs3_addr_r)) begin
         ex_store_src_forwarded = wb_data;
-    end else if (id_ex_rs3_en_r && ex_mem_valid_r && ex_mem_base_update_en_r &&
-                 (ex_mem_base_update_addr_r != 5'd0) && (ex_mem_base_update_addr_r == id_ex_rs3_addr_r)) begin
-        ex_store_src_forwarded = ex_mem_base_update_value_r;
     end else if (id_ex_rs3_en_r && mem_wb_valid_r && mem_wb_base_update_en_r &&
                  (mem_wb_base_update_addr_r != 5'd0) && (mem_wb_base_update_addr_r == id_ex_rs3_addr_r)) begin
         ex_store_src_forwarded = mem_wb_base_update_value_r;
@@ -1381,6 +1719,8 @@ YH_rv_cpu_ex_stage #(
     .mem_base_update_value(ex_mem_base_update_value),
     .store_data    (ex_store_data),
     .store_wstrb   (ex_store_wstrb),
+    .pair_store_data(ex_pair_store_data),
+    .pair_store_wstrb(ex_pair_store_wstrb),
     .redirect_en   (ex_redirect_en),
     .redirect_pc   (ex_redirect_pc),
     .mem_misaligned(ex_mem_misaligned)
@@ -1398,17 +1738,25 @@ YH_rv_cpu_ex_stage #(
                 .valid         (ex_mem_valid_r),
                 .load          (ex_mem_load_r),
                 .store         (ex_mem_store_r),
+                .mem_pair      (ex_mem_mem_pair_r),
                 .mem_addr      (ex_mem_mem_addr_r),
                 .store_data_in (ex_mem_store_data_r),
                 .store_wstrb_in(ex_mem_store_wstrb_r),
+                .pair_store_data_in(ex_mem_pair_store_data_r),
+                .pair_store_wstrb_in(ex_mem_pair_store_wstrb_r),
                 .mem_size      (ex_mem_mem_size_r),
                 .mem_unsigned  (ex_mem_mem_unsigned_r),
                 .dmem_rdata    (dmem_rdata),
+                .dmem_pair_rdata(dmem_pair_rdata),
                 .dmem_addr     (dmem_addr),
                 .dmem_read_req (dmem_read_req),
+                .dmem_pair_read_req(dmem_pair_read_req),
                 .dmem_wdata    (dmem_wdata),
                 .dmem_wstrb    (dmem_wstrb),
-                .load_data     (mem_load_data)
+                .dmem_pair_wdata(dmem_pair_wdata),
+                .dmem_pair_wstrb(dmem_pair_wstrb),
+                .load_data     (mem_load_data),
+                .pair_load_data(mem_pair_load_data)
             );
         end else begin : gen_dcache
             // DCACHE_EN=1: 通过dcache连接
@@ -1424,6 +1772,10 @@ YH_rv_cpu_ex_stage #(
 
             // dcache输出load_data到流水线
             assign mem_load_data = dcache_cpu_rdata;
+            assign mem_pair_load_data = {XLEN{1'b0}};
+            assign dmem_pair_read_req = 1'b0;
+            assign dmem_pair_wdata = {XLEN{1'b0}};
+            assign dmem_pair_wstrb = {XLEN/8{1'b0}};
 
             // dcache实例
             YH_rv_cpu_dcache #(
@@ -1559,6 +1911,7 @@ always @(posedge clk or negedge rst_n) begin
         id_ex_mem_unsigned_r <= 1'b0;
         id_ex_mem_indexed_r <= 1'b0;
         id_ex_mem_index_shift_r <= 2'b00;
+        id_ex_mem_pair_r <= 1'b0;
         id_ex_mem_base_update_r <= 1'b0;
         id_ex_mem_base_update_before_r <= 1'b0;
         id_ex_store_data_from_rd_r <= 1'b0;
@@ -1587,6 +1940,9 @@ always @(posedge clk or negedge rst_n) begin
         ex_mem_mem_addr_r <= ZERO_XLEN;
         ex_mem_store_data_r <= ZERO_XLEN;
         ex_mem_store_wstrb_r <= {(XLEN/8){1'b0}};
+        ex_mem_mem_pair_r <= 1'b0;
+        ex_mem_pair_store_data_r <= ZERO_XLEN;
+        ex_mem_pair_store_wstrb_r <= {(XLEN/8){1'b0}};
         ex_mem_base_update_en_r <= 1'b0;
         ex_mem_base_update_addr_r <= 5'd0;
         ex_mem_base_update_value_r <= ZERO_XLEN;
@@ -1639,7 +1995,7 @@ always @(posedge clk or negedge rst_n) begin
             mem_wb_load_data_r <= mem_load_data;
             mem_wb_base_update_en_r <= ex_mem_base_update_en_r;
             mem_wb_base_update_addr_r <= ex_mem_base_update_addr_r;
-            mem_wb_base_update_value_r <= ex_mem_base_update_value_r;
+            mem_wb_base_update_value_r <= (ex_mem_mem_pair_r && ex_mem_load_r) ? mem_pair_load_data : ex_mem_base_update_value_r;
 
             if (ex_trap_valid) begin
                 pc_r <= ex_control_redirect_pc;
@@ -1675,6 +2031,7 @@ always @(posedge clk or negedge rst_n) begin
                 id_ex_mem_unsigned_r <= id_ex_mem_unsigned_r;
                 id_ex_mem_indexed_r <= id_ex_mem_indexed_r;
                 id_ex_mem_index_shift_r <= id_ex_mem_index_shift_r;
+                id_ex_mem_pair_r <= id_ex_mem_pair_r;
                 id_ex_mem_base_update_r <= id_ex_mem_base_update_r;
                 id_ex_mem_base_update_before_r <= id_ex_mem_base_update_before_r;
                 id_ex_store_data_from_rd_r <= id_ex_store_data_from_rd_r;
@@ -1692,7 +2049,7 @@ always @(posedge clk or negedge rst_n) begin
             end else begin
                 if (fetch_control_redirect_valid || !stall_decode) begin
                     pc_r <=
-                        ((IMEM_SYNC != 0) && fetch_redirect_target_request) ?
+                        ((IMEM_SYNC != 0) && (fetch_redirect_target_request || redirect_cache_deliver)) ?
                             (fetch_control_redirect_pc + {{(XLEN-3){1'b0}}, 3'd4}) :
                         async_redirect_refill_valid ? async_redirect_refill_next_pc :
                         if_pc_next;
@@ -1711,8 +2068,11 @@ always @(posedge clk or negedge rst_n) begin
                 ex_mem_mem_addr_r <= ex_mem_addr;
                 ex_mem_store_data_r <= ex_store_data;
                 ex_mem_store_wstrb_r <= ex_store_wstrb;
-                ex_mem_base_update_en_r <= id_ex_valid_r && id_ex_mem_base_update_r;
-                ex_mem_base_update_addr_r <= id_ex_rs1_addr_r;
+                ex_mem_mem_pair_r <= id_ex_mem_pair_r;
+                ex_mem_pair_store_data_r <= ex_pair_store_data;
+                ex_mem_pair_store_wstrb_r <= ex_pair_store_wstrb;
+                ex_mem_base_update_en_r <= id_ex_valid_r && (id_ex_mem_base_update_r || (id_ex_mem_pair_r && id_ex_load_r));
+                ex_mem_base_update_addr_r <= (id_ex_mem_pair_r && id_ex_load_r) ? id_ex_rs2_addr_r : id_ex_rs1_addr_r;
                 ex_mem_base_update_value_r <= ex_mem_base_update_value;
 
                 if (id_ex_flush_valid_local) begin
@@ -1748,6 +2108,7 @@ always @(posedge clk or negedge rst_n) begin
                     id_ex_mem_unsigned_r <= id_ex_mem_unsigned_r;
                     id_ex_mem_indexed_r <= id_ex_mem_indexed_r;
                     id_ex_mem_index_shift_r <= id_ex_mem_index_shift_r;
+                    id_ex_mem_pair_r <= id_ex_mem_pair_r;
                     id_ex_mem_base_update_r <= id_ex_mem_base_update_r;
                     id_ex_mem_base_update_before_r <= id_ex_mem_base_update_before_r;
                     id_ex_store_data_from_rd_r <= id_ex_store_data_from_rd_r;
@@ -1795,6 +2156,7 @@ always @(posedge clk or negedge rst_n) begin
                     id_ex_mem_unsigned_r <= id_ex_mem_unsigned_r;
                     id_ex_mem_indexed_r <= id_ex_mem_indexed_r;
                     id_ex_mem_index_shift_r <= id_ex_mem_index_shift_r;
+                    id_ex_mem_pair_r <= id_ex_mem_pair_r;
                     id_ex_mem_base_update_r <= id_ex_mem_base_update_r;
                     id_ex_mem_base_update_before_r <= id_ex_mem_base_update_before_r;
                     id_ex_store_data_from_rd_r <= id_ex_store_data_from_rd_r;
@@ -1810,52 +2172,110 @@ always @(posedge clk or negedge rst_n) begin
                     id_ex_ebreak_r <= id_ex_ebreak_r;
                     id_ex_mret_r <= id_ex_mret_r;
                 end else begin
-                    id_ex_valid_r <= if_id_valid_r;
-                    id_ex_pc_r <= if_id_pc_r;
-                    id_ex_pc4_r <= id_pc4;
-                    id_ex_rs1_addr_r <= id_rs1_addr;
-                    id_ex_rs2_addr_r <= id_rs2_addr;
-                    id_ex_rs3_addr_r <= id_rs3_addr;
-                    id_ex_rd_addr_r <= id_rd_addr;
-                    id_ex_rs1_en_r <= id_rs1_en;
-                    id_ex_rs2_en_r <= id_rs2_en;
-                    id_ex_rs3_en_r <= id_rs3_en;
-                    id_ex_rd_en_r <= id_rd_en;
-                    id_ex_illegal_r <= id_illegal;
-                    id_ex_rs1_value_r <= id_rs1_value;
-                    id_ex_rs2_value_r <= id_rs2_value;
-                    id_ex_rs3_value_r <= rs3_rdata;
-                    id_ex_imm_r <= id_imm;
-                    id_ex_alu_op_r <= id_alu_op;
-                    id_ex_alu_src1_pc_r <= id_alu_src1_pc;
-                    id_ex_alu_src2_imm_r <= id_alu_src2_imm;
-                    id_ex_branch_r <= id_branch;
-                    id_ex_branch_funct3_r <= id_branch_funct3;
-                    id_ex_branch_predict_taken_r <= id_decode_redirect_valid || id_branch_predict_redirect_valid || id_jal_predict_redirect_valid;
-                    id_ex_branch_predict_pc_r <= id_decode_redirect_valid ? id_decode_redirect_pc : id_predict_redirect_pc;
-                    id_ex_jump_r <= id_jump;
-                    id_ex_jalr_r <= id_jalr;
-                    id_ex_load_r <= id_load;
-                    id_ex_store_r <= id_store;
-                    id_ex_wb_sel_r <= id_wb_sel;
-                    id_ex_mem_size_r <= id_mem_size;
-                    id_ex_mem_unsigned_r <= id_mem_unsigned;
-                    id_ex_mem_indexed_r <= id_mem_indexed;
-                    id_ex_mem_index_shift_r <= id_mem_index_shift;
-                    id_ex_mem_base_update_r <= id_mem_base_update;
-                    id_ex_mem_base_update_before_r <= id_mem_base_update_before;
-                    id_ex_store_data_from_rd_r <= id_store_data_from_rd;
-                    id_ex_word_op_r <= id_word_op;
-                    id_ex_is_lui_r <= id_is_lui;
-                    id_ex_csr_valid_r <= id_csr_valid;
-                    id_ex_csr_cmd_r <= id_csr_cmd;
-                    id_ex_csr_use_imm_r <= id_csr_use_imm;
-                    id_ex_csr_sel_r <= id_csr_sel;
-                    id_ex_csr_read_valid_r <= id_csr_read_valid;
-                    id_ex_csr_write_allowed_r <= id_csr_write_allowed;
-                    id_ex_ecall_r <= id_ecall;
-                    id_ex_ebreak_r <= id_ebreak;
-                    id_ex_mret_r <= id_mret;
+                    if (id_branch_fold_valid) begin
+                        id_ex_valid_r <= 1'b1;
+                        id_ex_pc_r <= fetch_control_redirect_pc;
+                        id_ex_pc4_r <= fold_id_pc4;
+                        id_ex_rs1_addr_r <= fold_id_rs1_addr;
+                        id_ex_rs2_addr_r <= fold_id_rs2_addr;
+                        id_ex_rs3_addr_r <= fold_id_rs3_addr;
+                        id_ex_rd_addr_r <= fold_id_rd_addr;
+                        id_ex_rs1_en_r <= fold_id_rs1_en;
+                        id_ex_rs2_en_r <= fold_id_rs2_en;
+                        id_ex_rs3_en_r <= fold_id_rs3_en;
+                        id_ex_rd_en_r <= fold_id_rd_en;
+                        id_ex_illegal_r <= fold_id_illegal;
+                        id_ex_rs1_value_r <= fold_id_rs1_value;
+                        id_ex_rs2_value_r <= fold_id_rs2_value;
+                        id_ex_rs3_value_r <= fold_rs3_rdata;
+                        id_ex_imm_r <= fold_id_imm;
+                        id_ex_alu_op_r <= fold_id_alu_op;
+                        id_ex_alu_src1_pc_r <= fold_id_alu_src1_pc;
+                        id_ex_alu_src2_imm_r <= fold_id_alu_src2_imm;
+                        id_ex_branch_r <= fold_id_branch;
+                        id_ex_branch_funct3_r <= fold_id_branch_funct3;
+                        id_ex_branch_predict_taken_r <= 1'b0;
+                        id_ex_branch_predict_pc_r <= ZERO_XLEN;
+                        id_ex_jump_r <= fold_id_jump;
+                        id_ex_jalr_r <= fold_id_jalr;
+                        id_ex_load_r <= fold_id_load;
+                        id_ex_store_r <= fold_id_store;
+                        id_ex_wb_sel_r <= fold_id_wb_sel;
+                        id_ex_mem_size_r <= fold_id_mem_size;
+                        id_ex_mem_unsigned_r <= fold_id_mem_unsigned;
+                        id_ex_mem_indexed_r <= fold_id_mem_indexed;
+                        id_ex_mem_index_shift_r <= fold_id_mem_index_shift;
+                        id_ex_mem_pair_r <= fold_id_mem_pair;
+                        id_ex_mem_base_update_r <= fold_id_mem_base_update;
+                        id_ex_mem_base_update_before_r <= fold_id_mem_base_update_before;
+                        id_ex_store_data_from_rd_r <= fold_id_store_data_from_rd;
+                        id_ex_word_op_r <= fold_id_word_op;
+                        id_ex_is_lui_r <= fold_id_is_lui;
+                        id_ex_csr_valid_r <= fold_id_csr_valid;
+                        id_ex_csr_cmd_r <= fold_id_csr_cmd;
+                        id_ex_csr_use_imm_r <= fold_id_csr_use_imm;
+                        id_ex_csr_sel_r <= fold_id_csr_sel;
+                        id_ex_csr_read_valid_r <= fold_id_csr_read_valid;
+                        id_ex_csr_write_allowed_r <= fold_id_csr_write_allowed;
+                        id_ex_ecall_r <= fold_id_ecall;
+                        id_ex_ebreak_r <= fold_id_ebreak;
+                        id_ex_mret_r <= fold_id_mret;
+                    end else begin
+                        id_ex_valid_r <= if_id_valid_r;
+                        id_ex_pc_r <= if_id_pc_r;
+                        id_ex_pc4_r <= id_pc4;
+                        id_ex_rs1_addr_r <= id_rs1_addr;
+                        id_ex_rs2_addr_r <= id_rs2_addr;
+                        id_ex_rs3_addr_r <= id_rs3_addr;
+                        id_ex_rd_addr_r <= id_rd_addr;
+                        id_ex_rs1_en_r <= id_rs1_en;
+                        id_ex_rs2_en_r <= id_rs2_en;
+                        id_ex_rs3_en_r <= id_rs3_en;
+                        id_ex_rd_en_r <= id_rd_en;
+                        id_ex_illegal_r <= id_illegal;
+                        id_ex_rs1_value_r <= id_rs1_value;
+                        id_ex_rs2_value_r <= id_rs2_value;
+                        id_ex_rs3_value_r <= rs3_rdata;
+                        id_ex_imm_r <= id_imm;
+                        id_ex_alu_op_r <= id_alu_op;
+                        id_ex_alu_src1_pc_r <= id_alu_src1_pc;
+                        id_ex_alu_src2_imm_r <= id_alu_src2_imm;
+                        id_ex_branch_r <= id_branch;
+                        id_ex_branch_funct3_r <= id_branch_funct3;
+                        id_ex_branch_predict_taken_r <=
+                            id_branch_predict_pending_hit ||
+                            id_decode_redirect_valid ||
+                            id_branch_predict_redirect_valid ||
+                            id_jal_predict_redirect_valid;
+                        id_ex_branch_predict_pc_r <=
+                            id_branch_predict_pending_hit ? id_branch_predict_pending_pc_r :
+                            id_decode_redirect_valid ? id_decode_redirect_pc :
+                            id_predict_redirect_pc;
+                        id_ex_jump_r <= id_jump;
+                        id_ex_jalr_r <= id_jalr;
+                        id_ex_load_r <= id_load;
+                        id_ex_store_r <= id_store;
+                        id_ex_wb_sel_r <= id_wb_sel;
+                        id_ex_mem_size_r <= id_mem_size;
+                        id_ex_mem_unsigned_r <= id_mem_unsigned;
+                        id_ex_mem_indexed_r <= id_mem_indexed;
+                        id_ex_mem_index_shift_r <= id_mem_index_shift;
+                        id_ex_mem_pair_r <= id_mem_pair;
+                        id_ex_mem_base_update_r <= id_mem_base_update;
+                        id_ex_mem_base_update_before_r <= id_mem_base_update_before;
+                        id_ex_store_data_from_rd_r <= id_store_data_from_rd;
+                        id_ex_word_op_r <= id_word_op;
+                        id_ex_is_lui_r <= id_is_lui;
+                        id_ex_csr_valid_r <= id_csr_valid;
+                        id_ex_csr_cmd_r <= id_csr_cmd;
+                        id_ex_csr_use_imm_r <= id_csr_use_imm;
+                        id_ex_csr_sel_r <= id_csr_sel;
+                        id_ex_csr_read_valid_r <= id_csr_read_valid;
+                        id_ex_csr_write_allowed_r <= id_csr_write_allowed;
+                        id_ex_ecall_r <= id_ecall;
+                        id_ex_ebreak_r <= id_ebreak;
+                        id_ex_mret_r <= id_mret;
+                    end
                 end
             end
         end
@@ -1915,6 +2335,69 @@ end
     // ================================================================
     // IF/ID PC 和指令更新
     // ================================================================
+// Small direct-mapped redirect target instruction cache.
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+            for (redirect_cache_reset_idx = 0; redirect_cache_reset_idx < REDIRECT_CACHE_ENTRIES; redirect_cache_reset_idx = redirect_cache_reset_idx + 1) begin
+            redirect_cache_valid_r[redirect_cache_reset_idx] <= 1'b0;
+        end
+    end else if (!trap_r) begin
+        if (redirect_cache_update_valid) begin
+            redirect_cache_valid_r[redirect_cache_update_index] <= 1'b1;
+            redirect_cache_pc_r[redirect_cache_update_index] <= fetch_queue_pc;
+            redirect_cache_instruction_r[redirect_cache_update_index] <= fetch_queue_instruction;
+        end
+    end
+end
+
+// Small tagged BHT for repeated unresolved branch directions.
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        for (branch_bht_reset_idx = 0; branch_bht_reset_idx < BRANCH_BHT_ENTRIES; branch_bht_reset_idx = branch_bht_reset_idx + 1) begin
+            branch_bht_valid_r[branch_bht_reset_idx] <= 1'b0;
+        end
+    end else if (!trap_r) begin
+        if (branch_bht_update_valid) begin
+            branch_bht_valid_r[branch_bht_update_index] <= 1'b1;
+            branch_bht_pc_r[branch_bht_update_index] <= branch_bht_update_pc;
+            if (!branch_bht_valid_r[branch_bht_update_index] ||
+                (branch_bht_pc_r[branch_bht_update_index] != branch_bht_update_pc)) begin
+                branch_bht_counter_r[branch_bht_update_index] <= branch_bht_update_taken ? 2'b11 : 2'b00;
+            end else if (branch_bht_update_taken) begin
+                branch_bht_counter_r[branch_bht_update_index] <=
+                    (branch_bht_counter_r[branch_bht_update_index] == 2'b11) ?
+                    2'b11 : (branch_bht_counter_r[branch_bht_update_index] + 2'b01);
+            end else begin
+                branch_bht_counter_r[branch_bht_update_index] <=
+                    (branch_bht_counter_r[branch_bht_update_index] == 2'b00) ?
+                    2'b00 : (branch_bht_counter_r[branch_bht_update_index] - 2'b01);
+            end
+        end
+    end
+end
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        id_branch_predict_pending_r <= 1'b0;
+        id_branch_predict_pending_branch_pc_r <= ZERO_XLEN;
+        id_branch_predict_pending_pc_r <= ZERO_XLEN;
+    end else if (trap_r) begin
+        id_branch_predict_pending_r <= 1'b0;
+        id_branch_predict_pending_branch_pc_r <= ZERO_XLEN;
+        id_branch_predict_pending_pc_r <= ZERO_XLEN;
+    end else begin
+        if (id_branch_predict_pending_latch_valid) begin
+            id_branch_predict_pending_r <= 1'b1;
+            id_branch_predict_pending_branch_pc_r <= if_id_pc_r;
+            id_branch_predict_pending_pc_r <= id_branch_predict_redirect_pc;
+        end else if (id_branch_predict_pending_clear_valid) begin
+            id_branch_predict_pending_r <= 1'b0;
+            id_branch_predict_pending_branch_pc_r <= ZERO_XLEN;
+            id_branch_predict_pending_pc_r <= ZERO_XLEN;
+        end
+    end
+end
+
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         if_id_pc_r <= ZERO_XLEN;

@@ -37,6 +37,16 @@ module YH_rv_cpu_regfile #(
     output wire [XLEN-1:0] rs3_rdata,
 
     // ------------------------------------------------------------
+    // Extra read ports for branch-target issue folding
+    // ------------------------------------------------------------
+    input  wire [4:0]      fold_rs1_addr,
+    output wire [XLEN-1:0] fold_rs1_rdata,
+    input  wire [4:0]      fold_rs2_addr,
+    output wire [XLEN-1:0] fold_rs2_rdata,
+    input  wire [4:0]      fold_rs3_addr,
+    output wire [XLEN-1:0] fold_rs3_rdata,
+
+    // ------------------------------------------------------------
     // 写端口 (rd)
     // ------------------------------------------------------------
     input  wire            rd_wen,           // 写使能
@@ -86,6 +96,24 @@ assign rs3_rdata =
     (rd2_wen && (rd2_addr == rs3_addr) && (rd2_addr != 5'd0)) ? rd2_wdata :
     (rd_wen && (rd_addr == rs3_addr) && (rd_addr != 5'd0)) ? rd_wdata :
     regs[rs3_addr];
+
+assign fold_rs1_rdata =
+    (fold_rs1_addr == 5'd0) ? {XLEN{1'b0}} :
+    (rd2_wen && (rd2_addr == fold_rs1_addr) && (rd2_addr != 5'd0)) ? rd2_wdata :
+    (rd_wen && (rd_addr == fold_rs1_addr) && (rd_addr != 5'd0)) ? rd_wdata :
+    regs[fold_rs1_addr];
+
+assign fold_rs2_rdata =
+    (fold_rs2_addr == 5'd0) ? {XLEN{1'b0}} :
+    (rd2_wen && (rd2_addr == fold_rs2_addr) && (rd2_addr != 5'd0)) ? rd2_wdata :
+    (rd_wen && (rd_addr == fold_rs2_addr) && (rd_addr != 5'd0)) ? rd_wdata :
+    regs[fold_rs2_addr];
+
+assign fold_rs3_rdata =
+    (fold_rs3_addr == 5'd0) ? {XLEN{1'b0}} :
+    (rd2_wen && (rd2_addr == fold_rs3_addr) && (rd2_addr != 5'd0)) ? rd2_wdata :
+    (rd_wen && (rd_addr == fold_rs3_addr) && (rd_addr != 5'd0)) ? rd_wdata :
+    regs[fold_rs3_addr];
 
     // ------------------------------------------------------------
     // 寄存器写操作

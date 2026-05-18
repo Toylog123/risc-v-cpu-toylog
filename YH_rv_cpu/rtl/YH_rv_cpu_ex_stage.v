@@ -55,6 +55,8 @@ module YH_rv_cpu_ex_stage #(
     output wire [XLEN-1:0] mem_base_update_value,
     output reg  [XLEN-1:0] store_data,      // 存储数据 (格式化后)
     output reg  [XLEN/8-1:0] store_wstrb,  // 存储字节使能
+    output wire [XLEN-1:0] pair_store_data,
+    output wire [XLEN/8-1:0] pair_store_wstrb,
     output wire            redirect_en,     // PC 重定向使能
     output wire [XLEN-1:0] redirect_pc,    // PC 重定向目标
     output wire            mem_misaligned   // 内存地址对齐错误
@@ -140,6 +142,7 @@ YH_rv_cpu_alu #(
     .alu_op (alu_op),
     .lhs    (alu_lhs),
     .rhs    (alu_rhs),
+    .acc    (store_data_value),
     .result (alu_result),
     .eq     (alu_eq),
     .lt     (alu_lt),
@@ -170,6 +173,8 @@ assign branch_taken =
 assign mem_addr = rs1_plus_imm;  // 内存访问地址始终为 rs1 + imm
 assign mem_base_update_value = rs1_value + mem_update_offset;
 assign exec_result = is_lui ? imm : ((word_op && (XLEN == 64)) ? word_result_sext : alu_result);
+assign pair_store_data = {{(XLEN-32){1'b0}}, rs2_value[31:0]} << {byte_offset, 3'b000};
+assign pair_store_wstrb = {{(STRB_W-4){1'b0}}, 4'hf} << byte_offset;
 
     // ------------------------------------------------------------
     // PC 重定向

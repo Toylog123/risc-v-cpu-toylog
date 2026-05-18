@@ -87,7 +87,8 @@ always @(posedge clk) begin
 
         if (dmem_read_req && (dmem_addr != 32'd24) &&
             (dmem_addr != 32'd41) && (dmem_addr != 32'd64) &&
-            (dmem_addr != 32'd68)) begin
+            (dmem_addr != 32'd68) && (dmem_addr != 32'd96) &&
+            (dmem_addr != 32'd104)) begin
             $fatal(1, "FAIL: th indexed load used wrong address %h", dmem_addr);
         end
 
@@ -114,12 +115,19 @@ always @(posedge clk) begin
                 if (dmem_wstrb != 4'b1111) begin
                     $fatal(1, "FAIL: th.swia wrote wrong strobe %b", dmem_wstrb);
                 end
+            end else if (dmem_addr == 32'd112) begin
+                if (dmem_wdata != 32'h0000_5678) begin
+                    $fatal(1, "FAIL: th.shia wrote wrong data %h", dmem_wdata);
+                end
+                if (dmem_wstrb != 4'b0011) begin
+                    $fatal(1, "FAIL: th.shia wrote wrong strobe %b", dmem_wstrb);
+                end
             end else begin
                 $fatal(1, "FAIL: unexpected th store address %h", dmem_addr);
             end
         end
 
-        if ((cycle > 18) && (dut.u_regfile.regs[9] == 32'd9)) begin
+        if ((cycle > 24) && (dut.u_regfile.regs[9] == 32'd9)) begin
             if (dut.u_regfile.regs[3] != 32'h1234_5678) begin
                 $fatal(1, "FAIL: th.lrw loaded x3=%h", dut.u_regfile.regs[3]);
             end
@@ -138,6 +146,12 @@ always @(posedge clk) begin
             if (dut.u_regfile.regs[15] != 32'h1234_5678) begin
                 $fatal(1, "FAIL: th.lwib loaded x15=%h", dut.u_regfile.regs[15]);
             end
+            if (dut.u_regfile.regs[16] != 32'h0000_5678) begin
+                $fatal(1, "FAIL: th.lhia loaded x16=%h", dut.u_regfile.regs[16]);
+            end
+            if (dut.u_regfile.regs[17] != 32'h0000_0078) begin
+                $fatal(1, "FAIL: th.lbuia loaded x17=%h", dut.u_regfile.regs[17]);
+            end
             if (dut.u_regfile.regs[10] != 32'd41) begin
                 $fatal(1, "FAIL: th.lbuib base update x10=%h", dut.u_regfile.regs[10]);
             end
@@ -153,8 +167,14 @@ always @(posedge clk) begin
             if (dut.u_regfile.regs[13] != 32'd84) begin
                 $fatal(1, "FAIL: th.swia base update x13=%h", dut.u_regfile.regs[13]);
             end
-            if (write_seen != 3) begin
-                $fatal(1, "FAIL: expected three th stores, saw %0d", write_seen);
+            if (dut.u_regfile.regs[18] != 32'd103) begin
+                $fatal(1, "FAIL: th.lbuia base update x18=%h", dut.u_regfile.regs[18]);
+            end
+            if (dut.u_regfile.regs[19] != 32'd114) begin
+                $fatal(1, "FAIL: th.shia base update x19=%h", dut.u_regfile.regs[19]);
+            end
+            if (write_seen != 4) begin
+                $fatal(1, "FAIL: expected four th stores, saw %0d", write_seen);
             end
             $display("PASS: xthead memidx diagnostic completed cycles=%0d", cycle);
             $finish;
@@ -193,7 +213,13 @@ initial begin
     imem[13] = th_memidx(5'h09, 2'd0, 5'd4, 5'd14, 3'b100, 5'd15); // th.lwib x15,(x14),4,0
     imem[14] = rv32_i(12'd80, 5'd0, 3'b000, 5'd13, 7'b0010011); // x13 = 80
     imem[15] = th_memidx(5'h0b, 2'd0, 5'd4, 5'd13, 3'b101, 5'd8); // th.swia x8,(x13),4,0
-    imem[16] = rv32_i(12'd9,  5'd0, 3'b000, 5'd9, 7'b0010011); // done marker
+    imem[16] = rv32_i(12'd96, 5'd0, 3'b000, 5'd18, 7'b0010011); // x18 = 96
+    imem[17] = th_memidx(5'h07, 2'd0, 5'd2, 5'd18, 3'b100, 5'd16); // th.lhia x16,(x18),2,0
+    imem[18] = rv32_i(12'd104, 5'd0, 3'b000, 5'd18, 7'b0010011); // x18 = 104
+    imem[19] = th_memidx(5'h13, 2'd0, 5'b1_1111, 5'd18, 3'b100, 5'd17); // th.lbuia x17,(x18),-1,0
+    imem[20] = rv32_i(12'd112, 5'd0, 3'b000, 5'd19, 7'b0010011); // x19 = 112
+    imem[21] = th_memidx(5'h07, 2'd0, 5'd2, 5'd19, 3'b101, 5'd4); // th.shia x4,(x19),2,0
+    imem[22] = rv32_i(12'd9,  5'd0, 3'b000, 5'd9, 7'b0010011); // done marker
 
     #20;
     rst_n = 1'b1;

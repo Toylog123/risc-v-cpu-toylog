@@ -5,7 +5,7 @@
 module YH_rv_cpu_alu_m_ext_tb;
 reg clk;
 reg [5:0] alu_op;
-reg [31:0] lhs, rhs;
+reg [31:0] lhs, rhs, acc;
 wire [31:0] result;
 
 YH_rv_cpu_alu #(
@@ -14,6 +14,7 @@ YH_rv_cpu_alu #(
     .alu_op(alu_op),
     .lhs(lhs),
     .rhs(rhs),
+    .acc(acc),
     .result(result),
     .eq(),
     .lt(),
@@ -46,6 +47,7 @@ initial begin
     $display("========================================");
 
     clk = 0;
+    acc = 32'd0;
 
     // TEST 1: MUL 5 * 3 = 15
     alu_op = `YH_rv_cpu_ALU_MUL;

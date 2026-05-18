@@ -16,7 +16,18 @@ module YH_rv_cpu_coremark_fpga_tb #(
     parameter integer ENABLE_ZBKB_EXTENSION = 0,
     parameter integer ENABLE_XTHEAD_EXTENSION = 1,
     parameter integer ENABLE_XTHEAD_COND_MOVE = 1,
-    parameter integer ENABLE_ID_BRANCH_EX_FORWARD = 1
+    parameter integer ENABLE_ID_BRANCH_EX_FORWARD = 1,
+    parameter integer ENABLE_ID_BRANCH_FOLD = 0,
+    parameter integer ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP = 1,
+    parameter integer ENABLE_FETCH_REDIRECT_REUSE = 0,
+    parameter integer REDIRECT_CACHE_ENTRIES = 1024,
+    parameter integer REDIRECT_CACHE_XOR_INDEX = 0,
+    parameter integer ENABLE_DYNAMIC_BRANCH_PREDICT = 0,
+    parameter integer BRANCH_BHT_ENTRIES = 64,
+    parameter integer BRANCH_STATIC_PREDICT_MODE = 0,
+    parameter integer BRANCH_BHT_STRONG_ONLY = 0,
+    parameter integer DMEM_NEGEDGE_READ = 0,
+    parameter integer ICACHE_EN = 0
 ) ();
 
 localparam integer VALID_MSG_LEN = 13;
@@ -46,6 +57,8 @@ integer trace_start;
 integer trace_end;
 integer plusarg_seen;
 reg     debug_trace;
+reg     fail_on_low_pc_after_startup;
+integer low_pc_min_cycle;
 
 YH_rv_cpu_soc #(
     .XLEN(XLEN),
@@ -53,6 +66,8 @@ YH_rv_cpu_soc #(
     .IMEM_OUTPUT_REG(0),
     .SYNC_DMEM(1),
     .DMEM_OUTPUT_REG(0),
+    .DMEM_NEGEDGE_READ(DMEM_NEGEDGE_READ),
+    .ICACHE_EN(ICACHE_EN),
     .RAM_BASE(RAM_BASE),
     .ROM_BYTES(ROM_BYTES),
     .RAM_BYTES(RAM_BYTES),
@@ -66,7 +81,16 @@ YH_rv_cpu_soc #(
     .ENABLE_ZBKB_EXTENSION(ENABLE_ZBKB_EXTENSION),
     .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION),
     .ENABLE_XTHEAD_COND_MOVE(ENABLE_XTHEAD_COND_MOVE),
-    .ENABLE_ID_BRANCH_EX_FORWARD(ENABLE_ID_BRANCH_EX_FORWARD)
+    .ENABLE_ID_BRANCH_EX_FORWARD(ENABLE_ID_BRANCH_EX_FORWARD),
+    .ENABLE_ID_BRANCH_FOLD(ENABLE_ID_BRANCH_FOLD),
+    .ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP(ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP),
+    .ENABLE_FETCH_REDIRECT_REUSE(ENABLE_FETCH_REDIRECT_REUSE),
+    .REDIRECT_CACHE_ENTRIES(REDIRECT_CACHE_ENTRIES),
+    .REDIRECT_CACHE_XOR_INDEX(REDIRECT_CACHE_XOR_INDEX),
+    .ENABLE_DYNAMIC_BRANCH_PREDICT(ENABLE_DYNAMIC_BRANCH_PREDICT),
+    .BRANCH_BHT_ENTRIES(BRANCH_BHT_ENTRIES),
+    .BRANCH_STATIC_PREDICT_MODE(BRANCH_STATIC_PREDICT_MODE),
+    .BRANCH_BHT_STRONG_ONLY(BRANCH_BHT_STRONG_ONLY)
 ) dut (
     .clk          (clk),
     .rst_n        (rst_n),
@@ -236,6 +260,45 @@ always @(posedge clk) begin
             );
         end
 
+        if (fail_on_low_pc_after_startup &&
+            (cycle > low_pc_min_cycle) &&
+            (debug_pc < 32'h0000_0060)) begin
+            $display(
+                "LOW_PC_DIAG cycle=%0d pc=%h ifid_pc=%h idex_pc=%h exmem_pc4=%h ex_redir=%b ex_redir_pc=%h ifid_instr=%h x1=%h x2=%h x5=%h x6=%h x7=%h x10=%h x11=%h x12=%h x13=%h x14=%h x15=%h x16=%h x17=%h x28=%h x29=%h x30=%h x31=%h daddr=%h drdata=%h drvalid=%b dwdata=%h dwstrb=%h",
+                cycle,
+                debug_pc,
+                dut.u_cpu.if_id_pc_r,
+                dut.u_cpu.id_ex_pc_r,
+                dut.u_cpu.ex_mem_pc4_r,
+                dut.u_cpu.ex_redirect_en,
+                dut.u_cpu.ex_redirect_pc,
+                dut.u_cpu.if_id_instruction_r,
+                dut.u_cpu.u_regfile.regs[1],
+                dut.u_cpu.u_regfile.regs[2],
+                dut.u_cpu.u_regfile.regs[5],
+                dut.u_cpu.u_regfile.regs[6],
+                dut.u_cpu.u_regfile.regs[7],
+                dut.u_cpu.u_regfile.regs[10],
+                dut.u_cpu.u_regfile.regs[11],
+                dut.u_cpu.u_regfile.regs[12],
+                dut.u_cpu.u_regfile.regs[13],
+                dut.u_cpu.u_regfile.regs[14],
+                dut.u_cpu.u_regfile.regs[15],
+                dut.u_cpu.u_regfile.regs[16],
+                dut.u_cpu.u_regfile.regs[17],
+                dut.u_cpu.u_regfile.regs[28],
+                dut.u_cpu.u_regfile.regs[29],
+                dut.u_cpu.u_regfile.regs[30],
+                dut.u_cpu.u_regfile.regs[31],
+                dut.dmem_addr,
+                dut.dmem_rdata,
+                dut.dmem_rvalid,
+                dut.dmem_wdata,
+                dut.dmem_wstrb
+            );
+            $fatal(1, "\nFAIL: low PC after startup");
+        end
+
         if (trap) begin
             $fatal(1, "\nFAIL: coremark trap asserted at PC=%h cycle=%0d", debug_pc, cycle);
         end
@@ -276,6 +339,8 @@ initial begin
     trace_start = 1;
     trace_end = 0;
     plusarg_seen = 0;
+    fail_on_low_pc_after_startup = 1'b0;
+    low_pc_min_cycle = 9000;
 
     valid_msg[0]  = "C";
     valid_msg[1]  = "o";
@@ -319,6 +384,10 @@ initial begin
     plusarg_seen = $value$plusargs("trace_stride=%d", trace_stride);
     plusarg_seen = $value$plusargs("trace_start=%d", trace_start);
     plusarg_seen = $value$plusargs("trace_end=%d", trace_end);
+    if ($test$plusargs("fail_on_low_pc_after_startup")) begin
+        fail_on_low_pc_after_startup = 1'b1;
+    end
+    plusarg_seen = $value$plusargs("low_pc_min_cycle=%d", low_pc_min_cycle);
 
     #100;
     rst_n = 1'b1;
