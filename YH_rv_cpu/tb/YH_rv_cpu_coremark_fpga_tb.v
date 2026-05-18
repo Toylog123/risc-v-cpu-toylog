@@ -78,6 +78,13 @@ integer profile_fold_valid_events;
 integer profile_fold_next_events;
 integer profile_fold_hazard_events;
 integer profile_fold_control_events;
+integer profile_nt_fold_candidate_events;
+integer profile_nt_fold_valid_events;
+integer profile_nt_fold_next_events;
+integer profile_nt_fold_block_load_events;
+integer profile_nt_fold_block_store_events;
+integer profile_nt_fold_block_hazard_events;
+integer profile_nt_fold_block_control_events;
 integer profile_fetch_request_events;
 integer profile_fetch_redirect_request_events;
 integer profile_fetch_regular_request_events;
@@ -188,6 +195,27 @@ always @(posedge clk) begin
         end
         if (dut.u_cpu.fold_id_control_or_trap) begin
             profile_fold_control_events <= profile_fold_control_events + 1;
+        end
+        if (dut.u_cpu.id_branch_not_taken_fold_candidate) begin
+            profile_nt_fold_candidate_events <= profile_nt_fold_candidate_events + 1;
+            if (dut.u_cpu.fold_id_load) begin
+                profile_nt_fold_block_load_events <= profile_nt_fold_block_load_events + 1;
+            end
+            if (dut.u_cpu.fold_id_store) begin
+                profile_nt_fold_block_store_events <= profile_nt_fold_block_store_events + 1;
+            end
+            if (dut.u_cpu.fold_id_hazard) begin
+                profile_nt_fold_block_hazard_events <= profile_nt_fold_block_hazard_events + 1;
+            end
+            if (dut.u_cpu.fold_id_control_or_trap) begin
+                profile_nt_fold_block_control_events <= profile_nt_fold_block_control_events + 1;
+            end
+        end
+        if (dut.u_cpu.id_branch_not_taken_fold_valid) begin
+            profile_nt_fold_valid_events <= profile_nt_fold_valid_events + 1;
+        end
+        if (dut.u_cpu.not_taken_next_cache_deliver) begin
+            profile_nt_fold_next_events <= profile_nt_fold_next_events + 1;
         end
         if (dut.u_cpu.fetch_imem_req) begin
             profile_fetch_request_events <= profile_fetch_request_events + 1;
@@ -416,7 +444,7 @@ always @(posedge clk) begin
             end
 
             $display(
-                "PROFILE_EVENTS cycles=%0d ifid_valid=%0d idex_valid=%0d stall_decode=%0d mem_wait=%0d decode_flush=%0d ifid_load_bubble=%0d redirects=%0d ex_redirect=%0d id_redirect=%0d branch_predict_redirect=%0d jal_predict_redirect=%0d redirect_cache_deliver=%0d regular_cache_deliver=%0d fold_candidate=%0d fold_valid=%0d fold_next=%0d fold_hazard=%0d fold_control=%0d fetch_req=%0d fetch_redirect_req=%0d fetch_regular_req=%0d fetch_data_issue=%0d fetch_queue_enqueue=%0d fetch_queue_consume=%0d fetch_drop_response=%0d",
+                "PROFILE_EVENTS cycles=%0d ifid_valid=%0d idex_valid=%0d stall_decode=%0d mem_wait=%0d decode_flush=%0d ifid_load_bubble=%0d redirects=%0d ex_redirect=%0d id_redirect=%0d branch_predict_redirect=%0d jal_predict_redirect=%0d redirect_cache_deliver=%0d regular_cache_deliver=%0d fold_candidate=%0d fold_valid=%0d fold_next=%0d fold_hazard=%0d fold_control=%0d nt_fold_candidate=%0d nt_fold_valid=%0d nt_fold_next=%0d nt_fold_block_load=%0d nt_fold_block_store=%0d nt_fold_block_hazard=%0d nt_fold_block_control=%0d fetch_req=%0d fetch_redirect_req=%0d fetch_regular_req=%0d fetch_data_issue=%0d fetch_queue_enqueue=%0d fetch_queue_consume=%0d fetch_drop_response=%0d",
                 profile_cycles,
                 profile_ifid_valid_cycles,
                 profile_idex_valid_cycles,
@@ -436,6 +464,13 @@ always @(posedge clk) begin
                 profile_fold_next_events,
                 profile_fold_hazard_events,
                 profile_fold_control_events,
+                profile_nt_fold_candidate_events,
+                profile_nt_fold_valid_events,
+                profile_nt_fold_next_events,
+                profile_nt_fold_block_load_events,
+                profile_nt_fold_block_store_events,
+                profile_nt_fold_block_hazard_events,
+                profile_nt_fold_block_control_events,
                 profile_fetch_request_events,
                 profile_fetch_redirect_request_events,
                 profile_fetch_regular_request_events,
@@ -492,6 +527,13 @@ initial begin
     profile_fold_next_events = 0;
     profile_fold_hazard_events = 0;
     profile_fold_control_events = 0;
+    profile_nt_fold_candidate_events = 0;
+    profile_nt_fold_valid_events = 0;
+    profile_nt_fold_next_events = 0;
+    profile_nt_fold_block_load_events = 0;
+    profile_nt_fold_block_store_events = 0;
+    profile_nt_fold_block_hazard_events = 0;
+    profile_nt_fold_block_control_events = 0;
     profile_fetch_request_events = 0;
     profile_fetch_redirect_request_events = 0;
     profile_fetch_regular_request_events = 0;
