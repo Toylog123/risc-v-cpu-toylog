@@ -2363,15 +2363,20 @@ end
 // Small direct-mapped redirect target instruction cache.
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-            for (redirect_cache_reset_idx = 0; redirect_cache_reset_idx < REDIRECT_CACHE_ENTRIES; redirect_cache_reset_idx = redirect_cache_reset_idx + 1) begin
+        for (redirect_cache_reset_idx = 0; redirect_cache_reset_idx < REDIRECT_CACHE_ENTRIES; redirect_cache_reset_idx = redirect_cache_reset_idx + 1) begin
             redirect_cache_valid_r[redirect_cache_reset_idx] <= 1'b0;
         end
     end else if (!trap_r) begin
         if (redirect_cache_update_valid) begin
             redirect_cache_valid_r[redirect_cache_update_index] <= 1'b1;
-            redirect_cache_pc_r[redirect_cache_update_index] <= fetch_queue_pc;
-            redirect_cache_instruction_r[redirect_cache_update_index] <= fetch_queue_instruction;
         end
+    end
+end
+
+always @(posedge clk) begin
+    if (rst_n && !trap_r && redirect_cache_update_valid) begin
+        redirect_cache_pc_r[redirect_cache_update_index] <= fetch_queue_pc;
+        redirect_cache_instruction_r[redirect_cache_update_index] <= fetch_queue_instruction;
     end
 end
 
