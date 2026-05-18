@@ -37,6 +37,7 @@ module YH_rv_cpu #(
     parameter integer ENABLE_ID_BRANCH_EX_FORWARD = 1, // ID 早分支允许使用 EX 本周期结果
     parameter integer ENABLE_REDIRECT_TARGET_CACHE = 1,
     parameter integer ENABLE_ID_BRANCH_FOLD = 0,
+    parameter integer ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD = 0,
     parameter integer ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP = 1,
     parameter integer ENABLE_FETCH_REDIRECT_REUSE = 0,
     parameter integer REDIRECT_CACHE_ENTRIES = 1024,
@@ -326,6 +327,7 @@ wire            id_branch_fold_candidate;
 wire            id_branch_fold_valid;
 wire            id_branch_not_taken_fold_candidate;
 wire            id_branch_not_taken_fold_valid;
+wire            id_branch_not_taken_fold_recent_operand_match;
 wire [XLEN-1:0] id_branch_not_taken_fold_pc;
 wire [31:0]     id_branch_not_taken_fold_instruction;
 wire [XLEN-1:0] id_branch_not_taken_next_pc;
@@ -1053,6 +1055,11 @@ assign id_branch_not_taken_fold_candidate =
     !id_branch_decode_taken &&
     regular_cache_deliver &&
     (ifetch_addr == id_branch_not_taken_fold_pc);
+assign id_branch_not_taken_fold_recent_operand_match =
+    id_branch_decode_rs1_idex_match ||
+    id_branch_decode_rs2_idex_match ||
+    id_branch_decode_rs1_exmem_match ||
+    id_branch_decode_rs2_exmem_match;
 assign fold_id_control_or_trap =
     fold_id_illegal ||
     fold_id_branch ||
@@ -1081,7 +1088,9 @@ assign id_branch_fold_valid =
 assign id_branch_not_taken_fold_valid =
     id_branch_not_taken_fold_candidate &&
     !fold_id_control_or_trap &&
-    !fold_id_load &&
+    (!fold_id_load ||
+     ((ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD != 0) &&
+      !id_branch_not_taken_fold_recent_operand_match)) &&
     !fold_id_store &&
     !fold_id_hazard;
 assign id_branch_any_fold_valid =
