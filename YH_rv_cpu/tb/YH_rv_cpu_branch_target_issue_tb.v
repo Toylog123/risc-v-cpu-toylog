@@ -24,6 +24,7 @@ reg [31:0] imem [0:63];
 integer idx;
 integer cycle;
 integer fold_seen;
+integer fold_next_seen;
 reg [31:0] fold_target_pc_at_edge;
 
 assign imem_rdata = imem_rdata_r;
@@ -126,6 +127,11 @@ always @(posedge clk) begin
                     dut.id_ex_valid_r,
                     dut.id_ex_pc_r);
             end
+            if ((fold_seen > 0) &&
+                dut.if_id_valid_r &&
+                (dut.if_id_pc_r === (fold_target_pc_at_edge + 32'd4))) begin
+                fold_next_seen <= fold_next_seen + 1;
+            end
         end
 
         if (trap) begin
@@ -136,11 +142,15 @@ always @(posedge clk) begin
             if (fold_seen == 0) begin
                 $fatal(1, "FAIL: branch target issue was never exercised");
             end
+            if (fold_next_seen == 0) begin
+                $fatal(1, "FAIL: branch target+4 was never issued into IF/ID during a fold");
+            end
             $display(
-                "PASS: branch target issue diagnostic completed at PC=%h cycles=%0d folds=%0d x2=%0d",
+                "PASS: branch target issue diagnostic completed at PC=%h cycles=%0d folds=%0d fold_next=%0d x2=%0d",
                 debug_pc,
                 cycle,
                 fold_seen,
+                fold_next_seen,
                 dut.u_regfile.regs[2]);
             $finish;
         end
@@ -163,6 +173,7 @@ initial begin
     rst_n = 1'b0;
     cycle = 0;
     fold_seen = 0;
+    fold_next_seen = 0;
     fold_target_pc_at_edge = 32'h0000_0000;
 
     for (idx = 0; idx < 64; idx = idx + 1) begin

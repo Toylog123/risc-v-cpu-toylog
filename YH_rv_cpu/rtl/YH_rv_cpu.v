@@ -571,6 +571,13 @@ wire            redirect_cache_hit;
 wire            redirect_cache_deliver;
 wire            redirect_cache_update_valid;
 wire [31:0]     redirect_cache_instruction;
+wire [XLEN-1:0] fold_next_cache_pc;
+wire [REDIRECT_CACHE_INDEX_BITS-1:0] fold_next_cache_lookup_index_direct;
+wire [REDIRECT_CACHE_INDEX_BITS-1:0] fold_next_cache_lookup_index_xor;
+wire [REDIRECT_CACHE_INDEX_BITS-1:0] fold_next_cache_lookup_index;
+wire            fold_next_cache_hit;
+wire            fold_next_cache_deliver;
+wire [31:0]     fold_next_cache_instruction;
 wire [REDIRECT_CACHE_INDEX_BITS-1:0] regular_cache_lookup_index_direct;
 wire [REDIRECT_CACHE_INDEX_BITS-1:0] regular_cache_lookup_index_xor;
 wire [REDIRECT_CACHE_INDEX_BITS-1:0] regular_cache_lookup_index;
@@ -1205,6 +1212,20 @@ assign redirect_cache_hit =
     (redirect_cache_pc_r[redirect_cache_lookup_index] == fetch_control_redirect_pc);
 assign redirect_cache_deliver = redirect_cache_hit;
 assign redirect_cache_instruction = redirect_cache_instruction_r[redirect_cache_lookup_index];
+assign fold_next_cache_pc = fetch_control_redirect_pc + {{(XLEN-3){1'b0}}, 3'd4};
+assign fold_next_cache_lookup_index_direct =
+    fold_next_cache_pc[REDIRECT_CACHE_INDEX_MSB:2];
+assign fold_next_cache_lookup_index_xor =
+    fold_next_cache_pc[REDIRECT_CACHE_INDEX_MSB:2] ^
+    fold_next_cache_pc[(2*REDIRECT_CACHE_INDEX_MSB-1):(REDIRECT_CACHE_INDEX_MSB+1)];
+assign fold_next_cache_lookup_index =
+    (REDIRECT_CACHE_XOR_INDEX != 0) ? fold_next_cache_lookup_index_xor : fold_next_cache_lookup_index_direct;
+assign fold_next_cache_hit =
+    id_branch_fold_valid &&
+    redirect_cache_valid_r[fold_next_cache_lookup_index] &&
+    (redirect_cache_pc_r[fold_next_cache_lookup_index] == fold_next_cache_pc);
+assign fold_next_cache_deliver = fold_next_cache_hit;
+assign fold_next_cache_instruction = redirect_cache_instruction_r[fold_next_cache_lookup_index];
 assign regular_cache_lookup_index_direct =
     ifetch_addr[REDIRECT_CACHE_INDEX_MSB:2];
 assign regular_cache_lookup_index_xor =
@@ -1232,7 +1253,7 @@ assign regular_cache_instruction = redirect_cache_instruction_r[regular_cache_lo
     // IF/ID 流水线控制
     // ================================================================
 assign if_id_fetch_valid = (IMEM_SYNC != 0) ?
-    (fetch_queue_valid || (redirect_cache_deliver && !id_branch_fold_valid) || regular_cache_deliver) :
+    (fetch_queue_valid || fold_next_cache_deliver || (redirect_cache_deliver && !id_branch_fold_valid) || regular_cache_deliver) :
     1'b1;
 assign if_id_write_en = pipeline_run && (!stall_decode || decode_flush_valid);
 assign if_id_duplicate_fetch =
@@ -1244,7 +1265,7 @@ assign if_id_duplicate_fetch =
     (fetch_queue_pc == if_id_pc_r) &&
     (fetch_queue_instruction == if_id_instruction_r);
 assign if_id_load_bubble =
-    id_branch_fold_valid ||
+    (id_branch_fold_valid && !fold_next_cache_deliver) ||
     (decode_flush_valid && !async_redirect_refill_valid && !redirect_cache_deliver) ||
     ((IMEM_SYNC != 0) && fetch_control_redirect_valid && !redirect_cache_deliver) ||
     !if_id_fetch_valid;
@@ -1269,10 +1290,12 @@ assign id_ex_stall_bubble_local = stall_decode;
     // IF/ID 下一拍数据和指令
     // ================================================================
 assign if_id_next_pc = if_id_load_bubble ? ZERO_XLEN :
+    fold_next_cache_deliver ? fold_next_cache_pc :
     redirect_cache_deliver ? fetch_control_redirect_pc :
     regular_cache_deliver ? ifetch_addr :
     ((IMEM_SYNC != 0) ? fetch_queue_pc : ifetch_addr);
 assign if_id_next_instruction = if_id_load_bubble ? 32'h0000_0013 :
+    fold_next_cache_deliver ? fold_next_cache_instruction :
     redirect_cache_deliver ? redirect_cache_instruction :
     regular_cache_deliver ? regular_cache_instruction :
     ((IMEM_SYNC != 0) ? fetch_queue_instruction : instr_data_from_mem);
@@ -2050,7 +2073,9 @@ always @(posedge clk or negedge rst_n) begin
                 if (fetch_control_redirect_valid || !stall_decode) begin
                     pc_r <=
                         ((IMEM_SYNC != 0) && (fetch_redirect_target_request || redirect_cache_deliver)) ?
-                            (fetch_control_redirect_pc + {{(XLEN-3){1'b0}}, 3'd4}) :
+                            (fetch_control_redirect_pc +
+                             (fold_next_cache_deliver ? {{(XLEN-4){1'b0}}, 4'd8} :
+                              {{(XLEN-3){1'b0}}, 3'd4})) :
                         async_redirect_refill_valid ? async_redirect_refill_next_pc :
                         if_pc_next;
                 end
