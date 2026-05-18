@@ -20,6 +20,7 @@ module YH_rv_cpu_coremark_fpga_tb #(
     parameter integer ENABLE_ID_BRANCH_FOLD = 0,
     parameter integer ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD = 0,
     parameter integer ENABLE_ID_ALU_PAIR_FOLD = 0,
+    parameter integer ENABLE_ID_ALU_DEP_FOLD = 0,
     parameter integer ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP = 1,
     parameter integer ENABLE_FETCH_REDIRECT_REUSE = 0,
     parameter integer REDIRECT_CACHE_ENTRIES = 1024,
@@ -91,6 +92,10 @@ integer profile_id_alu_pair_candidate_events;
 integer profile_id_alu_pair_valid_events;
 integer profile_id_alu_pair_fetch_events;
 integer profile_id_alu_pair_cache_events;
+integer profile_id_alu_dep_candidate_events;
+integer profile_id_alu_dep_valid_events;
+integer profile_id_alu_dep_fetch_events;
+integer profile_id_alu_dep_cache_events;
 integer profile_fetch_request_events;
 integer profile_fetch_redirect_request_events;
 integer profile_fetch_regular_request_events;
@@ -124,6 +129,7 @@ YH_rv_cpu_soc #(
     .ENABLE_ID_BRANCH_FOLD(ENABLE_ID_BRANCH_FOLD),
     .ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD(ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD),
     .ENABLE_ID_ALU_PAIR_FOLD(ENABLE_ID_ALU_PAIR_FOLD),
+    .ENABLE_ID_ALU_DEP_FOLD(ENABLE_ID_ALU_DEP_FOLD),
     .ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP(ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP),
     .ENABLE_FETCH_REDIRECT_REUSE(ENABLE_FETCH_REDIRECT_REUSE),
     .REDIRECT_CACHE_ENTRIES(REDIRECT_CACHE_ENTRIES),
@@ -236,6 +242,18 @@ always @(posedge clk) begin
         end
         if (dut.u_cpu.id_early_alu_pair_cache_deliver) begin
             profile_id_alu_pair_cache_events <= profile_id_alu_pair_cache_events + 1;
+        end
+        if (dut.u_cpu.id_alu_dep_fold_candidate) begin
+            profile_id_alu_dep_candidate_events <= profile_id_alu_dep_candidate_events + 1;
+        end
+        if (dut.u_cpu.id_alu_dep_fold_valid) begin
+            profile_id_alu_dep_valid_events <= profile_id_alu_dep_valid_events + 1;
+        end
+        if (dut.u_cpu.id_alu_dep_fold_fetch_deliver) begin
+            profile_id_alu_dep_fetch_events <= profile_id_alu_dep_fetch_events + 1;
+        end
+        if (dut.u_cpu.id_alu_dep_fold_cache_deliver) begin
+            profile_id_alu_dep_cache_events <= profile_id_alu_dep_cache_events + 1;
         end
         if (dut.u_cpu.fetch_imem_req) begin
             profile_fetch_request_events <= profile_fetch_request_events + 1;
@@ -464,7 +482,7 @@ always @(posedge clk) begin
             end
 
             $display(
-                "PROFILE_EVENTS cycles=%0d ifid_valid=%0d idex_valid=%0d stall_decode=%0d mem_wait=%0d decode_flush=%0d ifid_load_bubble=%0d redirects=%0d ex_redirect=%0d id_redirect=%0d branch_predict_redirect=%0d jal_predict_redirect=%0d redirect_cache_deliver=%0d regular_cache_deliver=%0d fold_candidate=%0d fold_valid=%0d fold_next=%0d fold_hazard=%0d fold_control=%0d nt_fold_candidate=%0d nt_fold_valid=%0d nt_fold_next=%0d nt_fold_block_load=%0d nt_fold_block_store=%0d nt_fold_block_hazard=%0d nt_fold_block_control=%0d id_alu_pair_candidate=%0d id_alu_pair_valid=%0d id_alu_pair_fetch=%0d id_alu_pair_cache=%0d fetch_req=%0d fetch_redirect_req=%0d fetch_regular_req=%0d fetch_data_issue=%0d fetch_queue_enqueue=%0d fetch_queue_consume=%0d fetch_drop_response=%0d",
+                "PROFILE_EVENTS cycles=%0d ifid_valid=%0d idex_valid=%0d stall_decode=%0d mem_wait=%0d decode_flush=%0d ifid_load_bubble=%0d redirects=%0d ex_redirect=%0d id_redirect=%0d branch_predict_redirect=%0d jal_predict_redirect=%0d redirect_cache_deliver=%0d regular_cache_deliver=%0d fold_candidate=%0d fold_valid=%0d fold_next=%0d fold_hazard=%0d fold_control=%0d nt_fold_candidate=%0d nt_fold_valid=%0d nt_fold_next=%0d nt_fold_block_load=%0d nt_fold_block_store=%0d nt_fold_block_hazard=%0d nt_fold_block_control=%0d id_alu_pair_candidate=%0d id_alu_pair_valid=%0d id_alu_pair_fetch=%0d id_alu_pair_cache=%0d id_alu_dep_candidate=%0d id_alu_dep_valid=%0d id_alu_dep_fetch=%0d id_alu_dep_cache=%0d fetch_req=%0d fetch_redirect_req=%0d fetch_regular_req=%0d fetch_data_issue=%0d fetch_queue_enqueue=%0d fetch_queue_consume=%0d fetch_drop_response=%0d",
                 profile_cycles,
                 profile_ifid_valid_cycles,
                 profile_idex_valid_cycles,
@@ -495,6 +513,10 @@ always @(posedge clk) begin
                 profile_id_alu_pair_valid_events,
                 profile_id_alu_pair_fetch_events,
                 profile_id_alu_pair_cache_events,
+                profile_id_alu_dep_candidate_events,
+                profile_id_alu_dep_valid_events,
+                profile_id_alu_dep_fetch_events,
+                profile_id_alu_dep_cache_events,
                 profile_fetch_request_events,
                 profile_fetch_redirect_request_events,
                 profile_fetch_regular_request_events,
@@ -562,6 +584,10 @@ initial begin
     profile_id_alu_pair_valid_events = 0;
     profile_id_alu_pair_fetch_events = 0;
     profile_id_alu_pair_cache_events = 0;
+    profile_id_alu_dep_candidate_events = 0;
+    profile_id_alu_dep_valid_events = 0;
+    profile_id_alu_dep_fetch_events = 0;
+    profile_id_alu_dep_cache_events = 0;
     profile_fetch_request_events = 0;
     profile_fetch_redirect_request_events = 0;
     profile_fetch_regular_request_events = 0;

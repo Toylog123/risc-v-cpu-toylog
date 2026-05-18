@@ -39,6 +39,7 @@ module YH_rv_cpu #(
     parameter integer ENABLE_ID_BRANCH_FOLD = 0,
     parameter integer ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD = 0,
     parameter integer ENABLE_ID_ALU_PAIR_FOLD = 0,
+    parameter integer ENABLE_ID_ALU_DEP_FOLD = 0,
     parameter integer ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP = 1,
     parameter integer ENABLE_FETCH_REDIRECT_REUSE = 0,
     parameter integer REDIRECT_CACHE_ENTRIES = 1024,
@@ -347,6 +348,13 @@ wire            id_early_alu_pair_valid;
 wire            id_early_alu_pair_fetch_deliver;
 wire            id_early_alu_pair_cache_deliver;
 wire [31:0]     id_early_alu_pair_instruction;
+wire            id_alu_dep_fold_candidate;
+wire            id_alu_dep_fold_valid;
+wire            id_alu_dep_fold_fetch_deliver;
+wire            id_alu_dep_fold_cache_deliver;
+wire            id_alu_dep_uses_rs1;
+wire            id_alu_dep_uses_rs2;
+wire            id_alu_dep_uses_rs3;
 wire            id_early_alu_current_simple;
 wire            id_early_alu_current_ready;
 wire            id_early_alu_current_rs1_pending;
@@ -354,10 +362,17 @@ wire            id_early_alu_current_rs2_pending;
 wire            id_early_alu_current_self_dep;
 wire            id_early_alu_current_waw_pending;
 wire            id_early_alu_fold_simple;
+wire            id_early_alu_fold_simple_op;
 wire            id_early_alu_fold_dep;
 wire [XLEN-1:0] id_early_alu_lhs;
 wire [XLEN-1:0] id_early_alu_rhs;
 reg  [XLEN-1:0] id_early_alu_result;
+wire            fold_issue_rs1_en;
+wire            fold_issue_rs2_en;
+wire            fold_issue_rs3_en;
+wire [XLEN-1:0] fold_issue_rs1_value;
+wire [XLEN-1:0] fold_issue_rs2_value;
+wire [XLEN-1:0] fold_issue_rs3_value;
 wire            branch_bht_ex_update_valid;
 wire            branch_bht_id_update_valid;
 wire            branch_bht_update_valid;
@@ -1126,10 +1141,11 @@ assign id_branch_any_fold_valid =
     id_branch_not_taken_fold_valid;
 assign id_any_fold_valid =
     id_branch_any_fold_valid ||
-    id_early_alu_pair_valid;
+    id_early_alu_pair_valid ||
+    id_alu_dep_fold_valid;
 
 assign id_early_alu_current_simple =
-    (ENABLE_ID_ALU_PAIR_FOLD != 0) &&
+    ((ENABLE_ID_ALU_PAIR_FOLD != 0) || (ENABLE_ID_ALU_DEP_FOLD != 0)) &&
     if_id_valid_r &&
     !id_illegal &&
     !id_branch &&
@@ -1218,6 +1234,31 @@ assign id_early_alu_current_ready =
     !id_early_alu_current_rs2_pending &&
     !id_early_alu_current_self_dep &&
     !id_early_alu_current_waw_pending;
+assign id_early_alu_fold_simple_op =
+    (fold_id_alu_op == `YH_rv_cpu_ALU_ADD) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_SUB) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_SLT) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_SLTU) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_XOR) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_OR)  ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_AND) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_SLL) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_SRL) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_SRA) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_SH1ADD) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_SH2ADD) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_SH3ADD) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_TH_ADDSL1) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_TH_ADDSL2) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_TH_ADDSL3) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_TH_MVEQZ) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_TH_MVNEZ) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_CZERO_EQZ) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_CZERO_NEZ) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_ANDN) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_SEXT_H) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_ZEXT_H) ||
+    (fold_id_alu_op == `YH_rv_cpu_ALU_BEXT);
 assign id_early_alu_fold_simple =
     !fold_id_illegal &&
     !fold_id_branch &&
@@ -1228,6 +1269,7 @@ assign id_early_alu_fold_simple =
     !fold_id_ecall &&
     !fold_id_ebreak &&
     !fold_id_mret &&
+    id_early_alu_fold_simple_op &&
     (fold_id_wb_sel == `YH_rv_cpu_WB_ALU);
 assign id_early_alu_fold_dep =
     id_rd_en &&
@@ -1259,6 +1301,48 @@ assign id_early_alu_pair_valid =
     !id_early_alu_fold_dep &&
     !fold_id_hazard &&
     !(mem_wb_valid_r && mem_wb_base_update_en_r);
+assign id_alu_dep_fold_fetch_deliver = id_early_alu_pair_fetch_deliver;
+assign id_alu_dep_fold_cache_deliver = id_early_alu_pair_cache_deliver;
+assign id_alu_dep_uses_rs1 =
+    fold_id_rs1_en &&
+    (fold_id_rs1_addr == id_rd_addr);
+assign id_alu_dep_uses_rs2 =
+    fold_id_rs2_en &&
+    (fold_id_rs2_addr == id_rd_addr);
+assign id_alu_dep_uses_rs3 =
+    fold_id_rs3_en &&
+    (fold_id_rs3_addr == id_rd_addr);
+assign id_alu_dep_fold_candidate =
+    (ENABLE_ID_ALU_DEP_FOLD != 0) &&
+    pipeline_run &&
+    !ex_fetch_redirect_valid &&
+    !stall_decode &&
+    if_id_valid_r &&
+    (id_alu_dep_fold_fetch_deliver || id_alu_dep_fold_cache_deliver);
+assign id_alu_dep_fold_valid =
+    id_alu_dep_fold_candidate &&
+    id_early_alu_current_ready &&
+    id_early_alu_fold_simple &&
+    id_early_alu_fold_dep &&
+    fold_id_rd_en &&
+    (fold_id_rd_addr == id_rd_addr) &&
+    !fold_id_hazard &&
+    !id_early_alu_pair_valid;
+assign fold_issue_rs1_en =
+    fold_id_rs1_en &&
+    !(id_alu_dep_fold_valid && id_alu_dep_uses_rs1);
+assign fold_issue_rs2_en =
+    fold_id_rs2_en &&
+    !(id_alu_dep_fold_valid && id_alu_dep_uses_rs2);
+assign fold_issue_rs3_en =
+    fold_id_rs3_en &&
+    !(id_alu_dep_fold_valid && id_alu_dep_uses_rs3);
+assign fold_issue_rs1_value =
+    (id_alu_dep_fold_valid && id_alu_dep_uses_rs1) ? id_early_alu_result : fold_id_rs1_value;
+assign fold_issue_rs2_value =
+    (id_alu_dep_fold_valid && id_alu_dep_uses_rs2) ? id_early_alu_result : fold_id_rs2_value;
+assign fold_issue_rs3_value =
+    (id_alu_dep_fold_valid && id_alu_dep_uses_rs3) ? id_early_alu_result : fold_rs3_rdata;
 assign id_early_alu_lhs = id_is_lui ? ZERO_XLEN : (id_alu_src1_pc ? if_id_pc_r : id_rs1_value);
 assign id_early_alu_rhs = id_alu_src2_imm ? id_imm : id_rs2_value;
 always @* begin
@@ -1475,7 +1559,7 @@ assign not_taken_next_cache_lookup_index_xor =
 assign not_taken_next_cache_lookup_index =
     (REDIRECT_CACHE_XOR_INDEX != 0) ? not_taken_next_cache_lookup_index_xor : not_taken_next_cache_lookup_index_direct;
 assign not_taken_next_cache_hit =
-    (id_branch_not_taken_fold_valid || id_early_alu_pair_valid) &&
+    (id_branch_not_taken_fold_valid || id_early_alu_pair_valid || id_alu_dep_fold_valid) &&
     redirect_cache_valid_r[not_taken_next_cache_lookup_index] &&
     (redirect_cache_pc_r[not_taken_next_cache_lookup_index] == id_branch_not_taken_next_pc);
 assign not_taken_next_cache_deliver = not_taken_next_cache_hit;
@@ -1523,6 +1607,7 @@ assign if_id_load_bubble =
     (id_branch_fold_valid && !fold_next_cache_deliver) ||
     (id_branch_not_taken_fold_valid && !not_taken_next_cache_deliver) ||
     (id_early_alu_pair_valid && !not_taken_next_cache_deliver) ||
+    (id_alu_dep_fold_valid && !not_taken_next_cache_deliver) ||
     (decode_flush_valid && !async_redirect_refill_valid && !redirect_cache_deliver) ||
     ((IMEM_SYNC != 0) && fetch_control_redirect_valid && !redirect_cache_deliver) ||
     !if_id_fetch_valid;
@@ -1532,10 +1617,10 @@ assign if_id_data_write_en =
     (pipeline_run && !stall_decode && if_id_fetch_valid) :
     (pipeline_run && !stall_decode);
 assign fold_decode_pc =
-    (id_branch_not_taken_fold_candidate || id_early_alu_pair_candidate) ? id_branch_not_taken_fold_pc :
+    (id_branch_not_taken_fold_candidate || id_early_alu_pair_candidate || id_alu_dep_fold_candidate) ? id_branch_not_taken_fold_pc :
     fetch_control_redirect_pc;
 assign fold_decode_instruction =
-    id_early_alu_pair_candidate ? id_early_alu_pair_instruction :
+    (id_early_alu_pair_candidate || id_alu_dep_fold_candidate) ? id_early_alu_pair_instruction :
     id_branch_not_taken_fold_candidate ? id_branch_not_taken_fold_instruction :
     redirect_cache_instruction;
 assign redirect_cache_update_valid =
@@ -2338,7 +2423,7 @@ always @(posedge clk or negedge rst_n) begin
             end else begin
                 if (fetch_control_redirect_valid || !stall_decode) begin
                     pc_r <=
-                        (id_branch_not_taken_fold_valid || id_early_alu_pair_valid) ?
+                        (id_branch_not_taken_fold_valid || id_early_alu_pair_valid || id_alu_dep_fold_valid) ?
                             (id_branch_not_taken_fold_pc +
                              (not_taken_next_cache_deliver ? {{(XLEN-4){1'b0}}, 4'd8} :
                               {{(XLEN-3){1'b0}}, 3'd4})) :
@@ -2475,14 +2560,14 @@ always @(posedge clk or negedge rst_n) begin
                         id_ex_rs2_addr_r <= fold_id_rs2_addr;
                         id_ex_rs3_addr_r <= fold_id_rs3_addr;
                         id_ex_rd_addr_r <= fold_id_rd_addr;
-                        id_ex_rs1_en_r <= fold_id_rs1_en;
-                        id_ex_rs2_en_r <= fold_id_rs2_en;
-                        id_ex_rs3_en_r <= fold_id_rs3_en;
+                        id_ex_rs1_en_r <= fold_issue_rs1_en;
+                        id_ex_rs2_en_r <= fold_issue_rs2_en;
+                        id_ex_rs3_en_r <= fold_issue_rs3_en;
                         id_ex_rd_en_r <= fold_id_rd_en;
                         id_ex_illegal_r <= fold_id_illegal;
-                        id_ex_rs1_value_r <= fold_id_rs1_value;
-                        id_ex_rs2_value_r <= fold_id_rs2_value;
-                        id_ex_rs3_value_r <= fold_rs3_rdata;
+                        id_ex_rs1_value_r <= fold_issue_rs1_value;
+                        id_ex_rs2_value_r <= fold_issue_rs2_value;
+                        id_ex_rs3_value_r <= fold_issue_rs3_value;
                         id_ex_imm_r <= fold_id_imm;
                         id_ex_alu_op_r <= fold_id_alu_op;
                         id_ex_alu_src1_pc_r <= fold_id_alu_src1_pc;
