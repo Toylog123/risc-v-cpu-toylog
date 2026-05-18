@@ -11,7 +11,7 @@ This is a parameter-only hardware exploration. CoreMark was re-run with `DMEM_NE
 | Version | CoreMark/MHz | DMIPS/MHz | CoreMark Ticks | Completion Cycles | LUT | FF | BRAM | DSP | Status |
 |---|---:|---:|---:|---:|---:|---:|---|---:|---|
 | SS-BTI-v2, posedge DMem | 4.129273 | 1.371423 | 2,421,734 | 2,460,859 | pending | pending | DMem TDP BRAM seen in synth log | pending | prior stable baseline |
-| SS-BTI-v2, negedge DMem fast path | 5.709219 | pending rerun | 1,751,553 | 1,785,028 | pending | pending | needs fresh PYNQ-Z2 synth check | pending | exploration candidate |
+| SS-BTI-v2, negedge DMem fast path | 5.709219 | 1.371423 | 1,751,553 | 1,785,028 | pending | pending | needs fresh PYNQ-Z2 synth check | pending | exploration candidate |
 
 ## CoreMark Evidence
 
@@ -23,6 +23,16 @@ This is a parameter-only hardware exploration. CoreMark was re-run with `DMEM_NE
 | CoreMark/MHz | 5.709219 |
 | Strict EEMBC 10-second compliance | no, engineering short-run comparison |
 | CoreMark algorithm files | unchanged |
+
+## Dhrystone Evidence
+
+| Item | Result |
+|---|---|
+| Runs | 2,000 |
+| Dhrystones/s | 240,959 |
+| DMIPS/MHz | 1.371423 |
+| Completion cycles | 873,680 |
+| Interpretation | unchanged from the prior Dhrystone path; Dhrystone needs a separate hardware-hotspot pass |
 
 ## Event Snapshot
 
@@ -42,6 +52,6 @@ The score gain comes from removing synchronous DMem load wait and load-use stall
 
 ## Required Follow-Up
 
-1. Run Dhrystone with the same candidate where applicable and record the DMIPS result.
-2. Run fresh PYNQ-Z2 synthesis/implementation or a smaller synthesis proxy to verify resource and timing.
+1. Run fresh PYNQ-Z2 synthesis/implementation or a smaller synthesis proxy to verify resource and timing.
+2. Add Dhrystone event profiling because the same memory fast path does not move DMIPS.
 3. If negedge BRAM inference is not acceptable, re-implement the same load-use benefit with a safer dual-port/read-ahead or bypassed DMem wrapper.
