@@ -337,8 +337,15 @@ wire [REDIRECT_CACHE_INDEX_BITS-1:0] not_taken_next_cache_lookup_index_direct;
 wire [REDIRECT_CACHE_INDEX_BITS-1:0] not_taken_next_cache_lookup_index_xor;
 wire [REDIRECT_CACHE_INDEX_BITS-1:0] not_taken_next_cache_lookup_index;
 wire            not_taken_next_cache_hit;
+wire            not_taken_next_cache_match;
 wire            not_taken_next_cache_deliver;
 wire [31:0]     not_taken_next_cache_instruction;
+wire [6:0]      not_taken_next_opcode;
+wire [4:0]      not_taken_next_rs1_addr;
+wire [4:0]      not_taken_next_rs2_addr;
+wire            not_taken_next_rs1_en;
+wire            not_taken_next_rs2_en;
+wire            not_taken_next_uses_fold_load_rd;
 wire [XLEN-1:0] fold_decode_pc;
 wire [31:0]     fold_decode_instruction;
 wire            id_branch_any_fold_valid;
@@ -1103,6 +1110,29 @@ assign id_branch_not_taken_fold_recent_operand_match =
     id_branch_decode_rs2_idex_match ||
     id_branch_decode_rs1_exmem_match ||
     id_branch_decode_rs2_exmem_match;
+assign not_taken_next_opcode = not_taken_next_cache_instruction[6:0];
+assign not_taken_next_rs1_addr = not_taken_next_cache_instruction[19:15];
+assign not_taken_next_rs2_addr = not_taken_next_cache_instruction[24:20];
+assign not_taken_next_rs1_en =
+    (not_taken_next_opcode == 7'b0110011) ||
+    (not_taken_next_opcode == 7'b0010011) ||
+    (not_taken_next_opcode == 7'b0000011) ||
+    (not_taken_next_opcode == 7'b0100011) ||
+    (not_taken_next_opcode == 7'b1100011) ||
+    (not_taken_next_opcode == 7'b1100111) ||
+    (not_taken_next_opcode == 7'b1110011);
+assign not_taken_next_rs2_en =
+    (not_taken_next_opcode == 7'b0110011) ||
+    (not_taken_next_opcode == 7'b0100011) ||
+    (not_taken_next_opcode == 7'b1100011);
+assign not_taken_next_uses_fold_load_rd =
+    fold_id_rd_en &&
+    (fold_id_rd_addr != 5'd0) &&
+    not_taken_next_cache_match &&
+    (
+        (not_taken_next_rs1_en && (not_taken_next_rs1_addr == fold_id_rd_addr)) ||
+        (not_taken_next_rs2_en && (not_taken_next_rs2_addr == fold_id_rd_addr))
+    );
 assign fold_id_control_or_trap =
     fold_id_illegal ||
     fold_id_branch ||
@@ -1133,7 +1163,8 @@ assign id_branch_not_taken_fold_valid =
     !fold_id_control_or_trap &&
     (!fold_id_load ||
      ((ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD != 0) &&
-      !id_branch_not_taken_fold_recent_operand_match)) &&
+      !id_branch_not_taken_fold_recent_operand_match &&
+      !not_taken_next_uses_fold_load_rd)) &&
     !fold_id_hazard;
 assign id_branch_any_fold_valid =
     id_branch_fold_valid ||
@@ -1557,10 +1588,12 @@ assign not_taken_next_cache_lookup_index_xor =
     id_branch_not_taken_next_pc[(2*REDIRECT_CACHE_INDEX_MSB-1):(REDIRECT_CACHE_INDEX_MSB+1)];
 assign not_taken_next_cache_lookup_index =
     (REDIRECT_CACHE_XOR_INDEX != 0) ? not_taken_next_cache_lookup_index_xor : not_taken_next_cache_lookup_index_direct;
-assign not_taken_next_cache_hit =
-    (id_branch_not_taken_fold_valid || id_early_alu_pair_valid || id_alu_dep_fold_valid) &&
+assign not_taken_next_cache_match =
     redirect_cache_valid_r[not_taken_next_cache_lookup_index] &&
     (redirect_cache_pc_r[not_taken_next_cache_lookup_index] == id_branch_not_taken_next_pc);
+assign not_taken_next_cache_hit =
+    (id_branch_not_taken_fold_valid || id_early_alu_pair_valid || id_alu_dep_fold_valid) &&
+    not_taken_next_cache_match;
 assign not_taken_next_cache_deliver = not_taken_next_cache_hit;
 assign not_taken_next_cache_instruction = redirect_cache_instruction_r[not_taken_next_cache_lookup_index];
 assign regular_cache_lookup_index_direct =
