@@ -66,6 +66,13 @@ generate
                         end
                     end
                 end
+
+                if (OUTPUT_REG != 0) begin
+                    read_data_pipe_r <= read_data_r;
+                end
+            end
+
+            always @(posedge clk) begin
                 if (pair_write_en && (pair_write_index < RAM_DEPTH)) begin
                     for (byte_idx = 0; byte_idx < STRB_W; byte_idx = byte_idx + 1) begin
                         if (pair_write_wstrb[byte_idx]) begin
@@ -75,7 +82,6 @@ generate
                 end
 
                 if (OUTPUT_REG != 0) begin
-                    read_data_pipe_r <= read_data_r;
                     pair_read_data_pipe_r <= pair_read_data_r;
                 end
             end
@@ -97,6 +103,17 @@ generate
                         end
                     end
                 end
+
+                if (read_req && (read_index < RAM_DEPTH)) begin
+                    read_data_r <= ram_mem[read_index];
+                end
+
+                if (OUTPUT_REG != 0) begin
+                    read_data_pipe_r <= read_data_r;
+                end
+            end
+
+            always @(posedge clk) begin
                 if (pair_write_en && (pair_write_index < RAM_DEPTH)) begin
                     for (byte_idx = 0; byte_idx < STRB_W; byte_idx = byte_idx + 1) begin
                         if (pair_write_wstrb[byte_idx]) begin
@@ -105,15 +122,11 @@ generate
                     end
                 end
 
-                if (read_req && (read_index < RAM_DEPTH)) begin
-                    read_data_r <= ram_mem[read_index];
-                end
                 if (pair_read_req && (pair_read_index < RAM_DEPTH)) begin
                     pair_read_data_r <= ram_mem[pair_read_index];
                 end
 
                 if (OUTPUT_REG != 0) begin
-                    read_data_pipe_r <= read_data_r;
                     pair_read_data_pipe_r <= pair_read_data_r;
                 end
             end
