@@ -1134,7 +1134,6 @@ assign id_branch_not_taken_fold_valid =
     (!fold_id_load ||
      ((ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD != 0) &&
       !id_branch_not_taken_fold_recent_operand_match)) &&
-    !fold_id_store &&
     !fold_id_hazard;
 assign id_branch_any_fold_valid =
     id_branch_fold_valid ||
