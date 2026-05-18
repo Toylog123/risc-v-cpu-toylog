@@ -324,6 +324,20 @@ wire            id_branch_predict_pending_latch_valid;
 wire            id_branch_predict_pending_clear_valid;
 wire            id_branch_fold_candidate;
 wire            id_branch_fold_valid;
+wire            id_branch_not_taken_fold_candidate;
+wire            id_branch_not_taken_fold_valid;
+wire [XLEN-1:0] id_branch_not_taken_fold_pc;
+wire [31:0]     id_branch_not_taken_fold_instruction;
+wire [XLEN-1:0] id_branch_not_taken_next_pc;
+wire [REDIRECT_CACHE_INDEX_BITS-1:0] not_taken_next_cache_lookup_index_direct;
+wire [REDIRECT_CACHE_INDEX_BITS-1:0] not_taken_next_cache_lookup_index_xor;
+wire [REDIRECT_CACHE_INDEX_BITS-1:0] not_taken_next_cache_lookup_index;
+wire            not_taken_next_cache_hit;
+wire            not_taken_next_cache_deliver;
+wire [31:0]     not_taken_next_cache_instruction;
+wire [XLEN-1:0] fold_decode_pc;
+wire [31:0]     fold_decode_instruction;
+wire            id_branch_any_fold_valid;
 wire            branch_bht_ex_update_valid;
 wire            branch_bht_id_update_valid;
 wire            branch_bht_update_valid;
@@ -1024,6 +1038,21 @@ assign id_branch_fold_candidate =
     (ENABLE_ID_BRANCH_FOLD != 0) &&
     id_branch_decode_redirect_valid &&
     redirect_cache_deliver;
+assign id_branch_not_taken_fold_pc = if_id_pc_r + {{(XLEN-3){1'b0}}, 3'd4};
+assign id_branch_not_taken_fold_instruction = regular_cache_instruction;
+assign id_branch_not_taken_next_pc = if_id_pc_r + {{(XLEN-4){1'b0}}, 4'd8};
+assign id_branch_not_taken_fold_candidate =
+    (ENABLE_ID_BRANCH_FOLD != 0) &&
+    pipeline_run &&
+    !ex_fetch_redirect_valid &&
+    !stall_decode &&
+    if_id_valid_r &&
+    id_branch &&
+    !id_illegal &&
+    id_branch_decode_operands_ready &&
+    !id_branch_decode_taken &&
+    regular_cache_deliver &&
+    (ifetch_addr == id_branch_not_taken_fold_pc);
 assign fold_id_control_or_trap =
     fold_id_illegal ||
     fold_id_branch ||
@@ -1049,6 +1078,15 @@ assign id_branch_fold_valid =
     id_branch_fold_candidate &&
     !fold_id_control_or_trap &&
     !fold_id_hazard;
+assign id_branch_not_taken_fold_valid =
+    id_branch_not_taken_fold_candidate &&
+    !fold_id_control_or_trap &&
+    !fold_id_load &&
+    !fold_id_store &&
+    !fold_id_hazard;
+assign id_branch_any_fold_valid =
+    id_branch_fold_valid ||
+    id_branch_not_taken_fold_valid;
 assign id_jal_predict_redirect_valid =
     pipeline_run &&
     !ex_fetch_redirect_valid &&
@@ -1226,6 +1264,19 @@ assign fold_next_cache_hit =
     (redirect_cache_pc_r[fold_next_cache_lookup_index] == fold_next_cache_pc);
 assign fold_next_cache_deliver = fold_next_cache_hit;
 assign fold_next_cache_instruction = redirect_cache_instruction_r[fold_next_cache_lookup_index];
+assign not_taken_next_cache_lookup_index_direct =
+    id_branch_not_taken_next_pc[REDIRECT_CACHE_INDEX_MSB:2];
+assign not_taken_next_cache_lookup_index_xor =
+    id_branch_not_taken_next_pc[REDIRECT_CACHE_INDEX_MSB:2] ^
+    id_branch_not_taken_next_pc[(2*REDIRECT_CACHE_INDEX_MSB-1):(REDIRECT_CACHE_INDEX_MSB+1)];
+assign not_taken_next_cache_lookup_index =
+    (REDIRECT_CACHE_XOR_INDEX != 0) ? not_taken_next_cache_lookup_index_xor : not_taken_next_cache_lookup_index_direct;
+assign not_taken_next_cache_hit =
+    id_branch_not_taken_fold_valid &&
+    redirect_cache_valid_r[not_taken_next_cache_lookup_index] &&
+    (redirect_cache_pc_r[not_taken_next_cache_lookup_index] == id_branch_not_taken_next_pc);
+assign not_taken_next_cache_deliver = not_taken_next_cache_hit;
+assign not_taken_next_cache_instruction = redirect_cache_instruction_r[not_taken_next_cache_lookup_index];
 assign regular_cache_lookup_index_direct =
     ifetch_addr[REDIRECT_CACHE_INDEX_MSB:2];
 assign regular_cache_lookup_index_xor =
@@ -1253,7 +1304,8 @@ assign regular_cache_instruction = redirect_cache_instruction_r[regular_cache_lo
     // IF/ID 流水线控制
     // ================================================================
 assign if_id_fetch_valid = (IMEM_SYNC != 0) ?
-    (fetch_queue_valid || fold_next_cache_deliver || (redirect_cache_deliver && !id_branch_fold_valid) || regular_cache_deliver) :
+    (fetch_queue_valid || fold_next_cache_deliver || not_taken_next_cache_deliver ||
+     (redirect_cache_deliver && !id_branch_fold_valid) || regular_cache_deliver) :
     1'b1;
 assign if_id_write_en = pipeline_run && (!stall_decode || decode_flush_valid);
 assign if_id_duplicate_fetch =
@@ -1266,6 +1318,7 @@ assign if_id_duplicate_fetch =
     (fetch_queue_instruction == if_id_instruction_r);
 assign if_id_load_bubble =
     (id_branch_fold_valid && !fold_next_cache_deliver) ||
+    (id_branch_not_taken_fold_valid && !not_taken_next_cache_deliver) ||
     (decode_flush_valid && !async_redirect_refill_valid && !redirect_cache_deliver) ||
     ((IMEM_SYNC != 0) && fetch_control_redirect_valid && !redirect_cache_deliver) ||
     !if_id_fetch_valid;
@@ -1274,6 +1327,12 @@ assign if_id_data_write_en =
     (IMEM_SYNC != 0) ?
     (pipeline_run && !stall_decode && if_id_fetch_valid) :
     (pipeline_run && !stall_decode);
+assign fold_decode_pc =
+    id_branch_not_taken_fold_candidate ? id_branch_not_taken_fold_pc :
+    fetch_control_redirect_pc;
+assign fold_decode_instruction =
+    id_branch_not_taken_fold_candidate ? id_branch_not_taken_fold_instruction :
+    redirect_cache_instruction;
 assign redirect_cache_update_valid =
     (IMEM_SYNC != 0) &&
     (ICACHE_EN == 0) &&
@@ -1291,11 +1350,13 @@ assign id_ex_stall_bubble_local = stall_decode;
     // ================================================================
 assign if_id_next_pc = if_id_load_bubble ? ZERO_XLEN :
     fold_next_cache_deliver ? fold_next_cache_pc :
+    not_taken_next_cache_deliver ? id_branch_not_taken_next_pc :
     redirect_cache_deliver ? fetch_control_redirect_pc :
     regular_cache_deliver ? ifetch_addr :
     ((IMEM_SYNC != 0) ? fetch_queue_pc : ifetch_addr);
 assign if_id_next_instruction = if_id_load_bubble ? 32'h0000_0013 :
     fold_next_cache_deliver ? fold_next_cache_instruction :
+    not_taken_next_cache_deliver ? not_taken_next_cache_instruction :
     redirect_cache_deliver ? redirect_cache_instruction :
     regular_cache_deliver ? regular_cache_instruction :
     ((IMEM_SYNC != 0) ? fetch_queue_instruction : instr_data_from_mem);
@@ -1573,8 +1634,8 @@ YH_rv_cpu_id_stage #(
     .ENABLE_ZBKB_EXTENSION(ENABLE_ZBKB_EXTENSION),
     .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION)
 ) u_fold_target_id_stage (
-    .pc            (fetch_control_redirect_pc),
-    .instruction   (redirect_cache_instruction),
+    .pc            (fold_decode_pc),
+    .instruction   (fold_decode_instruction),
     .rs1_rdata     (fold_rs1_rdata),
     .rs2_rdata     (fold_rs2_rdata),
     .pc4           (fold_id_pc4),
@@ -2072,6 +2133,10 @@ always @(posedge clk or negedge rst_n) begin
             end else begin
                 if (fetch_control_redirect_valid || !stall_decode) begin
                     pc_r <=
+                        id_branch_not_taken_fold_valid ?
+                            (id_branch_not_taken_fold_pc +
+                             (not_taken_next_cache_deliver ? {{(XLEN-4){1'b0}}, 4'd8} :
+                              {{(XLEN-3){1'b0}}, 3'd4})) :
                         ((IMEM_SYNC != 0) && (fetch_redirect_target_request || redirect_cache_deliver)) ?
                             (fetch_control_redirect_pc +
                              (fold_next_cache_deliver ? {{(XLEN-4){1'b0}}, 4'd8} :
@@ -2197,9 +2262,9 @@ always @(posedge clk or negedge rst_n) begin
                     id_ex_ebreak_r <= id_ex_ebreak_r;
                     id_ex_mret_r <= id_ex_mret_r;
                 end else begin
-                    if (id_branch_fold_valid) begin
+                    if (id_branch_any_fold_valid) begin
                         id_ex_valid_r <= 1'b1;
-                        id_ex_pc_r <= fetch_control_redirect_pc;
+                        id_ex_pc_r <= fold_decode_pc;
                         id_ex_pc4_r <= fold_id_pc4;
                         id_ex_rs1_addr_r <= fold_id_rs1_addr;
                         id_ex_rs2_addr_r <= fold_id_rs2_addr;
