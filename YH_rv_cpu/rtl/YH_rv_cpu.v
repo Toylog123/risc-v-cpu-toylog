@@ -24,6 +24,7 @@ module YH_rv_cpu #(
     parameter integer IMEM_OUTPUT_REG = 0,  // 指令存储器输出寄存器
     parameter integer DMEM_SYNC = 0,        // 数据存储器同步模式
     parameter integer LOAD_USE_FAST_FORWARD = 0, // forward load data from MEM when memory returns within the cycle
+    parameter integer DMEM_READ_PREISSUE = 0,
     parameter integer DCACHE_EN = 0,         // 数据缓存使能: 0=禁用, 1=启用
     parameter integer ICACHE_EN = 0,         // 指令缓存使能: 0=禁用, 1=启用
     parameter integer ENABLE_M_EXTENSION = 1,
@@ -217,6 +218,7 @@ reg [XLEN/8-1:0] ex_mem_pair_store_wstrb_r;
 reg            ex_mem_base_update_en_r;
 reg [4:0]      ex_mem_base_update_addr_r;
 reg [XLEN-1:0] ex_mem_base_update_value_r;
+reg            ex_mem_load_preissued_r;
 
     // ------------------------------------------------------------
     // MEM/WB 流水线寄存器
@@ -525,12 +527,17 @@ wire            mem_wait;
     // Dcache中间信号 (当DCACHE_EN=1时，mem_stage连接到此，dcache再连接到dmem)
 wire [XLEN-1:0] mem_stage_dmem_addr;
 wire            mem_stage_dmem_read_req;
+wire            mem_stage_dmem_pair_read_req;
 wire [XLEN-1:0] mem_stage_dmem_wdata;
 wire [XLEN/8-1:0] mem_stage_dmem_wstrb;
+wire [XLEN-1:0] mem_stage_dmem_pair_wdata;
+wire [XLEN/8-1:0] mem_stage_dmem_pair_wstrb;
 wire [XLEN-1:0] mem_stage_dmem_rdata;
 wire [XLEN-1:0] mem_pair_load_data;
 wire [XLEN-1:0] ex_mem_base_update_forward_data;
 wire [XLEN-1:0] mem_stage_load_data;
+wire            ex_dmem_preissue_valid;
+wire            mem_stage_dmem_port_busy;
 
     // DCache CPU接口信号 (当DCACHE_EN=1时使用)
 wire            dcache_cpu_req;
@@ -575,6 +582,8 @@ wire [XLEN-1:0] wb_data;
     // 前递数据
 wire [XLEN-1:0] ex_mem_forward_data;
 wire            ex_mem_load_data_ready;
+wire            id_ex_load_forward_ready;
+wire            ex_mem_load_forward_ready;
 
     // CSR 寄存器
 reg  [XLEN-1:0] csr_mstatus_r;
@@ -718,24 +727,25 @@ assign fetch_imem_req = fetch_regular_request || fetch_redirect_target_request;
     // 执行阶段前递数据选择
     // ================================================================
 assign ex_mem_forward_data =
-    ((ex_mem_wb_sel_r == `YH_rv_cpu_WB_MEM) && ((LOAD_USE_FAST_FORWARD != 0) || ex_mem_load_data_ready)) ? mem_load_data :
+    ((ex_mem_wb_sel_r == `YH_rv_cpu_WB_MEM) && ex_mem_load_forward_ready) ? mem_load_data :
     (ex_mem_wb_sel_r == `YH_rv_cpu_WB_PC4) ? ex_mem_pc4_r : ex_mem_exec_result_r;
 assign ex_mem_base_update_forward_data =
-    (ex_mem_mem_pair_r && ex_mem_load_r && ((LOAD_USE_FAST_FORWARD != 0) || ex_mem_load_data_ready)) ?
+    (ex_mem_mem_pair_r && ex_mem_load_r && ex_mem_load_forward_ready) ?
         mem_pair_load_data : ex_mem_base_update_value_r;
 assign ex_mem_load_data_ready =
     (DCACHE_EN != 0) ? dcache_cpu_rvalid :
     (DMEM_SYNC == 0) ? 1'b1 :
     dmem_rvalid;
+assign id_ex_load_forward_ready = (LOAD_USE_FAST_FORWARD != 0) || ex_dmem_preissue_valid;
+assign ex_mem_load_forward_ready = (LOAD_USE_FAST_FORWARD != 0) || ex_mem_load_data_ready;
 
 assign store_data_load_use_hazard =
-    (LOAD_USE_FAST_FORWARD == 0) &&
     if_id_valid_r &&
     id_rs3_en &&
     (
-        (id_ex_valid_r && id_ex_load_r && id_ex_rd_en_r &&
+        (id_ex_valid_r && id_ex_load_r && !id_ex_load_forward_ready && id_ex_rd_en_r &&
          (id_ex_rd_addr_r != 5'd0) && (id_ex_rd_addr_r == id_rs3_addr)) ||
-        (ex_mem_valid_r && ex_mem_load_r && !ex_mem_load_data_ready && ex_mem_rd_en_r &&
+        (ex_mem_valid_r && ex_mem_load_r && !ex_mem_load_forward_ready && ex_mem_rd_en_r &&
          (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == id_rs3_addr))
     );
 
@@ -899,7 +909,7 @@ assign id_branch_decode_idex_value_available =
     !id_ex_load_r &&
     !id_ex_csr_valid_r;
 assign id_branch_decode_exmem_value_available =
-    !ex_mem_load_r || ex_mem_load_data_ready || (LOAD_USE_FAST_FORWARD != 0);
+    !ex_mem_load_r || ex_mem_load_forward_ready;
 assign id_branch_decode_rs1_idex_match =
     id_rs1_en &&
     id_ex_valid_r &&
@@ -2011,6 +2021,7 @@ YH_rv_cpu_hazard_unit #(
     .if_id_rs2_addr (id_rs2_addr),
     .id_ex_valid    (id_ex_valid_r),
     .id_ex_load     (id_ex_load_r),
+    .id_ex_load_ready(id_ex_load_forward_ready),
     .id_ex_rd_en    (id_ex_rd_en_r),
     .id_ex_rd_addr  (id_ex_rd_addr_r),
     .id_ex_rs1_en   (id_ex_rs1_en_r),
@@ -2042,7 +2053,7 @@ always @* begin
     ex_store_src_forwarded = id_ex_rs3_value_r;
 
     if (id_ex_rs1_en_r && ex_mem_valid_r && ex_mem_rd_en_r &&
-        ((LOAD_USE_FAST_FORWARD != 0) || !ex_mem_load_r) &&
+        (!ex_mem_load_r || ex_mem_load_forward_ready) &&
         (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == id_ex_rs1_addr_r)) begin
         ex_rs1_forwarded = ex_mem_forward_data;
     end else if (id_ex_rs1_en_r && ex_mem_valid_r && ex_mem_base_update_en_r &&
@@ -2057,7 +2068,7 @@ always @* begin
     end
 
     if (id_ex_rs2_en_r && ex_mem_valid_r && ex_mem_rd_en_r &&
-        ((LOAD_USE_FAST_FORWARD != 0) || !ex_mem_load_r) &&
+        (!ex_mem_load_r || ex_mem_load_forward_ready) &&
         (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == id_ex_rs2_addr_r)) begin
         ex_rs2_forwarded = ex_mem_forward_data;
     end else if (id_ex_rs2_en_r && ex_mem_valid_r && ex_mem_base_update_en_r &&
@@ -2072,7 +2083,7 @@ always @* begin
     end
 
     if (id_ex_rs3_en_r && ex_mem_valid_r && ex_mem_rd_en_r &&
-        ((LOAD_USE_FAST_FORWARD != 0) || !ex_mem_load_r) &&
+        (!ex_mem_load_r || ex_mem_load_forward_ready) &&
         (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == id_ex_rs3_addr_r)) begin
         ex_store_src_forwarded = ex_mem_forward_data;
     end else if (id_ex_rs3_en_r && ex_mem_valid_r && ex_mem_base_update_en_r &&
@@ -2132,6 +2143,26 @@ YH_rv_cpu_ex_stage #(
     .mem_misaligned(ex_mem_misaligned)
 );
 
+assign ex_dmem_preissue_valid =
+    (DMEM_READ_PREISSUE != 0) &&
+    (DCACHE_EN == 0) &&
+    (DMEM_SYNC != 0) &&
+    id_ex_valid_r &&
+    id_ex_load_r &&
+    !id_ex_mem_pair_r &&
+    (id_ex_mem_size_r == `YH_rv_cpu_MEM_W) &&
+    (ex_mem_addr[1:0] == 2'b00) &&
+    !mem_stage_dmem_port_busy &&
+    !ex_trap_valid &&
+    !mem_wait;
+assign mem_stage_dmem_port_busy =
+    ex_mem_valid_r &&
+    (
+        ex_mem_store_r ||
+        ex_mem_mem_pair_r ||
+        (ex_mem_load_r && !ex_mem_load_preissued_r)
+    );
+
     // ================================================================
     // 访存阶段 - 带DCache支持
     // ================================================================
@@ -2154,16 +2185,24 @@ YH_rv_cpu_ex_stage #(
                 .mem_unsigned  (ex_mem_mem_unsigned_r),
                 .dmem_rdata    (dmem_rdata),
                 .dmem_pair_rdata(dmem_pair_rdata),
-                .dmem_addr     (dmem_addr),
-                .dmem_read_req (dmem_read_req),
-                .dmem_pair_read_req(dmem_pair_read_req),
-                .dmem_wdata    (dmem_wdata),
-                .dmem_wstrb    (dmem_wstrb),
-                .dmem_pair_wdata(dmem_pair_wdata),
-                .dmem_pair_wstrb(dmem_pair_wstrb),
+                .dmem_addr     (mem_stage_dmem_addr),
+                .dmem_read_req (mem_stage_dmem_read_req),
+                .dmem_pair_read_req(mem_stage_dmem_pair_read_req),
+                .dmem_wdata    (mem_stage_dmem_wdata),
+                .dmem_wstrb    (mem_stage_dmem_wstrb),
+                .dmem_pair_wdata(mem_stage_dmem_pair_wdata),
+                .dmem_pair_wstrb(mem_stage_dmem_pair_wstrb),
                 .load_data     (mem_load_data),
                 .pair_load_data(mem_pair_load_data)
             );
+            assign dmem_addr = ex_dmem_preissue_valid ? ex_mem_addr : mem_stage_dmem_addr;
+            assign dmem_read_req = ex_dmem_preissue_valid ||
+                (mem_stage_dmem_read_req && !ex_mem_load_preissued_r);
+            assign dmem_pair_read_req = mem_stage_dmem_pair_read_req && !ex_mem_load_preissued_r;
+            assign dmem_wdata = mem_stage_dmem_wdata;
+            assign dmem_wstrb = mem_stage_dmem_wstrb;
+            assign dmem_pair_wdata = mem_stage_dmem_pair_wdata;
+            assign dmem_pair_wstrb = mem_stage_dmem_pair_wstrb;
         end else begin : gen_dcache
             // DCACHE_EN=1: 通过dcache连接
             // mem_stage连接到dcache CPU接口，dcache再连接到实际dmem
@@ -2339,6 +2378,7 @@ always @(posedge clk or negedge rst_n) begin
         ex_mem_rd_en_r <= 1'b0;
         ex_mem_wb_sel_r <= `YH_rv_cpu_WB_ALU;
         ex_mem_load_r <= 1'b0;
+        ex_mem_load_preissued_r <= 1'b0;
         ex_mem_store_r <= 1'b0;
         ex_mem_mem_size_r <= `YH_rv_cpu_MEM_W;
         ex_mem_mem_unsigned_r <= 1'b0;
@@ -2473,6 +2513,7 @@ always @(posedge clk or negedge rst_n) begin
                 ex_mem_rd_en_r <= ex_rd_en_effective;
                 ex_mem_wb_sel_r <= id_ex_wb_sel_r;
                 ex_mem_load_r <= id_ex_load_r;
+                ex_mem_load_preissued_r <= ex_dmem_preissue_valid;
                 ex_mem_store_r <= id_ex_store_r;
                 ex_mem_mem_size_r <= id_ex_mem_size_r;
                 ex_mem_mem_unsigned_r <= id_ex_mem_unsigned_r;

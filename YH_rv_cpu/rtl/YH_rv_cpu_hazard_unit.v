@@ -24,6 +24,7 @@ module YH_rv_cpu_hazard_unit #(
     // ------------------------------------------------------------
     input  wire        id_ex_valid,         // ID/EX 流水线有效标志
     input  wire        id_ex_load,          // ID/EX 是加载指令
+    input  wire        id_ex_load_ready,    // ID/EX load result is available for the immediately following instruction
     input  wire        id_ex_rd_en,         // rd 写回使能
     input  wire [4:0]  id_ex_rd_addr,       // rd 地址
     input  wire        id_ex_rs1_en,       // rs1 读取使能
@@ -78,10 +79,15 @@ module YH_rv_cpu_hazard_unit #(
 wire load_use_hazard;
 wire ex_mem_load_use_hazard;
 wire mem_wb_load_use_hazard;
+wire id_ex_load_ready_eff;
+wire ex_mem_load_ready_eff;
+
+assign id_ex_load_ready_eff = (LOAD_USE_FAST_FORWARD != 0) || id_ex_load_ready;
+assign ex_mem_load_ready_eff = (LOAD_USE_FAST_FORWARD != 0) || ex_mem_load_ready;
 
     // ID/EX 加载冒险: 当前译码指令需要 ID/EX 阶段加载的结果
 assign load_use_hazard =
-    (LOAD_USE_FAST_FORWARD == 0) &&
+    !id_ex_load_ready_eff &&
     id_ex_valid && id_ex_load && id_ex_rd_en && (id_ex_rd_addr != 5'd0) &&
     (
         (if_id_rs1_en && (if_id_rs1_addr == id_ex_rd_addr)) ||
@@ -89,15 +95,14 @@ assign load_use_hazard =
     );
 
 assign ex_mem_load_use_hazard =
-    (LOAD_USE_FAST_FORWARD == 0) &&
-    ex_mem_valid && ex_mem_load && !ex_mem_load_ready && ex_mem_rd_en && (ex_mem_rd_addr != 5'd0) &&
+    ex_mem_valid && ex_mem_load && !ex_mem_load_ready_eff && ex_mem_rd_en && (ex_mem_rd_addr != 5'd0) &&
     (
         (if_id_rs1_en && (if_id_rs1_addr == ex_mem_rd_addr)) ||
         (if_id_rs2_en && (if_id_rs2_addr == ex_mem_rd_addr))
     );
 
 assign mem_wb_load_use_hazard =
-    (LOAD_USE_FAST_FORWARD == 0) &&
+    1'b0 &&
     mem_wb_valid && mem_wb_load && mem_wb_rd_en && (mem_wb_rd_addr != 5'd0) &&
     (
         (if_id_rs1_en && (if_id_rs1_addr == mem_wb_rd_addr)) ||
@@ -130,7 +135,7 @@ always @* begin
     // ------------------------------------------------------------
     // 情况 1: EX/MEM 阶段有有效结果，且地址匹配
     // 注意: 加载指令不能立即转发 (需要额外的周期)
-    if (id_ex_rs1_en && ex_mem_valid && ex_mem_rd_en && ((LOAD_USE_FAST_FORWARD != 0) || !ex_mem_load) &&
+    if (id_ex_rs1_en && ex_mem_valid && ex_mem_rd_en && (!ex_mem_load || ex_mem_load_ready_eff) &&
         (ex_mem_rd_addr != 5'd0) && (ex_mem_rd_addr == id_ex_rs1_addr)) begin
         forward_a_sel = 2'b01;  // 从 EX/MEM 转发
     end
@@ -143,7 +148,7 @@ always @* begin
     // ------------------------------------------------------------
     // rs2 转发选择
     // ------------------------------------------------------------
-    if (id_ex_rs2_en && ex_mem_valid && ex_mem_rd_en && ((LOAD_USE_FAST_FORWARD != 0) || !ex_mem_load) &&
+    if (id_ex_rs2_en && ex_mem_valid && ex_mem_rd_en && (!ex_mem_load || ex_mem_load_ready_eff) &&
         (ex_mem_rd_addr != 5'd0) && (ex_mem_rd_addr == id_ex_rs2_addr)) begin
         forward_b_sel = 2'b01;
     end else if (id_ex_rs2_en && mem_wb_valid && mem_wb_rd_en &&

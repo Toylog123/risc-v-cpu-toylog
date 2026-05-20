@@ -196,6 +196,7 @@ localparam integer USE_SHARED_SYNC_ROM = ((XLEN == 32) && (SYNC_IMEM != 0) && (S
 localparam integer USE_IMEM_OUTPUT_REG = ((SYNC_IMEM != 0) && (IMEM_OUTPUT_REG != 0)) ? 1 : 0;
 localparam integer USE_DMEM_OUTPUT_REG = ((SYNC_DMEM != 0) && (DMEM_OUTPUT_REG != 0)) ? 1 : 0;
 localparam integer USE_DMEM_NEGEDGE_READ = ((SYNC_DMEM != 0) && (DMEM_OUTPUT_REG == 0) && (DMEM_NEGEDGE_READ != 0)) ? 1 : 0;
+localparam integer USE_DMEM_PREISSUE_READ = 0;
 localparam integer USE_LOAD_USE_FAST_FORWARD = ((DCACHE_EN == 0) && ((SYNC_DMEM == 0) || (USE_DMEM_NEGEDGE_READ != 0))) ? 1 : 0;
 localparam [1:0] DMEM_SRC_NONE = 2'b00; // 无数据源
 localparam [1:0] DMEM_SRC_RAM  = 2'b01; // RAM 数据源
@@ -274,7 +275,8 @@ assign ram_pair_bus_offset = dmem_pair_bus_base32 - RAM_BASE;
     // 读取接受和发起
     // ================================================================
 assign dmem_read_accept = (SYNC_DMEM != 0) ?
-    (dmem_read_req && ((USE_DMEM_NEGEDGE_READ != 0) ? 1'b1 : !dmem_read_busy_r)) :
+    (dmem_read_req && ((USE_DMEM_NEGEDGE_READ != 0) ? 1'b1 :
+     ((USE_DMEM_PREISSUE_READ != 0) ? (!dmem_read_busy_r || dmem_rvalid) : !dmem_read_busy_r))) :
     dmem_read_req;
 assign ram_read_issue = ram_read_hit && ((SYNC_DMEM != 0) ? dmem_read_accept : 1'b1);
 
@@ -450,6 +452,7 @@ YH_rv_cpu #(
     .IMEM_OUTPUT_REG(USE_IMEM_OUTPUT_REG),
     .DMEM_SYNC      (SYNC_DMEM),
     .LOAD_USE_FAST_FORWARD(USE_LOAD_USE_FAST_FORWARD),
+    .DMEM_READ_PREISSUE(USE_DMEM_PREISSUE_READ),
     .DCACHE_EN      (DCACHE_EN),
     .ICACHE_EN      (ICACHE_EN),
     .ENABLE_M_EXTENSION(ENABLE_M_EXTENSION),

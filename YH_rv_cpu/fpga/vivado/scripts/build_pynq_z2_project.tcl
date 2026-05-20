@@ -36,6 +36,7 @@ set redirect_cache_xor_index 0
 set enable_dynamic_branch_predict 0
 set branch_bht_entries 64
 set branch_static_predict_mode 0
+set dmem_negedge_read 0
 
 if {[llength $argv] >= 1} {
     set flow_mode [lindex $argv 0]
@@ -119,6 +120,9 @@ if {[info exists ::env(PYNQ_BRANCH_BHT_ENTRIES_OVERRIDE)] && $::env(PYNQ_BRANCH_
 if {[info exists ::env(PYNQ_BRANCH_STATIC_PREDICT_MODE_OVERRIDE)] && $::env(PYNQ_BRANCH_STATIC_PREDICT_MODE_OVERRIDE) ne ""} {
     set branch_static_predict_mode $::env(PYNQ_BRANCH_STATIC_PREDICT_MODE_OVERRIDE)
 }
+if {[info exists ::env(PYNQ_DMEM_NEGEDGE_READ_OVERRIDE)] && $::env(PYNQ_DMEM_NEGEDGE_READ_OVERRIDE) ne ""} {
+    set dmem_negedge_read $::env(PYNQ_DMEM_NEGEDGE_READ_OVERRIDE)
+}
 
 set clock_tag [string map {. p} $input_clock_period_ns]
 set cpu_clk_tag direct125
@@ -171,6 +175,7 @@ puts "INFO: REDIRECT_CACHE_XOR_INDEX = ${redirect_cache_xor_index}"
 puts "INFO: ENABLE_DYNAMIC_BRANCH_PREDICT = ${enable_dynamic_branch_predict}"
 puts "INFO: BRANCH_BHT_ENTRIES = ${branch_bht_entries}"
 puts "INFO: BRANCH_STATIC_PREDICT_MODE = ${branch_static_predict_mode}"
+puts "INFO: DMEM_NEGEDGE_READ = ${dmem_negedge_read}"
 
 proc add_project_files {rtl_files fpga_files constr_file rtl_dir} {
     add_files -norecurse $rtl_files
@@ -247,6 +252,7 @@ lappend synth_cmd -generic "REDIRECT_CACHE_XOR_INDEX=$redirect_cache_xor_index"
 lappend synth_cmd -generic "ENABLE_DYNAMIC_BRANCH_PREDICT=$enable_dynamic_branch_predict"
 lappend synth_cmd -generic "BRANCH_BHT_ENTRIES=$branch_bht_entries"
 lappend synth_cmd -generic "BRANCH_STATIC_PREDICT_MODE=$branch_static_predict_mode"
+lappend synth_cmd -generic "DMEM_NEGEDGE_READ=$dmem_negedge_read"
 if {$rom_init_hex ne ""} {
     puts "INFO: ROM_INIT_HEX override = $rom_init_hex"
     lappend synth_cmd -generic "ROM_INIT_HEX=$rom_init_hex"
