@@ -20,6 +20,7 @@ module YH_rv_cpu_soc #(
     parameter integer SYNC_DMEM = 0,        // 数据存储器同步模式
     parameter integer DMEM_OUTPUT_REG = 0,  // 数据存储器输出寄存器
     parameter integer DMEM_NEGEDGE_READ = 0, // fast half-cycle data RAM read
+    parameter integer DCACHE_SIZE_BYTES = 4096,
     parameter integer DCACHE_EN = 0,         // 数据缓存使能: 0=禁用, 1=启用
     parameter integer ICACHE_EN = 0,         // 指令缓存使能: 0=禁用, 1=启用
     parameter integer ENABLE_M_EXTENSION = 1,
@@ -456,6 +457,7 @@ YH_rv_cpu #(
     .DCACHE_EN      (DCACHE_EN),
     .DCACHEABLE_BASE(RAM_BASE),
     .DCACHEABLE_LIMIT(RAM_BASE + RAM_BYTES),
+    .DCACHE_SIZE_BYTES(DCACHE_SIZE_BYTES),
     .ICACHE_EN      (ICACHE_EN),
     .ENABLE_M_EXTENSION(ENABLE_M_EXTENSION),
     .ENABLE_ZMMUL_EXTENSION(ENABLE_ZMMUL_EXTENSION),

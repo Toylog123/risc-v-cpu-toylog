@@ -1,0 +1,24 @@
+
+****** xsim v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Wed May 20 09:57:55 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/YH_rv_cpu_coremark_fpga_tb_snapshot/xsim_script.tcl
+# xsim {YH_rv_cpu_coremark_fpga_tb_snapshot} -testplusarg max_cycles=5000000 -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+Starting FPGA-like CoreMark simulation (MAX_CYCLES=5000000)...
+
+FAIL: coremark timeout at PC=00003f40 after 5000001 cycles
+Fatal: 
+FAIL: coremark timeout
+Time: 50000115 ns  Iteration: 0  Process: /YH_rv_cpu_coremark_fpga_tb(ENABLE_M_EXTENSION=0,ENABLE_ZMMUL_EXTENSION=1,ENABLE_ZBC_EXTENSION=1,ENABLE_ZICOND_EXTENSION=1,ENABLE_ZBKB_EXTENSION=1,ENABLE_ID_BRANCH_FOLD=1,REDIRECT_CACHE_ENTRIES=2048,REDIRECT_CACHE_XOR_INDEX=1,DCACHE_EN=1,DCACHE_SIZE_BYTES=2048)/Always158_42  Scope: YH_rv_cpu_coremark_fpga_tb(ENABLE_M_EXTENSION=0,ENABLE_ZMMUL_EXTENSION=1,ENABLE_ZBC_EXTENSION=1,ENABLE_ZICOND_EXTENSION=1,ENABLE_ZBKB_EXTENSION=1,ENABLE_ID_BRANCH_FOLD=1,REDIRECT_CACHE_ENTRIES=2048,REDIRECT_CACHE_XOR_INDEX=1,DCACHE_EN=1,DCACHE_SIZE_BYTES=2048)  File: D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/YH_rv_cpu/tb/YH_rv_cpu_coremark_fpga_tb.v Line: 538
+$finish called at time : 50000115 ns
+run: Time (s): cpu = 00:00:00 ; elapsed = 00:03:16 . Memory (MB): peak = 195.871 ; gain = 0.016
+exit
+INFO: xsimkernel Simulation Memory Usage: 13860 KB (Peak: 13860 KB), Simulation CPU Usage: 194062 ms
+INFO: [Common 17-206] Exiting xsim at Wed May 20 10:01:13 2026...

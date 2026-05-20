@@ -31,6 +31,7 @@ module YH_rv_cpu_coremark_fpga_tb #(
     parameter integer BRANCH_BHT_STRONG_ONLY = 0,
     parameter integer DMEM_NEGEDGE_READ = 0,
     parameter integer DCACHE_EN = 0,
+    parameter integer DCACHE_SIZE_BYTES = 4096,
     parameter integer ICACHE_EN = 0
 ) ();
 
@@ -113,6 +114,7 @@ YH_rv_cpu_soc #(
     .DMEM_OUTPUT_REG(0),
     .DMEM_NEGEDGE_READ(DMEM_NEGEDGE_READ),
     .DCACHE_EN(DCACHE_EN),
+    .DCACHE_SIZE_BYTES(DCACHE_SIZE_BYTES),
     .ICACHE_EN(ICACHE_EN),
     .RAM_BASE(RAM_BASE),
     .ROM_BYTES(ROM_BYTES),

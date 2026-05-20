@@ -27,6 +27,7 @@ module YH_rv_cpu #(
     parameter integer DMEM_READ_PREISSUE = 0,
     parameter [31:0] DCACHEABLE_BASE = 32'h0000_4000,
     parameter [31:0] DCACHEABLE_LIMIT = 32'h0001_4000,
+    parameter integer DCACHE_SIZE_BYTES = 4096,
     parameter integer DCACHE_EN = 0,         // 数据缓存使能: 0=禁用, 1=启用
     parameter integer ICACHE_EN = 0,         // 指令缓存使能: 0=禁用, 1=启用
     parameter integer ENABLE_M_EXTENSION = 1,
@@ -2263,7 +2264,7 @@ assign mem_stage_dmem_port_busy =
             // dcache实例
             YH_rv_cpu_dcache #(
                 .XLEN(XLEN),
-                .CACHE_SIZE(4096),
+                .CACHE_SIZE(DCACHE_SIZE_BYTES),
                 .BLOCK_SIZE(32),
                 .ASSOC(1),
                 .WRITE_POLICY(0)
