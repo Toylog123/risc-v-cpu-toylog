@@ -21,6 +21,10 @@ def yes_no(flag: bool) -> str:
     return "yes" if flag else "no"
 
 
+def normalize_crc(raw: str) -> str:
+    return "0x" + raw.lower().removeprefix("0x")
+
+
 def main() -> int:
     if len(sys.argv) not in (3, 4, 6):
         print(
@@ -54,9 +58,15 @@ def main() -> int:
     memory_location = require(
         r"^Memory location\s*:\s*(.+?)\s*$", text, "Memory location"
     )
-    seed_crc = require(r"^seedcrc\s*:\s*(0x[0-9a-fA-F]+)\s*$", text, "seedcrc")
-    final_crc = require(
-        r"^\[0\]crcfinal\s*:\s*(0x[0-9a-fA-F]+)\s*$", text, "crcfinal"
+    seed_crc = normalize_crc(
+        require(r"^seedcrc\s*:\s*((?:0x)?[0-9a-fA-F]+)\s*$", text, "seedcrc")
+    )
+    final_crc = normalize_crc(
+        require(
+            r"^\[0\]crcfinal\s*:\s*((?:0x)?[0-9a-fA-F]+)\s*$",
+            text,
+            "crcfinal",
+        )
     )
     completion_cycles = int(
         require(

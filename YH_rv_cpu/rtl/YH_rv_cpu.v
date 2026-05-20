@@ -25,6 +25,8 @@ module YH_rv_cpu #(
     parameter integer DMEM_SYNC = 0,        // 数据存储器同步模式
     parameter integer LOAD_USE_FAST_FORWARD = 0, // forward load data from MEM when memory returns within the cycle
     parameter integer DMEM_READ_PREISSUE = 0,
+    parameter [31:0] DCACHEABLE_BASE = 32'h0000_4000,
+    parameter [31:0] DCACHEABLE_LIMIT = 32'h0001_4000,
     parameter integer DCACHE_EN = 0,         // 数据缓存使能: 0=禁用, 1=启用
     parameter integer ICACHE_EN = 0,         // 指令缓存使能: 0=禁用, 1=启用
     parameter integer ENABLE_M_EXTENSION = 1,
@@ -538,6 +540,9 @@ wire [XLEN-1:0] ex_mem_base_update_forward_data;
 wire [XLEN-1:0] mem_stage_load_data;
 wire            ex_dmem_preissue_valid;
 wire            mem_stage_dmem_port_busy;
+wire            ex_mem_dcacheable;
+wire            dcache_direct_access;
+wire            dcache_direct_load;
 
     // DCache CPU接口信号 (当DCACHE_EN=1时使用)
 wire            dcache_cpu_req;
@@ -554,9 +559,9 @@ wire            dcache_cpu_wait;
 wire [XLEN-1:0] dcache_mem_addr;
 wire            dcache_mem_req;
 wire            dcache_mem_we;
-wire [31:0]     dcache_mem_wdata;
-wire [3:0]      dcache_mem_wstrb;
-wire [31:0]     dcache_mem_rdata;
+wire [XLEN-1:0] dcache_mem_wdata;
+wire [XLEN/8-1:0] dcache_mem_wstrb;
+wire [XLEN-1:0] dcache_mem_rdata;
 wire            dcache_mem_rvalid;
 wire            dcache_mem_ready;
 
@@ -732,8 +737,17 @@ assign ex_mem_forward_data =
 assign ex_mem_base_update_forward_data =
     (ex_mem_mem_pair_r && ex_mem_load_r && ex_mem_load_forward_ready) ?
         mem_pair_load_data : ex_mem_base_update_value_r;
+assign ex_mem_dcacheable =
+    (ex_mem_mem_addr_r[31:0] >= DCACHEABLE_BASE) &&
+    (ex_mem_mem_addr_r[31:0] < DCACHEABLE_LIMIT);
+assign dcache_direct_access =
+    (DCACHE_EN != 0) &&
+    ex_mem_valid_r &&
+    (ex_mem_load_r || ex_mem_store_r) &&
+    (ex_mem_mem_pair_r || !ex_mem_dcacheable);
+assign dcache_direct_load = dcache_direct_access && ex_mem_load_r;
 assign ex_mem_load_data_ready =
-    (DCACHE_EN != 0) ? dcache_cpu_rvalid :
+    (DCACHE_EN != 0) ? (dcache_direct_load ? dmem_rvalid : dcache_cpu_rvalid) :
     (DMEM_SYNC == 0) ? 1'b1 :
     dmem_rvalid;
 assign id_ex_load_forward_ready = (LOAD_USE_FAST_FORWARD != 0) || ex_dmem_preissue_valid;
@@ -1460,7 +1474,9 @@ assign fetch_reuse_redirect_pc = ex_redirect_pc;
     // ================================================================
     // 当DCACHE_EN=1时，使用dcache的等待信号
     // 否则使用原始的同步内存等待逻辑
-assign mem_wait = DCACHE_EN ? dcache_cpu_wait : ((DMEM_SYNC != 0) && ex_mem_valid_r && ex_mem_load_r && !dmem_rvalid);
+assign mem_wait = DCACHE_EN ?
+    (dcache_cpu_wait || ((DMEM_SYNC != 0) && dcache_direct_load && !dmem_rvalid)) :
+    ((DMEM_SYNC != 0) && ex_mem_valid_r && ex_mem_load_r && !dmem_rvalid);
 
     // ================================================================
     // 取指响应 PC 和有效信号
@@ -2204,23 +2220,45 @@ assign mem_stage_dmem_port_busy =
             assign dmem_pair_wdata = mem_stage_dmem_pair_wdata;
             assign dmem_pair_wstrb = mem_stage_dmem_pair_wstrb;
         end else begin : gen_dcache
+            YH_rv_cpu_mem_stage #(
+                .XLEN(XLEN)
+            ) u_mem_stage_pair_bypass (
+                .valid         (ex_mem_valid_r),
+                .load          (ex_mem_load_r),
+                .store         (ex_mem_store_r),
+                .mem_pair      (ex_mem_mem_pair_r),
+                .mem_addr      (ex_mem_mem_addr_r),
+                .store_data_in (ex_mem_store_data_r),
+                .store_wstrb_in(ex_mem_store_wstrb_r),
+                .pair_store_data_in(ex_mem_pair_store_data_r),
+                .pair_store_wstrb_in(ex_mem_pair_store_wstrb_r),
+                .mem_size      (ex_mem_mem_size_r),
+                .mem_unsigned  (ex_mem_mem_unsigned_r),
+                .dmem_rdata    (dmem_rdata),
+                .dmem_pair_rdata(dmem_pair_rdata),
+                .dmem_addr     (mem_stage_dmem_addr),
+                .dmem_read_req (mem_stage_dmem_read_req),
+                .dmem_pair_read_req(mem_stage_dmem_pair_read_req),
+                .dmem_wdata    (mem_stage_dmem_wdata),
+                .dmem_wstrb    (mem_stage_dmem_wstrb),
+                .dmem_pair_wdata(mem_stage_dmem_pair_wdata),
+                .dmem_pair_wstrb(mem_stage_dmem_pair_wstrb),
+                .load_data     (mem_stage_load_data),
+                .pair_load_data(mem_pair_load_data)
+            );
             // DCACHE_EN=1: 通过dcache连接
             // mem_stage连接到dcache CPU接口，dcache再连接到实际dmem
 
             // mem_stage信号连接到dcache CPU接口
             assign dcache_cpu_addr  = ex_mem_mem_addr_r;
-            assign dcache_cpu_req   = ex_mem_valid_r && (ex_mem_load_r || ex_mem_store_r);
-            assign dcache_cpu_we    = ex_mem_valid_r && ex_mem_store_r;
+            assign dcache_cpu_req   = ex_mem_valid_r && !ex_mem_mem_pair_r && ex_mem_dcacheable && (ex_mem_load_r || ex_mem_store_r);
+            assign dcache_cpu_we    = ex_mem_valid_r && !ex_mem_mem_pair_r && ex_mem_dcacheable && ex_mem_store_r;
             assign dcache_cpu_wdata = ex_mem_store_data_r;
             assign dcache_cpu_wstrb = ex_mem_store_wstrb_r;
             assign dcache_cpu_size  = ex_mem_mem_size_r;
 
             // dcache输出load_data到流水线
-            assign mem_load_data = dcache_cpu_rdata;
-            assign mem_pair_load_data = {XLEN{1'b0}};
-            assign dmem_pair_read_req = 1'b0;
-            assign dmem_pair_wdata = {XLEN{1'b0}};
-            assign dmem_pair_wstrb = {XLEN/8{1'b0}};
+            assign mem_load_data = dcache_direct_access ? mem_stage_load_data : dcache_cpu_rdata;
 
             // dcache实例
             YH_rv_cpu_dcache #(
@@ -2238,18 +2276,27 @@ assign mem_stage_dmem_port_busy =
                 .cpu_wdata      (dcache_cpu_wdata),
                 .cpu_wstrb      (dcache_cpu_wstrb),
                 .cpu_size       (dcache_cpu_size),
+                .cpu_unsigned   (ex_mem_mem_unsigned_r),
                 .cpu_rdata      (dcache_cpu_rdata),
                 .cpu_rvalid     (dcache_cpu_rvalid),
                 .cpu_wait       (dcache_cpu_wait),
-                .mem_addr       (dmem_addr),
-                .mem_req        (dmem_read_req),
-                .mem_we         (dmem_we),
-                .mem_wdata      (dmem_wdata),
-                .mem_wstrb      (dmem_wstrb),
+                .mem_addr       (dcache_mem_addr),
+                .mem_req        (dcache_mem_req),
+                .mem_we         (dcache_mem_we),
+                .mem_wdata      (dcache_mem_wdata),
+                .mem_wstrb      (dcache_mem_wstrb),
                 .mem_rdata      (dmem_rdata),
                 .mem_rvalid     (dmem_rvalid),
                 .mem_ready      (dmem_ready)
             );
+            assign dmem_addr = dcache_direct_access ? mem_stage_dmem_addr : dcache_mem_addr;
+            assign dmem_read_req = dcache_direct_access ? mem_stage_dmem_read_req : dcache_mem_req;
+            assign dmem_pair_read_req = dcache_direct_access ? mem_stage_dmem_pair_read_req : 1'b0;
+            assign dmem_we = dcache_direct_access ? (|mem_stage_dmem_wstrb) : dcache_mem_we;
+            assign dmem_wdata = dcache_direct_access ? mem_stage_dmem_wdata : dcache_mem_wdata;
+            assign dmem_wstrb = dcache_direct_access ? mem_stage_dmem_wstrb : dcache_mem_wstrb;
+            assign dmem_pair_wdata = dcache_direct_access ? mem_stage_dmem_pair_wdata : {XLEN{1'b0}};
+            assign dmem_pair_wstrb = dcache_direct_access ? mem_stage_dmem_pair_wstrb : {XLEN/8{1'b0}};
         end
     endgenerate
 

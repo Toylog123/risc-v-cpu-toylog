@@ -96,6 +96,7 @@ YH_rv_cpu_dcache #(
     .cpu_wdata(cpu_wdata),
     .cpu_wstrb(cpu_wstrb),
     .cpu_size(2'b10),  // 字访问
+    .cpu_unsigned(1'b0),
     .cpu_rdata(cpu_rdata),
     .cpu_rvalid(cpu_rvalid),
     .cpu_wait(cpu_wait),
