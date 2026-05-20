@@ -78,10 +78,14 @@ set ENABLE_FETCH_REDIRECT_REUSE=0
 set REDIRECT_CACHE_ENTRIES=1024
 set REDIRECT_CACHE_XOR_INDEX=0
 set DMEM_NEGEDGE_READ=0
+set DCACHE_EN=0
 set ICACHE_EN=0
 
 if not "%YH_COREMARK_FPGA_DMEM_NEGEDGE_READ%"=="" (
     set DMEM_NEGEDGE_READ=%YH_COREMARK_FPGA_DMEM_NEGEDGE_READ%
+)
+if not "%YH_COREMARK_FPGA_DCACHE_EN%"=="" (
+    set DCACHE_EN=%YH_COREMARK_FPGA_DCACHE_EN%
 )
 if not "%YH_COREMARK_FPGA_ICACHE_EN%"=="" (
     set ICACHE_EN=%YH_COREMARK_FPGA_ICACHE_EN%
@@ -229,6 +233,7 @@ call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\rtl\YH_rv_sync_imem_rom.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_sync_rom32.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_dmem_ram.v" ^
+    "%PROJECT_DIR%\rtl\YH_rv_cpu_dcache.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_icache.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_if_stage.v" ^
@@ -265,6 +270,7 @@ call %XELAB% %TEST_TOP% ^
     -generic_top "BRANCH_STATIC_PREDICT_MODE=%BRANCH_STATIC_PREDICT_MODE%" ^
     -generic_top "BRANCH_BHT_STRONG_ONLY=%BRANCH_BHT_STRONG_ONLY%" ^
     -generic_top "DMEM_NEGEDGE_READ=%DMEM_NEGEDGE_READ%" ^
+    -generic_top "DCACHE_EN=%DCACHE_EN%" ^
     -generic_top "ICACHE_EN=%ICACHE_EN%" ^
     -s %TEST_TOP%_snapshot
 if errorlevel 1 goto :fail
