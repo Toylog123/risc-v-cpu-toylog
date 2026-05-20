@@ -37,6 +37,9 @@ set enable_dynamic_branch_predict 0
 set branch_bht_entries 64
 set branch_static_predict_mode 0
 set dmem_negedge_read 0
+set dcache_en 0
+set dcache_size_bytes 4096
+set icache_en 0
 
 if {[llength $argv] >= 1} {
     set flow_mode [lindex $argv 0]
@@ -123,6 +126,15 @@ if {[info exists ::env(PYNQ_BRANCH_STATIC_PREDICT_MODE_OVERRIDE)] && $::env(PYNQ
 if {[info exists ::env(PYNQ_DMEM_NEGEDGE_READ_OVERRIDE)] && $::env(PYNQ_DMEM_NEGEDGE_READ_OVERRIDE) ne ""} {
     set dmem_negedge_read $::env(PYNQ_DMEM_NEGEDGE_READ_OVERRIDE)
 }
+if {[info exists ::env(PYNQ_DCACHE_EN_OVERRIDE)] && $::env(PYNQ_DCACHE_EN_OVERRIDE) ne ""} {
+    set dcache_en $::env(PYNQ_DCACHE_EN_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_DCACHE_SIZE_BYTES_OVERRIDE)] && $::env(PYNQ_DCACHE_SIZE_BYTES_OVERRIDE) ne ""} {
+    set dcache_size_bytes $::env(PYNQ_DCACHE_SIZE_BYTES_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_ICACHE_EN_OVERRIDE)] && $::env(PYNQ_ICACHE_EN_OVERRIDE) ne ""} {
+    set icache_en $::env(PYNQ_ICACHE_EN_OVERRIDE)
+}
 
 set clock_tag [string map {. p} $input_clock_period_ns]
 set cpu_clk_tag direct125
@@ -176,6 +188,9 @@ puts "INFO: ENABLE_DYNAMIC_BRANCH_PREDICT = ${enable_dynamic_branch_predict}"
 puts "INFO: BRANCH_BHT_ENTRIES = ${branch_bht_entries}"
 puts "INFO: BRANCH_STATIC_PREDICT_MODE = ${branch_static_predict_mode}"
 puts "INFO: DMEM_NEGEDGE_READ = ${dmem_negedge_read}"
+puts "INFO: DCACHE_EN = ${dcache_en}"
+puts "INFO: DCACHE_SIZE_BYTES = ${dcache_size_bytes}"
+puts "INFO: ICACHE_EN = ${icache_en}"
 
 proc add_project_files {rtl_files fpga_files constr_file rtl_dir} {
     add_files -norecurse $rtl_files
@@ -253,6 +268,9 @@ lappend synth_cmd -generic "ENABLE_DYNAMIC_BRANCH_PREDICT=$enable_dynamic_branch
 lappend synth_cmd -generic "BRANCH_BHT_ENTRIES=$branch_bht_entries"
 lappend synth_cmd -generic "BRANCH_STATIC_PREDICT_MODE=$branch_static_predict_mode"
 lappend synth_cmd -generic "DMEM_NEGEDGE_READ=$dmem_negedge_read"
+lappend synth_cmd -generic "DCACHE_EN=$dcache_en"
+lappend synth_cmd -generic "DCACHE_SIZE_BYTES=$dcache_size_bytes"
+lappend synth_cmd -generic "ICACHE_EN=$icache_en"
 if {$rom_init_hex ne ""} {
     puts "INFO: ROM_INIT_HEX override = $rom_init_hex"
     lappend synth_cmd -generic "ROM_INIT_HEX=$rom_init_hex"
