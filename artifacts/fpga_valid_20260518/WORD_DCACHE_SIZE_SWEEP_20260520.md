@@ -28,10 +28,12 @@ Technical notes:
 | Store write-through address fix | retained | Uses the current CPU address for RAM writes; required for valid CRC. |
 | 4KB capacity | retained | Matches 8KB score on the 2K CoreMark engineering workload. |
 | 2KB capacity | rejected | Timeout indicates excessive conflict/slowdown under the current direct-mapped design. |
+| D-cache load-use fast-forward | rejected | Reduced cycles, but CoreMark output showed CRC error lines/format corruption, so the RTL change was reverted. |
 
 Valid retained CoreMark evidence:
 
 - `coremark_syncbram_word_dcache_4k_param_rc2048.summary.txt`
 - `coremark_syncbram_word_dcache_8k_rc2048.summary.txt`
+- Rejected evidence: `coremark_syncbram_word_dcache_loadfast_rc2048.log`
 
 Both retained runs report `crcfinal=0xfcaf`, `acceptance_pass=yes`, and `strict_eembc_10s_compliant=no` because they are short engineering runs.
