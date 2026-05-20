@@ -1,0 +1,37 @@
+
+****** xsim v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Wed May 20 10:24:47 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/YH_rv_cpu_coremark_fpga_tb_snapshot/xsim_script.tcl
+# xsim {YH_rv_cpu_coremark_fpga_tb_snapshot} -testplusarg max_cycles=5000000 -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+Starting FPGA-like CoreMark simulation (MAX_CYCLES=5000000)...
+2K performance run parameters for coremark.
+CoreMark Size    : 666
+Total ticks      : 1837283
+Total time (secs): 0
+ERROR! Must execute for at least 10 secs for a valid result!
+Iterations       : 10
+Compiler version : GCC 15.2.0
+Compiler flags   : -O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -march=rv32i_zmmul_zba_zbb_zbs_zbc_zicond_zbkb_zbkx_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_xtheadmac_xtheadmempair_zicsr -mabi=ilp32
+Memory location  : SoC ROM/RAM
+seedcrc          : e9f5
+[0]crclist       : e714
+[0]crcmatrix     : 1fd7
+[0]crcstate      : 8e3a
+[0]crcfinal      : fcaf
+Errors detected
+PROFILE_EVENTS cycles=2066302 ifid_valid=2065779 idex_valid=1856800 stall_decode=209802 mem_wait=3898 decode_flush=80 ifid_load_bubble=211067 redirects=214865 ex_redirect=79 id_redirect=212093 branch_predict_redirect=0 jal_predict_redirect=2692 redirect_cache_deliver=214450 regular_cache_deliver=1636236 fold_candidate=184498 fold_valid=176978 fold_next=176975 fold_hazard=56724 fold_control=285802 nt_fold_candidate=337957 nt_fold_valid=73075 nt_fold_next=73075 nt_fold_block_load=145938 nt_fold_block_store=18527 nt_fold_block_hazard=0 nt_fold_block_control=118944 id_alu_pair_candidate=0 id_alu_pair_valid=0 id_alu_pair_fetch=4154 id_alu_pair_cache=1636236 id_alu_dep_candidate=0 id_alu_dep_valid=0 id_alu_dep_fetch=4154 id_alu_dep_cache=1636236 fetch_req=4711 fetch_redirect_req=415 fetch_regular_req=4296 fetch_data_issue=1855397 fetch_queue_enqueue=291 fetch_queue_consume=291 fetch_drop_response=0
+
+PASS: coremark completed at PC=00003cdc in 2066302 cycles
+$finish called at time : 20663125 ns : File "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/YH_rv_cpu/tb/YH_rv_cpu_coremark_fpga_tb.v" Line 533
+run: Time (s): cpu = 00:00:00 ; elapsed = 00:01:37 . Memory (MB): peak = 195.473 ; gain = 0.148
+exit
+INFO: xsimkernel Simulation Memory Usage: 15868 KB (Peak: 15868 KB), Simulation CPU Usage: 96718 ms
+INFO: [Common 17-206] Exiting xsim at Wed May 20 10:26:26 2026...
