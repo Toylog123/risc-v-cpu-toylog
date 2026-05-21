@@ -46,7 +46,11 @@ This record tracks only hardware-side changes under the current PYNQ-Z2 / sync-B
 | Regfile fold-rs3 removal / no folded-store experiment | N/A | N/A | TBD | rejected | Removing fold rs3 and blocking folded store caused CoreMark timeout; RTL change reverted |
 | DCache256 + RC128 + branchfold + Zbc/XThead condmove, word-only cache trial (wrong target smoke) | N/A | 13.700995 | TBD | invalid / rejected | Command used an unsupported target string and fell back to rv32i_zicsr, size=400, single algorithm; not comparable and not counted |
 | DCache256 + RC128 + branchfold + Zbc/XThead condmove, word-only full workload | 10670 | 4.569993 | TBD | rejected | Correct full-workload rerun completed with CRC final 0xfcaf, but score dropped and LUT stayed above 10000; DCache area is not dominated by byte/half format logic |
-| DCache256 + RC128 + branchfold + Zbc/XThead condmove, no base-update/mempair | 9546 | 5.015624 | 1.264622 | current best under 10000 | Keeps condmove and branchfold but disables unused base-update/mempair for this no-auto-inc target, removing regfile second-write area while preserving CoreMark score |
+| DCache256 + RC128 + branchfold + Zbc/XThead condmove, no base-update/mempair | 9546 | 5.015624 | 1.264622 | valid, superseded | Keeps condmove and branchfold but disables unused base-update/mempair for this no-auto-inc target, removing regfile second-write area while preserving CoreMark score |
+| DCache256 + RC128 + branchfold + Zbc/Zicond/ZBKB/XThead condmove, no base-update/mempair | 9662 | 5.059065 | TBD | valid, superseded | Restores Zicond/ZBKB hot-path decode on the low-area no-base-update line; score improves while staying below 10000 LUT |
+| DCache256 + RC128 + branchfold + Zbc/Zicond/XThead MAC+condmove, no base-update/mempair | 9591 | 5.150524 | 1.264622 | current best under 10000 | Restores XThead MAC on the no-base-update line; CoreMark improves without exceeding the relaxed 10000-LUT exploration cap |
+| DCache256 + RC128 + branchfold + Zbc/Zicond/ZBKB/XThead MAC+condmove, no base-update/mempair | 9636 | 5.150524 | 1.264622 | valid, not best | Enables ZBKB together with XThead MAC; result is CRC-clean and under 10000 LUT, but CoreMark is identical to MAC-only with slightly higher LUT |
+| DCache256 + RC128 + branchfold + Zicond/ZBKB/MAC combined target before build-script fix | N/A | 5.150524 | TBD | invalid / rejected | Build target lacked complete script/report macro support and printed fallback compiler flags; fixed rerun above is the counted result |
 
 Evidence:
 
@@ -72,3 +76,13 @@ Evidence:
 - Dhrystone summary: `dhrystone_fpga_dcache256_rc128_branchfold_zbc_condmov_nobaseupd_o3_runs1000_20260521.summary.txt`
 - Synth util: `synth_util_dcache256_rc128_branchfold_zbc_condmov_nobaseupd_quickutil_20260521.rpt`
 - Synth hierarchy: `synth_util_hier_dcache256_rc128_branchfold_zbc_condmov_nobaseupd_quickutil_20260521.rpt`
+- Full workload summary: `coremark_fpga_dcache256_rc128_branchfold_zicond_zbkb_condmov_nobaseupd_fullwork_iter10_20260521.summary.txt`
+- Synth util: `synth_util_dcache256_rc128_branchfold_zicond_zbkb_condmov_nobaseupd_quickutil_20260521.rpt`
+- Synth hierarchy: `synth_util_hier_dcache256_rc128_branchfold_zicond_zbkb_condmov_nobaseupd_quickutil_20260521.rpt`
+- Full workload summary: `coremark_fpga_dcache256_rc128_branchfold_zicond_mac_condmov_nobaseupd_fullwork_iter10_20260521.summary.txt`
+- Dhrystone summary: `dhrystone_fpga_dcache256_rc128_branchfold_zicond_zbkb_mac_condmov_nobaseupd_o3_runs1000_20260521.summary.txt`
+- Synth util: `synth_util_dcache256_rc128_branchfold_zicond_mac_condmov_nobaseupd_quickutil_20260521.rpt`
+- Synth hierarchy: `synth_util_hier_dcache256_rc128_branchfold_zicond_mac_condmov_nobaseupd_quickutil_20260521.rpt`
+- Full workload summary: `coremark_fpga_dcache256_rc128_branchfold_zicond_zbkb_mac_condmov_nobaseupd_fullwork_iter10_20260521_fixed.summary.txt`
+- Synth util: `synth_util_dcache256_rc128_branchfold_zicond_zbkb_mac_condmov_nobaseupd_quickutil_20260521.rpt`
+- Synth hierarchy: `synth_util_hier_dcache256_rc128_branchfold_zicond_zbkb_mac_condmov_nobaseupd_quickutil_20260521.rpt`
