@@ -15,12 +15,19 @@ module YH_rv_cpu_coremark_fpga_tb #(
     parameter integer ENABLE_ZICOND_EXTENSION = 0,
     parameter integer ENABLE_ZBKB_EXTENSION = 0,
     parameter integer ENABLE_XTHEAD_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_CRC_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_MUL_EXTENSION = 1,
     parameter integer ENABLE_XTHEAD_COND_MOVE = 1,
+    parameter integer ENABLE_XTHEAD_ADDSL_EXTENSION = 0,
+    parameter integer ENABLE_XTHEAD_MEMPAIR_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_BASE_UPDATE_EXTENSION = 1,
     parameter integer ENABLE_ID_BRANCH_EX_FORWARD = 1,
     parameter integer ENABLE_ID_BRANCH_FOLD = 0,
+    parameter integer ENABLE_ID_BRANCH_FOLD_NEXT_CACHE = 1,
     parameter integer ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD = 0,
     parameter integer ENABLE_ID_ALU_PAIR_FOLD = 0,
     parameter integer ENABLE_ID_ALU_DEP_FOLD = 0,
+    parameter integer ENABLE_REDIRECT_TARGET_CACHE = 1,
     parameter integer ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP = 1,
     parameter integer ENABLE_FETCH_REDIRECT_REUSE = 0,
     parameter integer REDIRECT_CACHE_ENTRIES = 1024,
@@ -30,8 +37,11 @@ module YH_rv_cpu_coremark_fpga_tb #(
     parameter integer BRANCH_STATIC_PREDICT_MODE = 0,
     parameter integer BRANCH_BHT_STRONG_ONLY = 0,
     parameter integer DMEM_NEGEDGE_READ = 0,
+    parameter integer DMEM_READ_PREISSUE = 0,
     parameter integer DCACHE_EN = 0,
     parameter integer DCACHE_SIZE_BYTES = 4096,
+    parameter integer ENABLE_DCACHE_LOAD_USE_SPEC = 0,
+    parameter integer ENABLE_DCACHE_NEXT_PREFETCH = 0,
     parameter integer ICACHE_EN = 0
 ) ();
 
@@ -62,6 +72,9 @@ integer trace_start;
 integer trace_end;
 integer plusarg_seen;
 reg     debug_trace;
+reg     trace_fold_events;
+integer trace_fold_limit;
+integer trace_fold_count;
 reg     fail_on_low_pc_after_startup;
 integer low_pc_min_cycle;
 integer profile_cycles;
@@ -113,8 +126,11 @@ YH_rv_cpu_soc #(
     .SYNC_DMEM(1),
     .DMEM_OUTPUT_REG(0),
     .DMEM_NEGEDGE_READ(DMEM_NEGEDGE_READ),
+    .DMEM_READ_PREISSUE(DMEM_READ_PREISSUE),
     .DCACHE_EN(DCACHE_EN),
     .DCACHE_SIZE_BYTES(DCACHE_SIZE_BYTES),
+    .ENABLE_DCACHE_LOAD_USE_SPEC(ENABLE_DCACHE_LOAD_USE_SPEC),
+    .ENABLE_DCACHE_NEXT_PREFETCH(ENABLE_DCACHE_NEXT_PREFETCH),
     .ICACHE_EN(ICACHE_EN),
     .RAM_BASE(RAM_BASE),
     .ROM_BYTES(ROM_BYTES),
@@ -128,12 +144,19 @@ YH_rv_cpu_soc #(
     .ENABLE_ZICOND_EXTENSION(ENABLE_ZICOND_EXTENSION),
     .ENABLE_ZBKB_EXTENSION(ENABLE_ZBKB_EXTENSION),
     .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION),
+    .ENABLE_XTHEAD_CRC_EXTENSION(ENABLE_XTHEAD_CRC_EXTENSION),
+    .ENABLE_XTHEAD_MUL_EXTENSION(ENABLE_XTHEAD_MUL_EXTENSION),
     .ENABLE_XTHEAD_COND_MOVE(ENABLE_XTHEAD_COND_MOVE),
+    .ENABLE_XTHEAD_ADDSL_EXTENSION(ENABLE_XTHEAD_ADDSL_EXTENSION),
+    .ENABLE_XTHEAD_MEMPAIR_EXTENSION(ENABLE_XTHEAD_MEMPAIR_EXTENSION),
+    .ENABLE_XTHEAD_BASE_UPDATE_EXTENSION(ENABLE_XTHEAD_BASE_UPDATE_EXTENSION),
     .ENABLE_ID_BRANCH_EX_FORWARD(ENABLE_ID_BRANCH_EX_FORWARD),
     .ENABLE_ID_BRANCH_FOLD(ENABLE_ID_BRANCH_FOLD),
+    .ENABLE_ID_BRANCH_FOLD_NEXT_CACHE(ENABLE_ID_BRANCH_FOLD_NEXT_CACHE),
     .ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD(ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD),
     .ENABLE_ID_ALU_PAIR_FOLD(ENABLE_ID_ALU_PAIR_FOLD),
     .ENABLE_ID_ALU_DEP_FOLD(ENABLE_ID_ALU_DEP_FOLD),
+    .ENABLE_REDIRECT_TARGET_CACHE(ENABLE_REDIRECT_TARGET_CACHE),
     .ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP(ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP),
     .ENABLE_FETCH_REDIRECT_REUSE(ENABLE_FETCH_REDIRECT_REUSE),
     .REDIRECT_CACHE_ENTRIES(REDIRECT_CACHE_ENTRIES),
@@ -240,6 +263,25 @@ always @(posedge clk) begin
         end
         if (dut.u_cpu.id_early_alu_pair_valid) begin
             profile_id_alu_pair_valid_events <= profile_id_alu_pair_valid_events + 1;
+            if (trace_fold_events && (trace_fold_count < trace_fold_limit)) begin
+                trace_fold_count <= trace_fold_count + 1;
+                $display(
+                    "TRACE_ALU_PAIR cycle=%0d id_pc=%h id_instr=%h fold_pc=%h fold_instr=%h rd=%0d early=%h rs1=%0d rs2=%0d fold_rd=%0d fold_rs1=%0d fold_rs2=%0d pc_next=%h",
+                    cycle,
+                    dut.u_cpu.if_id_pc_r,
+                    dut.u_cpu.if_id_instruction_r,
+                    dut.u_cpu.fold_decode_pc,
+                    dut.u_cpu.fold_decode_instruction,
+                    dut.u_cpu.id_rd_addr,
+                    dut.u_cpu.id_early_alu_result,
+                    dut.u_cpu.id_rs1_addr,
+                    dut.u_cpu.id_rs2_addr,
+                    dut.u_cpu.fold_id_rd_addr,
+                    dut.u_cpu.fold_id_rs1_addr,
+                    dut.u_cpu.fold_id_rs2_addr,
+                    dut.u_cpu.pc_r
+                );
+            end
         end
         if (dut.u_cpu.id_early_alu_pair_fetch_deliver) begin
             profile_id_alu_pair_fetch_events <= profile_id_alu_pair_fetch_events + 1;
@@ -252,6 +294,25 @@ always @(posedge clk) begin
         end
         if (dut.u_cpu.id_alu_dep_fold_valid) begin
             profile_id_alu_dep_valid_events <= profile_id_alu_dep_valid_events + 1;
+            if (trace_fold_events && (trace_fold_count < trace_fold_limit)) begin
+                trace_fold_count <= trace_fold_count + 1;
+                $display(
+                    "TRACE_ALU_DEP cycle=%0d id_pc=%h id_instr=%h fold_pc=%h fold_instr=%h rd=%0d early=%h rs1=%0d rs2=%0d fold_rd=%0d fold_rs1=%0d fold_rs2=%0d pc_next=%h",
+                    cycle,
+                    dut.u_cpu.if_id_pc_r,
+                    dut.u_cpu.if_id_instruction_r,
+                    dut.u_cpu.fold_decode_pc,
+                    dut.u_cpu.fold_decode_instruction,
+                    dut.u_cpu.id_rd_addr,
+                    dut.u_cpu.id_early_alu_result,
+                    dut.u_cpu.id_rs1_addr,
+                    dut.u_cpu.id_rs2_addr,
+                    dut.u_cpu.fold_id_rd_addr,
+                    dut.u_cpu.fold_id_rs1_addr,
+                    dut.u_cpu.fold_id_rs2_addr,
+                    dut.u_cpu.pc_r
+                );
+            end
         end
         if (dut.u_cpu.id_alu_dep_fold_fetch_deliver) begin
             profile_id_alu_dep_fetch_events <= profile_id_alu_dep_fetch_events + 1;
@@ -551,6 +612,9 @@ initial begin
     valid_found = 1'b0;
     score_found = 1'b0;
     debug_trace = 1'b0;
+    trace_fold_events = 1'b0;
+    trace_fold_limit = 64;
+    trace_fold_count = 0;
     trace_cycles = 200;
     trace_stride = 0;
     trace_start = 1;
@@ -638,6 +702,10 @@ initial begin
     if ($test$plusargs("debug_trace")) begin
         debug_trace = 1'b1;
     end
+    if ($test$plusargs("trace_fold_events")) begin
+        trace_fold_events = 1'b1;
+    end
+    plusarg_seen = $value$plusargs("trace_fold_limit=%d", trace_fold_limit);
     plusarg_seen = $value$plusargs("trace_cycles=%d", trace_cycles);
     plusarg_seen = $value$plusargs("trace_stride=%d", trace_stride);
     plusarg_seen = $value$plusargs("trace_start=%d", trace_start);

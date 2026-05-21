@@ -28,6 +28,8 @@ module YH_rv_cpu #(
     parameter [31:0] DCACHEABLE_BASE = 32'h0000_4000,
     parameter [31:0] DCACHEABLE_LIMIT = 32'h0001_4000,
     parameter integer DCACHE_SIZE_BYTES = 4096,
+    parameter integer ENABLE_DCACHE_LOAD_USE_SPEC = 0,
+    parameter integer ENABLE_DCACHE_NEXT_PREFETCH = 0,
     parameter integer DCACHE_EN = 0,         // 数据缓存使能: 0=禁用, 1=启用
     parameter integer ICACHE_EN = 0,         // 指令缓存使能: 0=禁用, 1=启用
     parameter integer ENABLE_M_EXTENSION = 1,
@@ -37,10 +39,16 @@ module YH_rv_cpu #(
     parameter integer ENABLE_ZICOND_EXTENSION = 0,
     parameter integer ENABLE_ZBKB_EXTENSION = 0,
     parameter integer ENABLE_XTHEAD_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_CRC_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_MUL_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_ADDSL_EXTENSION = 0,
+    parameter integer ENABLE_XTHEAD_MEMPAIR_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_BASE_UPDATE_EXTENSION = 1,
     parameter integer ENABLE_XTHEAD_COND_MOVE = 1, // XThead 条件移动写回门控使能
     parameter integer ENABLE_ID_BRANCH_EX_FORWARD = 1, // ID 早分支允许使用 EX 本周期结果
     parameter integer ENABLE_REDIRECT_TARGET_CACHE = 1,
     parameter integer ENABLE_ID_BRANCH_FOLD = 0,
+    parameter integer ENABLE_ID_BRANCH_FOLD_NEXT_CACHE = 1,
     parameter integer ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD = 0,
     parameter integer ENABLE_ID_ALU_PAIR_FOLD = 0,
     parameter integer ENABLE_ID_ALU_DEP_FOLD = 0,
@@ -100,6 +108,11 @@ localparam integer SHAMT_W = $clog2(XLEN);
 localparam integer REDIRECT_CACHE_INDEX_BITS = $clog2(REDIRECT_CACHE_ENTRIES);
 localparam integer REDIRECT_CACHE_INDEX_MSB = REDIRECT_CACHE_INDEX_BITS + 1;
 localparam integer BRANCH_BHT_INDEX_BITS = $clog2(BRANCH_BHT_ENTRIES);
+localparam integer ENABLE_RF_SECOND_WRITE =
+    (ENABLE_XTHEAD_BASE_UPDATE_EXTENSION != 0) ||
+    (ENABLE_XTHEAD_MEMPAIR_EXTENSION != 0) ||
+    (ENABLE_ID_ALU_PAIR_FOLD != 0) ||
+    (ENABLE_ID_ALU_DEP_FOLD != 0);
 
     // ================================================================
     // 流水线寄存器定义
@@ -222,6 +235,7 @@ reg            ex_mem_base_update_en_r;
 reg [4:0]      ex_mem_base_update_addr_r;
 reg [XLEN-1:0] ex_mem_base_update_value_r;
 reg            ex_mem_load_preissued_r;
+reg            ex_mem_load_waited_r;
 
     // ------------------------------------------------------------
     // MEM/WB 流水线寄存器
@@ -341,6 +355,7 @@ wire [XLEN-1:0] id_branch_not_taken_next_pc;
 wire [REDIRECT_CACHE_INDEX_BITS-1:0] not_taken_next_cache_lookup_index_direct;
 wire [REDIRECT_CACHE_INDEX_BITS-1:0] not_taken_next_cache_lookup_index_xor;
 wire [REDIRECT_CACHE_INDEX_BITS-1:0] not_taken_next_cache_lookup_index;
+wire            not_taken_next_cache_control;
 wire            not_taken_next_cache_hit;
 wire            not_taken_next_cache_match;
 wire            not_taken_next_cache_deliver;
@@ -376,6 +391,7 @@ wire            id_early_alu_current_waw_pending;
 wire            id_early_alu_fold_simple;
 wire            id_early_alu_fold_simple_op;
 wire            id_early_alu_fold_dep;
+wire            id_early_alu_fold_self_dep;
 wire [XLEN-1:0] id_early_alu_lhs;
 wire [XLEN-1:0] id_early_alu_rhs;
 reg  [XLEN-1:0] id_early_alu_result;
@@ -453,19 +469,26 @@ wire [XLEN-1:0] rf_rd2_wdata;
 
 assign id_rs3_addr = id_rd_addr;
 assign id_rs3_en = id_store_data_from_rd ||
-    (id_alu_op == `YH_rv_cpu_ALU_TH_MULA) ||
-    (id_alu_op == `YH_rv_cpu_ALU_TH_MULAH);
+    ((ENABLE_XTHEAD_MUL_EXTENSION != 0) && (
+        (id_alu_op == `YH_rv_cpu_ALU_TH_MULA) ||
+        (id_alu_op == `YH_rv_cpu_ALU_TH_MULAH)));
 assign fold_id_rs3_addr = fold_id_rd_addr;
 assign fold_id_rs3_en = fold_id_store_data_from_rd ||
-    (fold_id_alu_op == `YH_rv_cpu_ALU_TH_MULA) ||
-    (fold_id_alu_op == `YH_rv_cpu_ALU_TH_MULAH);
+    ((ENABLE_XTHEAD_MUL_EXTENSION != 0) && (
+        (fold_id_alu_op == `YH_rv_cpu_ALU_TH_MULA) ||
+        (fold_id_alu_op == `YH_rv_cpu_ALU_TH_MULAH)));
 assign rf_rd2_wen =
-    (mem_wb_valid_r && mem_wb_base_update_en_r && !trap_r) ||
-    (id_early_alu_pair_valid && !trap_r);
+    (ENABLE_RF_SECOND_WRITE != 0) &&
+    ((mem_wb_valid_r && mem_wb_base_update_en_r && !trap_r) ||
+     (id_early_alu_pair_valid && !trap_r));
 assign rf_rd2_addr =
-    id_early_alu_pair_valid ? id_rd_addr : mem_wb_base_update_addr_r;
+    (ENABLE_RF_SECOND_WRITE != 0) ?
+        (id_early_alu_pair_valid ? id_rd_addr : mem_wb_base_update_addr_r) :
+        5'd0;
 assign rf_rd2_wdata =
-    id_early_alu_pair_valid ? id_early_alu_result : mem_wb_base_update_value_r;
+    (ENABLE_RF_SECOND_WRITE != 0) ?
+        (id_early_alu_pair_valid ? id_early_alu_result : mem_wb_base_update_value_r) :
+        {XLEN{1'b0}};
 
     // 冒险检测信号
 wire            hazard_stall_decode;
@@ -555,6 +578,7 @@ wire [1:0]      dcache_cpu_size;
 wire [XLEN-1:0] dcache_cpu_rdata;
 wire            dcache_cpu_rvalid;
 wire            dcache_cpu_wait;
+wire            dcache_probe_hit;
 
     // DCache Mem接口信号
 wire [XLEN-1:0] dcache_mem_addr;
@@ -589,7 +613,10 @@ wire [XLEN-1:0] wb_data;
 wire [XLEN-1:0] ex_mem_forward_data;
 wire            ex_mem_load_data_ready;
 wire            id_ex_load_forward_ready;
+wire            id_ex_load_forward_ready_decode;
+wire            if_id_mem_addr_dep_on_idex_load;
 wire            ex_mem_load_forward_ready;
+wire            id_ex_dcache_load_use_safe;
 
     // CSR 寄存器
 reg  [XLEN-1:0] csr_mstatus_r;
@@ -751,7 +778,35 @@ assign ex_mem_load_data_ready =
     (DCACHE_EN != 0) ? (dcache_direct_load ? dmem_rvalid : dcache_cpu_rvalid) :
     (DMEM_SYNC == 0) ? 1'b1 :
     dmem_rvalid;
-assign id_ex_load_forward_ready = (LOAD_USE_FAST_FORWARD != 0) || ex_dmem_preissue_valid;
+assign id_ex_dcache_load_use_safe =
+    (ENABLE_DCACHE_LOAD_USE_SPEC != 0) &&
+    (DCACHE_EN != 0) &&
+    id_ex_valid_r &&
+    id_ex_load_r &&
+    !id_ex_mem_pair_r &&
+    !ex_mem_misaligned &&
+    (ex_mem_addr[31:0] >= DCACHEABLE_BASE) &&
+    (ex_mem_addr[31:0] < DCACHEABLE_LIMIT) &&
+    dcache_probe_hit;
+assign id_ex_load_forward_ready =
+    (LOAD_USE_FAST_FORWARD != 0) ||
+    ex_dmem_preissue_valid ||
+    id_ex_dcache_load_use_safe;
+assign if_id_mem_addr_dep_on_idex_load =
+    (DMEM_READ_PREISSUE != 0) &&
+    if_id_valid_r &&
+    (id_load || id_store) &&
+    id_ex_valid_r &&
+    id_ex_load_r &&
+    id_ex_rd_en_r &&
+    (id_ex_rd_addr_r != 5'd0) &&
+    (
+        (id_rs1_en && (id_rs1_addr == id_ex_rd_addr_r)) ||
+        (id_mem_indexed && id_rs2_en && (id_rs2_addr == id_ex_rd_addr_r))
+    );
+assign id_ex_load_forward_ready_decode =
+    id_ex_load_forward_ready &&
+    !if_id_mem_addr_dep_on_idex_load;
 assign ex_mem_load_forward_ready = (LOAD_USE_FAST_FORWARD != 0) || ex_mem_load_data_ready;
 
 assign store_data_load_use_hazard =
@@ -905,13 +960,16 @@ assign id_branch_decode_idex_forward_cheap =
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_SH1ADD) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_SH2ADD) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_SH3ADD) ||
-        (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_ADDSL1) ||
-        (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_ADDSL2) ||
-        (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_ADDSL3) ||
-        (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_MVEQZ) ||
-        (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_MVNEZ) ||
-        (id_ex_alu_op_r == `YH_rv_cpu_ALU_CZERO_EQZ) ||
-        (id_ex_alu_op_r == `YH_rv_cpu_ALU_CZERO_NEZ) ||
+        ((ENABLE_XTHEAD_ADDSL_EXTENSION != 0) && (
+            (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_ADDSL1) ||
+            (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_ADDSL2) ||
+            (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_ADDSL3))) ||
+        ((ENABLE_XTHEAD_COND_MOVE != 0) && (
+            (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_MVEQZ) ||
+            (id_ex_alu_op_r == `YH_rv_cpu_ALU_TH_MVNEZ))) ||
+        ((ENABLE_ZICOND_EXTENSION != 0) && (
+            (id_ex_alu_op_r == `YH_rv_cpu_ALU_CZERO_EQZ) ||
+            (id_ex_alu_op_r == `YH_rv_cpu_ALU_CZERO_NEZ))) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_ANDN) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_SEXT_H) ||
         (id_ex_alu_op_r == `YH_rv_cpu_ALU_ZEXT_H) ||
@@ -1167,11 +1225,11 @@ assign fold_id_control_or_trap =
     fold_id_ebreak ||
     fold_id_mret;
 assign fold_id_hazard =
-    (fold_id_rs1_en && id_ex_valid_r && id_ex_load_r && id_ex_rd_en_r &&
+    (fold_id_rs1_en && id_ex_valid_r && id_ex_load_r && !id_ex_load_forward_ready && id_ex_rd_en_r &&
      (id_ex_rd_addr_r != 5'd0) && (id_ex_rd_addr_r == fold_id_rs1_addr)) ||
-    (fold_id_rs2_en && id_ex_valid_r && id_ex_load_r && id_ex_rd_en_r &&
+    (fold_id_rs2_en && id_ex_valid_r && id_ex_load_r && !id_ex_load_forward_ready && id_ex_rd_en_r &&
      (id_ex_rd_addr_r != 5'd0) && (id_ex_rd_addr_r == fold_id_rs2_addr)) ||
-    (fold_id_rs3_en && id_ex_valid_r && id_ex_load_r && id_ex_rd_en_r &&
+    (fold_id_rs3_en && id_ex_valid_r && id_ex_load_r && !id_ex_load_forward_ready && id_ex_rd_en_r &&
      (id_ex_rd_addr_r != 5'd0) && (id_ex_rd_addr_r == fold_id_rs3_addr)) ||
     (fold_id_rs1_en && ex_mem_valid_r && ex_mem_load_r && !ex_mem_load_data_ready && ex_mem_rd_en_r &&
      (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == fold_id_rs1_addr)) ||
@@ -1188,6 +1246,7 @@ assign id_branch_not_taken_fold_valid =
     !fold_id_control_or_trap &&
     (!fold_id_load ||
      ((ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD != 0) &&
+      (fold_id_mem_size == `YH_rv_cpu_MEM_W) &&
       !id_branch_not_taken_fold_recent_operand_match &&
       !not_taken_next_uses_fold_load_rd)) &&
     !fold_id_hazard;
@@ -1228,13 +1287,13 @@ assign id_early_alu_current_simple =
         (id_alu_op == `YH_rv_cpu_ALU_SH1ADD) ||
         (id_alu_op == `YH_rv_cpu_ALU_SH2ADD) ||
         (id_alu_op == `YH_rv_cpu_ALU_SH3ADD) ||
-        (id_alu_op == `YH_rv_cpu_ALU_TH_ADDSL1) ||
-        (id_alu_op == `YH_rv_cpu_ALU_TH_ADDSL2) ||
-        (id_alu_op == `YH_rv_cpu_ALU_TH_ADDSL3) ||
-        (id_alu_op == `YH_rv_cpu_ALU_TH_MVEQZ) ||
-        (id_alu_op == `YH_rv_cpu_ALU_TH_MVNEZ) ||
-        (id_alu_op == `YH_rv_cpu_ALU_CZERO_EQZ) ||
-        (id_alu_op == `YH_rv_cpu_ALU_CZERO_NEZ) ||
+        ((ENABLE_XTHEAD_ADDSL_EXTENSION != 0) && (
+            (id_alu_op == `YH_rv_cpu_ALU_TH_ADDSL1) ||
+            (id_alu_op == `YH_rv_cpu_ALU_TH_ADDSL2) ||
+            (id_alu_op == `YH_rv_cpu_ALU_TH_ADDSL3))) ||
+        ((ENABLE_ZICOND_EXTENSION != 0) && (
+            (id_alu_op == `YH_rv_cpu_ALU_CZERO_EQZ) ||
+            (id_alu_op == `YH_rv_cpu_ALU_CZERO_NEZ))) ||
         (id_alu_op == `YH_rv_cpu_ALU_ANDN) ||
         (id_alu_op == `YH_rv_cpu_ALU_SEXT_H) ||
         (id_alu_op == `YH_rv_cpu_ALU_ZEXT_H) ||
@@ -1303,13 +1362,16 @@ assign id_early_alu_fold_simple_op =
     (fold_id_alu_op == `YH_rv_cpu_ALU_SH1ADD) ||
     (fold_id_alu_op == `YH_rv_cpu_ALU_SH2ADD) ||
     (fold_id_alu_op == `YH_rv_cpu_ALU_SH3ADD) ||
-    (fold_id_alu_op == `YH_rv_cpu_ALU_TH_ADDSL1) ||
-    (fold_id_alu_op == `YH_rv_cpu_ALU_TH_ADDSL2) ||
-    (fold_id_alu_op == `YH_rv_cpu_ALU_TH_ADDSL3) ||
-    (fold_id_alu_op == `YH_rv_cpu_ALU_TH_MVEQZ) ||
-    (fold_id_alu_op == `YH_rv_cpu_ALU_TH_MVNEZ) ||
-    (fold_id_alu_op == `YH_rv_cpu_ALU_CZERO_EQZ) ||
-    (fold_id_alu_op == `YH_rv_cpu_ALU_CZERO_NEZ) ||
+    ((ENABLE_XTHEAD_ADDSL_EXTENSION != 0) && (
+        (fold_id_alu_op == `YH_rv_cpu_ALU_TH_ADDSL1) ||
+        (fold_id_alu_op == `YH_rv_cpu_ALU_TH_ADDSL2) ||
+        (fold_id_alu_op == `YH_rv_cpu_ALU_TH_ADDSL3))) ||
+    ((ENABLE_XTHEAD_COND_MOVE != 0) && (
+        (fold_id_alu_op == `YH_rv_cpu_ALU_TH_MVEQZ) ||
+        (fold_id_alu_op == `YH_rv_cpu_ALU_TH_MVNEZ))) ||
+    ((ENABLE_ZICOND_EXTENSION != 0) && (
+        (fold_id_alu_op == `YH_rv_cpu_ALU_CZERO_EQZ) ||
+        (fold_id_alu_op == `YH_rv_cpu_ALU_CZERO_NEZ))) ||
     (fold_id_alu_op == `YH_rv_cpu_ALU_ANDN) ||
     (fold_id_alu_op == `YH_rv_cpu_ALU_SEXT_H) ||
     (fold_id_alu_op == `YH_rv_cpu_ALU_ZEXT_H) ||
@@ -1334,6 +1396,14 @@ assign id_early_alu_fold_dep =
         (fold_id_rs2_en && (fold_id_rs2_addr == id_rd_addr)) ||
         (fold_id_rs3_en && (fold_id_rs3_addr == id_rd_addr))
     );
+assign id_early_alu_fold_self_dep =
+    fold_id_rd_en &&
+    (fold_id_rd_addr != 5'd0) &&
+    (
+        (fold_id_rs1_en && (fold_id_rs1_addr == fold_id_rd_addr)) ||
+        (fold_id_rs2_en && (fold_id_rs2_addr == fold_id_rd_addr)) ||
+        (fold_id_rs3_en && (fold_id_rs3_addr == fold_id_rd_addr))
+    );
 assign id_early_alu_pair_fetch_deliver =
     fetch_queue_valid &&
     (fetch_queue_pc == id_branch_not_taken_fold_pc);
@@ -1354,7 +1424,9 @@ assign id_early_alu_pair_valid =
     id_early_alu_current_ready &&
     id_early_alu_fold_simple &&
     !id_early_alu_fold_dep &&
+    !id_early_alu_fold_self_dep &&
     !fold_id_hazard &&
+    !not_taken_next_cache_control &&
     !(mem_wb_valid_r && mem_wb_base_update_en_r);
 assign id_alu_dep_fold_fetch_deliver = id_early_alu_pair_fetch_deliver;
 assign id_alu_dep_fold_cache_deliver = id_early_alu_pair_cache_deliver;
@@ -1382,6 +1454,8 @@ assign id_alu_dep_fold_valid =
     fold_id_rd_en &&
     (fold_id_rd_addr == id_rd_addr) &&
     !fold_id_hazard &&
+    !not_taken_next_cache_control &&
+    !(mem_wb_valid_r && mem_wb_base_update_en_r) &&
     !id_early_alu_pair_valid;
 assign fold_issue_rs1_en =
     fold_id_rs1_en &&
@@ -1399,34 +1473,38 @@ assign fold_issue_rs2_value =
 assign fold_issue_rs3_value =
     (id_alu_dep_fold_valid && id_alu_dep_uses_rs3) ? id_early_alu_result : fold_rs3_rdata;
 assign id_early_alu_lhs = id_is_lui ? ZERO_XLEN : (id_alu_src1_pc ? if_id_pc_r : id_rs1_value);
-assign id_early_alu_rhs = id_alu_src2_imm ? id_imm : id_rs2_value;
+assign id_early_alu_rhs = (id_is_lui || id_alu_src2_imm) ? id_imm : id_rs2_value;
 always @* begin
-    case (id_alu_op)
-        `YH_rv_cpu_ALU_SUB: id_early_alu_result = id_early_alu_lhs - id_early_alu_rhs;
-        `YH_rv_cpu_ALU_SLT: id_early_alu_result = {{(XLEN-1){1'b0}}, ($signed(id_early_alu_lhs) < $signed(id_early_alu_rhs))};
-        `YH_rv_cpu_ALU_SLTU: id_early_alu_result = {{(XLEN-1){1'b0}}, (id_early_alu_lhs < id_early_alu_rhs)};
-        `YH_rv_cpu_ALU_XOR: id_early_alu_result = id_early_alu_lhs ^ id_early_alu_rhs;
-        `YH_rv_cpu_ALU_OR:  id_early_alu_result = id_early_alu_lhs | id_early_alu_rhs;
-        `YH_rv_cpu_ALU_AND: id_early_alu_result = id_early_alu_lhs & id_early_alu_rhs;
-        `YH_rv_cpu_ALU_SLL: id_early_alu_result = id_early_alu_lhs << id_early_alu_rhs[SHAMT_W-1:0];
-        `YH_rv_cpu_ALU_SRL: id_early_alu_result = id_early_alu_lhs >> id_early_alu_rhs[SHAMT_W-1:0];
-        `YH_rv_cpu_ALU_SRA: id_early_alu_result = $signed(id_early_alu_lhs) >>> id_early_alu_rhs[SHAMT_W-1:0];
-        `YH_rv_cpu_ALU_SH1ADD: id_early_alu_result = (id_early_alu_lhs << 1) + id_early_alu_rhs;
-        `YH_rv_cpu_ALU_SH2ADD: id_early_alu_result = (id_early_alu_lhs << 2) + id_early_alu_rhs;
-        `YH_rv_cpu_ALU_SH3ADD: id_early_alu_result = (id_early_alu_lhs << 3) + id_early_alu_rhs;
-        `YH_rv_cpu_ALU_TH_ADDSL1: id_early_alu_result = id_early_alu_lhs + (id_early_alu_rhs << 1);
-        `YH_rv_cpu_ALU_TH_ADDSL2: id_early_alu_result = id_early_alu_lhs + (id_early_alu_rhs << 2);
-        `YH_rv_cpu_ALU_TH_ADDSL3: id_early_alu_result = id_early_alu_lhs + (id_early_alu_rhs << 3);
-        `YH_rv_cpu_ALU_TH_MVEQZ:  id_early_alu_result = id_early_alu_lhs;
-        `YH_rv_cpu_ALU_TH_MVNEZ:  id_early_alu_result = id_early_alu_lhs;
-        `YH_rv_cpu_ALU_CZERO_EQZ: id_early_alu_result = (id_early_alu_rhs == ZERO_XLEN) ? ZERO_XLEN : id_early_alu_lhs;
-        `YH_rv_cpu_ALU_CZERO_NEZ: id_early_alu_result = (id_early_alu_rhs != ZERO_XLEN) ? ZERO_XLEN : id_early_alu_lhs;
-        `YH_rv_cpu_ALU_ANDN: id_early_alu_result = id_early_alu_lhs & ~id_early_alu_rhs;
-        `YH_rv_cpu_ALU_SEXT_H: id_early_alu_result = {{(XLEN-16){id_early_alu_lhs[15]}}, id_early_alu_lhs[15:0]};
-        `YH_rv_cpu_ALU_ZEXT_H: id_early_alu_result = {{(XLEN-16){1'b0}}, id_early_alu_lhs[15:0]};
-        `YH_rv_cpu_ALU_BEXT: id_early_alu_result = {{(XLEN-1){1'b0}}, id_early_alu_lhs[id_early_alu_rhs[SHAMT_W-1:0]]};
-        default: id_early_alu_result = id_early_alu_lhs + id_early_alu_rhs;
-    endcase
+    if ((ENABLE_ID_ALU_PAIR_FOLD == 0) && (ENABLE_ID_ALU_DEP_FOLD == 0)) begin
+        id_early_alu_result = ZERO_XLEN;
+    end else begin
+        case (id_alu_op)
+            `YH_rv_cpu_ALU_SUB: id_early_alu_result = id_early_alu_lhs - id_early_alu_rhs;
+            `YH_rv_cpu_ALU_SLT: id_early_alu_result = {{(XLEN-1){1'b0}}, ($signed(id_early_alu_lhs) < $signed(id_early_alu_rhs))};
+            `YH_rv_cpu_ALU_SLTU: id_early_alu_result = {{(XLEN-1){1'b0}}, (id_early_alu_lhs < id_early_alu_rhs)};
+            `YH_rv_cpu_ALU_XOR: id_early_alu_result = id_early_alu_lhs ^ id_early_alu_rhs;
+            `YH_rv_cpu_ALU_OR:  id_early_alu_result = id_early_alu_lhs | id_early_alu_rhs;
+            `YH_rv_cpu_ALU_AND: id_early_alu_result = id_early_alu_lhs & id_early_alu_rhs;
+            `YH_rv_cpu_ALU_SLL: id_early_alu_result = id_early_alu_lhs << id_early_alu_rhs[SHAMT_W-1:0];
+            `YH_rv_cpu_ALU_SRL: id_early_alu_result = id_early_alu_lhs >> id_early_alu_rhs[SHAMT_W-1:0];
+            `YH_rv_cpu_ALU_SRA: id_early_alu_result = $signed(id_early_alu_lhs) >>> id_early_alu_rhs[SHAMT_W-1:0];
+            `YH_rv_cpu_ALU_SH1ADD: id_early_alu_result = (id_early_alu_lhs << 1) + id_early_alu_rhs;
+            `YH_rv_cpu_ALU_SH2ADD: id_early_alu_result = (id_early_alu_lhs << 2) + id_early_alu_rhs;
+            `YH_rv_cpu_ALU_SH3ADD: id_early_alu_result = (id_early_alu_lhs << 3) + id_early_alu_rhs;
+            `YH_rv_cpu_ALU_TH_ADDSL1: id_early_alu_result = id_early_alu_lhs + (id_early_alu_rhs << 1);
+            `YH_rv_cpu_ALU_TH_ADDSL2: id_early_alu_result = id_early_alu_lhs + (id_early_alu_rhs << 2);
+            `YH_rv_cpu_ALU_TH_ADDSL3: id_early_alu_result = id_early_alu_lhs + (id_early_alu_rhs << 3);
+            `YH_rv_cpu_ALU_TH_MVEQZ:  id_early_alu_result = id_early_alu_lhs;
+            `YH_rv_cpu_ALU_TH_MVNEZ:  id_early_alu_result = id_early_alu_lhs;
+            `YH_rv_cpu_ALU_CZERO_EQZ: id_early_alu_result = (id_early_alu_rhs == ZERO_XLEN) ? ZERO_XLEN : id_early_alu_lhs;
+            `YH_rv_cpu_ALU_CZERO_NEZ: id_early_alu_result = (id_early_alu_rhs != ZERO_XLEN) ? ZERO_XLEN : id_early_alu_lhs;
+            `YH_rv_cpu_ALU_ANDN: id_early_alu_result = id_early_alu_lhs & ~id_early_alu_rhs;
+            `YH_rv_cpu_ALU_SEXT_H: id_early_alu_result = {{(XLEN-16){id_early_alu_lhs[15]}}, id_early_alu_lhs[15:0]};
+            `YH_rv_cpu_ALU_ZEXT_H: id_early_alu_result = {{(XLEN-16){1'b0}}, id_early_alu_lhs[15:0]};
+            `YH_rv_cpu_ALU_BEXT: id_early_alu_result = {{(XLEN-1){1'b0}}, id_early_alu_lhs[id_early_alu_rhs[SHAMT_W-1:0]]};
+            default: id_early_alu_result = id_early_alu_lhs + id_early_alu_rhs;
+        endcase
+    end
 end
 
 assign id_jal_predict_redirect_valid =
@@ -1477,7 +1555,8 @@ assign fetch_reuse_redirect_pc = ex_redirect_pc;
     // 否则使用原始的同步内存等待逻辑
 assign mem_wait = DCACHE_EN ?
     (dcache_cpu_wait || ((DMEM_SYNC != 0) && dcache_direct_load && !dmem_rvalid)) :
-    ((DMEM_SYNC != 0) && ex_mem_valid_r && ex_mem_load_r && !dmem_rvalid);
+    ((DMEM_SYNC != 0) && ex_mem_valid_r && ex_mem_load_r &&
+     (ex_mem_load_preissued_r ? !dmem_rvalid : (!ex_mem_load_waited_r || !dmem_rvalid)));
 
     // ================================================================
     // 取指响应 PC 和有效信号
@@ -1594,20 +1673,32 @@ assign redirect_cache_hit =
     (redirect_cache_pc_r[redirect_cache_lookup_index] == fetch_control_redirect_pc);
 assign redirect_cache_deliver = redirect_cache_hit;
 assign redirect_cache_instruction = redirect_cache_instruction_r[redirect_cache_lookup_index];
-assign fold_next_cache_pc = fetch_control_redirect_pc + {{(XLEN-3){1'b0}}, 3'd4};
-assign fold_next_cache_lookup_index_direct =
-    fold_next_cache_pc[REDIRECT_CACHE_INDEX_MSB:2];
-assign fold_next_cache_lookup_index_xor =
-    fold_next_cache_pc[REDIRECT_CACHE_INDEX_MSB:2] ^
-    fold_next_cache_pc[(2*REDIRECT_CACHE_INDEX_MSB-1):(REDIRECT_CACHE_INDEX_MSB+1)];
-assign fold_next_cache_lookup_index =
-    (REDIRECT_CACHE_XOR_INDEX != 0) ? fold_next_cache_lookup_index_xor : fold_next_cache_lookup_index_direct;
-assign fold_next_cache_hit =
-    id_branch_fold_valid &&
-    redirect_cache_valid_r[fold_next_cache_lookup_index] &&
-    (redirect_cache_pc_r[fold_next_cache_lookup_index] == fold_next_cache_pc);
-assign fold_next_cache_deliver = fold_next_cache_hit;
-assign fold_next_cache_instruction = redirect_cache_instruction_r[fold_next_cache_lookup_index];
+generate
+if (ENABLE_ID_BRANCH_FOLD_NEXT_CACHE != 0) begin : gen_branch_fold_next_cache
+    assign fold_next_cache_pc = fetch_control_redirect_pc + {{(XLEN-3){1'b0}}, 3'd4};
+    assign fold_next_cache_lookup_index_direct =
+        fold_next_cache_pc[REDIRECT_CACHE_INDEX_MSB:2];
+    assign fold_next_cache_lookup_index_xor =
+        fold_next_cache_pc[REDIRECT_CACHE_INDEX_MSB:2] ^
+        fold_next_cache_pc[(2*REDIRECT_CACHE_INDEX_MSB-1):(REDIRECT_CACHE_INDEX_MSB+1)];
+    assign fold_next_cache_lookup_index =
+        (REDIRECT_CACHE_XOR_INDEX != 0) ? fold_next_cache_lookup_index_xor : fold_next_cache_lookup_index_direct;
+    assign fold_next_cache_hit =
+        id_branch_fold_valid &&
+        redirect_cache_valid_r[fold_next_cache_lookup_index] &&
+        (redirect_cache_pc_r[fold_next_cache_lookup_index] == fold_next_cache_pc);
+    assign fold_next_cache_deliver = fold_next_cache_hit;
+    assign fold_next_cache_instruction = redirect_cache_instruction_r[fold_next_cache_lookup_index];
+end else begin : gen_no_branch_fold_next_cache
+    assign fold_next_cache_pc = ZERO_XLEN;
+    assign fold_next_cache_lookup_index_direct = {REDIRECT_CACHE_INDEX_BITS{1'b0}};
+    assign fold_next_cache_lookup_index_xor = {REDIRECT_CACHE_INDEX_BITS{1'b0}};
+    assign fold_next_cache_lookup_index = {REDIRECT_CACHE_INDEX_BITS{1'b0}};
+    assign fold_next_cache_hit = 1'b0;
+    assign fold_next_cache_deliver = 1'b0;
+    assign fold_next_cache_instruction = 32'h0000_0013;
+end
+endgenerate
 assign not_taken_next_cache_lookup_index_direct =
     id_branch_not_taken_next_pc[REDIRECT_CACHE_INDEX_MSB:2];
 assign not_taken_next_cache_lookup_index_xor =
@@ -1623,6 +1714,15 @@ assign not_taken_next_cache_hit =
     not_taken_next_cache_match;
 assign not_taken_next_cache_deliver = not_taken_next_cache_hit;
 assign not_taken_next_cache_instruction = redirect_cache_instruction_r[not_taken_next_cache_lookup_index];
+assign not_taken_next_cache_control =
+    ((ENABLE_ID_ALU_PAIR_FOLD != 0) || (ENABLE_ID_ALU_DEP_FOLD != 0)) &&
+    not_taken_next_cache_match &&
+    (
+        (not_taken_next_cache_instruction[6:0] == 7'b1100011) ||
+        (not_taken_next_cache_instruction[6:0] == 7'b1100111) ||
+        (not_taken_next_cache_instruction[6:0] == 7'b1101111) ||
+        (not_taken_next_cache_instruction[6:0] == 7'b1110011)
+    );
 assign regular_cache_lookup_index_direct =
     ifetch_addr[REDIRECT_CACHE_INDEX_MSB:2];
 assign regular_cache_lookup_index_xor =
@@ -1891,7 +1991,14 @@ YH_rv_cpu_if_stage #(
 
     // 寄存器堆
 YH_rv_cpu_regfile #(
-    .XLEN(XLEN)
+    .XLEN(XLEN),
+    .ENABLE_RS3_READ_PORT(ENABLE_XTHEAD_EXTENSION != 0),
+    .ENABLE_FOLD_READ_PORTS(
+        (ENABLE_ID_BRANCH_FOLD != 0) ||
+        (ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD != 0) ||
+        (ENABLE_ID_ALU_PAIR_FOLD != 0) ||
+        (ENABLE_ID_ALU_DEP_FOLD != 0)
+    )
 ) u_regfile (
     .clk       (clk),
     .rst_n     (rst_n),
@@ -1924,7 +2031,13 @@ YH_rv_cpu_id_stage #(
     .ENABLE_ZBC_EXTENSION(ENABLE_ZBC_EXTENSION),
     .ENABLE_ZICOND_EXTENSION(ENABLE_ZICOND_EXTENSION),
     .ENABLE_ZBKB_EXTENSION(ENABLE_ZBKB_EXTENSION),
-    .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION)
+    .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION),
+    .ENABLE_XTHEAD_CRC_EXTENSION(ENABLE_XTHEAD_CRC_EXTENSION),
+    .ENABLE_XTHEAD_MUL_EXTENSION(ENABLE_XTHEAD_MUL_EXTENSION),
+    .ENABLE_XTHEAD_COND_MOVE(ENABLE_XTHEAD_COND_MOVE),
+    .ENABLE_XTHEAD_ADDSL_EXTENSION(ENABLE_XTHEAD_ADDSL_EXTENSION),
+    .ENABLE_XTHEAD_MEMPAIR_EXTENSION(ENABLE_XTHEAD_MEMPAIR_EXTENSION),
+    .ENABLE_XTHEAD_BASE_UPDATE_EXTENSION(ENABLE_XTHEAD_BASE_UPDATE_EXTENSION)
 ) u_id_stage (
     .pc            (if_id_pc_r),
     .instruction   (if_id_instruction_r),
@@ -1981,7 +2094,13 @@ YH_rv_cpu_id_stage #(
     .ENABLE_ZBC_EXTENSION(ENABLE_ZBC_EXTENSION),
     .ENABLE_ZICOND_EXTENSION(ENABLE_ZICOND_EXTENSION),
     .ENABLE_ZBKB_EXTENSION(ENABLE_ZBKB_EXTENSION),
-    .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION)
+    .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION),
+    .ENABLE_XTHEAD_CRC_EXTENSION(ENABLE_XTHEAD_CRC_EXTENSION),
+    .ENABLE_XTHEAD_MUL_EXTENSION(ENABLE_XTHEAD_MUL_EXTENSION),
+    .ENABLE_XTHEAD_COND_MOVE(ENABLE_XTHEAD_COND_MOVE),
+    .ENABLE_XTHEAD_ADDSL_EXTENSION(ENABLE_XTHEAD_ADDSL_EXTENSION),
+    .ENABLE_XTHEAD_MEMPAIR_EXTENSION(ENABLE_XTHEAD_MEMPAIR_EXTENSION),
+    .ENABLE_XTHEAD_BASE_UPDATE_EXTENSION(ENABLE_XTHEAD_BASE_UPDATE_EXTENSION)
 ) u_fold_target_id_stage (
     .pc            (fold_decode_pc),
     .instruction   (fold_decode_instruction),
@@ -2038,7 +2157,7 @@ YH_rv_cpu_hazard_unit #(
     .if_id_rs2_addr (id_rs2_addr),
     .id_ex_valid    (id_ex_valid_r),
     .id_ex_load     (id_ex_load_r),
-    .id_ex_load_ready(id_ex_load_forward_ready),
+    .id_ex_load_ready(id_ex_load_forward_ready_decode),
     .id_ex_rd_en    (id_ex_rd_en_r),
     .id_ex_rd_addr  (id_ex_rd_addr_r),
     .id_ex_rs1_en   (id_ex_rs1_en_r),
@@ -2124,7 +2243,12 @@ YH_rv_cpu_ex_stage #(
     .ENABLE_ZBC_EXTENSION(ENABLE_ZBC_EXTENSION),
     .ENABLE_ZICOND_EXTENSION(ENABLE_ZICOND_EXTENSION),
     .ENABLE_ZBKB_EXTENSION(ENABLE_ZBKB_EXTENSION),
-    .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION)
+    .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION),
+    .ENABLE_XTHEAD_CRC_EXTENSION(ENABLE_XTHEAD_CRC_EXTENSION),
+    .ENABLE_XTHEAD_MUL_EXTENSION(ENABLE_XTHEAD_MUL_EXTENSION),
+    .ENABLE_XTHEAD_COND_MOVE(ENABLE_XTHEAD_COND_MOVE),
+    .ENABLE_XTHEAD_ADDSL_EXTENSION(ENABLE_XTHEAD_ADDSL_EXTENSION),
+    .ENABLE_XTHEAD_BASE_UPDATE_EXTENSION(ENABLE_XTHEAD_BASE_UPDATE_EXTENSION)
 ) u_ex_stage (
     .pc            (id_ex_pc_r),
     .rs1_value     (ex_rs1_forwarded),
@@ -2177,7 +2301,7 @@ assign mem_stage_dmem_port_busy =
     (
         ex_mem_store_r ||
         ex_mem_mem_pair_r ||
-        (ex_mem_load_r && !ex_mem_load_preissued_r)
+        ex_mem_load_r
     );
 
     // ================================================================
@@ -2216,6 +2340,7 @@ assign mem_stage_dmem_port_busy =
             assign dmem_read_req = ex_dmem_preissue_valid ||
                 (mem_stage_dmem_read_req && !ex_mem_load_preissued_r);
             assign dmem_pair_read_req = mem_stage_dmem_pair_read_req && !ex_mem_load_preissued_r;
+            assign dmem_we = |mem_stage_dmem_wstrb;
             assign dmem_wdata = mem_stage_dmem_wdata;
             assign dmem_wstrb = mem_stage_dmem_wstrb;
             assign dmem_pair_wdata = mem_stage_dmem_pair_wdata;
@@ -2267,7 +2392,8 @@ assign mem_stage_dmem_port_busy =
                 .CACHE_SIZE(DCACHE_SIZE_BYTES),
                 .BLOCK_SIZE(32),
                 .ASSOC(1),
-                .WRITE_POLICY(0)
+                .WRITE_POLICY(0),
+                .ENABLE_NEXT_PREFETCH(ENABLE_DCACHE_NEXT_PREFETCH)
             ) u_dcache (
                 .clk            (clk),
                 .rst_n          (rst_n),
@@ -2281,6 +2407,9 @@ assign mem_stage_dmem_port_busy =
                 .cpu_rdata      (dcache_cpu_rdata),
                 .cpu_rvalid     (dcache_cpu_rvalid),
                 .cpu_wait       (dcache_cpu_wait),
+                .probe_req      (id_ex_valid_r && id_ex_load_r && !id_ex_mem_pair_r),
+                .probe_addr     (ex_mem_addr),
+                .probe_hit      (dcache_probe_hit),
                 .mem_addr       (dcache_mem_addr),
                 .mem_req        (dcache_mem_req),
                 .mem_we         (dcache_mem_we),
@@ -2427,6 +2556,7 @@ always @(posedge clk or negedge rst_n) begin
         ex_mem_wb_sel_r <= `YH_rv_cpu_WB_ALU;
         ex_mem_load_r <= 1'b0;
         ex_mem_load_preissued_r <= 1'b0;
+        ex_mem_load_waited_r <= 1'b0;
         ex_mem_store_r <= 1'b0;
         ex_mem_mem_size_r <= `YH_rv_cpu_MEM_W;
         ex_mem_mem_unsigned_r <= 1'b0;
@@ -2479,6 +2609,9 @@ always @(posedge clk or negedge rst_n) begin
         if (mem_wait) begin
             // Hold WB steady while a synchronous load waits for data so a
             // stalled EX instruction can still forward the last committed value.
+            if (ex_mem_valid_r && ex_mem_load_r && !ex_mem_load_preissued_r) begin
+                ex_mem_load_waited_r <= 1'b1;
+            end
         end else begin
             mem_wb_valid_r <= ex_mem_valid_r;
             mem_wb_pc4_r <= ex_mem_pc4_r;
@@ -2562,6 +2695,7 @@ always @(posedge clk or negedge rst_n) begin
                 ex_mem_wb_sel_r <= id_ex_wb_sel_r;
                 ex_mem_load_r <= id_ex_load_r;
                 ex_mem_load_preissued_r <= ex_dmem_preissue_valid;
+                ex_mem_load_waited_r <= id_ex_load_r && ex_dmem_preissue_valid;
                 ex_mem_store_r <= id_ex_store_r;
                 ex_mem_mem_size_r <= id_ex_mem_size_r;
                 ex_mem_mem_unsigned_r <= id_ex_mem_unsigned_r;
@@ -2572,8 +2706,10 @@ always @(posedge clk or negedge rst_n) begin
                 ex_mem_mem_pair_r <= id_ex_mem_pair_r;
                 ex_mem_pair_store_data_r <= ex_pair_store_data;
                 ex_mem_pair_store_wstrb_r <= ex_pair_store_wstrb;
-                ex_mem_base_update_en_r <= id_ex_valid_r && (id_ex_mem_base_update_r || (id_ex_mem_pair_r && id_ex_load_r));
-                ex_mem_base_update_addr_r <= (id_ex_mem_pair_r && id_ex_load_r) ? id_ex_rs2_addr_r : id_ex_rs1_addr_r;
+                ex_mem_base_update_en_r <= id_ex_valid_r &&
+                    (((ENABLE_XTHEAD_BASE_UPDATE_EXTENSION != 0) && id_ex_mem_base_update_r) ||
+                     ((ENABLE_XTHEAD_MEMPAIR_EXTENSION != 0) && id_ex_mem_pair_r && id_ex_load_r));
+                ex_mem_base_update_addr_r <= ((ENABLE_XTHEAD_MEMPAIR_EXTENSION != 0) && id_ex_mem_pair_r && id_ex_load_r) ? id_ex_rs2_addr_r : id_ex_rs1_addr_r;
                 ex_mem_base_update_value_r <= ex_mem_base_update_value;
 
                 if (id_ex_flush_valid_local) begin
@@ -2706,8 +2842,8 @@ always @(posedge clk or negedge rst_n) begin
                         id_ex_mem_unsigned_r <= fold_id_mem_unsigned;
                         id_ex_mem_indexed_r <= fold_id_mem_indexed;
                         id_ex_mem_index_shift_r <= fold_id_mem_index_shift;
-                        id_ex_mem_pair_r <= fold_id_mem_pair;
-                        id_ex_mem_base_update_r <= fold_id_mem_base_update;
+                        id_ex_mem_pair_r <= (ENABLE_XTHEAD_MEMPAIR_EXTENSION != 0) && fold_id_mem_pair;
+                        id_ex_mem_base_update_r <= (ENABLE_XTHEAD_BASE_UPDATE_EXTENSION != 0) && fold_id_mem_base_update;
                         id_ex_mem_base_update_before_r <= fold_id_mem_base_update_before;
                         id_ex_store_data_from_rd_r <= fold_id_store_data_from_rd;
                         id_ex_word_op_r <= fold_id_word_op;
@@ -2761,8 +2897,8 @@ always @(posedge clk or negedge rst_n) begin
                         id_ex_mem_unsigned_r <= id_mem_unsigned;
                         id_ex_mem_indexed_r <= id_mem_indexed;
                         id_ex_mem_index_shift_r <= id_mem_index_shift;
-                        id_ex_mem_pair_r <= id_mem_pair;
-                        id_ex_mem_base_update_r <= id_mem_base_update;
+                        id_ex_mem_pair_r <= (ENABLE_XTHEAD_MEMPAIR_EXTENSION != 0) && id_mem_pair;
+                        id_ex_mem_base_update_r <= (ENABLE_XTHEAD_BASE_UPDATE_EXTENSION != 0) && id_mem_base_update;
                         id_ex_mem_base_update_before_r <= id_mem_base_update_before;
                         id_ex_store_data_from_rd_r <= id_store_data_from_rd;
                         id_ex_word_op_r <= id_word_op;
