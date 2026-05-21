@@ -14,6 +14,7 @@ if "%DHRYSTONE_EXTRA_CFLAGS%"=="" set DHRYSTONE_EXTRA_CFLAGS=
 
 set MARCH=
 set MULTIDIR=
+set TARGET_EXTRA_CFLAGS=
 if /I "%TARGET%"=="rv32im_zicsr" (
     set MARCH=rv32im_zicsr
     set MULTIDIR=rv32im\ilp32
@@ -53,6 +54,19 @@ if /I "%TARGET%"=="rv32im_zicsr" (
 ) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_xthead_idbr" (
     set MARCH=rv32i_zmmul_zba_zbb_zbs_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_zicsr
     set MULTIDIR=rv32i\ilp32
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_xthead_nocondmov_idbr" (
+    set MARCH=rv32i_zmmul_zba_zbb_zbs_xtheadba_xtheadbb_xtheadbs_xtheadmemidx_zicsr
+    set MULTIDIR=rv32i\ilp32
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_xthead_baseupd_nocondmov_idbr" (
+    set MARCH=rv32i_zmmul_zba_zbb_zbs_xtheadba_xtheadbb_xtheadbs_xtheadmemidx_zicsr
+    set MULTIDIR=rv32i\ilp32
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_xthead_baseupd_nocondmov_preissue_idbr" (
+    set MARCH=rv32i_zmmul_zba_zbb_zbs_xtheadba_xtheadbb_xtheadbs_xtheadmemidx_zicsr
+    set MULTIDIR=rv32i\ilp32
+) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_xthead_noautoinc_nocondmov_idbr" (
+    set MARCH=rv32i_zmmul_zba_zbb_zbs_xtheadba_xtheadbb_xtheadbs_xtheadmemidx_zicsr
+    set MULTIDIR=rv32i\ilp32
+    set TARGET_EXTRA_CFLAGS=-fno-auto-inc-dec
 ) else if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_xthead_nomemidx_idbr" (
     set MARCH=rv32i_zmmul_zba_zbb_zbs_zbc_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_zicsr
     set MULTIDIR=rv32i\ilp32
@@ -63,6 +77,8 @@ if /I "%TARGET%"=="rv32im_zicsr" (
     echo Unsupported Dhrystone target: %TARGET%
     exit /b 1
 )
+
+if not "%TARGET_EXTRA_CFLAGS%"=="" set DHRYSTONE_EXTRA_CFLAGS=%DHRYSTONE_EXTRA_CFLAGS% %TARGET_EXTRA_CFLAGS%
 
 set GCC=
 set OBJDUMP=

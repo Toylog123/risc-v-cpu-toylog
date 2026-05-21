@@ -26,3 +26,49 @@ This record tracks only hardware-side changes under the current PYNQ-Z2 / sync-B
 - CoreMark algorithm files remain unchanged.
 - Sync-BRAM behavior is preserved; no async/negedge DMEM score path is mixed into this table.
 - RC128 is frozen as the best under-7000-LUT candidate so far, but timing closure still needs implementation-stage verification.
+
+## LUT<10000 Exploration Log
+
+| Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Status | Hardware optimization point |
+|---|---:|---:|---:|---|---|
+| DCache128 + RC128 + branchfold/next-cache/NT-load-fold + trimmed XThead/Zbc | N/A | N/A | TBD | rejected | Reduced DCache from 256B to 128B to save area, but FPGA-like CoreMark simulation timed out at PC=0x00000588 after 5,000,001 cycles; no valid summary generated |
+| DCache256 + RC128 + branchfold/next-cache/NT-load-fold, DCache load-use spec disabled | N/A | N/A | TBD | rejected | Tried to remove DCache load-use speculation for area reduction, but FPGA-like CoreMark simulation timed out at PC=0x00003a0c after 5,000,001 cycles |
+| DCache256 + RC128 + branchfold/next-cache/NT-load-fold, global XThead base-update disabled | N/A | N/A | TBD | rejected | Tried to remove XThead base-update hardware globally, but the compiled target no longer completed; timeout at PC=0x00003a04 |
+| DCache256 + RC128 + branchfold, fold decoder trimmed to hot/basic ISA only | N/A | N/A | TBD | rejected | Tried to reduce branchfold shadow decode LUT by disabling complex extension decode only in the fold decoder, but the branchfold/fetch handshake no longer completed; RTL change reverted |
+| DCache512 + RC128 + no branchfold + trimmed XThead without Zbc | N/A | N/A | TBD | rejected | Tried to use larger DCache without branchfold, but removing Zbc made the run fail to complete within 5,000,001 cycles |
+| DCache512 + RC128 + no branchfold + Zbc trimmed XThead | N/A | N/A | TBD | rejected | Kept Zbc but removed heavy XThead options; still timed out at PC=0x00001ec0, so this is not a viable >5 path |
+| DCache256 + RC128 + no branchfold + BHT64 trimmed/fullhot | N/A | N/A | TBD | rejected | Small dynamic BHT did not complete in either trimmed or fullhot mode; current BHT path is not accepted for sync-BRAM+DCache |
+| DCache256 + RC128 + no branchfold + next-word prefetch fullhot | N/A | N/A | TBD | rejected | DCache next-word prefetch timed out at PC=0x00001730; not accepted |
+| DCache256 + RC128 + branchfold + Zbc/XThead condmove, no retiming/no timing driven synth | 10632 | 5.015624 | TBD | rejected | Same valid CoreMark candidate as the 10627-LUT path; synthesis options did not reduce area below 10000 LUT |
+| DCache256 + RC128 + branchfold + Zbc/XThead condmove, hierarchical util rerun | 10714 | 5.015624 | TBD | area rejected | Hierarchical report shows main LUT hotspots: DCache 5668 LUT and regfile 2769 LUT |
+| DCache256 + RC128 + branchfold + Zbc/XThead condmove, full implementation attempt | N/A | 5.015624 | TBD | rejected | Route/phys-opt did not converge usefully within the run window; WNS stayed around -17 ns to -18 ns, so the candidate is not a valid PYNQ-Z2 implementation path |
+| DCache tag replicated RAM experiment | N/A | N/A | TBD | rejected | Unit DCache word test passed, but CoreMark timed out; RTL change reverted |
+| Regfile fold-rs3 removal / no folded-store experiment | N/A | N/A | TBD | rejected | Removing fold rs3 and blocking folded store caused CoreMark timeout; RTL change reverted |
+| DCache256 + RC128 + branchfold + Zbc/XThead condmove, word-only cache trial (wrong target smoke) | N/A | 13.700995 | TBD | invalid / rejected | Command used an unsupported target string and fell back to rv32i_zicsr, size=400, single algorithm; not comparable and not counted |
+| DCache256 + RC128 + branchfold + Zbc/XThead condmove, word-only full workload | 10670 | 4.569993 | TBD | rejected | Correct full-workload rerun completed with CRC final 0xfcaf, but score dropped and LUT stayed above 10000; DCache area is not dominated by byte/half format logic |
+| DCache256 + RC128 + branchfold + Zbc/XThead condmove, no base-update/mempair | 9546 | 5.015624 | 1.264622 | current best under 10000 | Keeps condmove and branchfold but disables unused base-update/mempair for this no-auto-inc target, removing regfile second-write area while preserving CoreMark score |
+
+Evidence:
+
+- Timeout log: `coremark_fpga_dcache128_rc128_branchfold_zbc_trim_iter10_20260521.log`
+- Timeout log: `coremark_fpga_dcache256_rc128_branchfold_zbc_trim_noloadspec_iter10_20260521.log`
+- Timeout log: `coremark_fpga_dcache256_rc128_branchfold_zbc_trim_nobaseupd_iter10_20260521.log`
+- Timeout log: `coremark_fpga_dcache256_rc128_branchfold_hotfolddecoder_iter10_20260521.log`
+- Timeout log: `coremark_fpga_dcache512_rc128_nofold_trim_iter10_20260521.log`
+- Timeout log: `coremark_fpga_dcache512_rc128_nofold_zbc_trim_iter10_20260521.log`
+- Timeout log: `coremark_fpga_dcache256_rc128_nofold_dynbht64_zbc_trim_iter10_20260521.log`
+- Timeout log: `coremark_fpga_dcache256_rc128_nofold_dynbht64_fullhot_iter10_20260521.log`
+- Timeout log: `coremark_fpga_dcache256_rc128_nofold_nextprefetch_fullhot_iter10_20260521.log`
+- Synth util: `synth_util_dcache256_rc128_branchfold_zbc_condmov_nozicond_nomac_trim_quickutil_noretiming_notiming_20260521.rpt`
+- Synth util: `synth_util_dcache256_rc128_branchfold_zbc_condmov_nozicond_nomac_trim_quickutil_hier_20260521.rpt`
+- Synth hierarchy: `synth_util_hier_dcache256_rc128_branchfold_zbc_condmov_nozicond_nomac_trim_quickutil_20260521.rpt`
+- Implementation log: `_tmp/tool_logs/vivado/vivado_pynq_z2_impl.log`
+- Timeout log: `coremark_fpga_dcache256_rc128_branchfold_zbc_condmov_tagram_iter10_20260521.log`
+- Timeout log: `coremark_fpga_dcache256_rc128_branchfold_zbc_condmov_nofoldrs3_iter10_20260521.log`
+- Invalid smoke log: `coremark_fpga_dcache256_rc128_branchfold_zbc_condmov_wordonly_iter10_20260521.log`
+- Full workload summary: `coremark_fpga_dcache256_rc128_branchfold_zbc_condmov_wordonly_fullwork_iter10_20260521.summary.txt`
+- Synth util: `synth_util_dcache256_rc128_branchfold_zbc_condmov_wordonly_quickutil_20260521.rpt`
+- Full workload summary: `coremark_fpga_dcache256_rc128_branchfold_zbc_condmov_nobaseupd_fullwork_iter10_20260521.summary.txt`
+- Dhrystone summary: `dhrystone_fpga_dcache256_rc128_branchfold_zbc_condmov_nobaseupd_o3_runs1000_20260521.summary.txt`
+- Synth util: `synth_util_dcache256_rc128_branchfold_zbc_condmov_nobaseupd_quickutil_20260521.rpt`
+- Synth hierarchy: `synth_util_hier_dcache256_rc128_branchfold_zbc_condmov_nobaseupd_quickutil_20260521.rpt`

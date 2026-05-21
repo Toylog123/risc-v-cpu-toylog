@@ -42,6 +42,7 @@ module YH_rv_cpu_coremark_fpga_tb #(
     parameter integer DCACHE_SIZE_BYTES = 4096,
     parameter integer ENABLE_DCACHE_LOAD_USE_SPEC = 0,
     parameter integer ENABLE_DCACHE_NEXT_PREFETCH = 0,
+    parameter integer ENABLE_DCACHE_WORD_ONLY = 0,
     parameter integer ICACHE_EN = 0
 ) ();
 
@@ -131,6 +132,7 @@ YH_rv_cpu_soc #(
     .DCACHE_SIZE_BYTES(DCACHE_SIZE_BYTES),
     .ENABLE_DCACHE_LOAD_USE_SPEC(ENABLE_DCACHE_LOAD_USE_SPEC),
     .ENABLE_DCACHE_NEXT_PREFETCH(ENABLE_DCACHE_NEXT_PREFETCH),
+    .ENABLE_DCACHE_WORD_ONLY(ENABLE_DCACHE_WORD_ONLY),
     .ICACHE_EN(ICACHE_EN),
     .RAM_BASE(RAM_BASE),
     .ROM_BYTES(ROM_BYTES),

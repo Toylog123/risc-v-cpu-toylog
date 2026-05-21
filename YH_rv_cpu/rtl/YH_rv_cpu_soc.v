@@ -20,7 +20,11 @@ module YH_rv_cpu_soc #(
     parameter integer SYNC_DMEM = 0,        // 数据存储器同步模式
     parameter integer DMEM_OUTPUT_REG = 0,  // 数据存储器输出寄存器
     parameter integer DMEM_NEGEDGE_READ = 0, // fast half-cycle data RAM read
+    parameter integer DMEM_READ_PREISSUE = 0, // issue aligned word loads one stage earlier for sync RAM
     parameter integer DCACHE_SIZE_BYTES = 4096,
+    parameter integer ENABLE_DCACHE_LOAD_USE_SPEC = 0,
+    parameter integer ENABLE_DCACHE_NEXT_PREFETCH = 0,
+    parameter integer ENABLE_DCACHE_WORD_ONLY = 0,
     parameter integer DCACHE_EN = 0,         // 数据缓存使能: 0=禁用, 1=启用
     parameter integer ICACHE_EN = 0,         // 指令缓存使能: 0=禁用, 1=启用
     parameter integer ENABLE_M_EXTENSION = 1,
@@ -30,13 +34,20 @@ module YH_rv_cpu_soc #(
     parameter integer ENABLE_ZICOND_EXTENSION = 0,
     parameter integer ENABLE_ZBKB_EXTENSION = 0,
     parameter integer ENABLE_XTHEAD_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_CRC_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_MUL_EXTENSION = 1,
     parameter integer ENABLE_XTHEAD_COND_MOVE = 1, // XThead 条件移动写回门控使能
+    parameter integer ENABLE_XTHEAD_ADDSL_EXTENSION = 0,
+    parameter integer ENABLE_XTHEAD_MEMPAIR_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_BASE_UPDATE_EXTENSION = 1,
     parameter integer ENABLE_ID_BRANCH_EX_FORWARD = 1, // ID 早分支允许使用 EX 本周期结果
     parameter integer ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP = 1,
     parameter integer ENABLE_ID_BRANCH_FOLD = 0,
+    parameter integer ENABLE_ID_BRANCH_FOLD_NEXT_CACHE = 1,
     parameter integer ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD = 0,
     parameter integer ENABLE_ID_ALU_PAIR_FOLD = 0,
     parameter integer ENABLE_ID_ALU_DEP_FOLD = 0,
+    parameter integer ENABLE_REDIRECT_TARGET_CACHE = 1,
     parameter integer ENABLE_FETCH_REDIRECT_REUSE = 0,
     parameter integer REDIRECT_CACHE_ENTRIES = 1024,
     parameter integer REDIRECT_CACHE_XOR_INDEX = 0,
@@ -197,7 +208,8 @@ localparam integer USE_SHARED_SYNC_ROM = ((XLEN == 32) && (SYNC_IMEM != 0) && (S
 localparam integer USE_IMEM_OUTPUT_REG = ((SYNC_IMEM != 0) && (IMEM_OUTPUT_REG != 0)) ? 1 : 0;
 localparam integer USE_DMEM_OUTPUT_REG = ((SYNC_DMEM != 0) && (DMEM_OUTPUT_REG != 0)) ? 1 : 0;
 localparam integer USE_DMEM_NEGEDGE_READ = ((SYNC_DMEM != 0) && (DMEM_OUTPUT_REG == 0) && (DMEM_NEGEDGE_READ != 0)) ? 1 : 0;
-localparam integer USE_DMEM_PREISSUE_READ = 0;
+localparam integer USE_DMEM_PREISSUE_READ = ((SYNC_DMEM != 0) && (DMEM_OUTPUT_REG == 0) &&
+    (USE_DMEM_NEGEDGE_READ == 0) && (DMEM_READ_PREISSUE != 0)) ? 1 : 0;
 localparam integer USE_LOAD_USE_FAST_FORWARD = ((DCACHE_EN == 0) && ((SYNC_DMEM == 0) || (USE_DMEM_NEGEDGE_READ != 0))) ? 1 : 0;
 localparam [1:0] DMEM_SRC_NONE = 2'b00; // 无数据源
 localparam [1:0] DMEM_SRC_RAM  = 2'b01; // RAM 数据源
@@ -230,8 +242,7 @@ assign dmem_addr32 = dmem_addr[31:0];
 assign dmem_pair_addr32 = dmem_addr32 + 32'd4;
 assign dmem_wdata_ext = {{(64-XLEN){1'b0}}, dmem_wdata};
 assign dmem_wstrb_ext = {{(8-STRB_W){1'b0}}, dmem_wstrb};
-assign dmem_write_en = |dmem_wstrb;
-assign dmem_we = dmem_write_en;  // 写使能信号
+assign dmem_write_en = dmem_we;
 assign dmem_ready = 1'b1;        // 同步内存始终就绪
 
     // ================================================================
@@ -458,6 +469,9 @@ YH_rv_cpu #(
     .DCACHEABLE_BASE(RAM_BASE),
     .DCACHEABLE_LIMIT(RAM_BASE + RAM_BYTES),
     .DCACHE_SIZE_BYTES(DCACHE_SIZE_BYTES),
+    .ENABLE_DCACHE_LOAD_USE_SPEC(ENABLE_DCACHE_LOAD_USE_SPEC),
+    .ENABLE_DCACHE_NEXT_PREFETCH(ENABLE_DCACHE_NEXT_PREFETCH),
+    .ENABLE_DCACHE_WORD_ONLY(ENABLE_DCACHE_WORD_ONLY),
     .ICACHE_EN      (ICACHE_EN),
     .ENABLE_M_EXTENSION(ENABLE_M_EXTENSION),
     .ENABLE_ZMMUL_EXTENSION(ENABLE_ZMMUL_EXTENSION),
@@ -466,12 +480,19 @@ YH_rv_cpu #(
     .ENABLE_ZICOND_EXTENSION(ENABLE_ZICOND_EXTENSION),
     .ENABLE_ZBKB_EXTENSION(ENABLE_ZBKB_EXTENSION),
     .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION),
+    .ENABLE_XTHEAD_CRC_EXTENSION(ENABLE_XTHEAD_CRC_EXTENSION),
+    .ENABLE_XTHEAD_MUL_EXTENSION(ENABLE_XTHEAD_MUL_EXTENSION),
     .ENABLE_XTHEAD_COND_MOVE(ENABLE_XTHEAD_COND_MOVE),
+    .ENABLE_XTHEAD_ADDSL_EXTENSION(ENABLE_XTHEAD_ADDSL_EXTENSION),
+    .ENABLE_XTHEAD_MEMPAIR_EXTENSION(ENABLE_XTHEAD_MEMPAIR_EXTENSION),
+    .ENABLE_XTHEAD_BASE_UPDATE_EXTENSION(ENABLE_XTHEAD_BASE_UPDATE_EXTENSION),
     .ENABLE_ID_BRANCH_EX_FORWARD(ENABLE_ID_BRANCH_EX_FORWARD),
     .ENABLE_ID_BRANCH_FOLD(ENABLE_ID_BRANCH_FOLD),
+    .ENABLE_ID_BRANCH_FOLD_NEXT_CACHE(ENABLE_ID_BRANCH_FOLD_NEXT_CACHE),
     .ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD(ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD),
     .ENABLE_ID_ALU_PAIR_FOLD(ENABLE_ID_ALU_PAIR_FOLD),
     .ENABLE_ID_ALU_DEP_FOLD(ENABLE_ID_ALU_DEP_FOLD),
+    .ENABLE_REDIRECT_TARGET_CACHE(ENABLE_REDIRECT_TARGET_CACHE),
     .ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP(ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP),
     .ENABLE_FETCH_REDIRECT_REUSE(ENABLE_FETCH_REDIRECT_REUSE),
     .REDIRECT_CACHE_ENTRIES(REDIRECT_CACHE_ENTRIES),

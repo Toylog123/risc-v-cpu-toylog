@@ -25,6 +25,7 @@ YH_rv_cpu_soc #(
     .SYNC_DMEM(1),
     .DMEM_OUTPUT_REG(0),
     .DMEM_NEGEDGE_READ(0),
+    .DMEM_READ_PREISSUE(1),
     .RAM_BASE(32'h0001_0000),
     .ROM_BYTES(256),
     .RAM_BYTES(1024)

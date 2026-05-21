@@ -68,6 +68,22 @@ if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_xthead_idbr" (
     set OUTPUT_NAME=YH_rv_cpu_dhrystone_zmmul_xthead_idbr
     set TEST_TOP=YH_rv_cpu_dhrystone_rv32_zmmul_xthead_idbr_tb
 )
+if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_xthead_nocondmov_idbr" (
+    set OUTPUT_NAME=YH_rv_cpu_dhrystone_zmmul_xthead_nocondmov_idbr
+    set TEST_TOP=YH_rv_cpu_dhrystone_rv32_zmmul_xthead_nocondmov_idbr_tb
+)
+if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_xthead_baseupd_nocondmov_idbr" (
+    set OUTPUT_NAME=YH_rv_cpu_dhrystone_zmmul_xthead_baseupd_nocondmov_idbr
+    set TEST_TOP=YH_rv_cpu_dhrystone_rv32_zmmul_xthead_baseupd_nocondmov_idbr_tb
+)
+if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_xthead_baseupd_nocondmov_preissue_idbr" (
+    set OUTPUT_NAME=YH_rv_cpu_dhrystone_zmmul_xthead_baseupd_nocondmov_preissue_idbr
+    set TEST_TOP=YH_rv_cpu_dhrystone_rv32_zmmul_xthead_baseupd_nocondmov_preissue_idbr_tb
+)
+if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_xthead_noautoinc_nocondmov_idbr" (
+    set OUTPUT_NAME=YH_rv_cpu_dhrystone_zmmul_xthead_noautoinc_nocondmov_idbr
+    set TEST_TOP=YH_rv_cpu_dhrystone_rv32_zmmul_xthead_nocondmov_idbr_tb
+)
 if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_xthead_nomemidx_idbr" (
     set OUTPUT_NAME=YH_rv_cpu_dhrystone_zmmul_zbc_xthead_idbr
     set TEST_TOP=YH_rv_cpu_dhrystone_rv32_zmmul_zbc_xthead_idbr_tb
@@ -156,6 +172,9 @@ call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_dhrystone_rv32_zmmul_zbc_zicond_xthead_idbr_fold_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_dhrystone_rv32_zmmul_zicond_xthead_idbr_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_dhrystone_rv32_zmmul_xthead_idbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_dhrystone_rv32_zmmul_xthead_nocondmov_idbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_dhrystone_rv32_zmmul_xthead_baseupd_nocondmov_idbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_dhrystone_rv32_zmmul_xthead_baseupd_nocondmov_preissue_idbr_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_dhrystone_rv32im_zbc_xthead_idbr_tb.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_cpu_soc.v" ^
     "%PROJECT_DIR%\rtl\YH_rv_sync_imem_rom.v" ^

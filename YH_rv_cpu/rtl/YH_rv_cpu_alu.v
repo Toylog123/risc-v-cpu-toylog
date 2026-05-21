@@ -22,7 +22,12 @@ module YH_rv_cpu_alu #(
     parameter integer ENABLE_ZBC_EXTENSION = 0,
     parameter integer ENABLE_ZICOND_EXTENSION = 0,
     parameter integer ENABLE_ZBKB_EXTENSION = 0,
-    parameter integer ENABLE_XTHEAD_EXTENSION = 1
+    parameter integer ENABLE_XTHEAD_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_CRC_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_MUL_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_COND_MOVE = 1,
+    parameter integer ENABLE_XTHEAD_EXT_FULL_RANGE = 0,
+    parameter integer ENABLE_XTHEAD_ADDSL_EXTENSION = 0
 ) (
     // 控制信号输入
     input  wire [5:0]      alu_op,    // ALU 操作码，定义在 YH_rv_cpu_defs.vh
@@ -76,6 +81,40 @@ wire [XLEN-1:0] x_result_ext_range;
 wire [XLEN-1:0] x_result_crc16;
 wire [XLEN-1:0] x_result_crc32;
 
+function [XLEN-1:0] yh_xthead_ext_hot_range;
+    input [XLEN-1:0] value;
+    input [11:0]     ctrl;
+    begin
+        case (ctrl)
+            {1'b0, 6'd15, 5'd0}:  yh_xthead_ext_hot_range = {{(XLEN-16){1'b0}}, value[15:0]};
+            {1'b1, 6'd15, 5'd0}:  yh_xthead_ext_hot_range = {{(XLEN-16){value[15]}}, value[15:0]};
+            {1'b0, 6'd15, 5'd8}:  yh_xthead_ext_hot_range = {{(XLEN-8){1'b0}}, value[15:8]};
+            {1'b1, 6'd15, 5'd8}:  yh_xthead_ext_hot_range = {{(XLEN-8){value[15]}}, value[15:8]};
+            {1'b0, 6'd11, 5'd5}:  yh_xthead_ext_hot_range = {{(XLEN-7){1'b0}}, value[11:5]};
+            {1'b1, 6'd11, 5'd5}:  yh_xthead_ext_hot_range = {{(XLEN-7){value[11]}}, value[11:5]};
+            {1'b0, 6'd5,  5'd2}:  yh_xthead_ext_hot_range = {{(XLEN-4){1'b0}}, value[5:2]};
+            {1'b1, 6'd5,  5'd2}:  yh_xthead_ext_hot_range = {{(XLEN-4){value[5]}}, value[5:2]};
+            {1'b0, 6'd6,  5'd3}:  yh_xthead_ext_hot_range = {{(XLEN-4){1'b0}}, value[6:3]};
+            {1'b1, 6'd6,  5'd3}:  yh_xthead_ext_hot_range = {{(XLEN-4){value[6]}}, value[6:3]};
+            {1'b0, 6'd7,  5'd4}:  yh_xthead_ext_hot_range = {{(XLEN-4){1'b0}}, value[7:4]};
+            {1'b1, 6'd7,  5'd4}:  yh_xthead_ext_hot_range = {{(XLEN-4){value[7]}}, value[7:4]};
+            {1'b0, 6'd11, 5'd8}:  yh_xthead_ext_hot_range = {{(XLEN-4){1'b0}}, value[11:8]};
+            {1'b1, 6'd11, 5'd8}:  yh_xthead_ext_hot_range = {{(XLEN-4){value[11]}}, value[11:8]};
+            {1'b0, 6'd15, 5'd12}: yh_xthead_ext_hot_range = {{(XLEN-4){1'b0}}, value[15:12]};
+            {1'b1, 6'd15, 5'd12}: yh_xthead_ext_hot_range = {{(XLEN-4){value[15]}}, value[15:12]};
+            {1'b0, 6'd4,  5'd3}:  yh_xthead_ext_hot_range = {{(XLEN-2){1'b0}}, value[4:3]};
+            {1'b1, 6'd4,  5'd3}:  yh_xthead_ext_hot_range = {{(XLEN-2){value[4]}}, value[4:3]};
+            {1'b0, 6'd19, 5'd16}: yh_xthead_ext_hot_range = {{(XLEN-4){1'b0}}, value[19:16]};
+            {1'b1, 6'd19, 5'd16}: yh_xthead_ext_hot_range = {{(XLEN-4){value[19]}}, value[19:16]};
+            {1'b0, 6'd23, 5'd20}: yh_xthead_ext_hot_range = {{(XLEN-4){1'b0}}, value[23:20]};
+            {1'b1, 6'd23, 5'd20}: yh_xthead_ext_hot_range = {{(XLEN-4){value[23]}}, value[23:20]};
+            {1'b0, 6'd27, 5'd24}: yh_xthead_ext_hot_range = {{(XLEN-4){1'b0}}, value[27:24]};
+            {1'b1, 6'd27, 5'd24}: yh_xthead_ext_hot_range = {{(XLEN-4){value[27]}}, value[27:24]};
+            default:              yh_xthead_ext_hot_range = {XLEN{1'b0}};
+        endcase
+    end
+endfunction
+
 function [15:0] yh_crc8_next;
     input [7:0]  data_in;
     input [15:0] crc_in;
@@ -123,51 +162,68 @@ function [15:0] yh_crc32_next;
 end
 endfunction
 
-assign x_result_crc16 = {{(XLEN-16){1'b0}}, yh_crc16_next(lhs[15:0], rhs[15:0])};
-assign x_result_crc32 = {{(XLEN-16){1'b0}}, yh_crc32_next(lhs[31:0], rhs[15:0])};
-
-assign x_result_th_mula = acc + (lhs * rhs);
+generate
+if (ENABLE_XTHEAD_CRC_EXTENSION != 0) begin : gen_xthead_crc_extension
+    assign x_result_crc16 = {{(XLEN-16){1'b0}}, yh_crc16_next(lhs[15:0], rhs[15:0])};
+    assign x_result_crc32 = {{(XLEN-16){1'b0}}, yh_crc32_next(lhs[31:0], rhs[15:0])};
+end else begin : gen_no_xthead_crc_extension
+    assign x_result_crc16 = {XLEN{1'b0}};
+    assign x_result_crc32 = {XLEN{1'b0}};
+end
+endgenerate
 
 generate
-if (XLEN == 32) begin : gen_th_mulah_rv32
-    wire signed [31:0] th_mulah_lhs16;
-    wire signed [31:0] th_mulah_rhs16;
-    wire signed [31:0] th_mulah_acc32;
-    wire signed [31:0] th_mulah_sum32;
+if ((ENABLE_XTHEAD_EXTENSION != 0) && (ENABLE_XTHEAD_MUL_EXTENSION != 0)) begin : gen_xthead_mul_extension
+    assign x_result_th_mula = acc + (lhs * rhs);
 
-    assign th_mulah_lhs16 = {{16{lhs[15]}}, lhs[15:0]};
-    assign th_mulah_rhs16 = {{16{rhs[15]}}, rhs[15:0]};
-    assign th_mulah_acc32 = acc[31:0];
-    assign th_mulah_sum32 = th_mulah_acc32 + (th_mulah_lhs16 * th_mulah_rhs16);
-    assign x_result_th_mulah = th_mulah_sum32;
-end else begin : gen_th_mulah_rv64
-    wire signed [31:0] th_mulah_lhs16;
-    wire signed [31:0] th_mulah_rhs16;
-    wire signed [31:0] th_mulah_acc32;
-    wire signed [31:0] th_mulah_sum32;
+    if (XLEN == 32) begin : gen_th_mulah_rv32
+        wire signed [31:0] th_mulah_lhs16;
+        wire signed [31:0] th_mulah_rhs16;
+        wire signed [31:0] th_mulah_acc32;
+        wire signed [31:0] th_mulah_sum32;
 
-    assign th_mulah_lhs16 = {{16{lhs[15]}}, lhs[15:0]};
-    assign th_mulah_rhs16 = {{16{rhs[15]}}, rhs[15:0]};
-    assign th_mulah_acc32 = acc[31:0];
-    assign th_mulah_sum32 = th_mulah_acc32 + (th_mulah_lhs16 * th_mulah_rhs16);
-    assign x_result_th_mulah = {{(XLEN-32){th_mulah_sum32[31]}}, th_mulah_sum32};
+        assign th_mulah_lhs16 = {{16{lhs[15]}}, lhs[15:0]};
+        assign th_mulah_rhs16 = {{16{rhs[15]}}, rhs[15:0]};
+        assign th_mulah_acc32 = acc[31:0];
+        assign th_mulah_sum32 = th_mulah_acc32 + (th_mulah_lhs16 * th_mulah_rhs16);
+        assign x_result_th_mulah = th_mulah_sum32;
+    end else begin : gen_th_mulah_rv64
+        wire signed [31:0] th_mulah_lhs16;
+        wire signed [31:0] th_mulah_rhs16;
+        wire signed [31:0] th_mulah_acc32;
+        wire signed [31:0] th_mulah_sum32;
+
+        assign th_mulah_lhs16 = {{16{lhs[15]}}, lhs[15:0]};
+        assign th_mulah_rhs16 = {{16{rhs[15]}}, rhs[15:0]};
+        assign th_mulah_acc32 = acc[31:0];
+        assign th_mulah_sum32 = th_mulah_acc32 + (th_mulah_lhs16 * th_mulah_rhs16);
+        assign x_result_th_mulah = {{(XLEN-32){th_mulah_sum32[31]}}, th_mulah_sum32};
+    end
+end else begin : gen_no_xthead_mul_extension
+    assign x_result_th_mula = {XLEN{1'b0}};
+    assign x_result_th_mulah = {XLEN{1'b0}};
 end
 endgenerate
 
 generate
 if ((ENABLE_M_EXTENSION != 0) || (ENABLE_ZMMUL_EXTENSION != 0)) begin : gen_mul_extension
-    wire [63:0] mul_signed;
-    wire [63:0] mul_mix;
-    wire [63:0] mul_unsigned;
+    wire        mul_lhs_signed;
+    wire        mul_rhs_signed;
+    wire [32:0] mul_lhs_ext;
+    wire [32:0] mul_rhs_ext;
+    wire signed [65:0] mul_product;
 
-    assign mul_signed = $signed({{32{lhs[31]}}, lhs}) * $signed({{32{rhs[31]}}, rhs});
-    assign mul_mix = $signed({{32{lhs[31]}}, lhs}) * {32'b0, rhs};
-    assign mul_unsigned = {32'b0, lhs} * {32'b0, rhs};
+    // Share one 33x33 multiplier across MUL/MULH/MULHSU/MULHU.
+    assign mul_lhs_signed = (alu_op == `YH_rv_cpu_ALU_MULH) || (alu_op == `YH_rv_cpu_ALU_MULHSU);
+    assign mul_rhs_signed = (alu_op == `YH_rv_cpu_ALU_MULH);
+    assign mul_lhs_ext = {mul_lhs_signed & lhs[31], lhs[31:0]};
+    assign mul_rhs_ext = {mul_rhs_signed & rhs[31], rhs[31:0]};
+    assign mul_product = $signed(mul_lhs_ext) * $signed(mul_rhs_ext);
 
-    assign m_result_mul = mul_signed[XLEN-1:0];
-    assign m_result_mulh = mul_signed[63:32];
-    assign m_result_mulhsu = mul_mix[63:32];
-    assign m_result_mulhu = mul_unsigned[63:32];
+    assign m_result_mul = mul_product[XLEN-1:0];
+    assign m_result_mulh = mul_product[63:32];
+    assign m_result_mulhsu = mul_product[63:32];
+    assign m_result_mulhu = mul_product[63:32];
 end else begin : gen_no_mul_extension
     assign m_result_mul = {XLEN{1'b0}};
     assign m_result_mulh = {XLEN{1'b0}};
@@ -240,23 +296,27 @@ endgenerate
 
 generate
 if (ENABLE_XTHEAD_EXTENSION != 0) begin : gen_xthead_extension
-    reg [XLEN-1:0] ext_range_result;
-    integer ext_i;
+    if (ENABLE_XTHEAD_EXT_FULL_RANGE != 0) begin : gen_xthead_ext_full_range
+        reg [XLEN-1:0] ext_range_result;
+        integer ext_i;
 
-    always @* begin
-        ext_range_result = {XLEN{1'b0}};
-        if (rhs[10:5] >= rhs[4:0]) begin
-            for (ext_i = 0; ext_i < XLEN; ext_i = ext_i + 1) begin
-                if (ext_i <= (rhs[10:5] - rhs[4:0])) begin
-                    ext_range_result[ext_i] = lhs[rhs[4:0] + ext_i[4:0]];
-                end else if (rhs[11]) begin
-                    ext_range_result[ext_i] = lhs[rhs[10:5]];
+        always @* begin
+            ext_range_result = {XLEN{1'b0}};
+            if (rhs[10:5] >= rhs[4:0]) begin
+                for (ext_i = 0; ext_i < XLEN; ext_i = ext_i + 1) begin
+                    if (ext_i <= (rhs[10:5] - rhs[4:0])) begin
+                        ext_range_result[ext_i] = lhs[rhs[4:0] + ext_i[4:0]];
+                    end else if (rhs[11]) begin
+                        ext_range_result[ext_i] = lhs[rhs[10:5]];
+                    end
                 end
             end
         end
-    end
 
-    assign x_result_ext_range = ext_range_result;
+        assign x_result_ext_range = ext_range_result;
+    end else begin : gen_xthead_ext_hot_range
+        assign x_result_ext_range = yh_xthead_ext_hot_range(lhs, rhs[11:0]);
+    end
 end else begin : gen_no_xthead_extension
     assign x_result_ext_range = {XLEN{1'b0}};
 end
@@ -308,15 +368,15 @@ always @* begin
         `YH_rv_cpu_ALU_SH1ADD: result = (ENABLE_BITMANIP_EXTENSION != 0) ? ((lhs << 1) + rhs) : {XLEN{1'b0}};
         `YH_rv_cpu_ALU_SH2ADD: result = (ENABLE_BITMANIP_EXTENSION != 0) ? ((lhs << 2) + rhs) : {XLEN{1'b0}};
         `YH_rv_cpu_ALU_SH3ADD: result = (ENABLE_BITMANIP_EXTENSION != 0) ? ((lhs << 3) + rhs) : {XLEN{1'b0}};
-        `YH_rv_cpu_ALU_TH_ADDSL1: result = (ENABLE_XTHEAD_EXTENSION != 0) ? (lhs + (rhs << 1)) : {XLEN{1'b0}};
-        `YH_rv_cpu_ALU_TH_ADDSL2: result = (ENABLE_XTHEAD_EXTENSION != 0) ? (lhs + (rhs << 2)) : {XLEN{1'b0}};
-        `YH_rv_cpu_ALU_TH_ADDSL3: result = (ENABLE_XTHEAD_EXTENSION != 0) ? (lhs + (rhs << 3)) : {XLEN{1'b0}};
-        `YH_rv_cpu_ALU_TH_MVEQZ:  result = (ENABLE_XTHEAD_EXTENSION != 0) ? lhs : {XLEN{1'b0}};
-        `YH_rv_cpu_ALU_TH_MVNEZ:  result = (ENABLE_XTHEAD_EXTENSION != 0) ? lhs : {XLEN{1'b0}};
-        `YH_rv_cpu_ALU_XCRC16:    result = (ENABLE_XTHEAD_EXTENSION != 0) ? x_result_crc16 : {XLEN{1'b0}};
-        `YH_rv_cpu_ALU_XCRC32:    result = (ENABLE_XTHEAD_EXTENSION != 0) ? x_result_crc32 : {XLEN{1'b0}};
-        `YH_rv_cpu_ALU_TH_MULA:   result = (ENABLE_XTHEAD_EXTENSION != 0) ? x_result_th_mula : {XLEN{1'b0}};
-        `YH_rv_cpu_ALU_TH_MULAH:  result = (ENABLE_XTHEAD_EXTENSION != 0) ? x_result_th_mulah : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_TH_ADDSL1: result = ((ENABLE_XTHEAD_EXTENSION != 0) && (ENABLE_XTHEAD_ADDSL_EXTENSION != 0)) ? (lhs + (rhs << 1)) : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_TH_ADDSL2: result = ((ENABLE_XTHEAD_EXTENSION != 0) && (ENABLE_XTHEAD_ADDSL_EXTENSION != 0)) ? (lhs + (rhs << 2)) : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_TH_ADDSL3: result = ((ENABLE_XTHEAD_EXTENSION != 0) && (ENABLE_XTHEAD_ADDSL_EXTENSION != 0)) ? (lhs + (rhs << 3)) : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_TH_MVEQZ:  result = ((ENABLE_XTHEAD_EXTENSION != 0) && (ENABLE_XTHEAD_COND_MOVE != 0)) ? lhs : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_TH_MVNEZ:  result = ((ENABLE_XTHEAD_EXTENSION != 0) && (ENABLE_XTHEAD_COND_MOVE != 0)) ? lhs : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_XCRC16:    result = ((ENABLE_XTHEAD_EXTENSION != 0) && (ENABLE_XTHEAD_CRC_EXTENSION != 0)) ? x_result_crc16 : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_XCRC32:    result = ((ENABLE_XTHEAD_EXTENSION != 0) && (ENABLE_XTHEAD_CRC_EXTENSION != 0)) ? x_result_crc32 : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_TH_MULA:   result = ((ENABLE_XTHEAD_EXTENSION != 0) && (ENABLE_XTHEAD_MUL_EXTENSION != 0)) ? x_result_th_mula : {XLEN{1'b0}};
+        `YH_rv_cpu_ALU_TH_MULAH:  result = ((ENABLE_XTHEAD_EXTENSION != 0) && (ENABLE_XTHEAD_MUL_EXTENSION != 0)) ? x_result_th_mulah : {XLEN{1'b0}};
         `YH_rv_cpu_ALU_ANDN:   result = (ENABLE_BITMANIP_EXTENSION != 0) ? (lhs & ~rhs) : {XLEN{1'b0}};
         `YH_rv_cpu_ALU_MAX:    result = (ENABLE_BITMANIP_EXTENSION != 0) ? (($signed(lhs) > $signed(rhs)) ? lhs : rhs) : {XLEN{1'b0}};
         `YH_rv_cpu_ALU_SEXT_H: result = (ENABLE_BITMANIP_EXTENSION != 0) ? {{(XLEN-16){lhs[15]}}, lhs[15:0]} : {XLEN{1'b0}};

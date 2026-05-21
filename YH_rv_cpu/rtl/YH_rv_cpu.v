@@ -30,6 +30,7 @@ module YH_rv_cpu #(
     parameter integer DCACHE_SIZE_BYTES = 4096,
     parameter integer ENABLE_DCACHE_LOAD_USE_SPEC = 0,
     parameter integer ENABLE_DCACHE_NEXT_PREFETCH = 0,
+    parameter integer ENABLE_DCACHE_WORD_ONLY = 0,
     parameter integer DCACHE_EN = 0,         // 数据缓存使能: 0=禁用, 1=启用
     parameter integer ICACHE_EN = 0,         // 指令缓存使能: 0=禁用, 1=启用
     parameter integer ENABLE_M_EXTENSION = 1,
@@ -772,7 +773,8 @@ assign dcache_direct_access =
     (DCACHE_EN != 0) &&
     ex_mem_valid_r &&
     (ex_mem_load_r || ex_mem_store_r) &&
-    (ex_mem_mem_pair_r || !ex_mem_dcacheable);
+    (ex_mem_mem_pair_r || !ex_mem_dcacheable ||
+     ((ENABLE_DCACHE_WORD_ONLY != 0) && (ex_mem_mem_size_r != `YH_rv_cpu_MEM_W)));
 assign dcache_direct_load = dcache_direct_access && ex_mem_load_r;
 assign ex_mem_load_data_ready =
     (DCACHE_EN != 0) ? (dcache_direct_load ? dmem_rvalid : dcache_cpu_rvalid) :
@@ -784,6 +786,7 @@ assign id_ex_dcache_load_use_safe =
     id_ex_valid_r &&
     id_ex_load_r &&
     !id_ex_mem_pair_r &&
+    ((ENABLE_DCACHE_WORD_ONLY == 0) || (id_ex_mem_size_r == `YH_rv_cpu_MEM_W)) &&
     !ex_mem_misaligned &&
     (ex_mem_addr[31:0] >= DCACHEABLE_BASE) &&
     (ex_mem_addr[31:0] < DCACHEABLE_LIMIT) &&
@@ -2393,7 +2396,8 @@ assign mem_stage_dmem_port_busy =
                 .BLOCK_SIZE(32),
                 .ASSOC(1),
                 .WRITE_POLICY(0),
-                .ENABLE_NEXT_PREFETCH(ENABLE_DCACHE_NEXT_PREFETCH)
+                .ENABLE_NEXT_PREFETCH(ENABLE_DCACHE_NEXT_PREFETCH),
+                .WORD_ONLY(ENABLE_DCACHE_WORD_ONLY)
             ) u_dcache (
                 .clk            (clk),
                 .rst_n          (rst_n),

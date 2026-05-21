@@ -19,7 +19,12 @@ module YH_rv_cpu_ex_stage #(
     parameter integer ENABLE_ZBC_EXTENSION = 0,
     parameter integer ENABLE_ZICOND_EXTENSION = 0,
     parameter integer ENABLE_ZBKB_EXTENSION = 0,
-    parameter integer ENABLE_XTHEAD_EXTENSION = 1
+    parameter integer ENABLE_XTHEAD_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_CRC_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_MUL_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_COND_MOVE = 1,
+    parameter integer ENABLE_XTHEAD_ADDSL_EXTENSION = 0,
+    parameter integer ENABLE_XTHEAD_BASE_UPDATE_EXTENSION = 1
 ) (
     // ------------------------------------------------------------
     // 输入信号 (来自 ID/EX 流水线寄存器)
@@ -106,8 +111,8 @@ assign alu_rhs = alu_src2_imm ? imm : rs2_value;
     // jalr_target: JALR 目标 (rs1 + imm) & ~1
     // ------------------------------------------------------------
 assign mem_index_offset = rs2_value << mem_index_shift;
-assign mem_update_offset = imm << mem_index_shift;
-assign rs1_plus_imm = mem_base_update ?
+assign mem_update_offset = (ENABLE_XTHEAD_BASE_UPDATE_EXTENSION != 0) ? (imm << mem_index_shift) : {XLEN{1'b0}};
+assign rs1_plus_imm = ((ENABLE_XTHEAD_BASE_UPDATE_EXTENSION != 0) && mem_base_update) ?
     (mem_base_update_before ? (rs1_value + mem_update_offset) : rs1_value) :
     (mem_indexed ? (rs1_value + mem_index_offset) : (rs1_value + imm));
 assign store_data_raw = store_data_from_rd ? store_data_value : rs2_value;
@@ -137,7 +142,11 @@ YH_rv_cpu_alu #(
     .ENABLE_ZBC_EXTENSION(ENABLE_ZBC_EXTENSION),
     .ENABLE_ZICOND_EXTENSION(ENABLE_ZICOND_EXTENSION),
     .ENABLE_ZBKB_EXTENSION(ENABLE_ZBKB_EXTENSION),
-    .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION)
+    .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION),
+    .ENABLE_XTHEAD_CRC_EXTENSION(ENABLE_XTHEAD_CRC_EXTENSION),
+    .ENABLE_XTHEAD_MUL_EXTENSION(ENABLE_XTHEAD_MUL_EXTENSION),
+    .ENABLE_XTHEAD_COND_MOVE(ENABLE_XTHEAD_COND_MOVE),
+    .ENABLE_XTHEAD_ADDSL_EXTENSION(ENABLE_XTHEAD_ADDSL_EXTENSION)
 ) u_alu (
     .alu_op (alu_op),
     .lhs    (alu_lhs),
@@ -171,7 +180,8 @@ assign branch_taken =
     // 其他: ALU 结果
     // ------------------------------------------------------------
 assign mem_addr = rs1_plus_imm;  // 内存访问地址始终为 rs1 + imm
-assign mem_base_update_value = rs1_value + mem_update_offset;
+assign mem_base_update_value =
+    (ENABLE_XTHEAD_BASE_UPDATE_EXTENSION != 0) ? (rs1_value + mem_update_offset) : {XLEN{1'b0}};
 assign exec_result = is_lui ? imm : ((word_op && (XLEN == 64)) ? word_result_sext : alu_result);
 assign pair_store_data = {{(XLEN-32){1'b0}}, rs2_value[31:0]} << {byte_offset, 3'b000};
 assign pair_store_wstrb = {{(STRB_W-4){1'b0}}, 4'hf} << byte_offset;

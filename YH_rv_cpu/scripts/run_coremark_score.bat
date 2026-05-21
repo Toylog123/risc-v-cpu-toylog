@@ -72,6 +72,18 @@ if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_xthead_memidx_noautoinc_o2sched_nocal
     set TEST_TOP=YH_rv_cpu_coremark_rv32_zmmul_bitmanip_xthead_noidbr_tb
     set ROM_TARGET=rv32
 )
+if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_xthead_memidx_noautoinc_o2sched_nocaller_noifconv_nocondmov" (
+    set TEST_TOP=YH_rv_cpu_coremark_rv32_zmmul_bitmanip_xthead_nocondmov_idbr_tb
+    set ROM_TARGET=rv32
+)
+if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_xthead_baseupd_noautoinc_o2sched_nocaller_noifconv_nocondmov" (
+    set TEST_TOP=YH_rv_cpu_coremark_rv32_zmmul_bitmanip_xthead_baseupd_nocondmov_idbr_tb
+    set ROM_TARGET=rv32
+)
+if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_xthead_baseupd_preissue_noautoinc_o2sched_nocaller_noifconv_nocondmov" (
+    set TEST_TOP=YH_rv_cpu_coremark_rv32_zmmul_bitmanip_xthead_baseupd_nocondmov_preissue_idbr_tb
+    set ROM_TARGET=rv32
+)
 if /I "%TARGET%"=="rv32i_zmmul_zba_zbb_zbs_zbc_xthead_memidx_noautoinc_o2sched_nocaller_noifconv" (
     set TEST_TOP=YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_xthead_idbr_tb
     set ROM_TARGET=rv32
@@ -182,6 +194,15 @@ call %XVLOG% --sv -i "%PROJECT_DIR%\rtl" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv64_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_noidbr_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_noidbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_idbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_xthead_min_noidbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_xthead_idbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_xthead_nocondmov_idbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_xthead_baseupd_nocondmov_idbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_xthead_baseupd_nocondmov_preissue_idbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_xthead_baseupd_nocondmov_static2_idbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_xthead_baseupd_nocondmov_dynbht64_idbr_tb.v" ^
+    "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_xthead_baseupd_nocondmov_reuse_idbr_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_xthead_noidbr_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_xthead_noidbr_tb.v" ^
     "%PROJECT_DIR%\tb\YH_rv_cpu_coremark_rv32_zmmul_bitmanip_zbc_zicond_xthead_noidbr_tb.v" ^

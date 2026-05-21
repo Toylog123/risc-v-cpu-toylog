@@ -1,44 +1,25 @@
 // ============================================================
 // YH_rv_cpu_regfile.v
-// Author: Toylog
-// Version: v1.1
-// Function: RISC-V 寄存器堆 (Register File)
-// Description: 32 个通用寄存器 (x0-x31) 的读写管理
-//   x0 固定为 0
-//   支持双端口读、单端口写
-//   包含写回旁路逻辑，同周期写入的数据可被直接读取
+// Function: RISC-V integer register file
 // ============================================================
 
 module YH_rv_cpu_regfile #(
-    parameter integer XLEN = 32  // 数据通路宽度: 32 (RV32) 或 64 (RV64)
+    parameter integer XLEN = 32,
+    parameter integer ENABLE_RS3_READ_PORT = 1,
+    parameter integer ENABLE_FOLD_READ_PORTS = 1
 ) (
-    // ------------------------------------------------------------
-    // 时钟和复位
-    // ------------------------------------------------------------
-    input  wire            clk,              // 时钟信号
-    input  wire            rst_n,            // 异步低有效复位
+    input  wire            clk,
+    input  wire            rst_n,
 
-    // ------------------------------------------------------------
-    // 读端口 A (rs1)
-    // ------------------------------------------------------------
-    input  wire [4:0]      rs1_addr,         // 读地址 1
-    output wire [XLEN-1:0] rs1_rdata,        // 读数据 1
+    input  wire [4:0]      rs1_addr,
+    output wire [XLEN-1:0] rs1_rdata,
 
-    // ------------------------------------------------------------
-    // 读端口 B (rs2)
-    // ------------------------------------------------------------
-    input  wire [4:0]      rs2_addr,         // 读地址 2
-    output wire [XLEN-1:0] rs2_rdata,        // 读数据 2
+    input  wire [4:0]      rs2_addr,
+    output wire [XLEN-1:0] rs2_rdata,
 
-    // ------------------------------------------------------------
-    // 读端口 C (rd-as-source for selected custom stores)
-    // ------------------------------------------------------------
     input  wire [4:0]      rs3_addr,
     output wire [XLEN-1:0] rs3_rdata,
 
-    // ------------------------------------------------------------
-    // Extra read ports for branch-target issue folding
-    // ------------------------------------------------------------
     input  wire [4:0]      fold_rs1_addr,
     output wire [XLEN-1:0] fold_rs1_rdata,
     input  wire [4:0]      fold_rs2_addr,
@@ -46,45 +27,24 @@ module YH_rv_cpu_regfile #(
     input  wire [4:0]      fold_rs3_addr,
     output wire [XLEN-1:0] fold_rs3_rdata,
 
-    // ------------------------------------------------------------
-    // 写端口 (rd)
-    // ------------------------------------------------------------
-    input  wire            rd_wen,           // 写使能
-    input  wire [4:0]      rd_addr,          // 写地址
-    input  wire [XLEN-1:0] rd_wdata,         // 写数据
+    input  wire            rd_wen,
+    input  wire [4:0]      rd_addr,
+    input  wire [XLEN-1:0] rd_wdata,
 
-    // ------------------------------------------------------------
-    // 第二写端口 (用于带基址更新的访存扩展)
-    // ------------------------------------------------------------
     input  wire            rd2_wen,
     input  wire [4:0]      rd2_addr,
     input  wire [XLEN-1:0] rd2_wdata
 );
 
-    // ------------------------------------------------------------
-    // 寄存器存储阵列
-    // 32 个通用寄存器，每个 XLEN 位宽
-    // x0 固定为 0，通常不写入
-    // ------------------------------------------------------------
 reg [XLEN-1:0] regs [0:31];
 integer idx;
 
-    // ------------------------------------------------------------
-    // 读端口 A 数据输出 (rs1)
-    // 包含写回旁路: 如果写地址等于 rs1 地址，且写使能有效，
-    // 则直接输出正在写入的数据，而不是存储阵列中的旧数据
-    // 这样可以解决同周期读写同一寄存器的数据冒险
-    // ------------------------------------------------------------
 assign rs1_rdata =
-    (rs1_addr == 5'd0) ? {XLEN{1'b0}} :  // x0 始终为 0
+    (rs1_addr == 5'd0) ? {XLEN{1'b0}} :
     (rd2_wen && (rd2_addr == rs1_addr) && (rd2_addr != 5'd0)) ? rd2_wdata :
-    (rd_wen && (rd_addr == rs1_addr) && (rd_addr != 5'd0)) ? rd_wdata :  // 旁路
-    regs[rs1_addr];                        // 正常读取
+    (rd_wen && (rd_addr == rs1_addr) && (rd_addr != 5'd0)) ? rd_wdata :
+    regs[rs1_addr];
 
-    // ------------------------------------------------------------
-    // 读端口 B 数据输出 (rs2)
-    // 逻辑与 rs1 相同
-    // ------------------------------------------------------------
 assign rs2_rdata =
     (rs2_addr == 5'd0) ? {XLEN{1'b0}} :
     (rd2_wen && (rd2_addr == rs2_addr) && (rd2_addr != 5'd0)) ? rd2_wdata :
@@ -92,35 +52,33 @@ assign rs2_rdata =
     regs[rs2_addr];
 
 assign rs3_rdata =
+    (ENABLE_RS3_READ_PORT == 0) ? {XLEN{1'b0}} :
     (rs3_addr == 5'd0) ? {XLEN{1'b0}} :
     (rd2_wen && (rd2_addr == rs3_addr) && (rd2_addr != 5'd0)) ? rd2_wdata :
     (rd_wen && (rd_addr == rs3_addr) && (rd_addr != 5'd0)) ? rd_wdata :
     regs[rs3_addr];
 
 assign fold_rs1_rdata =
+    (ENABLE_FOLD_READ_PORTS == 0) ? {XLEN{1'b0}} :
     (fold_rs1_addr == 5'd0) ? {XLEN{1'b0}} :
     (rd2_wen && (rd2_addr == fold_rs1_addr) && (rd2_addr != 5'd0)) ? rd2_wdata :
     (rd_wen && (rd_addr == fold_rs1_addr) && (rd_addr != 5'd0)) ? rd_wdata :
     regs[fold_rs1_addr];
 
 assign fold_rs2_rdata =
+    (ENABLE_FOLD_READ_PORTS == 0) ? {XLEN{1'b0}} :
     (fold_rs2_addr == 5'd0) ? {XLEN{1'b0}} :
     (rd2_wen && (rd2_addr == fold_rs2_addr) && (rd2_addr != 5'd0)) ? rd2_wdata :
     (rd_wen && (rd_addr == fold_rs2_addr) && (rd_addr != 5'd0)) ? rd_wdata :
     regs[fold_rs2_addr];
 
 assign fold_rs3_rdata =
+    ((ENABLE_FOLD_READ_PORTS == 0) || (ENABLE_RS3_READ_PORT == 0)) ? {XLEN{1'b0}} :
     (fold_rs3_addr == 5'd0) ? {XLEN{1'b0}} :
     (rd2_wen && (rd2_addr == fold_rs3_addr) && (rd2_addr != 5'd0)) ? rd2_wdata :
     (rd_wen && (rd_addr == fold_rs3_addr) && (rd_addr != 5'd0)) ? rd_wdata :
     regs[fold_rs3_addr];
 
-    // ------------------------------------------------------------
-    // 寄存器写操作
-    // 复位时所有寄存器清零
-    // 写操作在时钟上升沿生效
-    // x0 不可写入 (地址为 0 时忽略写操作)
-    // ------------------------------------------------------------
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         for (idx = 0; idx < 32; idx = idx + 1) begin

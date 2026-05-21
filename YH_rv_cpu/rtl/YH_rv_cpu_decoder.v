@@ -18,7 +18,13 @@ module YH_rv_cpu_decoder #(
     parameter integer ENABLE_ZBC_EXTENSION = 0,
     parameter integer ENABLE_ZICOND_EXTENSION = 0,
     parameter integer ENABLE_ZBKB_EXTENSION = 0,
-    parameter integer ENABLE_XTHEAD_EXTENSION = 1
+    parameter integer ENABLE_XTHEAD_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_CRC_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_MUL_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_COND_MOVE = 1,
+    parameter integer ENABLE_XTHEAD_ADDSL_EXTENSION = 0,
+    parameter integer ENABLE_XTHEAD_MEMPAIR_EXTENSION = 1,
+    parameter integer ENABLE_XTHEAD_BASE_UPDATE_EXTENSION = 1
 ) (
     // ------------------------------------------------------------
     // 指令输入
@@ -555,21 +561,48 @@ always @* begin
                 3'b000: begin                           // YH custom CRC16 accelerator
                     rs2_en = 1'b1;
                     case (funct7)
-                        7'd40: alu_op = `YH_rv_cpu_ALU_XCRC16;
-                        7'd41: alu_op = `YH_rv_cpu_ALU_XCRC32;
+                        7'd40: begin
+                            if ((ENABLE_XTHEAD_EXTENSION == 0) || (ENABLE_XTHEAD_CRC_EXTENSION == 0)) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_XCRC16;
+                        end
+                        7'd41: begin
+                            if ((ENABLE_XTHEAD_EXTENSION == 0) || (ENABLE_XTHEAD_CRC_EXTENSION == 0)) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_XCRC32;
+                        end
                         default: illegal = 1'b1;
                     endcase
                 end
                 3'b001: begin                           // th.addsl
                     rs2_en = 1'b1;
                     case (funct7)
-                        7'd1: alu_op = `YH_rv_cpu_ALU_TH_ADDSL1;
-                        7'd2: alu_op = `YH_rv_cpu_ALU_TH_ADDSL2;
-                        7'd3: alu_op = `YH_rv_cpu_ALU_TH_ADDSL3;
-                        7'd16: alu_op = `YH_rv_cpu_ALU_TH_MULA;
-                        7'd20: alu_op = `YH_rv_cpu_ALU_TH_MULAH;
-                        7'd32: alu_op = `YH_rv_cpu_ALU_TH_MVEQZ;
-                        7'd33: alu_op = `YH_rv_cpu_ALU_TH_MVNEZ;
+                        7'd1: begin
+                            if ((ENABLE_XTHEAD_EXTENSION == 0) || (ENABLE_XTHEAD_ADDSL_EXTENSION == 0)) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_TH_ADDSL1;
+                        end
+                        7'd2: begin
+                            if ((ENABLE_XTHEAD_EXTENSION == 0) || (ENABLE_XTHEAD_ADDSL_EXTENSION == 0)) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_TH_ADDSL2;
+                        end
+                        7'd3: begin
+                            if ((ENABLE_XTHEAD_EXTENSION == 0) || (ENABLE_XTHEAD_ADDSL_EXTENSION == 0)) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_TH_ADDSL3;
+                        end
+                        7'd16: begin
+                            if ((ENABLE_XTHEAD_EXTENSION == 0) || (ENABLE_XTHEAD_MUL_EXTENSION == 0)) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_TH_MULA;
+                        end
+                        7'd20: begin
+                            if ((ENABLE_XTHEAD_EXTENSION == 0) || (ENABLE_XTHEAD_MUL_EXTENSION == 0)) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_TH_MULAH;
+                        end
+                        7'd32: begin
+                            if ((ENABLE_XTHEAD_EXTENSION == 0) || (ENABLE_XTHEAD_COND_MOVE == 0)) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_TH_MVEQZ;
+                        end
+                        7'd33: begin
+                            if ((ENABLE_XTHEAD_EXTENSION == 0) || (ENABLE_XTHEAD_COND_MOVE == 0)) illegal = 1'b1;
+                            alu_op = `YH_rv_cpu_ALU_TH_MVNEZ;
+                        end
                         default: illegal = 1'b1;
                     endcase
                 end
@@ -593,12 +626,36 @@ always @* begin
                         5'h04: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_H; mem_unsigned = 1'b0; end
                         5'h14: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_H; mem_unsigned = 1'b1; end
                         5'h08: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_W; mem_unsigned = 1'b0; end
-                        5'h1c: begin mem_pair = 1'b1; mem_size = `YH_rv_cpu_MEM_W; mem_unsigned = 1'b0; imm = {{(XLEN-5){1'b0}}, funct7[1:0], 3'b000}; end
-                        5'h09: begin mem_base_update = 1'b1; mem_base_update_before = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_W; mem_unsigned = 1'b0; end
-                        5'h11: begin mem_base_update = 1'b1; mem_base_update_before = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_B; mem_unsigned = 1'b1; end
-                        5'h07: begin mem_base_update = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_H; mem_unsigned = 1'b0; end
-                        5'h0b: begin mem_base_update = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_W; mem_unsigned = 1'b0; end
-                        5'h13: begin mem_base_update = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_B; mem_unsigned = 1'b1; end
+                        5'h1c: begin
+                            if (ENABLE_XTHEAD_MEMPAIR_EXTENSION == 0) illegal = 1'b1;
+                            else mem_pair = 1'b1;
+                            mem_size = `YH_rv_cpu_MEM_W; mem_unsigned = 1'b0; imm = {{(XLEN-5){1'b0}}, funct7[1:0], 3'b000};
+                        end
+                        5'h09: begin
+                            if (ENABLE_XTHEAD_BASE_UPDATE_EXTENSION == 0) illegal = 1'b1;
+                            else begin mem_base_update = 1'b1; mem_base_update_before = 1'b1; end
+                            imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_W; mem_unsigned = 1'b0;
+                        end
+                        5'h11: begin
+                            if (ENABLE_XTHEAD_BASE_UPDATE_EXTENSION == 0) illegal = 1'b1;
+                            else begin mem_base_update = 1'b1; mem_base_update_before = 1'b1; end
+                            imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_B; mem_unsigned = 1'b1;
+                        end
+                        5'h07: begin
+                            if (ENABLE_XTHEAD_BASE_UPDATE_EXTENSION == 0) illegal = 1'b1;
+                            else mem_base_update = 1'b1;
+                            imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_H; mem_unsigned = 1'b0;
+                        end
+                        5'h0b: begin
+                            if (ENABLE_XTHEAD_BASE_UPDATE_EXTENSION == 0) illegal = 1'b1;
+                            else mem_base_update = 1'b1;
+                            imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_W; mem_unsigned = 1'b0;
+                        end
+                        5'h13: begin
+                            if (ENABLE_XTHEAD_BASE_UPDATE_EXTENSION == 0) illegal = 1'b1;
+                            else mem_base_update = 1'b1;
+                            imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_B; mem_unsigned = 1'b1;
+                        end
                         default: illegal = 1'b1;
                     endcase
                 end
@@ -611,10 +668,27 @@ always @* begin
                         5'h00: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_B; end
                         5'h04: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_H; end
                         5'h08: begin rs2_en = 1'b1; mem_indexed = 1'b1; mem_size = `YH_rv_cpu_MEM_W; end
-                        5'h1c: begin rs2_en = 1'b1; mem_pair = 1'b1; imm = {{(XLEN-5){1'b0}}, funct7[1:0], 3'b000}; mem_size = `YH_rv_cpu_MEM_W; end
-                        5'h03: begin mem_base_update = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_B; end
-                        5'h07: begin mem_base_update = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_H; end
-                        5'h0b: begin mem_base_update = 1'b1; imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_W; end
+                        5'h1c: begin
+                            rs2_en = 1'b1;
+                            if (ENABLE_XTHEAD_MEMPAIR_EXTENSION == 0) illegal = 1'b1;
+                            else mem_pair = 1'b1;
+                            imm = {{(XLEN-5){1'b0}}, funct7[1:0], 3'b000}; mem_size = `YH_rv_cpu_MEM_W;
+                        end
+                        5'h03: begin
+                            if (ENABLE_XTHEAD_BASE_UPDATE_EXTENSION == 0) illegal = 1'b1;
+                            else mem_base_update = 1'b1;
+                            imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_B;
+                        end
+                        5'h07: begin
+                            if (ENABLE_XTHEAD_BASE_UPDATE_EXTENSION == 0) illegal = 1'b1;
+                            else mem_base_update = 1'b1;
+                            imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_H;
+                        end
+                        5'h0b: begin
+                            if (ENABLE_XTHEAD_BASE_UPDATE_EXTENSION == 0) illegal = 1'b1;
+                            else mem_base_update = 1'b1;
+                            imm = imm_th_inc; mem_size = `YH_rv_cpu_MEM_W;
+                        end
                         default: illegal = 1'b1;
                     endcase
                 end
