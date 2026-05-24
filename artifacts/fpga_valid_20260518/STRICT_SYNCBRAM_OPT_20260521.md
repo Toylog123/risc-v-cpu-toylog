@@ -31,7 +31,7 @@ This record tracks only hardware-side changes under the current PYNQ-Z2 / sync-B
 
 | LUT | CoreMark/MHz | DMIPS/MHz | CoreMark CRC | CoreMark method | Hardware optimization point |
 |---:|---:|---:|---:|---|---|
-| 9979 | 5.220343 | 1.103221 | 0xfcaf | full workload, size=666, short-runtime host-parsed, CoreMark core files unchanged | DCache cacheable-window tag trim, 256B DCache, 128-entry redirect cache, branchfold, dynamic BHT, not-taken load fold, DCache load-use speculation, Zicond and XThead MAC/base-update |
+| 9979 | 5.220343 | 1.279852 | 0xfcaf | full workload, size=666, short-runtime host-parsed, CoreMark core files unchanged | DCache cacheable-window tag trim, 256B DCache, 128-entry redirect cache, branchfold, dynamic BHT, not-taken load fold, DCache load-use speculation, Zicond and XThead MAC/base-update |
 
 This freeze is a defensible hardware-only exploration point under the relaxed 10000-LUT cap. The CoreMark run keeps the public workload files unchanged and uses only RTL/microarchitecture and legal build/port-layer controls. The run is still marked as short-runtime because the simulator execution does not satisfy the EEMBC >=10 second public-valid runtime floor; the result is used for same-method hardware iteration and should be presented with that caveat. The copied synthesis timing report shows negative estimated WNS, so this point is not yet a timing-closed PYNQ-Z2 implementation result.
 
@@ -39,7 +39,7 @@ Evidence for this freeze:
 
 - CoreMark summary: `coremark_fpga_dcache256_luspec_rc128_dynbht_branchfold_ntload_zicond_mac_baseupd_tagtrim_rerun2k_iter10_20260524.summary.txt`
 - CoreMark log: `coremark_fpga_dcache256_luspec_rc128_dynbht_branchfold_ntload_zicond_mac_baseupd_tagtrim_rerun2k_iter10_20260524.log`
-- Dhrystone summary: `dhrystone_fpga_zicond_mac_xthead_idbr_rerun_20260524.summary.txt`
+- Dhrystone summary: `dhrystone_fpga_tagtrim_samehw_runs10_20260524.summary.txt`
 - Dhrystone log: `YH_rv_cpu_dhrystone_zmmul_zbc_zicond_xthead_mac_idbr.log`
 - Frozen synthesis utilization: `synth_util_dcache256_luspec_rc128_dynbht_branchfold_ntload_zicond_mac_baseupd_tagtrim_9979lut_20260524.rpt`
 - Frozen synthesis timing: `synth_timing_dcache256_luspec_rc128_dynbht_branchfold_ntload_zicond_mac_baseupd_tagtrim_20260524.rpt` (synthesis estimate WNS -16.326 ns; timing closure remains open)
@@ -54,7 +54,7 @@ Next optimization focus:
 
 | Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Status | Hardware optimization point |
 |---|---:|---:|---:|---|---|
-| DCache256 + RC128 + branchfold + dynamic BHT + NT-load fold + DCache load-use spec + Zicond/XThead MAC + tag trim | 9979 | 5.220343 | 1.103221 | frozen exploration candidate, timing open | Keeps the synchronous BRAM line, trims DCache tag width to the cacheable RAM window, restores branch prediction and NT-load fold, and preserves the benchmark workload without changing CoreMark algorithm files |
+| DCache256 + RC128 + branchfold + dynamic BHT + NT-load fold + DCache load-use spec + Zicond/XThead MAC + tag trim | 9979 | 5.220343 | 1.279852 | frozen exploration candidate, timing open | Keeps the synchronous BRAM line, trims DCache tag width to the cacheable RAM window, restores branch prediction and NT-load fold, and preserves the benchmark workload without changing CoreMark algorithm files |
 | DCache128 + RC128 + branchfold/next-cache/NT-load-fold + trimmed XThead/Zbc | N/A | N/A | TBD | rejected | Reduced DCache from 256B to 128B to save area, but FPGA-like CoreMark simulation timed out at PC=0x00000588 after 5,000,001 cycles; no valid summary generated |
 | DCache256 + RC128 + branchfold/next-cache/NT-load-fold, DCache load-use spec disabled | N/A | N/A | TBD | rejected | Tried to remove DCache load-use speculation for area reduction, but FPGA-like CoreMark simulation timed out at PC=0x00003a0c after 5,000,001 cycles |
 | DCache256 + RC128 + branchfold/next-cache/NT-load-fold, global XThead base-update disabled | N/A | N/A | TBD | rejected | Tried to remove XThead base-update hardware globally, but the compiled target no longer completed; timeout at PC=0x00003a04 |
