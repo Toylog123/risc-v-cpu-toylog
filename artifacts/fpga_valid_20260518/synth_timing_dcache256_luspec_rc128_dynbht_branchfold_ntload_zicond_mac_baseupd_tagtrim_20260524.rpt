@@ -1,0 +1,637 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Fri May 22 08:53:17 2026
+| Host         : Toylog_desktop running 64-bit major release  (build 9200)
+| Command      : report_timing_summary -file V:/project/reports/pynq_z2_sysclk_8p000ns_cpu50/synth_timing_summary.rpt
+| Design       : YH_rv_cpu_fpga_top
+| Device       : 7z020-clg400
+| Speed File   : -1  PRODUCTION 1.12 2019-11-22
+| Design State : Synthesized
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Timing Summary Report
+
+------------------------------------------------------------------------------------------------
+| Timer Settings
+| --------------
+------------------------------------------------------------------------------------------------
+
+  Enable Multi Corner Analysis               :  Yes
+  Enable Pessimism Removal                   :  Yes
+  Pessimism Removal Resolution               :  Nearest Common Node
+  Enable Input Delay Default Clock           :  No
+  Enable Preset / Clear Arcs                 :  No
+  Disable Flight Delays                      :  No
+  Ignore I/O Paths                           :  No
+  Timing Early Launch at Borrowing Latches   :  No
+  Borrow Time for Max Delay Exceptions       :  Yes
+  Merge Timing Exceptions                    :  Yes
+  Inter-SLR Compensation                     :  Conservative
+
+  Corner  Analyze    Analyze    
+  Name    Max Paths  Min Paths  
+  ------  ---------  ---------  
+  Slow    Yes        Yes        
+  Fast    Yes        Yes        
+
+
+------------------------------------------------------------------------------------------------
+| Report Methodology
+| ------------------
+------------------------------------------------------------------------------------------------
+
+No report available as report_methodology has not been run prior. Run report_methodology on the current design for the summary of methodology violations.
+
+
+
+check_timing report
+
+Table of Contents
+-----------------
+1. checking no_clock (0)
+2. checking constant_clock (0)
+3. checking pulse_width_clock (0)
+4. checking unconstrained_internal_endpoints (0)
+5. checking no_input_delay (1)
+6. checking no_output_delay (4)
+7. checking multiple_clock (0)
+8. checking generated_clocks (0)
+9. checking loops (0)
+10. checking partial_input_delay (0)
+11. checking partial_output_delay (0)
+12. checking latch_loops (0)
+
+1. checking no_clock (0)
+------------------------
+ There are 0 register/latch pins with no clock.
+
+
+2. checking constant_clock (0)
+------------------------------
+ There are 0 register/latch pins with constant_clock.
+
+
+3. checking pulse_width_clock (0)
+---------------------------------
+ There are 0 register/latch pins which need pulse_width check
+
+
+4. checking unconstrained_internal_endpoints (0)
+------------------------------------------------
+ There are 0 pins that are not constrained for maximum delay.
+
+ There are 0 pins that are not constrained for maximum delay due to constant clock.
+
+
+5. checking no_input_delay (1)
+------------------------------
+ There is 1 input port with no input delay specified. (HIGH)
+
+ There are 0 input ports with no input delay but user has a false path constraint.
+
+
+6. checking no_output_delay (4)
+-------------------------------
+ There are 4 ports with no output delay specified. (HIGH)
+
+ There are 0 ports with no output delay but user has a false path constraint
+
+ There are 0 ports with no output delay but with a timing clock defined on it or propagating through it
+
+
+7. checking multiple_clock (0)
+------------------------------
+ There are 0 register/latch pins with multiple clocks.
+
+
+8. checking generated_clocks (0)
+--------------------------------
+ There are 0 generated clocks that are not connected to a clock source.
+
+
+9. checking loops (0)
+---------------------
+ There are 0 combinational loops in the design.
+
+
+10. checking partial_input_delay (0)
+------------------------------------
+ There are 0 input ports with partial input delay specified.
+
+
+11. checking partial_output_delay (0)
+-------------------------------------
+ There are 0 ports with partial output delay specified.
+
+
+12. checking latch_loops (0)
+----------------------------
+ There are 0 combinational latch loops in the design through latch input
+
+
+
+------------------------------------------------------------------------------------------------
+| Design Timing Summary
+| ---------------------
+------------------------------------------------------------------------------------------------
+
+    WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
+    -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
+    -16.326   -14677.101                   1907                14748        0.132        0.000                      0                14748        2.000        0.000                       0                  3850  
+
+
+Timing constraints are not met.
+
+
+------------------------------------------------------------------------------------------------
+| Clock Summary
+| -------------
+------------------------------------------------------------------------------------------------
+
+Clock                       Waveform(ns)         Period(ns)      Frequency(MHz)
+-----                       ------------         ----------      --------------
+pynq_sys_clk                {0.000 4.000}        8.000           125.000         
+  gen_pynq_clk_50m.clkfb    {0.000 4.000}        8.000           125.000         
+  gen_pynq_clk_50m.clkout0  {0.000 10.000}       20.000          50.000          
+
+
+------------------------------------------------------------------------------------------------
+| Intra Clock Table
+| -----------------
+------------------------------------------------------------------------------------------------
+
+Clock                           WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
+-----                           -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
+pynq_sys_clk                                                                                                                                                                  2.000        0.000                       0                     1  
+  gen_pynq_clk_50m.clkfb                                                                                                                                                      5.845        0.000                       0                     3  
+  gen_pynq_clk_50m.clkout0      -16.326   -14677.101                   1907                12118        0.132        0.000                      0                12118        8.750        0.000                       0                  3846  
+
+
+------------------------------------------------------------------------------------------------
+| Inter Clock Table
+| -----------------
+------------------------------------------------------------------------------------------------
+
+From Clock    To Clock          WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints  
+----------    --------          -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------  
+
+
+------------------------------------------------------------------------------------------------
+| Other Path Groups Table
+| -----------------------
+------------------------------------------------------------------------------------------------
+
+Path Group                From Clock                To Clock                      WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints  
+----------                ----------                --------                      -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------  
+**async_default**         gen_pynq_clk_50m.clkout0  gen_pynq_clk_50m.clkout0       15.760        0.000                      0                 2630        0.747        0.000                      0                 2630  
+
+
+------------------------------------------------------------------------------------------------
+| Timing Details
+| --------------
+------------------------------------------------------------------------------------------------
+
+
+---------------------------------------------------------------------------------------------------
+From Clock:  pynq_sys_clk
+  To Clock:  pynq_sys_clk
+
+Setup :           NA  Failing Endpoints,  Worst Slack           NA  ,  Total Violation           NA
+Hold  :           NA  Failing Endpoints,  Worst Slack           NA  ,  Total Violation           NA
+PW    :            0  Failing Endpoints,  Worst Slack        2.000ns,  Total Violation        0.000ns
+---------------------------------------------------------------------------------------------------
+
+
+Pulse Width Checks
+--------------------------------------------------------------------------------------
+Clock Name:         pynq_sys_clk
+Waveform(ns):       { 0.000 4.000 }
+Period(ns):         8.000
+Sources:            { CLK100MHZ }
+
+Check Type        Corner  Lib Pin            Reference Pin  Required(ns)  Actual(ns)  Slack(ns)  Location  Pin
+Min Period        n/a     MMCME2_ADV/CLKIN1  n/a            1.249         8.000       6.751                gen_pynq_clk_50m.u_clk_mmcm/CLKIN1
+Max Period        n/a     MMCME2_ADV/CLKIN1  n/a            100.000       8.000       92.000               gen_pynq_clk_50m.u_clk_mmcm/CLKIN1
+Low Pulse Width   Slow    MMCME2_ADV/CLKIN1  n/a            2.000         4.000       2.000                gen_pynq_clk_50m.u_clk_mmcm/CLKIN1
+High Pulse Width  Slow    MMCME2_ADV/CLKIN1  n/a            2.000         4.000       2.000                gen_pynq_clk_50m.u_clk_mmcm/CLKIN1
+
+
+
+---------------------------------------------------------------------------------------------------
+From Clock:  gen_pynq_clk_50m.clkfb
+  To Clock:  gen_pynq_clk_50m.clkfb
+
+Setup :           NA  Failing Endpoints,  Worst Slack           NA  ,  Total Violation           NA
+Hold  :           NA  Failing Endpoints,  Worst Slack           NA  ,  Total Violation           NA
+PW    :            0  Failing Endpoints,  Worst Slack        5.845ns,  Total Violation        0.000ns
+---------------------------------------------------------------------------------------------------
+
+
+Pulse Width Checks
+--------------------------------------------------------------------------------------
+Clock Name:         gen_pynq_clk_50m.clkfb
+Waveform(ns):       { 0.000 4.000 }
+Period(ns):         8.000
+Sources:            { gen_pynq_clk_50m.u_clk_mmcm/CLKFBOUT }
+
+Check Type  Corner  Lib Pin             Reference Pin  Required(ns)  Actual(ns)  Slack(ns)  Location  Pin
+Min Period  n/a     BUFG/I              n/a            2.155         8.000       5.845                gen_pynq_clk_50m.u_clkfb_bufg/I
+Max Period  n/a     MMCME2_ADV/CLKFBIN  n/a            100.000       8.000       92.000               gen_pynq_clk_50m.u_clk_mmcm/CLKFBIN
+
+
+
+---------------------------------------------------------------------------------------------------
+From Clock:  gen_pynq_clk_50m.clkout0
+  To Clock:  gen_pynq_clk_50m.clkout0
+
+Setup :         1907  Failing Endpoints,  Worst Slack      -16.326ns,  Total Violation   -14677.101ns
+Hold  :            0  Failing Endpoints,  Worst Slack        0.132ns,  Total Violation        0.000ns
+PW    :            0  Failing Endpoints,  Worst Slack        8.750ns,  Total Violation        0.000ns
+---------------------------------------------------------------------------------------------------
+
+
+Max Delay Paths
+--------------------------------------------------------------------------------------
+Slack (VIOLATED) :        -16.326ns  (required time - arrival time)
+  Source:                 u_soc/u_cpu/gen_dcache.u_dcache/cache_tag_reg[23][1]/C
+                            (rising edge-triggered cell FDRE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/if_id_instruction_r_reg[0]/CE
+                            (rising edge-triggered cell FDPE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            20.000ns  (gen_pynq_clk_50m.clkout0 rise@20.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        35.900ns  (logic 7.368ns (20.524%)  route 28.532ns (79.476%))
+  Logic Levels:           44  (CARRY4=6 LUT2=1 LUT3=3 LUT4=1 LUT5=3 LUT6=28 MUXF7=1 RAMD64E=1)
+  Clock Path Skew:        -0.145ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    -2.269ns = ( 17.731 - 20.000 ) 
+    Source Clock Delay      (SCD):    -1.593ns
+    Clock Pessimism Removal (CPR):    0.530ns
+  Clock Uncertainty:      0.079ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.141ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         1.451     1.451 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, unplaced)         0.584     2.035    CLK100MHZ_IBUF
+                         MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -5.113    -3.078 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.800    -2.278    gen_pynq_clk_50m.clkout0
+                         BUFG (Prop_bufg_I_O)         0.101    -2.177 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3844, unplaced)      0.584    -1.593    u_soc/u_cpu/gen_dcache.u_dcache/cpu_clk
+                         FDRE                                         r  u_soc/u_cpu/gen_dcache.u_dcache/cache_tag_reg[23][1]/C
+  -------------------------------------------------------------------    -------------------
+                         FDRE (Prop_fdre_C_Q)         0.478    -1.115 r  u_soc/u_cpu/gen_dcache.u_dcache/cache_tag_reg[23][1]/Q
+                         net (fo=3, unplaced)         0.983    -0.132    u_soc/u_cpu/gen_dcache.u_dcache/cache_tag_reg[23]_39[1]
+                         LUT6 (Prop_lut6_I0_O)        0.295     0.163 r  u_soc/u_cpu/gen_dcache.u_dcache/miss_unsigned_r_i_186/O
+                         net (fo=1, unplaced)         0.000     0.163    u_soc/u_cpu/gen_dcache.u_dcache/miss_unsigned_r_i_186_n_0
+                         MUXF7 (Prop_muxf7_I1_O)      0.247     0.410 r  u_soc/u_cpu/gen_dcache.u_dcache/miss_unsigned_r_reg_i_85/O
+                         net (fo=2, unplaced)         0.916     1.326    u_soc/u_cpu/gen_dcache.u_dcache/miss_unsigned_r_reg_i_85_n_0
+                         LUT6 (Prop_lut6_I1_O)        0.298     1.624 r  u_soc/u_cpu/gen_dcache.u_dcache/x_result_th_mula0_i_223/O
+                         net (fo=1, unplaced)         0.902     2.526    u_soc/u_cpu/gen_dcache.u_dcache/x_result_th_mula0_i_223_n_0
+                         LUT6 (Prop_lut6_I1_O)        0.124     2.650 f  u_soc/u_cpu/gen_dcache.u_dcache/x_result_th_mula0_i_213/O
+                         net (fo=1, unplaced)         1.111     3.761    u_soc/u_cpu/gen_dcache.u_dcache/x_result_th_mula0_i_213_n_0
+                         LUT6 (Prop_lut6_I1_O)        0.124     3.885 r  u_soc/u_cpu/gen_dcache.u_dcache/x_result_th_mula0_i_199/O
+                         net (fo=1, unplaced)         0.449     4.334    u_soc/u_cpu/gen_dcache.u_dcache/x_result_th_mula0_i_199_n_0
+                         LUT6 (Prop_lut6_I1_O)        0.124     4.458 r  u_soc/u_cpu/gen_dcache.u_dcache/x_result_th_mula0_i_160/O
+                         net (fo=27, unplaced)        0.516     4.974    u_soc/u_cpu/gen_dcache.u_dcache/ex_mem_load_forward_ready
+                         LUT4 (Prop_lut4_I2_O)        0.116     5.090 r  u_soc/u_cpu/gen_dcache.u_dcache/x_result_th_mula0_i_111/O
+                         net (fo=19, unplaced)        0.961     6.051    u_soc/u_cpu/gen_dcache.u_dcache/x_result_th_mula0_i_111_n_0
+                         LUT6 (Prop_lut6_I2_O)        0.124     6.175 r  u_soc/u_cpu/gen_dcache.u_dcache/x_result_th_mula0_i_57/O
+                         net (fo=7, unplaced)         0.484     6.659    u_soc/u_cpu/gen_dcache.u_dcache/x_result_th_mula0_i_57_n_0
+                         LUT3 (Prop_lut3_I2_O)        0.124     6.783 r  u_soc/u_cpu/gen_dcache.u_dcache/x_result_th_mula0_i_25/O
+                         net (fo=71, unplaced)        0.993     7.776    u_soc/u_cpu/gen_dcache.u_dcache/alu_rhs[7]
+                         LUT6 (Prop_lut6_I4_O)        0.124     7.900 r  u_soc/u_cpu/gen_dcache.u_dcache/redirect_cache_pc_r_reg_r2_0_63_0_2_i_233/O
+                         net (fo=1, unplaced)         0.449     8.349    u_soc/u_cpu/gen_dcache.u_dcache/redirect_cache_pc_r_reg_r2_0_63_0_2_i_233_n_0
+                         LUT5 (Prop_lut5_I4_O)        0.124     8.473 r  u_soc/u_cpu/gen_dcache.u_dcache/redirect_cache_pc_r_reg_r2_0_63_0_2_i_204/O
+                         net (fo=1, unplaced)         0.449     8.922    u_soc/u_cpu/gen_dcache.u_dcache/redirect_cache_pc_r_reg_r2_0_63_0_2_i_204_n_0
+                         LUT6 (Prop_lut6_I5_O)        0.124     9.046 f  u_soc/u_cpu/gen_dcache.u_dcache/redirect_cache_pc_r_reg_r2_0_63_0_2_i_158/O
+                         net (fo=1, unplaced)         0.449     9.495    u_soc/u_cpu/gen_dcache.u_dcache/redirect_cache_pc_r_reg_r2_0_63_0_2_i_158_n_0
+                         LUT6 (Prop_lut6_I0_O)        0.124     9.619 f  u_soc/u_cpu/gen_dcache.u_dcache/redirect_cache_pc_r_reg_r2_0_63_0_2_i_110/O
+                         net (fo=26, unplaced)        0.515    10.134    u_soc/u_cpu/gen_dcache.u_dcache/redirect_cache_pc_r_reg_r2_0_63_0_2_i_110_n_0
+                         LUT6 (Prop_lut6_I0_O)        0.124    10.258 r  u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_predict_pc_r[15]_i_52/O
+                         net (fo=1, unplaced)         0.902    11.160    u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_predict_pc_r[15]_i_52_n_0
+                         LUT6 (Prop_lut6_I0_O)        0.124    11.284 f  u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_predict_pc_r[15]_i_26/O
+                         net (fo=1, unplaced)         0.902    12.186    u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_predict_pc_r[15]_i_26_n_0
+                         LUT6 (Prop_lut6_I2_O)        0.124    12.310 f  u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_predict_pc_r[15]_i_18/O
+                         net (fo=5, unplaced)         0.477    12.787    u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_predict_pc_r[15]_i_18_n_0
+                         LUT6 (Prop_lut6_I2_O)        0.124    12.911 f  u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_predict_pc_r[15]_i_10/O
+                         net (fo=6, unplaced)         0.934    13.845    u_soc/u_cpu/gen_dcache.u_dcache/id_branch_decode_rs1_value[14]
+                         LUT6 (Prop_lut6_I2_O)        0.124    13.969 r  u_soc/u_cpu/gen_dcache.u_dcache/id_ex_mem_base_update_r_i_90/O
+                         net (fo=2, unplaced)         0.484    14.453    u_soc/u_cpu/gen_dcache.u_dcache/id_ex_mem_base_update_r_i_90_n_0
+                         CARRY4 (Prop_carry4_DI[3]_CO[3])
+                                                      0.396    14.849 r  u_soc/u_cpu/gen_dcache.u_dcache/id_ex_mem_base_update_r_reg_i_64/CO[3]
+                         net (fo=1, unplaced)         0.000    14.849    u_soc/u_cpu/gen_dcache.u_dcache/id_ex_mem_base_update_r_reg_i_64_n_0
+                         CARRY4 (Prop_carry4_CI_CO[3])
+                                                      0.117    14.966 r  u_soc/u_cpu/gen_dcache.u_dcache/id_ex_mem_base_update_r_reg_i_34/CO[3]
+                         net (fo=1, unplaced)         0.000    14.966    u_soc/u_cpu/gen_dcache.u_dcache/id_ex_mem_base_update_r_reg_i_34_n_0
+                         CARRY4 (Prop_carry4_CI_CO[3])
+                                                      0.117    15.083 r  u_soc/u_cpu/gen_dcache.u_dcache/id_ex_mem_base_update_r_reg_i_19/CO[3]
+                         net (fo=1, unplaced)         0.918    16.001    u_soc/u_cpu/gen_dcache.u_dcache/id_branch_decode_ltu
+                         LUT6 (Prop_lut6_I4_O)        0.124    16.125 r  u_soc/u_cpu/gen_dcache.u_dcache/id_ex_mem_base_update_r_i_11/O
+                         net (fo=3, unplaced)         0.467    16.592    u_soc/u_cpu/gen_dcache.u_dcache/id_ex_mem_base_update_r_i_11_n_0
+                         LUT3 (Prop_lut3_I2_O)        0.124    16.716 r  u_soc/u_cpu/gen_dcache.u_dcache/pc4_carry_i_6/O
+                         net (fo=32, unplaced)        0.520    17.236    u_soc/u_cpu/gen_dcache.u_dcache/pc4_carry_i_6_n_0
+                         LUT6 (Prop_lut6_I5_O)        0.124    17.360 r  u_soc/u_cpu/gen_dcache.u_dcache/pc_r[31]_bret_bret_bret__32_i_6/O
+                         net (fo=1, unplaced)         0.449    17.809    u_soc/u_cpu/gen_dcache.u_dcache/pc_r[31]_bret_bret_bret__32_i_6_n_0
+                         LUT6 (Prop_lut6_I5_O)        0.124    17.933 f  u_soc/u_cpu/gen_dcache.u_dcache/pc_r[31]_bret_bret_bret__32_i_2/O
+                         net (fo=1, unplaced)         0.449    18.382    u_soc/u_cpu/gen_dcache.u_dcache/pc_r[31]_bret_bret_bret__32_i_2_n_0
+                         LUT6 (Prop_lut6_I1_O)        0.124    18.506 r  u_soc/u_cpu/gen_dcache.u_dcache/pc_r[31]_bret_bret_bret__32_i_1/O
+                         net (fo=129, unplaced)       0.555    19.061    u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_predict_taken_r_reg
+                         LUT3 (Prop_lut3_I2_O)        0.124    19.185 r  u_soc/u_cpu/gen_dcache.u_dcache/redirect_cache_pc_r_reg_r4_0_63_0_2_i_5/O
+                         net (fo=100, unplaced)       1.211    20.396    u_soc/u_cpu/redirect_cache_pc_r_reg_r4_64_127_3_5/ADDRB1
+                         RAMD64E (Prop_ramd64e_RADR1_O)
+                                                      0.124    20.520 r  u_soc/u_cpu/redirect_cache_pc_r_reg_r4_64_127_3_5/RAMB/O
+                         net (fo=1, unplaced)         1.111    21.631    u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_r_i_160_3
+                         LUT6 (Prop_lut6_I5_O)        0.124    21.755 f  u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_r_i_233/O
+                         net (fo=1, unplaced)         0.449    22.204    u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_r_i_233_n_0
+                         LUT6 (Prop_lut6_I5_O)        0.124    22.328 r  u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_r_i_160/O
+                         net (fo=1, unplaced)         0.000    22.328    u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_r_i_160_n_0
+                         CARRY4 (Prop_carry4_S[1]_CO[3])
+                                                      0.533    22.861 r  u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_r_reg_i_70/CO[3]
+                         net (fo=1, unplaced)         0.009    22.870    u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_r_reg_i_70_n_0
+                         CARRY4 (Prop_carry4_CI_CO[3])
+                                                      0.117    22.987 r  u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_r_reg_i_27/CO[3]
+                         net (fo=1, unplaced)         0.000    22.987    u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_r_reg_i_27_n_0
+                         CARRY4 (Prop_carry4_CI_CO[2])
+                                                      0.252    23.239 r  u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_r_reg_i_10/CO[2]
+                         net (fo=2, unplaced)         0.463    23.702    u_soc/u_cpu/gen_dcache.u_dcache/regular_cache_hit0
+                         LUT6 (Prop_lut6_I1_O)        0.310    24.012 r  u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_r_i_3/O
+                         net (fo=144, unplaced)       0.558    24.570    u_soc/u_cpu/gen_dcache.u_dcache/fetch_buf0_valid_r_reg
+                         LUT5 (Prop_lut5_I1_O)        0.124    24.694 r  u_soc/u_cpu/gen_dcache.u_dcache/id_ex_csr_use_imm_r_i_16/O
+                         net (fo=10, unplaced)        1.154    25.848    u_soc/u_cpu/u_fold_target_id_stage/u_decoder/fold_decode_instruction__0[0]
+                         LUT6 (Prop_lut6_I1_O)        0.124    25.972 r  u_soc/u_cpu/u_fold_target_id_stage/u_decoder/i_/id_ex_imm_r[6]_i_4/O
+                         net (fo=13, unplaced)        1.014    26.986    u_soc/u_cpu/u_fold_target_id_stage/u_decoder/i_/id_ex_imm_r[6]_i_7_0
+                         LUT6 (Prop_lut6_I0_O)        0.124    27.110 f  u_soc/u_cpu/u_fold_target_id_stage/u_decoder/i_/id_ex_alu_op_r[3]_i_5/O
+                         net (fo=1, unplaced)         1.111    28.221    u_soc/u_cpu/u_fold_target_id_stage/u_decoder/i_/id_ex_alu_op_r[3]_i_5_n_0
+                         LUT6 (Prop_lut6_I1_O)        0.124    28.345 f  u_soc/u_cpu/u_fold_target_id_stage/u_decoder/i_/id_ex_alu_op_r[3]_i_2/O
+                         net (fo=6, unplaced)         0.996    29.341    u_soc/u_cpu/gen_dcache.u_dcache/fold_id_alu_op[3]
+                         LUT6 (Prop_lut6_I0_O)        0.124    29.465 r  u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_r_i_46/O
+                         net (fo=1, unplaced)         0.902    30.367    u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_r_i_46_n_0
+                         LUT6 (Prop_lut6_I2_O)        0.124    30.491 f  u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_r_i_14/O
+                         net (fo=1, unplaced)         0.902    31.393    u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_r_i_14_n_0
+                         LUT6 (Prop_lut6_I2_O)        0.124    31.517 r  u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_r_i_4/O
+                         net (fo=16, unplaced)        0.503    32.020    u_soc/u_cpu/gen_dcache.u_dcache/id_ex_branch_r_i_4_n_0
+                         LUT5 (Prop_lut5_I4_O)        0.124    32.144 f  u_soc/u_cpu/gen_dcache.u_dcache/if_id_pc_r[31]_i_8/O
+                         net (fo=1, unplaced)         0.902    33.046    u_soc/u_cpu/gen_dcache.u_dcache/if_id_pc_r[31]_i_8_n_0
+                         LUT6 (Prop_lut6_I1_O)        0.124    33.170 f  u_soc/u_cpu/gen_dcache.u_dcache/if_id_pc_r[31]_i_3/O
+                         net (fo=1, unplaced)         0.449    33.619    u_soc/u_cpu/gen_dcache.u_dcache/if_id_pc_r[31]_i_3_n_0
+                         LUT2 (Prop_lut2_I1_O)        0.124    33.743 r  u_soc/u_cpu/gen_dcache.u_dcache/if_id_pc_r[31]_i_1/O
+                         net (fo=71, unplaced)        0.564    34.307    u_soc/u_cpu/gen_dcache.u_dcache_n_1131
+                         FDPE                                         r  u_soc/u_cpu/if_id_instruction_r_reg[0]/CE
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                     20.000    20.000 r  
+    H16                                               0.000    20.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000    20.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         1.380    21.380 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, unplaced)         0.439    21.819    CLK100MHZ_IBUF
+                         MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -5.378    16.442 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.760    17.201    gen_pynq_clk_50m.clkout0
+                         BUFG (Prop_bufg_I_O)         0.091    17.292 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3844, unplaced)      0.439    17.731    u_soc/u_cpu/cpu_clk
+                         FDPE                                         r  u_soc/u_cpu/if_id_instruction_r_reg[0]/C
+                         clock pessimism              0.530    18.262    
+                         clock uncertainty           -0.079    18.183    
+                         FDPE (Setup_fdpe_C_CE)      -0.202    17.981    u_soc/u_cpu/if_id_instruction_r_reg[0]
+  -------------------------------------------------------------------
+                         required time                         17.981    
+                         arrival time                         -34.307    
+  -------------------------------------------------------------------
+                         slack                                -16.326    
+
+
+
+
+
+Min Delay Paths
+--------------------------------------------------------------------------------------
+Slack (MET) :             0.132ns  (arrival time - required time)
+  Source:                 u_soc/uart_tx_data_reg[0]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_uart_tx/frame_r_reg[1]/D
+                            (rising edge-triggered cell FDPE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.376ns  (logic 0.245ns (65.144%)  route 0.131ns (34.856%))
+  Logic Levels:           1  (LUT3=1)
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -1.102ns
+    Source Clock Delay      (SCD):    -0.966ns
+    Clock Pessimism Removal (CPR):    -0.280ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, unplaced)         0.114     0.333    CLK100MHZ_IBUF
+                         MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -1.776    -1.443 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.337    -1.106    gen_pynq_clk_50m.clkout0
+                         BUFG (Prop_bufg_I_O)         0.026    -1.080 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3844, unplaced)      0.114    -0.966    u_soc/cpu_clk
+                         FDCE                                         r  u_soc/uart_tx_data_reg[0]/C
+  -------------------------------------------------------------------    -------------------
+                         FDCE (Prop_fdce_C_Q)         0.147    -0.819 r  u_soc/uart_tx_data_reg[0]/Q
+                         net (fo=1, unplaced)         0.131    -0.688    u_uart_tx/frame_r_reg[8]_0[0]
+                         LUT3 (Prop_lut3_I2_O)        0.098    -0.590 r  u_uart_tx/frame_r[1]_i_1/O
+                         net (fo=1, unplaced)         0.000    -0.590    u_uart_tx/p_0_in[1]
+                         FDPE                                         r  u_uart_tx/frame_r_reg[1]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, unplaced)         0.259     0.665    CLK100MHZ_IBUF
+                         MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.410    -1.744 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.355    -1.390    gen_pynq_clk_50m.clkout0
+                         BUFG (Prop_bufg_I_O)         0.029    -1.361 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3844, unplaced)      0.259    -1.102    u_uart_tx/CLK
+                         FDPE                                         r  u_uart_tx/frame_r_reg[1]/C
+                         clock pessimism              0.280    -0.821    
+                         FDPE (Hold_fdpe_C_D)         0.099    -0.722    u_uart_tx/frame_r_reg[1]
+  -------------------------------------------------------------------
+                         required time                          0.722    
+                         arrival time                          -0.590    
+  -------------------------------------------------------------------
+                         slack                                  0.132    
+
+
+
+
+
+Pulse Width Checks
+--------------------------------------------------------------------------------------
+Clock Name:         gen_pynq_clk_50m.clkout0
+Waveform(ns):       { 0.000 10.000 }
+Period(ns):         20.000
+Sources:            { gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0 }
+
+Check Type        Corner  Lib Pin             Reference Pin  Required(ns)  Actual(ns)  Slack(ns)  Location  Pin
+Min Period        n/a     RAMB36E1/CLKARDCLK  n/a            2.944         20.000      17.056               u_soc/u_dmem_ram/g_sync_ram.g_posedge_read.ram_mem_reg_0/CLKARDCLK
+Max Period        n/a     MMCME2_ADV/CLKOUT0  n/a            213.360       20.000      193.360              gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+Low Pulse Width   Slow    RAMD64E/CLK         n/a            1.250         10.000      8.750                u_soc/u_cpu/gen_dcache.u_dcache/cache_data_reg_0_63_0_2/RAMA/CLK
+High Pulse Width  Slow    RAMD64E/CLK         n/a            1.250         10.000      8.750                u_soc/u_cpu/gen_dcache.u_dcache/cache_data_reg_0_63_0_2/RAMA/CLK
+
+
+
+---------------------------------------------------------------------------------------------------
+Path Group:  **async_default**
+From Clock:  gen_pynq_clk_50m.clkout0
+  To Clock:  gen_pynq_clk_50m.clkout0
+
+Setup :            0  Failing Endpoints,  Worst Slack       15.760ns,  Total Violation        0.000ns
+Hold  :            0  Failing Endpoints,  Worst Slack        0.747ns,  Total Violation        0.000ns
+---------------------------------------------------------------------------------------------------
+
+
+Max Delay Paths
+--------------------------------------------------------------------------------------
+Slack (MET) :             15.760ns  (required time - arrival time)
+  Source:                 reset_sync_r_reg[4]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/timer_cmp_r_reg[0]/PRE
+                            (recovery check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Recovery (Max at Slow Process Corner)
+  Requirement:            20.000ns  (gen_pynq_clk_50m.clkout0 rise@20.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        3.622ns  (logic 1.021ns (28.189%)  route 2.601ns (71.811%))
+  Logic Levels:           3  (LUT1=1 LUT4=1 LUT6=1)
+  Clock Path Skew:        -0.145ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    -2.269ns = ( 17.731 - 20.000 ) 
+    Source Clock Delay      (SCD):    -1.593ns
+    Clock Pessimism Removal (CPR):    0.530ns
+  Clock Uncertainty:      0.079ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.141ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         1.451     1.451 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, unplaced)         0.584     2.035    CLK100MHZ_IBUF
+                         MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -5.113    -3.078 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.800    -2.278    gen_pynq_clk_50m.clkout0
+                         BUFG (Prop_bufg_I_O)         0.101    -2.177 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3844, unplaced)      0.584    -1.593    cpu_clk
+                         FDCE                                         r  reset_sync_r_reg[4]/C
+  -------------------------------------------------------------------    -------------------
+                         FDCE (Prop_fdce_C_Q)         0.478    -1.115 r  reset_sync_r_reg[4]/Q
+                         net (fo=2, unplaced)         0.752    -0.363    u_soc/u_cpu/u_regfile/bit_idx_r_reg[3][4]
+                         LUT4 (Prop_lut4_I1_O)        0.295    -0.068 f  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_2/O
+                         net (fo=2, unplaced)         0.460     0.392    u_soc/u_cpu/u_regfile/reset_sync_r_reg[5]
+                         LUT6 (Prop_lut6_I0_O)        0.124     0.516 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, unplaced)         0.473     0.989    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+                         LUT1 (Prop_lut1_I0_O)        0.124     1.113 f  u_soc/u_cpu/u_regfile/regs[1][31]_i_3/O
+                         net (fo=2607, unplaced)      0.916     2.029    u_soc/u_cpu_n_0
+                         FDPE                                         f  u_soc/timer_cmp_r_reg[0]/PRE
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                     20.000    20.000 r  
+    H16                                               0.000    20.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000    20.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         1.380    21.380 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, unplaced)         0.439    21.819    CLK100MHZ_IBUF
+                         MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -5.378    16.442 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.760    17.201    gen_pynq_clk_50m.clkout0
+                         BUFG (Prop_bufg_I_O)         0.091    17.292 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3844, unplaced)      0.439    17.731    u_soc/cpu_clk
+                         FDPE                                         r  u_soc/timer_cmp_r_reg[0]/C
+                         clock pessimism              0.530    18.262    
+                         clock uncertainty           -0.079    18.183    
+                         FDPE (Recov_fdpe_C_PRE)     -0.394    17.789    u_soc/timer_cmp_r_reg[0]
+  -------------------------------------------------------------------
+                         required time                         17.789    
+                         arrival time                          -2.029    
+  -------------------------------------------------------------------
+                         slack                                 15.760    
+
+
+
+
+
+Min Delay Paths
+--------------------------------------------------------------------------------------
+Slack (MET) :             0.747ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_uart_tx/baud_cnt_r_reg[0]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.804ns  (logic 0.245ns (30.459%)  route 0.559ns (69.541%))
+  Logic Levels:           1  (LUT6=1)
+  Clock Path Skew:        0.145ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -1.102ns
+    Source Clock Delay      (SCD):    -0.966ns
+    Clock Pessimism Removal (CPR):    -0.280ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, unplaced)         0.114     0.333    CLK100MHZ_IBUF
+                         MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -1.776    -1.443 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.337    -1.106    gen_pynq_clk_50m.clkout0
+                         BUFG (Prop_bufg_I_O)         0.026    -1.080 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3844, unplaced)      0.114    -0.966    cpu_clk
+                         FDCE                                         r  reset_sync_r_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+                         FDCE (Prop_fdce_C_Q)         0.147    -0.819 r  reset_sync_r_reg[1]/Q
+                         net (fo=3, unplaced)         0.206    -0.614    u_uart_tx/Q[1]
+                         LUT6 (Prop_lut6_I4_O)        0.098    -0.516 f  u_uart_tx/baud_cnt_r[8]_i_3/O
+                         net (fo=23, unplaced)        0.354    -0.162    u_uart_tx/baud_cnt_r[8]_i_3_n_0
+                         FDCE                                         f  u_uart_tx/baud_cnt_r_reg[0]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, unplaced)         0.259     0.665    CLK100MHZ_IBUF
+                         MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.410    -1.744 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.355    -1.390    gen_pynq_clk_50m.clkout0
+                         BUFG (Prop_bufg_I_O)         0.029    -1.361 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3844, unplaced)      0.259    -1.102    u_uart_tx/CLK
+                         FDCE                                         r  u_uart_tx/baud_cnt_r_reg[0]/C
+                         clock pessimism              0.280    -0.821    
+                         FDCE (Remov_fdce_C_CLR)     -0.088    -0.909    u_uart_tx/baud_cnt_r_reg[0]
+  -------------------------------------------------------------------
+                         required time                          0.909    
+                         arrival time                          -0.162    
+  -------------------------------------------------------------------
+                         slack                                  0.747    
+
+
+
+
+

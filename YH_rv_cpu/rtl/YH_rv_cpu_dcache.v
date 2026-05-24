@@ -2,6 +2,7 @@
 
 module YH_rv_cpu_dcache #(
     parameter integer XLEN = 32,
+    parameter integer CACHE_ADDR_BITS = 32,
     parameter integer CACHE_SIZE = 4096,
     parameter integer BLOCK_SIZE = 4,
     parameter integer ASSOC = 1,
@@ -44,7 +45,11 @@ localparam integer CACHE_WORDS_RAW = CACHE_SIZE / STRB_W;
 localparam integer CACHE_WORDS = (CACHE_WORDS_RAW < 2) ? 2 : CACHE_WORDS_RAW;
 localparam integer INDEX_W = (CACHE_WORDS <= 2) ? 1 : $clog2(CACHE_WORDS);
 localparam integer TAG_LSB = BYTE_OFFSET_W + INDEX_W;
-localparam integer TAG_W = (XLEN > TAG_LSB) ? (XLEN - TAG_LSB) : 1;
+localparam integer CACHE_ADDR_BITS_CLAMPED =
+    (CACHE_ADDR_BITS > XLEN) ? XLEN :
+    (CACHE_ADDR_BITS <= TAG_LSB) ? (TAG_LSB + 1) :
+    CACHE_ADDR_BITS;
+localparam integer TAG_W = CACHE_ADDR_BITS_CLAMPED - TAG_LSB;
 
 wire [BYTE_OFFSET_W-1:0] cpu_byte_offset;
 wire [INDEX_W-1:0]       cpu_index;
@@ -52,13 +57,17 @@ wire [TAG_W-1:0]         cpu_tag;
 wire [XLEN-1:0]          cpu_aligned_addr;
 wire [INDEX_W-1:0]       probe_index;
 wire [TAG_W-1:0]         probe_tag;
+wire [CACHE_ADDR_BITS_CLAMPED-1:0] cpu_cache_addr;
+wire [CACHE_ADDR_BITS_CLAMPED-1:0] probe_cache_addr;
 
 assign cpu_byte_offset = cpu_addr[BYTE_OFFSET_W-1:0];
-assign cpu_index = cpu_addr[BYTE_OFFSET_W + INDEX_W - 1:BYTE_OFFSET_W];
-assign cpu_tag = cpu_addr[XLEN-1:TAG_LSB];
+assign cpu_cache_addr = cpu_addr[CACHE_ADDR_BITS_CLAMPED-1:0];
+assign probe_cache_addr = probe_addr[CACHE_ADDR_BITS_CLAMPED-1:0];
+assign cpu_index = cpu_cache_addr[BYTE_OFFSET_W + INDEX_W - 1:BYTE_OFFSET_W];
+assign cpu_tag = cpu_cache_addr[CACHE_ADDR_BITS_CLAMPED-1:TAG_LSB];
 assign cpu_aligned_addr = {cpu_addr[XLEN-1:BYTE_OFFSET_W], {BYTE_OFFSET_W{1'b0}}};
-assign probe_index = probe_addr[BYTE_OFFSET_W + INDEX_W - 1:BYTE_OFFSET_W];
-assign probe_tag = probe_addr[XLEN-1:TAG_LSB];
+assign probe_index = probe_cache_addr[BYTE_OFFSET_W + INDEX_W - 1:BYTE_OFFSET_W];
+assign probe_tag = probe_cache_addr[CACHE_ADDR_BITS_CLAMPED-1:TAG_LSB];
 
 (* ram_style = "distributed" *) reg [XLEN-1:0] cache_data [0:CACHE_WORDS-1];
 (* ram_style = "distributed" *) reg [TAG_W-1:0] cache_tag [0:CACHE_WORDS-1];
@@ -109,7 +118,7 @@ assign prefetch_busy = (ENABLE_NEXT_PREFETCH != 0) && prefetch_valid_r && prefet
 assign prefetch_issue = (ENABLE_NEXT_PREFETCH != 0) && prefetch_valid_r && !prefetch_issued_r && !cpu_req && !miss_valid_r;
 assign miss_next_addr = {miss_addr_r[XLEN-1:BYTE_OFFSET_W], {BYTE_OFFSET_W{1'b0}}} + {{(XLEN-BYTE_OFFSET_W-1){1'b0}}, 1'b1, {BYTE_OFFSET_W{1'b0}}};
 assign miss_next_index = miss_next_addr[BYTE_OFFSET_W + INDEX_W - 1:BYTE_OFFSET_W];
-assign miss_next_tag = miss_next_addr[XLEN-1:TAG_LSB];
+assign miss_next_tag = miss_next_addr[CACHE_ADDR_BITS_CLAMPED-1:TAG_LSB];
 assign prefetch_start =
     (ENABLE_NEXT_PREFETCH != 0) &&
     miss_return &&

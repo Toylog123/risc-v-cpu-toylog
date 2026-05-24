@@ -109,6 +109,10 @@ localparam integer SHAMT_W = $clog2(XLEN);
 localparam integer REDIRECT_CACHE_INDEX_BITS = $clog2(REDIRECT_CACHE_ENTRIES);
 localparam integer REDIRECT_CACHE_INDEX_MSB = REDIRECT_CACHE_INDEX_BITS + 1;
 localparam integer BRANCH_BHT_INDEX_BITS = $clog2(BRANCH_BHT_ENTRIES);
+localparam integer DCACHEABLE_BYTES =
+    (DCACHEABLE_LIMIT > DCACHEABLE_BASE) ? (DCACHEABLE_LIMIT - DCACHEABLE_BASE) : 1;
+localparam integer DCACHE_ADDR_BITS =
+    (DCACHEABLE_BYTES <= 2) ? 1 : $clog2(DCACHEABLE_BYTES);
 localparam integer ENABLE_RF_SECOND_WRITE =
     (ENABLE_XTHEAD_BASE_UPDATE_EXTENSION != 0) ||
     (ENABLE_XTHEAD_MEMPAIR_EXTENSION != 0) ||
@@ -2392,6 +2396,7 @@ assign mem_stage_dmem_port_busy =
             // dcache实例
             YH_rv_cpu_dcache #(
                 .XLEN(XLEN),
+                .CACHE_ADDR_BITS(DCACHE_ADDR_BITS),
                 .CACHE_SIZE(DCACHE_SIZE_BYTES),
                 .BLOCK_SIZE(32),
                 .ASSOC(1),

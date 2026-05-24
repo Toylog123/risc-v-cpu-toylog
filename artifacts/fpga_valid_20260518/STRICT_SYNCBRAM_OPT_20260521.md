@@ -27,10 +27,34 @@ This record tracks only hardware-side changes under the current PYNQ-Z2 / sync-B
 - Sync-BRAM behavior is preserved; no async/negedge DMEM score path is mixed into this table.
 - RC128 is frozen as the best under-7000-LUT candidate so far, but timing closure still needs implementation-stage verification.
 
+## Freeze 2026-05-24 - Current Strict Candidate
+
+| LUT | CoreMark/MHz | DMIPS/MHz | CoreMark CRC | CoreMark method | Hardware optimization point |
+|---:|---:|---:|---:|---|---|
+| 9979 | 5.220343 | 1.103221 | 0xfcaf | full workload, size=666, short-runtime host-parsed, CoreMark core files unchanged | DCache cacheable-window tag trim, 256B DCache, 128-entry redirect cache, branchfold, dynamic BHT, not-taken load fold, DCache load-use speculation, Zicond and XThead MAC/base-update |
+
+This freeze is a defensible hardware-only exploration point under the relaxed 10000-LUT cap. The CoreMark run keeps the public workload files unchanged and uses only RTL/microarchitecture and legal build/port-layer controls. The run is still marked as short-runtime because the simulator execution does not satisfy the EEMBC >=10 second public-valid runtime floor; the result is used for same-method hardware iteration and should be presented with that caveat. The copied synthesis timing report shows negative estimated WNS, so this point is not yet a timing-closed PYNQ-Z2 implementation result.
+
+Evidence for this freeze:
+
+- CoreMark summary: `coremark_fpga_dcache256_luspec_rc128_dynbht_branchfold_ntload_zicond_mac_baseupd_tagtrim_rerun2k_iter10_20260524.summary.txt`
+- CoreMark log: `coremark_fpga_dcache256_luspec_rc128_dynbht_branchfold_ntload_zicond_mac_baseupd_tagtrim_rerun2k_iter10_20260524.log`
+- Dhrystone summary: `dhrystone_fpga_zicond_mac_xthead_idbr_rerun_20260524.summary.txt`
+- Dhrystone log: `YH_rv_cpu_dhrystone_zmmul_zbc_zicond_xthead_mac_idbr.log`
+- Frozen synthesis utilization: `synth_util_dcache256_luspec_rc128_dynbht_branchfold_ntload_zicond_mac_baseupd_tagtrim_9979lut_20260524.rpt`
+- Frozen synthesis timing: `synth_timing_dcache256_luspec_rc128_dynbht_branchfold_ntload_zicond_mac_baseupd_tagtrim_20260524.rpt` (synthesis estimate WNS -16.326 ns; timing closure remains open)
+
+Next optimization focus:
+
+- Raise DMIPS without changing Dhrystone benchmark logic: inspect Dhrystone profile and reduce call/branch/load-use bubbles in hardware.
+- Preserve CoreMark >=5.2 while lowering DCache/regfile area where possible.
+- Re-run synthesis after each accepted RTL change and record only candidates with LUT, CoreMark/MHz, DMIPS/MHz and technical point.
+
 ## LUT<10000 Exploration Log
 
 | Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Status | Hardware optimization point |
 |---|---:|---:|---:|---|---|
+| DCache256 + RC128 + branchfold + dynamic BHT + NT-load fold + DCache load-use spec + Zicond/XThead MAC + tag trim | 9979 | 5.220343 | 1.103221 | frozen exploration candidate, timing open | Keeps the synchronous BRAM line, trims DCache tag width to the cacheable RAM window, restores branch prediction and NT-load fold, and preserves the benchmark workload without changing CoreMark algorithm files |
 | DCache128 + RC128 + branchfold/next-cache/NT-load-fold + trimmed XThead/Zbc | N/A | N/A | TBD | rejected | Reduced DCache from 256B to 128B to save area, but FPGA-like CoreMark simulation timed out at PC=0x00000588 after 5,000,001 cycles; no valid summary generated |
 | DCache256 + RC128 + branchfold/next-cache/NT-load-fold, DCache load-use spec disabled | N/A | N/A | TBD | rejected | Tried to remove DCache load-use speculation for area reduction, but FPGA-like CoreMark simulation timed out at PC=0x00003a0c after 5,000,001 cycles |
 | DCache256 + RC128 + branchfold/next-cache/NT-load-fold, global XThead base-update disabled | N/A | N/A | TBD | rejected | Tried to remove XThead base-update hardware globally, but the compiled target no longer completed; timeout at PC=0x00003a04 |
@@ -51,6 +75,10 @@ This record tracks only hardware-side changes under the current PYNQ-Z2 / sync-B
 | DCache256 + RC128 + branchfold + Zbc/Zicond/XThead MAC+condmove, no base-update/mempair | 9591 | 5.150524 | 1.264622 | current best under 10000 | Restores XThead MAC on the no-base-update line; CoreMark improves without exceeding the relaxed 10000-LUT exploration cap |
 | DCache256 + RC128 + branchfold + Zbc/Zicond/ZBKB/XThead MAC+condmove, no base-update/mempair | 9636 | 5.150524 | 1.264622 | valid, not best | Enables ZBKB together with XThead MAC; result is CRC-clean and under 10000 LUT, but CoreMark is identical to MAC-only with slightly higher LUT |
 | DCache256 + RC128 + branchfold + Zicond/ZBKB/MAC combined target before build-script fix | N/A | 5.150524 | TBD | invalid / rejected | Build target lacked complete script/report macro support and printed fallback compiler flags; fixed rerun above is the counted result |
+| DCache128 + RC128 + branchfold + Zbc/Zicond/XThead MAC+condmove, no base-update/mempair | N/A | N/A | TBD | rejected | Tried to halve DCache area while preserving branchfold and MAC, but the FPGA-like simulation did not complete in the 15-minute wall-clock window; log reached CYCLE=10000000 at PC=0x00000054 |
+| DCache256 + RC256 + branchfold + Zbc/Zicond/XThead MAC+condmove, no base-update/mempair | N/A | N/A | TBD | rejected | Tried larger redirect cache for fewer front-end misses, but simulation did not complete in the 15-minute wall-clock window; log reached CYCLE=10000000 at PC=0x00001af4 |
+| DCache256 + RC128 + branchfold + fetch-redirect-reuse + Zbc/Zicond/XThead MAC+condmove, no base-update/mempair | N/A | N/A | TBD | rejected | Tried to reuse in-flight fetch responses after redirects, but the FPGA-like simulation timed out at PC=0x0000004c after 20,000,001 cycles |
+| DCache256 + RC128 + branchfold + Zbc/Zicond/XThead MAC+base-update, fold rd2 bypass trimmed | 10853 | 5.220479 | TBD | area rejected | Preserved the higher base-update CoreMark path and removed second-write bypass only from fold read ports, but synthesis stayed above the 10000-LUT cap; hierarchy still shows DCache 5845 LUT and regfile 2767 LUT, so fold-port rd2 bypass is not the dominant area root cause |
 
 Evidence:
 
@@ -86,3 +114,9 @@ Evidence:
 - Full workload summary: `coremark_fpga_dcache256_rc128_branchfold_zicond_zbkb_mac_condmov_nobaseupd_fullwork_iter10_20260521_fixed.summary.txt`
 - Synth util: `synth_util_dcache256_rc128_branchfold_zicond_zbkb_mac_condmov_nobaseupd_quickutil_20260521.rpt`
 - Synth hierarchy: `synth_util_hier_dcache256_rc128_branchfold_zicond_zbkb_mac_condmov_nobaseupd_quickutil_20260521.rpt`
+- Timeout log: `coremark_fpga_dcache128_rc128_branchfold_zicond_mac_condmov_nobaseupd_fullwork_iter10_20260521.log`
+- Timeout log: `coremark_fpga_dcache256_rc256_branchfold_zicond_mac_condmov_nobaseupd_fullwork_iter10_20260521.log`
+- Timeout log: `coremark_fpga_dcache256_rc128_branchfold_fetchreuse_zicond_mac_condmov_nobaseupd_fullwork_iter10_20260521.log`
+- Full workload summary: `coremark_fpga_dcache256_rc128_branchfold_zicond_mac_baseupd_foldbypass0_iter10_20260522.summary.txt`
+- Synth util: `synth_util_dcache256_rc128_branchfold_zicond_mac_baseupd_foldbypass0_quickutil_20260522.rpt`
+- Synth hierarchy: `synth_util_hier_dcache256_rc128_branchfold_zicond_mac_baseupd_foldbypass0_quickutil_20260522.rpt`
