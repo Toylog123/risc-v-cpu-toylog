@@ -79,6 +79,14 @@ Next optimization focus:
 | DCache256 + RC256 + branchfold + Zbc/Zicond/XThead MAC+condmove, no base-update/mempair | N/A | N/A | TBD | rejected | Tried larger redirect cache for fewer front-end misses, but simulation did not complete in the 15-minute wall-clock window; log reached CYCLE=10000000 at PC=0x00001af4 |
 | DCache256 + RC128 + branchfold + fetch-redirect-reuse + Zbc/Zicond/XThead MAC+condmove, no base-update/mempair | N/A | N/A | TBD | rejected | Tried to reuse in-flight fetch responses after redirects, but the FPGA-like simulation timed out at PC=0x0000004c after 20,000,001 cycles |
 | DCache256 + RC128 + branchfold + Zbc/Zicond/XThead MAC+base-update, fold rd2 bypass trimmed | 10853 | 5.220479 | TBD | area rejected | Preserved the higher base-update CoreMark path and removed second-write bypass only from fold read ports, but synthesis stayed above the 10000-LUT cap; hierarchy still shows DCache 5845 LUT and regfile 2767 LUT, so fold-port rd2 bypass is not the dominant area root cause |
+| DCache256 + RC128 + branchfold + dynamic BHT strong-only + NT-load fold + DCache load-use spec + tag trim | TBD | 5.220370 | TBD | valid, not promoted | Strong-only BHT counter update is CRC-clean but the gain over the frozen RC128/tag-trim candidate is negligible, so no area synthesis was retained |
+| DCache256 + RC128 + redirect-cache XOR index + branchfold + dynamic BHT + NT-load fold + tag trim | TBD | 5.179544 | TBD | rejected | XOR indexing reduced CoreMark on the same workload, so the direct-index redirect cache remains preferred |
+| DCache256 + RC256 + branchfold + dynamic BHT + NT-load fold + DCache load-use spec + tag trim | 13205 | 5.354124 | TBD | area rejected | Doubling redirect-cache entries reduces front-end misses and improves CoreMark, but synthesis exceeds the relaxed 10000-LUT cap; not frozen as a valid low-area candidate |
+| DCache256 + RC512 + branchfold + dynamic BHT + NT-load fold + DCache load-use spec + tag trim | 15259 | 5.424232 | TBD | area rejected | Larger redirect cache continues to improve CoreMark but LUTRAM/DCache/fold-target area grows sharply; rejected under the current low-resource target |
+| DCache256 + RC1024 + branchfold + dynamic BHT + NT-load fold + DCache load-use spec + tag trim | TBD | 5.436801 | TBD | area-risk, not synthesized | Valid CRC-clean simulation, but RC512 is already 15259 LUT, so this size is not retained under the current area policy |
+| DCache256 + RC2048 + branchfold + dynamic BHT + NT-load fold + DCache load-use spec + tag trim | TBD | 5.446641 | TBD | synth timeout / area-risk | Valid CRC-clean simulation with diminishing gain over RC512/RC1024; synthesis was stopped after timeout and the candidate is not retained |
+| DCache256 + RC128 + ID ALU pair fold + branchfold + dynamic BHT + tag trim | N/A | N/A | TBD | rejected | Tried to fold a hot ALU pair in ID for hardware-side IPC improvement, but CoreMark timed out at PC=0x00001968 after 5,000,001 cycles |
+| DCache256 + RC128 + ID ALU dependency fold + branchfold + dynamic BHT + tag trim | N/A | N/A | TBD | rejected | Tried dependent ALU fold in ID, but CoreMark timed out at PC=0x000082e8 after 5,000,001 cycles |
 
 Evidence:
 
@@ -120,3 +128,15 @@ Evidence:
 - Full workload summary: `coremark_fpga_dcache256_rc128_branchfold_zicond_mac_baseupd_foldbypass0_iter10_20260522.summary.txt`
 - Synth util: `synth_util_dcache256_rc128_branchfold_zicond_mac_baseupd_foldbypass0_quickutil_20260522.rpt`
 - Synth hierarchy: `synth_util_hier_dcache256_rc128_branchfold_zicond_mac_baseupd_foldbypass0_quickutil_20260522.rpt`
+- Full workload summary: `coremark_fpga_dcache256_tagtrim_bhtstrong_iter10_20260524.summary.txt`
+- Full workload summary: `coremark_fpga_dcache256_tagtrim_rcxor_iter10_20260524.summary.txt`
+- Full workload summary: `coremark_fpga_dcache256_tagtrim_rc256_iter10_20260524.summary.txt`
+- Synth util: `synth_util_dcache256_tagtrim_rc256_13205lut_20260524.rpt`
+- Synth hierarchy: `synth_util_hier_dcache256_tagtrim_rc256_20260524.rpt`
+- Synthesis log: `pynq_synth_dcache256_tagtrim_rc256_quickutil_20260524.log`
+- Full workload summary: `coremark_fpga_dcache256_tagtrim_rc512_iter10_20260524.summary.txt`
+- Synthesis log: `pynq_synth_dcache256_tagtrim_rc512_quickutil_20260524.log`
+- Full workload summary: `coremark_fpga_dcache256_tagtrim_rc1024_iter10_20260524.summary.txt`
+- Full workload summary: `coremark_fpga_dcache256_tagtrim_rc2048_iter10_20260524.summary.txt`
+- Timeout log: `coremark_fpga_dcache256_tagtrim_alupair_iter10_20260524.log`
+- Timeout log: `coremark_fpga_dcache256_tagtrim_aludep_iter10_20260524.log`

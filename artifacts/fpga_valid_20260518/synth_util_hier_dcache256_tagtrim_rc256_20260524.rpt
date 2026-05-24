@@ -1,0 +1,44 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Sun May 24 18:09:34 2026
+| Host         : Toylog_desktop running 64-bit major release  (build 9200)
+| Command      : report_utilization -hierarchical -hierarchical_depth 6 -file V:/project/reports/pynq_z2_sysclk_8p000ns_cpu50/synth_utilization_hierarchical.rpt
+| Design       : YH_rv_cpu_fpga_top
+| Device       : xc7z020clg400-1
+| Speed File   : -1
+| Design State : Synthesized
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++----------------------------------+----------------------+------------+------------+---------+------+------+--------+--------+------------+
+|             Instance             |        Module        | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs | RAMB36 | RAMB18 | DSP Blocks |
++----------------------------------+----------------------+------------+------------+---------+------+------+--------+--------+------------+
+| YH_rv_cpu_fpga_top               |                (top) |      13205 |      11753 |    1452 |    0 | 6001 |     32 |      0 |          8 |
+|   (YH_rv_cpu_fpga_top)           |                (top) |          1 |          1 |       0 |    0 |   74 |      0 |      0 |          0 |
+|   u_soc                          |        YH_rv_cpu_soc |      13182 |      11730 |    1452 |    0 | 5904 |     32 |      0 |          8 |
+|     (u_soc)                      |        YH_rv_cpu_soc |         86 |         86 |       0 |    0 |  206 |      0 |      0 |          0 |
+|     u_cpu                        |            YH_rv_cpu |      13027 |      11575 |    1452 |    0 | 5697 |      0 |      0 |          8 |
+|       (u_cpu)                    |            YH_rv_cpu |       2023 |        615 |    1408 |    0 | 4088 |      0 |      0 |          0 |
+|       gen_dcache.u_dcache        |     YH_rv_cpu_dcache |       6289 |       6245 |      44 |    0 |  617 |      0 |      0 |          0 |
+|       u_ex_stage                 |   YH_rv_cpu_ex_stage |        133 |        133 |       0 |    0 |    0 |      0 |      0 |          8 |
+|         u_alu                    |        YH_rv_cpu_alu |        133 |        133 |       0 |    0 |    0 |      0 |      0 |          8 |
+|       u_fold_target_id_stage     |   YH_rv_cpu_id_stage |       1534 |       1534 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         (u_fold_target_id_stage) |   YH_rv_cpu_id_stage |       1314 |       1314 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         u_decoder                |  YH_rv_cpu_decoder_1 |        220 |        220 |       0 |    0 |    0 |      0 |      0 |          0 |
+|       u_id_stage                 | YH_rv_cpu_id_stage_0 |        178 |        178 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         u_decoder                |    YH_rv_cpu_decoder |        178 |        178 |       0 |    0 |    0 |      0 |      0 |          0 |
+|       u_if_stage                 |   YH_rv_cpu_if_stage |         58 |         58 |       0 |    0 |    0 |      0 |      0 |          0 |
+|       u_regfile                  |    YH_rv_cpu_regfile |       2770 |       2770 |       0 |    0 |  992 |      0 |      0 |          0 |
+|     u_dmem_ram                   |       YH_rv_dmem_ram |         61 |         61 |       0 |    0 |    0 |     16 |      0 |          0 |
++----------------------------------+----------------------+------------+------------+---------+------+------+--------+--------+------------+
+
+
