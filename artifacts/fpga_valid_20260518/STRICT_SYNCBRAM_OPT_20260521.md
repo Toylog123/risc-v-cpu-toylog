@@ -27,13 +27,22 @@ This record tracks only hardware-side changes under the current PYNQ-Z2 / sync-B
 - Sync-BRAM behavior is preserved; no async/negedge DMEM score path is mixed into this table.
 - RC128 is frozen as the best under-7000-LUT candidate so far, but timing closure still needs implementation-stage verification.
 
-## Freeze 2026-05-24 - Current Strict Candidate
+## Freeze 2026-05-24 - Historical Tag-Trim Snapshot
 
 | LUT | CoreMark/MHz | DMIPS/MHz | CoreMark CRC | CoreMark method | Hardware optimization point |
 |---:|---:|---:|---:|---|---|
 | 9979 | 5.220343 | 1.279852 | 0xfcaf | full workload, size=666, short-runtime host-parsed, CoreMark core files unchanged | DCache cacheable-window tag trim, 256B DCache, 128-entry redirect cache, branchfold, dynamic BHT, not-taken load fold, DCache load-use speculation, Zicond and XThead MAC/base-update |
 
-This freeze is a defensible hardware-only exploration point under the relaxed 10000-LUT cap. The CoreMark run keeps the public workload files unchanged and uses only RTL/microarchitecture and legal build/port-layer controls. The run is still marked as short-runtime because the simulator execution does not satisfy the EEMBC >=10 second public-valid runtime floor; the result is used for same-method hardware iteration and should be presented with that caveat. The copied synthesis timing report shows negative estimated WNS, so this point is not yet a timing-closed PYNQ-Z2 implementation result.
+This freeze is a hardware-only exploration snapshot under the relaxed 10000-LUT cap. The CoreMark run keeps the public workload files unchanged and uses only RTL/microarchitecture and legal build/port-layer controls. The run is still marked as short-runtime because the simulator execution does not satisfy the EEMBC >=10 second public-valid runtime floor; the result is used for same-method hardware iteration and should be presented with that caveat. The copied synthesis timing report shows negative estimated WNS, so this point is not yet a timing-closed PYNQ-Z2 implementation result.
+
+Post-freeze rechecks on 2026-05-24 showed that the 9979-LUT number is not reproducible under the current corrected synthesis口径 using `RAM_BASE=32'h00010000`, `ROM_BYTES=65536`, and `RAM_BYTES=16384`. Keep the row above as a historical snapshot only; current engineering decisions must use the rechecked rows below.
+
+## Current 2026-05-24 Strict Recheck
+
+| Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Status | Hardware optimization point |
+|---|---:|---:|---:|---|---|
+| DCache256 + RC128 + branchfold + dynamic BHT + NT-load fold + DCache load-use spec + tag trim + XThead MAC/base-update | 11594 | 5.220343 | TBD | area rejected under 10000 | Re-synthesized the high-score tag-trim path under the corrected RAM base and ROM/RAM size口径; score is valid for same-method comparison, but area is no longer below the 10000-LUT target |
+| DCache256 + RC128 + branchfold + dynamic BHT + NT-load fold + DCache load-use spec + tag trim, no XCRC/no mempair/no base-update | 10298 | 5.150391 | TBD | area rejected under 10000 | Removes base-update and mempair hardware and disables XCRC while preserving the full CoreMark workload and CRC 0xfcaf; still slightly above 10000 LUT because DCache, fold-target decode and multiply datapath dominate |
 
 Evidence for this freeze:
 
@@ -87,6 +96,8 @@ Next optimization focus:
 | DCache256 + RC2048 + branchfold + dynamic BHT + NT-load fold + DCache load-use spec + tag trim | TBD | 5.446641 | TBD | synth timeout / area-risk | Valid CRC-clean simulation with diminishing gain over RC512/RC1024; synthesis was stopped after timeout and the candidate is not retained |
 | DCache256 + RC128 + ID ALU pair fold + branchfold + dynamic BHT + tag trim | N/A | N/A | TBD | rejected | Tried to fold a hot ALU pair in ID for hardware-side IPC improvement, but CoreMark timed out at PC=0x00001968 after 5,000,001 cycles |
 | DCache256 + RC128 + ID ALU dependency fold + branchfold + dynamic BHT + tag trim | N/A | N/A | TBD | rejected | Tried dependent ALU fold in ID, but CoreMark timed out at PC=0x000082e8 after 5,000,001 cycles |
+| DCache256 + RC128 + current corrected口径 re-synth of tag-trim base-update path | 11594 | 5.220343 | TBD | area rejected | Corrected the synthesis口径 to `RAM_BASE=32'h00010000`, `ROM_BYTES=65536`, `RAM_BYTES=16384`; the historical 9979-LUT area is not used as the current baseline |
+| DCache256 + RC128 + current corrected口径 no-base/no-mempair/no-XCRC path | 10298 | 5.150391 | TBD | area rejected | Legal hardware-only reduction path; CoreMark is CRC-clean, but area remains 298 LUT above the relaxed 10000-LUT target |
 
 Evidence:
 
@@ -140,3 +151,7 @@ Evidence:
 - Full workload summary: `coremark_fpga_dcache256_tagtrim_rc2048_iter10_20260524.summary.txt`
 - Timeout log: `coremark_fpga_dcache256_tagtrim_alupair_iter10_20260524.log`
 - Timeout log: `coremark_fpga_dcache256_tagtrim_aludep_iter10_20260524.log`
+- Full workload summary: `coremark_fpga_dcache256_rc128_nobase_nomempair_noxcrc_current_iter10_20260524.summary.txt`
+- Synth util: `synth_util_dcache256_rc128_nobase_nomempair_noxcrc_current_10298lut_20260524.rpt`
+- Synth hierarchy: `synth_util_hier_dcache256_rc128_nobase_nomempair_noxcrc_current_10298lut_20260524.rpt`
+- Synthesis log: `pynq_synth_dcache256_rc128_nobase_nomempair_noxcrc_current_10298lut_20260524.log`
