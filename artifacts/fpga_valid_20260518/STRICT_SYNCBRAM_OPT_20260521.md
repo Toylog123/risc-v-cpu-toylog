@@ -49,7 +49,8 @@ Post-freeze rechecks on 2026-05-24 showed that the 9979-LUT number is not reprod
 | DCache256 + RC128 + branchfold next-cache + NT-load fold + BHT8 + tag trim, no XCRC/no mempair/no base-update | 8943 | 5.150391 | 1.261816 | superseded | Further reduces the dynamic BHT from 16 to 8 entries with no measured CoreMark or Dhrystone loss on the current workload. This saves 220 LUT versus BHT16 and 651 LUT versus BHT32, strengthening the low-area/low-state predictor story. |
 | DCache256 + RC128 + branchfold next-cache + NT-load fold + BHT4 + tag trim, no XCRC/no mempair/no base-update | 8836 | 5.150524 | 1.261816 | superseded | Reduces the dynamic BHT from 8 to 4 entries while preserving the benchmark workload and CRC-clean CoreMark result. This saves 107 LUT versus BHT8 and slightly improves measured CoreMark ticks on the same short-runtime validation method, so it is the current low-area front-end baseline. |
 | DCache256 + RC128 + branchfold next-cache + NT-load fold + BHT2 + tag trim, no XCRC/no mempair/no base-update | 8789 | 5.150524 | 1.261816 | superseded | Reduces the dynamic BHT to 2 entries while preserving CoreMark and Dhrystone on the same hardware configuration. This saves another 47 LUT versus BHT4; the measured front-end gain is carried mainly by redirect-cache/next-cache and not-taken load fold, not by predictor table depth. |
-| DCache256 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + tag trim, no XCRC/no mempair/no base-update | 8671 | 5.150524 | 1.261816 | current strict under-10000 candidate | Removes the dynamic BHT state entirely while keeping redirect-cache/next-cache and not-taken load fold. CoreMark and Dhrystone stay unchanged on the same workload, saving 118 LUT versus BHT2 and improving the low-power/low-state story. |
+| DCache256 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + tag trim, no XCRC/no mempair/no base-update | 8671 | 5.150524 | 1.261816 | superseded | Removes the dynamic BHT state entirely while keeping redirect-cache/next-cache and not-taken load fold. CoreMark and Dhrystone stay unchanged on the same workload, saving 118 LUT versus BHT2 and improving the low-power/low-state story. |
+| DCache512 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + tag trim, no XCRC/no mempair/no base-update | 9181 | 5.591969 | 1.287490 | current strict under-10000 candidate | Doubles DCache capacity from 256B to 512B while keeping the BHT-free front-end. This reduces CoreMark data-cache/load-use pressure and improves both CoreMark and Dhrystone while staying below 10000 LUT. |
 
 Evidence for this freeze:
 
@@ -115,7 +116,12 @@ Next optimization focus:
 | DCache256 + RC128 + branchfold next-cache + NT-load fold, BHT8 | 8943 | 5.150391 | 1.261816 | valid, superseded | BHT8 preserves the BHT16 score and cuts another 220 LUT; current workload behavior shows the front-end benefits come mainly from redirect-cache/next-cache and NT-load fold rather than a larger BHT table |
 | DCache256 + RC128 + branchfold next-cache + NT-load fold, BHT4 | 8836 | 5.150524 | 1.261816 | valid, superseded | BHT4 preserves the front-end acceleration with the smallest verified predictor state so far, cuts another 107 LUT versus BHT8, and keeps CoreMark CRC final at 0xfcaf without touching CoreMark algorithm files |
 | DCache256 + RC128 + branchfold next-cache + NT-load fold, BHT2 | 8789 | 5.150524 | 1.261816 | valid, superseded | BHT2 keeps the same CRC-clean CoreMark score as BHT4 while reducing predictor state and synthesized LUT again; this is the current low-area baseline before testing whether dynamic BHT can be removed entirely |
-| DCache256 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT | 8671 | 5.150524 | 1.261816 | current strict under-10000 candidate | Removing dynamic BHT does not hurt this workload because the redirect-cache/next-cache path still supplies most early redirect wins; this saves state and LUT while preserving CRC 0xfcaf |
+| DCache256 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT | 8671 | 5.150524 | 1.261816 | valid, superseded | Removing dynamic BHT does not hurt this workload because the redirect-cache/next-cache path still supplies most early redirect wins; this saves state and LUT while preserving CRC 0xfcaf |
+| DCache256 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, static mode 2 | TBD | 5.036392 | TBD | rejected | Always-taken static prediction increased decode flushes and slowed CoreMark, so it was not synthesized |
+| DCache256 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, DCache next-prefetch | TBD | 5.143249 | TBD | rejected | Next-word DCache prefetch increased `mem_wait` and did not improve the workload, so it was not synthesized |
+| DCache256 + RC64 + branchfold next-cache + NT-load fold, no dynamic BHT | TBD | 4.891428 | TBD | rejected | Smaller redirect cache reduces cache deliveries and drops CoreMark, confirming RC128 is the lower practical capacity point for this front-end |
+| DCache256 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, ICache enabled | N/A | N/A | TBD | rejected | Current ICache path timed out at PC=0x0000011c and is not valid for this sync-BRAM CoreMark line |
+| DCache512 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT | 9181 | 5.591969 | 1.287490 | current strict under-10000 candidate | Increasing DCache to 512B sharply reduces load-use and memory-wait pressure while keeping area below the 10000-LUT cap; this is the current best strict hardware-only point |
 
 Evidence:
 
@@ -209,3 +215,12 @@ Evidence:
 - Synth util: `synth_util_dcache256_rc128_ntfold_nobht_current_8671lut_20260525.rpt`
 - Synth hierarchy: `synth_util_hier_dcache256_rc128_ntfold_nobht_current_8671lut_20260525.rpt`
 - Synthesis log: `pynq_synth_dcache256_rc128_ntfold_nobht_current_8671lut_20260525.log`
+- Rejected log: `coremark_fpga_dcache256_rc128_ntfold_nobht_static2_iter10_20260525.log`
+- Rejected log: `coremark_fpga_dcache256_rc128_ntfold_nobht_dcpref_iter10_20260525.log`
+- Rejected log: `coremark_fpga_dcache256_rc64_ntfold_nobht_iter10_20260525.log`
+- Rejected log: `coremark_fpga_dcache256_rc128_ntfold_nobht_icache_iter10_20260525.log`
+- Full workload summary: `coremark_fpga_dcache512_rc128_ntfold_nobht_iter10_20260525.summary.txt`
+- Dhrystone summary: `dhrystone_fpga_dcache512_rc128_ntfold_nobht_runs1000_20260525.summary.txt`
+- Synth util: `synth_util_dcache512_rc128_ntfold_nobht_9181lut_20260525.rpt`
+- Synth hierarchy: `synth_util_hier_dcache512_rc128_ntfold_nobht_9181lut_20260525.rpt`
+- Synthesis log: `pynq_synth_dcache512_rc128_ntfold_nobht_9181lut_20260525.log`
