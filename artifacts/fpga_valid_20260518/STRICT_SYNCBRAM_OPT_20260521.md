@@ -47,7 +47,8 @@ Post-freeze rechecks on 2026-05-24 showed that the 9979-LUT number is not reprod
 | DCache256 + RC128 + branchfold next-cache + NT-load fold + BHT32 + tag trim, no XCRC/no mempair/no base-update | 9594 | 5.150391 | 1.261816 | superseded | Restores the not-taken load fold path on top of the BHT32 area reduction. This recovers the 5.15 CoreMark level while keeping the corrected synthesis path below 10000 LUT; Dhrystone is unchanged, indicating the gain is CoreMark front-end/load-use specific. |
 | DCache256 + RC128 + branchfold next-cache + NT-load fold + BHT16 + tag trim, no XCRC/no mempair/no base-update | 9163 | 5.150391 | 1.261816 | superseded | Reduces the dynamic branch predictor from 32 to 16 entries while preserving the measured CoreMark and Dhrystone results. This saves 431 LUT versus BHT32 and lowers predictor state without changing the benchmark workload. |
 | DCache256 + RC128 + branchfold next-cache + NT-load fold + BHT8 + tag trim, no XCRC/no mempair/no base-update | 8943 | 5.150391 | 1.261816 | superseded | Further reduces the dynamic BHT from 16 to 8 entries with no measured CoreMark or Dhrystone loss on the current workload. This saves 220 LUT versus BHT16 and 651 LUT versus BHT32, strengthening the low-area/low-state predictor story. |
-| DCache256 + RC128 + branchfold next-cache + NT-load fold + BHT4 + tag trim, no XCRC/no mempair/no base-update | 8836 | 5.150524 | 1.261816 | current strict under-10000 candidate | Reduces the dynamic BHT from 8 to 4 entries while preserving the benchmark workload and CRC-clean CoreMark result. This saves 107 LUT versus BHT8 and slightly improves measured CoreMark ticks on the same short-runtime validation method, so it is the current low-area front-end baseline. |
+| DCache256 + RC128 + branchfold next-cache + NT-load fold + BHT4 + tag trim, no XCRC/no mempair/no base-update | 8836 | 5.150524 | 1.261816 | superseded | Reduces the dynamic BHT from 8 to 4 entries while preserving the benchmark workload and CRC-clean CoreMark result. This saves 107 LUT versus BHT8 and slightly improves measured CoreMark ticks on the same short-runtime validation method, so it is the current low-area front-end baseline. |
+| DCache256 + RC128 + branchfold next-cache + NT-load fold + BHT2 + tag trim, no XCRC/no mempair/no base-update | 8789 | 5.150524 | 1.261816 | current strict under-10000 candidate | Reduces the dynamic BHT to 2 entries while preserving CoreMark and Dhrystone on the same hardware configuration. This saves another 47 LUT versus BHT4; the measured front-end gain is carried mainly by redirect-cache/next-cache and not-taken load fold, not by predictor table depth. |
 
 Evidence for this freeze:
 
@@ -111,7 +112,8 @@ Next optimization focus:
 | DCache256 + RC128 + branchfold next-cache + NT-load fold, BHT32 | 9594 | 5.150391 | 1.261816 | valid, superseded | Adding back the not-taken load fold path costs 113 LUT over the 9481-LUT point and restores CoreMark to the corrected 5.15 level; benchmark workload remains unchanged and CRC stays 0xfcaf |
 | DCache256 + RC128 + branchfold next-cache + NT-load fold, BHT16 | 9163 | 5.150391 | 1.261816 | valid, superseded | BHT16 preserves the BHT32 CoreMark result and reduces synthesized LUT by 431; this is now the preferred low-resource configuration for the current corrected sync-BRAM line |
 | DCache256 + RC128 + branchfold next-cache + NT-load fold, BHT8 | 8943 | 5.150391 | 1.261816 | valid, superseded | BHT8 preserves the BHT16 score and cuts another 220 LUT; current workload behavior shows the front-end benefits come mainly from redirect-cache/next-cache and NT-load fold rather than a larger BHT table |
-| DCache256 + RC128 + branchfold next-cache + NT-load fold, BHT4 | 8836 | 5.150524 | 1.261816 | current strict under-10000 candidate | BHT4 preserves the front-end acceleration with the smallest verified predictor state so far, cuts another 107 LUT versus BHT8, and keeps CoreMark CRC final at 0xfcaf without touching CoreMark algorithm files |
+| DCache256 + RC128 + branchfold next-cache + NT-load fold, BHT4 | 8836 | 5.150524 | 1.261816 | valid, superseded | BHT4 preserves the front-end acceleration with the smallest verified predictor state so far, cuts another 107 LUT versus BHT8, and keeps CoreMark CRC final at 0xfcaf without touching CoreMark algorithm files |
+| DCache256 + RC128 + branchfold next-cache + NT-load fold, BHT2 | 8789 | 5.150524 | 1.261816 | current strict under-10000 candidate | BHT2 keeps the same CRC-clean CoreMark score as BHT4 while reducing predictor state and synthesized LUT again; this is the current low-area baseline before testing whether dynamic BHT can be removed entirely |
 
 Evidence:
 
@@ -195,3 +197,8 @@ Evidence:
 - Synth util: `synth_util_dcache256_rc128_ntfold_bht4_current_8836lut_20260525.rpt`
 - Synth hierarchy: `synth_util_hier_dcache256_rc128_ntfold_bht4_current_8836lut_20260525.rpt`
 - Synthesis log: `pynq_synth_dcache256_rc128_ntfold_bht4_current_8836lut_20260525.log`
+- Full workload summary: `coremark_fpga_dcache256_rc128_ntfold_bht2_current_iter10_20260525.summary.txt`
+- Dhrystone summary: `dhrystone_fpga_dcache256_rc128_ntfold_bht2_current_runs1000_20260525.summary.txt`
+- Synth util: `synth_util_dcache256_rc128_ntfold_bht2_current_8789lut_20260525.rpt`
+- Synth hierarchy: `synth_util_hier_dcache256_rc128_ntfold_bht2_current_8789lut_20260525.rpt`
+- Synthesis log: `pynq_synth_dcache256_rc128_ntfold_bht2_current_8789lut_20260525.log`
