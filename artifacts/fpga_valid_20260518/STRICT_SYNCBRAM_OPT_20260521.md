@@ -43,6 +43,7 @@ Post-freeze rechecks on 2026-05-24 showed that the 9979-LUT number is not reprod
 |---|---:|---:|---:|---|---|
 | DCache256 + RC128 + branchfold + dynamic BHT + NT-load fold + DCache load-use spec + tag trim + XThead MAC/base-update | 11594 | 5.220343 | TBD | area rejected under 10000 | Re-synthesized the high-score tag-trim path under the corrected RAM base and ROM/RAM size口径; score is valid for same-method comparison, but area is no longer below the 10000-LUT target |
 | DCache256 + RC128 + branchfold + dynamic BHT + NT-load fold + DCache load-use spec + tag trim, no XCRC/no mempair/no base-update | 10298 | 5.150391 | TBD | area rejected under 10000 | Removes base-update and mempair hardware and disables XCRC while preserving the full CoreMark workload and CRC 0xfcaf; still slightly above 10000 LUT because DCache, fold-target decode and multiply datapath dominate |
+| DCache256 + RC128 + branchfold next-cache + BHT32 + tag trim, no NT-load fold/no XCRC/no mempair/no base-update | 9481 | 5.027695 | 1.261816 | current strict under-10000 candidate | Shrinks the dynamic branch predictor from 64 to 32 entries and removes the not-taken load fold path while preserving the branchfold next-cache path; this keeps CoreMark above 5 under the corrected synthesis口径 and reduces area below 10000 LUT |
 
 Evidence for this freeze:
 
@@ -98,6 +99,11 @@ Next optimization focus:
 | DCache256 + RC128 + ID ALU dependency fold + branchfold + dynamic BHT + tag trim | N/A | N/A | TBD | rejected | Tried dependent ALU fold in ID, but CoreMark timed out at PC=0x000082e8 after 5,000,001 cycles |
 | DCache256 + RC128 + current corrected口径 re-synth of tag-trim base-update path | 11594 | 5.220343 | TBD | area rejected | Corrected the synthesis口径 to `RAM_BASE=32'h00010000`, `ROM_BYTES=65536`, `RAM_BYTES=16384`; the historical 9979-LUT area is not used as the current baseline |
 | DCache256 + RC128 + current corrected口径 no-base/no-mempair/no-XCRC path | 10298 | 5.150391 | TBD | area rejected | Legal hardware-only reduction path; CoreMark is CRC-clean, but area remains 298 LUT above the relaxed 10000-LUT target |
+| DCache256 + RC128 + no-base/no-mempair/no-XCRC/no-ZBKB path | 10319 | 5.150391 | TBD | rejected | ZBKB was not required by the executed workload, but disabling it changed synthesis structure and increased area, so the original ZBKB-enabled hardware remains preferred |
+| DCache256 + RC128 + branchfold only, no next-cache/no NT-load fold | TBD | 4.750792 | TBD | rejected | Removing both fold accelerators is CRC-clean but loses too much front-end performance |
+| DCache256 + RC128 + NT-load fold only, no branchfold next-cache | TBD | 4.860362 | TBD | rejected | Shows next-cache contributes more CoreMark benefit than NT-load fold for this workload |
+| DCache256 + RC128 + branchfold next-cache only, no NT-load fold, BHT64 | 10010 | 5.027695 | TBD | near miss | Keeps the high-value next-cache path and removes NT-load fold; score stays above 5 but area is 10 LUT above the 10000 target |
+| DCache256 + RC128 + branchfold next-cache only, no NT-load fold, BHT32 | 9481 | 5.027695 | 1.261816 | current strict under-10000 candidate | BHT64 to BHT32 preserves CoreMark and saves enough control/register area to move the corrected口径 candidate below 10000 LUT |
 
 Evidence:
 
@@ -155,3 +161,8 @@ Evidence:
 - Synth util: `synth_util_dcache256_rc128_nobase_nomempair_noxcrc_current_10298lut_20260524.rpt`
 - Synth hierarchy: `synth_util_hier_dcache256_rc128_nobase_nomempair_noxcrc_current_10298lut_20260524.rpt`
 - Synthesis log: `pynq_synth_dcache256_rc128_nobase_nomempair_noxcrc_current_10298lut_20260524.log`
+- Full workload summary: `coremark_fpga_dcache256_rc128_next_no_ntfold_bht32_current_iter10_20260525.summary.txt`
+- Dhrystone summary: `dhrystone_fpga_dcache256_rc128_next_no_ntfold_bht32_current_runs1000_20260525.summary.txt`
+- Synth util: `synth_util_dcache256_rc128_next_no_ntfold_bht32_current_9481lut_20260525.rpt`
+- Synth hierarchy: `synth_util_hier_dcache256_rc128_next_no_ntfold_bht32_current_9481lut_20260525.rpt`
+- Synthesis log: `pynq_synth_dcache256_rc128_next_no_ntfold_bht32_current_9481lut_20260525.log`
