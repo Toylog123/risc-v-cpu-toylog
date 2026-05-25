@@ -43,7 +43,8 @@ Post-freeze rechecks on 2026-05-24 showed that the 9979-LUT number is not reprod
 |---|---:|---:|---:|---|---|
 | DCache256 + RC128 + branchfold + dynamic BHT + NT-load fold + DCache load-use spec + tag trim + XThead MAC/base-update | 11594 | 5.220343 | TBD | area rejected under 10000 | Re-synthesized the high-score tag-trim path under the corrected RAM base and ROM/RAM size口径; score is valid for same-method comparison, but area is no longer below the 10000-LUT target |
 | DCache256 + RC128 + branchfold + dynamic BHT + NT-load fold + DCache load-use spec + tag trim, no XCRC/no mempair/no base-update | 10298 | 5.150391 | TBD | area rejected under 10000 | Removes base-update and mempair hardware and disables XCRC while preserving the full CoreMark workload and CRC 0xfcaf; still slightly above 10000 LUT because DCache, fold-target decode and multiply datapath dominate |
-| DCache256 + RC128 + branchfold next-cache + BHT32 + tag trim, no NT-load fold/no XCRC/no mempair/no base-update | 9481 | 5.027695 | 1.261816 | current strict under-10000 candidate | Shrinks the dynamic branch predictor from 64 to 32 entries and removes the not-taken load fold path while preserving the branchfold next-cache path; this keeps CoreMark above 5 under the corrected synthesis口径 and reduces area below 10000 LUT |
+| DCache256 + RC128 + branchfold next-cache + BHT32 + tag trim, no NT-load fold/no XCRC/no mempair/no base-update | 9481 | 5.027695 | 1.261816 | superseded | Shrinks the dynamic branch predictor from 64 to 32 entries and removes the not-taken load fold path while preserving the branchfold next-cache path; this keeps CoreMark above 5 under the corrected synthesis口径 and reduces area below 10000 LUT |
+| DCache256 + RC128 + branchfold next-cache + NT-load fold + BHT32 + tag trim, no XCRC/no mempair/no base-update | 9594 | 5.150391 | 1.261816 | current strict under-10000 candidate | Restores the not-taken load fold path on top of the BHT32 area reduction. This recovers the 5.15 CoreMark level while keeping the corrected synthesis path below 10000 LUT; Dhrystone is unchanged, indicating the gain is CoreMark front-end/load-use specific. |
 
 Evidence for this freeze:
 
@@ -103,7 +104,8 @@ Next optimization focus:
 | DCache256 + RC128 + branchfold only, no next-cache/no NT-load fold | TBD | 4.750792 | TBD | rejected | Removing both fold accelerators is CRC-clean but loses too much front-end performance |
 | DCache256 + RC128 + NT-load fold only, no branchfold next-cache | TBD | 4.860362 | TBD | rejected | Shows next-cache contributes more CoreMark benefit than NT-load fold for this workload |
 | DCache256 + RC128 + branchfold next-cache only, no NT-load fold, BHT64 | 10010 | 5.027695 | TBD | near miss | Keeps the high-value next-cache path and removes NT-load fold; score stays above 5 but area is 10 LUT above the 10000 target |
-| DCache256 + RC128 + branchfold next-cache only, no NT-load fold, BHT32 | 9481 | 5.027695 | 1.261816 | current strict under-10000 candidate | BHT64 to BHT32 preserves CoreMark and saves enough control/register area to move the corrected口径 candidate below 10000 LUT |
+| DCache256 + RC128 + branchfold next-cache only, no NT-load fold, BHT32 | 9481 | 5.027695 | 1.261816 | valid, superseded | BHT64 to BHT32 preserves CoreMark and saves enough control/register area to move the corrected口径 candidate below 10000 LUT |
+| DCache256 + RC128 + branchfold next-cache + NT-load fold, BHT32 | 9594 | 5.150391 | 1.261816 | current strict under-10000 candidate | Adding back the not-taken load fold path costs 113 LUT over the 9481-LUT point and restores CoreMark to the corrected 5.15 level; benchmark workload remains unchanged and CRC stays 0xfcaf |
 
 Evidence:
 
@@ -166,3 +168,8 @@ Evidence:
 - Synth util: `synth_util_dcache256_rc128_next_no_ntfold_bht32_current_9481lut_20260525.rpt`
 - Synth hierarchy: `synth_util_hier_dcache256_rc128_next_no_ntfold_bht32_current_9481lut_20260525.rpt`
 - Synthesis log: `pynq_synth_dcache256_rc128_next_no_ntfold_bht32_current_9481lut_20260525.log`
+- Full workload summary: `coremark_fpga_dcache256_rc128_ntfold_bht32_current_iter10_20260525.summary.txt`
+- Dhrystone summary: `dhrystone_fpga_dcache256_rc128_ntfold_bht32_current_runs1000_20260525.summary.txt`
+- Synth util: `synth_util_dcache256_rc128_ntfold_bht32_current_9594lut_20260525.rpt`
+- Synth hierarchy: `synth_util_hier_dcache256_rc128_ntfold_bht32_current_9594lut_20260525.rpt`
+- Synthesis log: `pynq_synth_dcache256_rc128_ntfold_bht32_current_9594lut_20260525.log`
