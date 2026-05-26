@@ -52,6 +52,7 @@ Post-freeze rechecks on 2026-05-24 showed that the 9979-LUT number is not reprod
 | DCache256 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + tag trim, no XCRC/no mempair/no base-update | 8671 | 5.150524 | 1.261816 | superseded | Removes the dynamic BHT state entirely while keeping redirect-cache/next-cache and not-taken load fold. CoreMark and Dhrystone stay unchanged on the same workload, saving 118 LUT versus BHT2 and improving the low-power/low-state story. |
 | DCache512 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + tag trim, no XCRC/no mempair/no base-update | 9181 | 5.591969 | 1.287490 | superseded | Doubles DCache capacity from 256B to 512B while keeping the BHT-free front-end. This reduces CoreMark data-cache/load-use pressure and improves both CoreMark and Dhrystone while staying below 10000 LUT. |
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + tag trim, no XCRC/no mempair/no base-update | 9943 | 5.659572 | 1.287490 | current strict under-10000 candidate | Expands DCache to 1024B while retaining the BHT-free front end. CoreMark improves further and remains below the 10000-LUT cap, but the gain over DCache512 is modest and area margin is only 57 LUT. |
+| DCache2048 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + tag trim, no XCRC/no mempair/no base-update | 12045 | 5.685417 | TBD | area rejected | Further doubling DCache yields only a small CoreMark gain over DCache1024 but exceeds the 10000-LUT cap. This confirms DCache1024 is the current best area/performance capacity point. |
 
 Evidence for this freeze:
 
@@ -124,6 +125,7 @@ Next optimization focus:
 | DCache256 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, ICache enabled | N/A | N/A | TBD | rejected | Current ICache path timed out at PC=0x0000011c and is not valid for this sync-BRAM CoreMark line |
 | DCache512 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT | 9181 | 5.591969 | 1.287490 | valid, superseded | Increasing DCache to 512B sharply reduces load-use and memory-wait pressure while keeping area below the 10000-LUT cap; this is the current best strict hardware-only point |
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT | 9943 | 5.659572 | 1.287490 | current strict under-10000 candidate | DCache1024 reduces CoreMark ticks again and still fits under 10000 LUT, although the area margin is tight; this becomes the current maximum-score strict point under the relaxed cap |
+| DCache2048 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT | 12045 | 5.685417 | TBD | area rejected | DCache2048 reduces remaining memory stalls but costs 2102 LUT over DCache1024 for only a small CoreMark gain, so it is not retained under the current low-resource target |
 
 Evidence:
 
@@ -231,3 +233,7 @@ Evidence:
 - Synth util: `synth_util_dcache1024_rc128_ntfold_nobht_9943lut_20260526.rpt`
 - Synth hierarchy: `synth_util_hier_dcache1024_rc128_ntfold_nobht_9943lut_20260526.rpt`
 - Synthesis log: `pynq_synth_dcache1024_rc128_ntfold_nobht_9943lut_20260526.log`
+- Area-rejected summary: `coremark_fpga_dcache2048_rc128_ntfold_nobht_iter10_20260526.summary.txt`
+- Area-rejected synth util: `synth_util_dcache2048_rc128_ntfold_nobht_12045lut_20260526.rpt`
+- Area-rejected synth hierarchy: `synth_util_hier_dcache2048_rc128_ntfold_nobht_12045lut_20260526.rpt`
+- Area-rejected synthesis log: `pynq_synth_dcache2048_rc128_ntfold_nobht_12045lut_20260526.log`
