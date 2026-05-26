@@ -2,6 +2,36 @@
 
 This record tracks only hardware-side changes under the current PYNQ-Z2 / sync-BRAM validation line. CoreMark core workload files are not modified for these entries. CoreMark summaries are CRC-clean, short-runtime reproducible runs; a strict EEMBC public-valid report still requires a >=10 second run or board-level timing evidence.
 
+## 2026-05-26 Takeover Entry
+
+Current handoff file:
+
+```text
+artifacts/fpga_valid_20260518/SYNCBRAM_OPT_HANDOFF_20260526.md
+```
+
+Current frozen best valid candidate:
+
+| Commit | Tag | LUT | CoreMark/MHz | DMIPS/MHz | Hardware optimization point |
+|---|---|---:|---:|---:|---|
+| `49bcbf2` | `freeze-strict-dcache1024-nozbkb-9893lut-coremark5p66-20260526` | 9893 | 5.659572 | 1.287490 | DCache1024, RC128, branchfold next-cache, NT-load fold, no dynamic BHT, no ZBKB, DCache tag trim |
+
+Important handoff note: branch HEAD may contain later rejected-experiment commits. The best valid frozen point is the tag above, not necessarily HEAD.
+
+Next prepared experiment:
+
+```text
+DCache1024 + RC128 + no dynamic BHT + no ZBKB + fetch redirect reuse
+```
+
+Run from the worktree root:
+
+```powershell
+_tmp\run_coremark_ntfold_bht16.cmd
+```
+
+Decision rule: promote only if CoreMark is CRC-clean (`0xfcaf`), the workload completes, Dhrystone is rerun for the exact candidate, and a matching LUT report is generated.
+
 ## Current Best Candidate Under 7000 LUT
 
 | Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Status | Hardware optimization point |

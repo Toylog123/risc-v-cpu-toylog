@@ -7,6 +7,7 @@
     "01-项目管理/README.md"
   ],
   "handoff_files": [
+    "artifacts/fpga_valid_20260518/SYNCBRAM_OPT_HANDOFF_20260526.md",
     "docs/SYNCBRAM_COREMARK_HANDOFF_20260515.md",
     "YH_rv_cpu/doc/METHOD_A_SYNCBRAM_HANDOFF_20260514.md",
     "artifacts/coremark_method_a_20260514_172753/METHOD_A_FREEZE_HANDOFF.md",
@@ -31,6 +32,9 @@
     "03-工具链/YH_rv_cpu_toolchain/队伍安装清单.md"
   ],
   "read_order": [
+    "artifacts/fpga_valid_20260518/SYNCBRAM_OPT_HANDOFF_20260526.md",
+    "artifacts/fpga_valid_20260518/STRICT_SYNCBRAM_OPT_20260521.md",
+    "YH_rv_cpu/doc/CURRENT_STATUS.md",
     "docs/SYNCBRAM_COREMARK_HANDOFF_20260515.md",
     "YH_rv_cpu/doc/METHOD_A_SYNCBRAM_HANDOFF_20260514.md",
     "artifacts/coremark_method_a_20260514_172753/METHOD_A_FREEZE_HANDOFF.md",

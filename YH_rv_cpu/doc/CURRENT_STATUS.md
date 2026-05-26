@@ -1,5 +1,33 @@
 # CURRENT_STATUS
 
+> Updated: `2026-05-26`
+> Branch: `codex/syncbram-h22-20260514`
+> Current optimization line: strict/public sync-BRAM hardware-only CoreMark/Dhrystone optimization
+
+## 2026-05-26 Strict sync-BRAM optimization handoff
+
+- Primary handoff:
+  `artifacts/fpga_valid_20260518/SYNCBRAM_OPT_HANDOFF_20260526.md`
+- Main experiment ledger:
+  `artifacts/fpga_valid_20260518/STRICT_SYNCBRAM_OPT_20260521.md`
+- Current frozen best strict under-10000 LUT candidate:
+  - commit: `49bcbf2`
+  - tag: `freeze-strict-dcache1024-nozbkb-9893lut-coremark5p66-20260526`
+  - LUT: `9893`
+  - CoreMark/MHz: `5.659572`
+  - DMIPS/MHz: `1.287490`
+- Candidate configuration:
+  `DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim`
+- Evidence:
+  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_iter10_20260526.summary.txt`
+  - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_runs1000_20260526.summary.txt`
+  - `artifacts/fpga_valid_20260518/synth_util_dcache1024_rc128_ntfold_nobht_nozbkb_9893lut_20260526.rpt`
+  - `artifacts/fpga_valid_20260518/synth_util_hier_dcache1024_rc128_ntfold_nobht_nozbkb_9893lut_20260526.rpt`
+- Important caveat:
+  CoreMark is full-workload and CRC-clean, but the retained evidence is a short reproducible run and records `strict_eembc_10s_compliant=no`.
+- Takeover rule:
+  HEAD currently includes later rejected-experiment commits. Do not assume HEAD is the best valid candidate; use the tag above as the current frozen best.
+
 > Updated: `2026-05-14 17:50`
 > Branch: `opt/coremark8-hw-20260512`
 > Current freeze: Method A sync BRAM PYNQ-Z2 CoreMark artifact
