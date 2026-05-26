@@ -50,7 +50,8 @@ Post-freeze rechecks on 2026-05-24 showed that the 9979-LUT number is not reprod
 | DCache256 + RC128 + branchfold next-cache + NT-load fold + BHT4 + tag trim, no XCRC/no mempair/no base-update | 8836 | 5.150524 | 1.261816 | superseded | Reduces the dynamic BHT from 8 to 4 entries while preserving the benchmark workload and CRC-clean CoreMark result. This saves 107 LUT versus BHT8 and slightly improves measured CoreMark ticks on the same short-runtime validation method, so it is the current low-area front-end baseline. |
 | DCache256 + RC128 + branchfold next-cache + NT-load fold + BHT2 + tag trim, no XCRC/no mempair/no base-update | 8789 | 5.150524 | 1.261816 | superseded | Reduces the dynamic BHT to 2 entries while preserving CoreMark and Dhrystone on the same hardware configuration. This saves another 47 LUT versus BHT4; the measured front-end gain is carried mainly by redirect-cache/next-cache and not-taken load fold, not by predictor table depth. |
 | DCache256 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + tag trim, no XCRC/no mempair/no base-update | 8671 | 5.150524 | 1.261816 | superseded | Removes the dynamic BHT state entirely while keeping redirect-cache/next-cache and not-taken load fold. CoreMark and Dhrystone stay unchanged on the same workload, saving 118 LUT versus BHT2 and improving the low-power/low-state story. |
-| DCache512 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + tag trim, no XCRC/no mempair/no base-update | 9181 | 5.591969 | 1.287490 | current strict under-10000 candidate | Doubles DCache capacity from 256B to 512B while keeping the BHT-free front-end. This reduces CoreMark data-cache/load-use pressure and improves both CoreMark and Dhrystone while staying below 10000 LUT. |
+| DCache512 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + tag trim, no XCRC/no mempair/no base-update | 9181 | 5.591969 | 1.287490 | superseded | Doubles DCache capacity from 256B to 512B while keeping the BHT-free front-end. This reduces CoreMark data-cache/load-use pressure and improves both CoreMark and Dhrystone while staying below 10000 LUT. |
+| DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + tag trim, no XCRC/no mempair/no base-update | 9943 | 5.659572 | 1.287490 | current strict under-10000 candidate | Expands DCache to 1024B while retaining the BHT-free front end. CoreMark improves further and remains below the 10000-LUT cap, but the gain over DCache512 is modest and area margin is only 57 LUT. |
 
 Evidence for this freeze:
 
@@ -121,7 +122,8 @@ Next optimization focus:
 | DCache256 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, DCache next-prefetch | TBD | 5.143249 | TBD | rejected | Next-word DCache prefetch increased `mem_wait` and did not improve the workload, so it was not synthesized |
 | DCache256 + RC64 + branchfold next-cache + NT-load fold, no dynamic BHT | TBD | 4.891428 | TBD | rejected | Smaller redirect cache reduces cache deliveries and drops CoreMark, confirming RC128 is the lower practical capacity point for this front-end |
 | DCache256 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, ICache enabled | N/A | N/A | TBD | rejected | Current ICache path timed out at PC=0x0000011c and is not valid for this sync-BRAM CoreMark line |
-| DCache512 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT | 9181 | 5.591969 | 1.287490 | current strict under-10000 candidate | Increasing DCache to 512B sharply reduces load-use and memory-wait pressure while keeping area below the 10000-LUT cap; this is the current best strict hardware-only point |
+| DCache512 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT | 9181 | 5.591969 | 1.287490 | valid, superseded | Increasing DCache to 512B sharply reduces load-use and memory-wait pressure while keeping area below the 10000-LUT cap; this is the current best strict hardware-only point |
+| DCache1024 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT | 9943 | 5.659572 | 1.287490 | current strict under-10000 candidate | DCache1024 reduces CoreMark ticks again and still fits under 10000 LUT, although the area margin is tight; this becomes the current maximum-score strict point under the relaxed cap |
 
 Evidence:
 
@@ -224,3 +226,8 @@ Evidence:
 - Synth util: `synth_util_dcache512_rc128_ntfold_nobht_9181lut_20260525.rpt`
 - Synth hierarchy: `synth_util_hier_dcache512_rc128_ntfold_nobht_9181lut_20260525.rpt`
 - Synthesis log: `pynq_synth_dcache512_rc128_ntfold_nobht_9181lut_20260525.log`
+- Full workload summary: `coremark_fpga_dcache1024_rc128_ntfold_nobht_iter10_20260525.summary.txt`
+- Dhrystone summary: `dhrystone_fpga_dcache1024_rc128_ntfold_nobht_runs1000_20260526.summary.txt`
+- Synth util: `synth_util_dcache1024_rc128_ntfold_nobht_9943lut_20260526.rpt`
+- Synth hierarchy: `synth_util_hier_dcache1024_rc128_ntfold_nobht_9943lut_20260526.rpt`
+- Synthesis log: `pynq_synth_dcache1024_rc128_ntfold_nobht_9943lut_20260526.log`
