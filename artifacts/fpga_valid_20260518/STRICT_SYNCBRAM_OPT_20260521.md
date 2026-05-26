@@ -56,6 +56,7 @@ Post-freeze rechecks on 2026-05-24 showed that the 9979-LUT number is not reprod
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB/no Zicond + tag trim, no XCRC/no mempair/no base-update | 9915 | 5.659572 | TBD | rejected | Disabling Zicond also preserves CoreMark, but synthesis increases LUT versus the no-ZBKB candidate, so Zicond is left enabled for the current best line. |
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB/no XThead condmove + tag trim, no XCRC/no mempair/no base-update | N/A | N/A | TBD | rejected | Disabling XThead conditional move caused CoreMark timeout at PC=0x00000478, so this path is required by the current compiled target or by the surrounding control/dataflow assumptions. |
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB/no Zbc + tag trim, no XCRC/no mempair/no base-update | N/A | N/A | TBD | rejected | Disabling Zbc caused CoreMark timeout at PC=0x00001b58, so Zbc remains required for the current compiled workload/hardware contract. |
+| DCache1024 + RC256 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + tag trim, no XCRC/no mempair/no base-update | 10983 | 5.809144 | TBD | area rejected | Doubling redirect cache from 128 to 256 improves CoreMark, but the extra distributed RAM pushes the design above 10000 LUT. This is kept as a performance reference, not a current low-resource candidate. |
 | DCache2048 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + tag trim, no XCRC/no mempair/no base-update | 12045 | 5.685417 | TBD | area rejected | Further doubling DCache yields only a small CoreMark gain over DCache1024 but exceeds the 10000-LUT cap. This confirms DCache1024 is the current best area/performance capacity point. |
 
 Evidence for this freeze:
@@ -133,6 +134,7 @@ Next optimization focus:
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB/no Zicond | 9915 | 5.659572 | TBD | rejected | Zicond removal changes synthesis packing unfavorably and costs 22 LUT versus no-ZBKB, so it is not retained |
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB/no XThead condmove | N/A | N/A | TBD | rejected | CoreMark timeout at PC=0x00000478; not a safe hardware trim |
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB/no Zbc | N/A | N/A | TBD | rejected | CoreMark timeout at PC=0x00001b58; not a safe hardware trim |
+| DCache1024 + RC256 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB | 10983 | 5.809144 | TBD | area rejected | RC256 improves redirect-cache coverage but costs too much LUTRAM and logic under the 10000-LUT target |
 | DCache2048 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT | 12045 | 5.685417 | TBD | area rejected | DCache2048 reduces remaining memory stalls but costs 2102 LUT over DCache1024 for only a small CoreMark gain, so it is not retained under the current low-resource target |
 
 Evidence:
@@ -251,6 +253,9 @@ Evidence:
 - Rejected synth hierarchy: `synth_util_hier_dcache1024_rc128_ntfold_nobht_nozbkb_nozicond_9915lut_20260526.rpt`
 - Rejected timeout log: `coremark_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_noxtcond_iter10_20260526.log`
 - Rejected timeout log: `coremark_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_nozbc_iter10_20260526.log`
+- Area-rejected summary: `coremark_fpga_dcache1024_rc256_ntfold_nobht_nozbkb_iter10_20260526.summary.txt`
+- Area-rejected synth util: `synth_util_dcache1024_rc256_ntfold_nobht_nozbkb_10983lut_20260526.rpt`
+- Area-rejected synth hierarchy: `synth_util_hier_dcache1024_rc256_ntfold_nobht_nozbkb_10983lut_20260526.rpt`
 - Area-rejected summary: `coremark_fpga_dcache2048_rc128_ntfold_nobht_iter10_20260526.summary.txt`
 - Area-rejected synth util: `synth_util_dcache2048_rc128_ntfold_nobht_12045lut_20260526.rpt`
 - Area-rejected synth hierarchy: `synth_util_hier_dcache2048_rc128_ntfold_nobht_12045lut_20260526.rpt`
