@@ -2398,7 +2398,7 @@ assign mem_stage_dmem_port_busy =
                 .XLEN(XLEN),
                 .CACHE_ADDR_BITS(DCACHE_ADDR_BITS),
                 .CACHE_SIZE(DCACHE_SIZE_BYTES),
-                .BLOCK_SIZE(32),
+                .BLOCK_SIZE(16),
                 .ASSOC(1),
                 .WRITE_POLICY(0),
                 .ENABLE_NEXT_PREFETCH(ENABLE_DCACHE_NEXT_PREFETCH),
