@@ -166,6 +166,13 @@ Next optimization focus:
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB/no Zbc | N/A | N/A | TBD | rejected | CoreMark timeout at PC=0x00001b58; not a safe hardware trim |
 | DCache1024 + RC256 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB | 10983 | 5.809144 | TBD | area rejected | RC256 improves redirect-cache coverage but costs too much LUTRAM and logic under the 10000-LUT target |
 | DCache2048 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT | 12045 | 5.685417 | TBD | area rejected | DCache2048 reduces remaining memory stalls but costs 2102 LUT over DCache1024 for only a small CoreMark gain, so it is not retained under the current low-resource target |
+| DCache1024 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB, static predict mode 1 | TBD | 5.552 | TBD | rejected | Adding BGEU prediction (mode 1) worsened CoreMark by ~2% (1801081 vs 1767189 cycles); backward-taken+BNE-taken (mode 0) remains preferred |
+| DCache1024 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB, RC regular lookup off | TBD | 4.919 | TBD | rejected | Disabling regular cache lookup caused 13% regression and completely disabled NT-load fold (nt_fold_candidate=0), revealing a hard dependency between regular_cache_lookup and NT-fold functionality |
+| DCache896 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB | N/A | N/A | N/A | invalid | Non-power-of-2 DCache (896B) causes $clog2 index overflow; INDEX_W=8 addresses 256 entries but array has only 224, producing X propagation in simulation. PC=xxxxxxxx, CPU never started |
+| DCache1024 + RC160 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB | N/A | N/A | N/A | invalid | Non-power-of-2 RC (160 entries) causes $clog2 index overflow; INDEX_W=8 addresses 256 but array has only 160, producing X propagation. PC=xxxxxxxx, CPU never started |
+| DCache1024 + RC96 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB | N/A | N/A | N/A | invalid | Non-power-of-2 RC (96 entries) causes $clog2 index overflow; INDEX_W=7 addresses 128 but array has only 96, producing X propagation. PC=xxxxxxxx, CPU never started |
+| DCache1024 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB, no EX-branch-forward | TBD | 5.480 | TBD | rejected | Disabling ID_BRANCH_EX_FORWARD caused 3.2% regression (1824732 vs 1767189 cycles); EX forwarding reduces branch resolution latency and is worth the small area cost |
+| DCache1024 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB, word-only cache | TBD | 4.783 | TBD | rejected | WORD_ONLY mode forces all memory accesses to word-aligned, eliminating byte/half-word DCache support; CoreMark regression of ~15% (2090896 vs 1767189 cycles) confirms byte-level access patterns in CoreMark matter |
 
 Evidence:
 
@@ -290,3 +297,11 @@ Evidence:
 - Area-rejected synth util: `synth_util_dcache2048_rc128_ntfold_nobht_12045lut_20260526.rpt`
 - Area-rejected synth hierarchy: `synth_util_hier_dcache2048_rc128_ntfold_nobht_12045lut_20260526.rpt`
 - Area-rejected synthesis log: `pynq_synth_dcache2048_rc128_ntfold_nobht_12045lut_20260526.log`
+- Rejected log: `coremark_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_staticpred1_iter10_20260527.log`
+- Rejected log: `coremark_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_noreglookup_iter10_20260527.log`
+- Invalid log: `coremark_fpga_dcache896_rc128_ntfold_nobht_nozbkb_iter10_20260527.log`
+- Invalid log: `coremark_fpga_dcache1024_rc160_ntfold_nobht_nozbkb_iter10_20260527.log`
+- Invalid log: `coremark_fpga_dcache1024_rc96_ntfold_nobht_nozbkb_iter10_20260527.log`
+- Rejected log: `coremark_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_noexfwd_iter10_20260527.log`
+- Rejected log: `coremark_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_wordonly_iter10_20260527.log`
+- Incomplete log (interrupted): `coremark_fpga_dcache512_rc128_ntfold_nobht_nozbkb_iter10_20260527.log`

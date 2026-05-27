@@ -1,0 +1,28 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Wed May 27 09:17:12 2026
+# Process ID         : 23472
+# Current directory  : D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/_tmp/sim_runtime/coremark_fpga/manual_dcache512_rc128_ntfold_nobht_nozbkb_20260527
+# Command line       : xsim.exe -mode tcl -source {xsim.dir/YH_rv_cpu_coremark_fpga_tb_snapshot/xsim_script.tcl}
+# Log file           : D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/_tmp/sim_runtime/coremark_fpga/manual_dcache512_rc128_ntfold_nobht_nozbkb_20260527/xsim.log
+# Journal file       : D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/_tmp/sim_runtime/coremark_fpga/manual_dcache512_rc128_ntfold_nobht_nozbkb_20260527\xsim.jou
+# Running On         : Toylog_desktop
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26200
+# Processor Detail   : AMD Ryzen 7 7435H
+# CPU Frequency      : 3094 MHz
+# CPU Physical cores : 8
+# CPU Logical cores  : 16
+# Host memory        : 34082 MB
+# Swap memory        : 2281 MB
+# Total Virtual      : 36364 MB
+# Available Virtual  : 16784 MB
+#-----------------------------------------------------------
+source xsim.dir/YH_rv_cpu_coremark_fpga_tb_snapshot/xsim_script.tcl
+# xsim {YH_rv_cpu_coremark_fpga_tb_snapshot} -testplusarg max_cycles=5000000 -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+Starting FPGA-like CoreMark simulation (MAX_CYCLES=5000000)...
