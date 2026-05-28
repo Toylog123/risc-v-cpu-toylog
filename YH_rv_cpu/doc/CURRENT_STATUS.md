@@ -23,6 +23,7 @@
   - CoreMark/MHz: `5.072560`
   - DMIPS/MHz: `1.287490`
   - note: DCache512/RC64 with branch-fold next-cache disabled is the newest low-area 5+ point. DCache256/RC64 remains CRC-clean but drops below 5 CoreMark/MHz (`4.891219`); disabling both next-cache and NT-load fold also drops below 5 (`4.981265`).
+  - latest rejected area experiment: store-hit invalidate on the DCache512/RC64/nonext line measured `8330 LUT / 4.764133 CoreMark/MHz`; it is correct but loses too much store/load locality and is not retained.
 - Candidate configuration:
   `DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
 - Lower-area candidate configuration:
@@ -44,6 +45,8 @@
   - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_runs1000_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_8201lut_20260528.rpt`
   - `artifacts/fpga_valid_20260518/synth_util_hier_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_8201lut_20260528.rpt`
+  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_storeinv_recheck_iter10_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_storeinv_8330lut_20260528.rpt`
 - Important caveat:
   CoreMark is full-workload and CRC-clean, but the retained evidence is a short reproducible run and records `strict_eembc_10s_compliant=no`.
 - Takeover rule:
