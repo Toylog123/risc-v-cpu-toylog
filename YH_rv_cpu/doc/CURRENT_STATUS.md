@@ -16,13 +16,26 @@
   - LUT: `9796`
   - CoreMark/MHz: `5.659572`
   - DMIPS/MHz: `1.287490`
+- Current lower-area 5+ candidate:
+  - commit: `tag target`
+  - tag: `freeze-strict-rc64-9185lut-coremark5p35-20260528`
+  - LUT: `9185`
+  - CoreMark/MHz: `5.351560`
+  - DMIPS/MHz: `1.287490`
+  - note: RC64 was rechecked with corrected runtime staging; the old RC64 timeout log had a missing mem32 image warning.
 - Candidate configuration:
   `DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
+- Lower-area candidate configuration:
+  `DCache1024 + RC64 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
 - Evidence:
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_runs1000_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/synth_util_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_9796lut_20260528.rpt`
   - `artifacts/fpga_valid_20260518/synth_util_hier_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_9796lut_20260528.rpt`
+  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache1024_rc64_ntfold_nobht_nozbkb_rctagtrim_recheck_iter10_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache1024_rc64_ntfold_nobht_nozbkb_rctagtrim_runs1000_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/synth_util_dcache1024_rc64_ntfold_nobht_nozbkb_rctagtrim_9185lut_20260528.rpt`
+  - `artifacts/fpga_valid_20260518/synth_util_hier_dcache1024_rc64_ntfold_nobht_nozbkb_rctagtrim_9185lut_20260528.rpt`
 - Important caveat:
   CoreMark is full-workload and CRC-clean, but the retained evidence is a short reproducible run and records `strict_eembc_10s_compliant=no`.
 - Takeover rule:

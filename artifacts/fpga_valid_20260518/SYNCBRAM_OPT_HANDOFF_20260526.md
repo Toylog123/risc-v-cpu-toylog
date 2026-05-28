@@ -28,6 +28,12 @@ Best strict under-10000 LUT candidate:
 |---|---|---:|---:|---:|---|
 | `this-commit` | `freeze-strict-rctagtrim-9796lut-coremark5p66-20260528` | 9796 | 5.659572 | 1.287490 | current validated best |
 
+Current lower-area strict candidate:
+
+| Commit | Tag | LUT | CoreMark/MHz | DMIPS/MHz | Status |
+|---|---|---:|---:|---:|---|
+| `tag target` | `freeze-strict-rc64-9185lut-coremark5p35-20260528` | 9185 | 5.351560 | 1.287490 | lower-area valid candidate |
+
 Configuration summary:
 
 ```text
@@ -44,6 +50,11 @@ artifacts/fpga_valid_20260518/dhrystone_fpga_dcache1024_rc128_ntfold_nobht_nozbk
 artifacts/fpga_valid_20260518/synth_util_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_9796lut_20260528.rpt
 artifacts/fpga_valid_20260518/synth_util_hier_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_9796lut_20260528.rpt
 artifacts/fpga_valid_20260518/pynq_synth_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_9796lut_20260528.log
+artifacts/fpga_valid_20260518/coremark_fpga_dcache1024_rc64_ntfold_nobht_nozbkb_rctagtrim_recheck_iter10_20260528.summary.txt
+artifacts/fpga_valid_20260518/dhrystone_fpga_dcache1024_rc64_ntfold_nobht_nozbkb_rctagtrim_runs1000_20260528.summary.txt
+artifacts/fpga_valid_20260518/synth_util_dcache1024_rc64_ntfold_nobht_nozbkb_rctagtrim_9185lut_20260528.rpt
+artifacts/fpga_valid_20260518/synth_util_hier_dcache1024_rc64_ntfold_nobht_nozbkb_rctagtrim_9185lut_20260528.rpt
+artifacts/fpga_valid_20260518/pynq_synth_dcache1024_rc64_ntfold_nobht_nozbkb_rctagtrim_9185lut_20260528.log
 ```
 
 Important measurement caveat:
@@ -106,6 +117,7 @@ Do not assume old tags are the best valid build. The 2026-05-28 redirect-cache t
 | DCache1024 + noZBKB + no EX-branch-forward | TBD | 5.480 | TBD | rejected | 3.2% regression |
 | DCache1024 + noZBKB + word-only cache | TBD | 4.783 | TBD | rejected | 15% regression |
 | DCache1024 + noZBKB + fetch redirect reuse | TBD | 5.552 | TBD | rejected | 2% regression |
+| DCache1024 + noZBKB + RC64 recheck | 9185 | 5.351560 | 1.287490 | lower-area valid | corrected runtime staging fixed the old missing mem32 warning; saves 611 LUT vs RC128 while keeping CoreMark >5 |
 | DCache896/RC160/RC96 (non-power-of-2) | N/A | N/A | N/A | invalid | $clog2 X propagation |
 
 Full historical record:
@@ -119,7 +131,7 @@ artifacts/fpga_valid_20260518/STRICT_SYNCBRAM_OPT_20260521.md
 **Parameter space is fully explored.** All viable parameter combinations have been tested. Further gains now require RTL-level area changes:
 
 - DCache: 128 (timeout), 256 (5.22), 512 (5.59), 1024 (5.66 best), 2048 (over budget)
-- RC: 64 (timeout), 128 (best), 256 (over budget)
+- RC: 64 (valid lower-area 5+ after corrected runtime staging), 128 (best score), 256 (over budget)
 - Static predict: mode 0 (best), mode 1 (worse), mode 2 (worse)
 - BHT: disabled (best), all sizes tested (no improvement or over budget)
 - Branch fold / NT-load fold / EX-forward / RC lookup: all tested, enabled is best
@@ -164,7 +176,8 @@ Recommended concise report format to the user:
 | T06 | Non-power-of-2 DCache/RC | completed | P0 | invalid (X propagation) | Done |
 | T07 | Parameter space exhausted | completed | P0 | all viable combinations tested | Use RTL-level changes only |
 | T08 | Redirect-cache tag-width trim | completed | P0 | 9796 LUT, 5.659572 CoreMark/MHz, 1.287490 DMIPS/MHz | Freeze as current best |
-| T09 | Explore 5k-class low-area path | pending | P0 | Reproduce or migrate 4739/5742/5908 LUT historical candidates under current strict鍙ｅ緞 | Start from historical low-area summaries and re-run exact configs |
+| T09 | Explore 5k-class low-area path | in_progress | P0 | Reproduce or migrate 4739/5742/5908 LUT historical candidates under current strict口径 | 4739/5742 historical lines rechecked but fell to 3.423504/3.075927 CoreMark/MHz; continue DCache/RC area reductions |
+| T10 | RC64 corrected recheck | completed | P0 | 9185 LUT, 5.351560 CoreMark/MHz, 1.287490 DMIPS/MHz | Freeze as lower-area valid candidate |
 
 ## 9. Commands For Takeover
 
