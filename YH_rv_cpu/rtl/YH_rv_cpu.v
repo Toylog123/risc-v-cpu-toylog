@@ -120,6 +120,9 @@ localparam integer ENABLE_RF_SECOND_WRITE =
     (ENABLE_XTHEAD_MEMPAIR_EXTENSION != 0) ||
     (ENABLE_ID_ALU_PAIR_FOLD != 0) ||
     (ENABLE_ID_ALU_DEP_FOLD != 0);
+localparam integer ENABLE_FOLD_RS2_READ_PORT =
+    (ENABLE_ID_ALU_PAIR_FOLD != 0) ||
+    (ENABLE_ID_ALU_DEP_FOLD != 0);
 localparam integer ENABLE_FOLD_RS3_READ_PORT =
     (ENABLE_ID_ALU_PAIR_FOLD != 0) ||
     (ENABLE_ID_ALU_DEP_FOLD != 0);
@@ -1252,6 +1255,7 @@ assign fold_id_hazard =
 assign id_branch_fold_valid =
     id_branch_fold_candidate &&
     !fold_id_control_or_trap &&
+    ((ENABLE_FOLD_RS2_READ_PORT != 0) || !fold_id_rs2_en) &&
     ((ENABLE_FOLD_RS3_READ_PORT != 0) || !fold_id_rs3_en) &&
     !fold_id_hazard;
 assign id_branch_not_taken_fold_valid =
@@ -1262,6 +1266,7 @@ assign id_branch_not_taken_fold_valid =
       (fold_id_mem_size == `YH_rv_cpu_MEM_W) &&
       !id_branch_not_taken_fold_recent_operand_match &&
       !not_taken_next_uses_fold_load_rd)) &&
+    ((ENABLE_FOLD_RS2_READ_PORT != 0) || !fold_id_rs2_en) &&
     ((ENABLE_FOLD_RS3_READ_PORT != 0) || !fold_id_rs3_en) &&
     !fold_id_hazard;
 assign id_branch_any_fold_valid =
@@ -2013,6 +2018,7 @@ YH_rv_cpu_regfile #(
         (ENABLE_ID_ALU_PAIR_FOLD != 0) ||
         (ENABLE_ID_ALU_DEP_FOLD != 0)
     ),
+    .ENABLE_FOLD_RS2_READ_PORT(ENABLE_FOLD_RS2_READ_PORT),
     .ENABLE_FOLD_RS3_READ_PORT(ENABLE_FOLD_RS3_READ_PORT)
 ) u_regfile (
     .clk       (clk),
