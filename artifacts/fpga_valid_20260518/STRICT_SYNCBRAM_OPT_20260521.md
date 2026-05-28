@@ -22,9 +22,9 @@ Current lower-area 5+ candidate:
 
 | Commit | Tag | LUT | CoreMark/MHz | DMIPS/MHz | Hardware optimization point |
 |---|---|---:|---:|---:|---|
-| `tag target` | `freeze-strict-dcache512-rc64-8425lut-coremark5p29-20260528` | 8425 | 5.291075 | 1.287490 | DCache512, RC64, branchfold next-cache, NT-load fold, no dynamic BHT, no ZBKB, DCache tag trim, redirect-cache PC tag-width trim |
+| `tag target` | `freeze-strict-dcache512-rc64-nonext-8201lut-coremark5p07-20260528` | 8201 | 5.072560 | 1.287490 | DCache512, RC64, branchfold, no branchfold next-cache, NT-load fold, no dynamic BHT, no ZBKB, DCache tag trim, redirect-cache PC tag-width trim |
 
-2026-05-28 note: the historical RC64 timeout was rechecked because its old log showed a missing `YH_rv_cpu_coremark_rv32.mem32.hex` warning. With corrected runtime staging, RC64 is CRC-clean. DCache512/RC64 is the newest lower-area 5+ point: it saves 1371 LUT versus the RC128 current best, at the cost of a CoreMark drop from 5.659572 to 5.291075. DCache256/RC64 is also CRC-clean but drops below 5 CoreMark/MHz (`4.891219`).
+2026-05-28 note: the historical RC64 timeout was rechecked because its old log showed a missing `YH_rv_cpu_coremark_rv32.mem32.hex` warning. With corrected runtime staging, RC64 is CRC-clean. DCache512/RC64 with branchfold next-cache disabled is the newest lower-area 5+ point: it saves 1595 LUT versus the RC128 current best, at the cost of a CoreMark drop from 5.659572 to 5.072560. DCache256/RC64 is also CRC-clean but drops below 5 CoreMark/MHz (`4.891219`).
 
 Next prepared experiment:
 
@@ -61,6 +61,14 @@ Decision rule: promote only if CoreMark is CRC-clean (`0xfcaf`), the workload co
 - DCache512 synth hierarchy: `synth_util_hier_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_8425lut_20260528.rpt`
 - DCache512 synth log: `pynq_synth_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_8425lut_20260528.log`
 - DCache256 boundary summary: `coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_recheck_iter10_20260528.summary.txt`
+- DCache512 nonext CoreMark summary: `coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_recheck_iter10_20260528.summary.txt`
+- DCache512 nonext Dhrystone summary: `dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_runs1000_20260528.summary.txt`
+- DCache512 nonext synth util: `synth_util_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_8201lut_20260528.rpt`
+- DCache512 nonext synth hierarchy: `synth_util_hier_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_8201lut_20260528.rpt`
+- DCache512 nontload summary: `coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nontload_recheck_iter10_20260528.summary.txt`
+- DCache512 nontload synth util: `synth_util_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nontload_8362lut_20260528.rpt`
+- DCache512 nolspec boundary summary: `coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nolspec_recheck_iter10_20260528.summary.txt`
+- DCache512 nonext+nontload boundary summary: `coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_nontload_recheck_iter10_20260528.summary.txt`
 
 ## Current Best Candidate Under 7000 LUT
 
@@ -117,6 +125,10 @@ Post-freeze rechecks on 2026-05-24 showed that the 9979-LUT number is not reprod
 | DCache1024 + RC64 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim, no XCRC/no mempair/no base-update | 9185 | 5.351560 | 1.287490 | current lower-area 5+ candidate | Rechecks RC64 with corrected runtime staging after the old timeout log showed a missing mem32 image warning. This saves 611 LUT versus RC128 while keeping CRC-clean CoreMark above 5 and unchanged Dhrystone. |
 | DCache512 + RC64 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim, no XCRC/no mempair/no base-update | 8425 | 5.291075 | 1.287490 | current lower-area 5+ candidate | Reduces DCache from 1024B to 512B while keeping the corrected RC64 path. This saves 760 LUT versus DCache1024/RC64 and 1371 LUT versus the RC128 maximum-score line while staying CRC-clean above 5 CoreMark/MHz. |
 | DCache256 + RC64 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim, no XCRC/no mempair/no base-update | TBD | 4.891219 | TBD | boundary rejected | CRC-clean but below the 5 CoreMark/MHz target, so 256B is too small for the current performance goal. |
+| DCache512 + RC64 + branchfold + no branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim, no XCRC/no mempair/no base-update | 8201 | 5.072560 | 1.287490 | current lower-area 5+ candidate | Disables the next-cache fold delivery path while keeping NT-load fold. This saves 224 LUT versus the 8425-LUT DCache512/RC64 point and remains CRC-clean above 5 CoreMark/MHz. |
+| DCache512 + RC64 + branchfold next-cache + no NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim, no XCRC/no mempair/no base-update | 8362 | 5.191960 | TBD | superseded low-area candidate | Disabling NT-load fold saves only 63 LUT versus 8425 while preserving more CoreMark than nonext; retained as evidence but not the lowest 5+ point. |
+| DCache512 + RC64 + branchfold + no branchfold next-cache + no NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim, no XCRC/no mempair/no base-update | TBD | 4.981265 | TBD | boundary rejected | CRC-clean but below the 5 CoreMark/MHz target, so both fold trims together are too aggressive. |
+| DCache512 + RC64 + branchfold next-cache + NT-load fold + no load-use DCache probe + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim, no XCRC/no mempair/no base-update | TBD | 4.958065 | TBD | boundary rejected | Removing load-use speculation drops below 5, so the DCache probe path remains required for the current 5+ target. |
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB/no Zicond + tag trim, no XCRC/no mempair/no base-update | 9915 | 5.659572 | TBD | rejected | Disabling Zicond also preserves CoreMark, but synthesis increases LUT versus the no-ZBKB candidate, so Zicond is left enabled for the current best line. |
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB/no XThead condmove + tag trim, no XCRC/no mempair/no base-update | N/A | N/A | TBD | rejected | Disabling XThead conditional move caused CoreMark timeout at PC=0x00000478, so this path is required by the current compiled target or by the surrounding control/dataflow assumptions. |
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB/no Zbc + tag trim, no XCRC/no mempair/no base-update | N/A | N/A | TBD | rejected | Disabling Zbc caused CoreMark timeout at PC=0x00001b58, so Zbc remains required for the current compiled workload/hardware contract. |
@@ -199,6 +211,10 @@ Next optimization focus:
 | DCache1024 + RC64 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB, redirect-cache tag-width trim | 9185 | 5.351560 | 1.287490 | lower-area valid 5+ candidate | Corrected runtime staging fixes the old RC64 missing mem32-image issue; RC64 saves 611 LUT versus RC128 and remains CRC-clean above 5 CoreMark/MHz |
 | DCache512 + RC64 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB, redirect-cache tag-width trim | 8425 | 5.291075 | 1.287490 | current lower-area 5+ candidate | Shrinks DCache capacity while preserving the same front-end and ISA settings; saves another 760 LUT versus the 1024B/RC64 line and remains above 5 CoreMark/MHz |
 | DCache256 + RC64 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB, redirect-cache tag-width trim | TBD | 4.891219 | TBD | rejected | CRC-clean but performance falls below the current 5+ target, so this is recorded only as a low-area boundary |
+| DCache512 + RC64 + branchfold + no branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB, redirect-cache tag-width trim | 8201 | 5.072560 | 1.287490 | current lower-area 5+ candidate | Lowest currently validated 5+ point; disables next-cache fold delivery and keeps NT-load fold |
+| DCache512 + RC64 + branchfold next-cache + no NT-load fold, no dynamic BHT, no ZBKB, redirect-cache tag-width trim | 8362 | 5.191960 | TBD | superseded | Saves little area compared with the 8425-LUT line, so the lower 8201-LUT nonext point is preferred |
+| DCache512 + RC64 + branchfold + no branchfold next-cache + no NT-load fold, no dynamic BHT, no ZBKB, redirect-cache tag-width trim | TBD | 4.981265 | TBD | rejected | Both fold trims together fall below 5 CoreMark/MHz |
+| DCache512 + RC64 + no load-use DCache probe, no dynamic BHT, no ZBKB, redirect-cache tag-width trim | TBD | 4.958065 | TBD | rejected | Removing the DCache probe path saves potential area but loses the load-use benefit needed to stay above 5 |
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB/no Zicond | 9915 | 5.659572 | TBD | rejected | Zicond removal changes synthesis packing unfavorably and costs 22 LUT versus no-ZBKB, so it is not retained |
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB/no XThead condmove | N/A | N/A | TBD | rejected | CoreMark timeout at PC=0x00000478; not a safe hardware trim |
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB/no Zbc | N/A | N/A | TBD | rejected | CoreMark timeout at PC=0x00001b58; not a safe hardware trim |
@@ -332,6 +348,10 @@ Evidence:
 - Lower-area DCache512/RC64 synth util: `synth_util_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_8425lut_20260528.rpt`
 - Lower-area DCache512/RC64 synth hierarchy: `synth_util_hier_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_8425lut_20260528.rpt`
 - Low-area boundary DCache256/RC64 summary: `coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_recheck_iter10_20260528.summary.txt`
+- Current lower-area nonext summary: `coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_recheck_iter10_20260528.summary.txt`
+- Current lower-area nonext Dhrystone: `dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_runs1000_20260528.summary.txt`
+- Current lower-area nonext synth util: `synth_util_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_8201lut_20260528.rpt`
+- Current lower-area nonext synth hierarchy: `synth_util_hier_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_8201lut_20260528.rpt`
 - Rejected summary: `coremark_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_nozicond_iter10_20260526.summary.txt`
 - Rejected synth util: `synth_util_dcache1024_rc128_ntfold_nobht_nozbkb_nozicond_9915lut_20260526.rpt`
 - Rejected synth hierarchy: `synth_util_hier_dcache1024_rc128_ntfold_nobht_nozbkb_nozicond_9915lut_20260526.rpt`
