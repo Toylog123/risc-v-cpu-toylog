@@ -26,6 +26,8 @@
   - latest rejected boundary: turning off the folded rs1 read port is CRC-clean but drops to `4.934412 CoreMark/MHz`; keep fold-rs1 enabled for the low-area 5+ line.
   - latest rejected capacity trim: reducing redirect cache from RC64 to RC32 is CRC-clean but drops to `4.894676 CoreMark/MHz`; keep RC64 for the low-area 5+ line.
   - latest rejected area experiment: store-hit invalidate on the DCache512/RC64/nonext line measured `8330 LUT / 4.764133 CoreMark/MHz`; it is correct but loses too much store/load locality and is not retained.
+  - latest rejected DCache port trim: single tag/valid read arbitration measured `7531 LUT / 4.908619 CoreMark/MHz`; the 65-LUT saving is not worth dropping below 5.
+  - latest rejected ISA trim: disabling XThead MAC made the existing benchmark image timeout at `PC=0000004c`, so the current compiled workload depends on that hardware path.
 - Candidate configuration:
   `DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
 - Lower-area candidate configuration:
