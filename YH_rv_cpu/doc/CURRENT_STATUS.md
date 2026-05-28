@@ -18,11 +18,11 @@
   - DMIPS/MHz: `1.287490`
 - Current lower-area 5+ candidate:
   - commit: `tag target`
-  - tag: `freeze-strict-dcache512-rc64-nonext-foldrs23off-7639lut-coremark5p07-20260528`
-  - LUT: `7639`
+  - tag: `freeze-strict-dcache512-rc64-nonext-foldrs23off-nord2-7596lut-coremark5p07-20260528`
+  - LUT: `7596`
   - CoreMark/MHz: `5.067602`
   - DMIPS/MHz: `1.287490`
-  - note: DCache512/RC64 with branch-fold next-cache disabled and fold-rs2/rs3 read-port gating is the newest low-area 5+ point. DCache256/RC64 remains CRC-clean but drops below 5 CoreMark/MHz (`4.891219`); disabling both next-cache and NT-load fold also drops below 5 (`4.981265`).
+  - note: DCache512/RC64 with branch-fold next-cache disabled, fold-rs2/rs3 read-port gating, and the inactive regfile second write port disabled is the newest low-area 5+ point. DCache256/RC64 remains CRC-clean but drops below 5 CoreMark/MHz (`4.891219`); disabling both next-cache and NT-load fold also drops below 5 (`4.981265`).
   - latest rejected boundary: turning off the folded rs1 read port is CRC-clean but drops to `4.934412 CoreMark/MHz`; keep fold-rs1 enabled for the low-area 5+ line.
   - latest rejected capacity trim: reducing redirect cache from RC64 to RC32 is CRC-clean but drops to `4.894676 CoreMark/MHz`; keep RC64 for the low-area 5+ line.
   - latest rejected area experiment: store-hit invalidate on the DCache512/RC64/nonext line measured `8330 LUT / 4.764133 CoreMark/MHz`; it is correct but loses too much store/load locality and is not retained.
@@ -55,6 +55,11 @@
   - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_foldrs23off_runs1000_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_foldrs23off_7639lut_20260528.rpt`
   - `artifacts/fpga_valid_20260518/synth_util_hier_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_foldrs23off_7639lut_20260528.rpt`
+  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_foldrs23off_nord2_recheck_iter10_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_foldrs23off_nord2_runs1000_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_foldrs23off_nord2_7596lut_20260528.rpt`
+  - `artifacts/fpga_valid_20260518/synth_util_hier_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_foldrs23off_nord2_7596lut_20260528.rpt`
+  - `artifacts/fpga_valid_20260518/synth_timing_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_foldrs23off_nord2_7596lut_20260528.rpt`
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_foldrs23off_rc32_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_foldrs123off_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_storeinv_recheck_iter10_20260528.summary.txt`
