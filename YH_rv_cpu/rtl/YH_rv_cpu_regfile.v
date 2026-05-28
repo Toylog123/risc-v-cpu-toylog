@@ -6,7 +6,8 @@
 module YH_rv_cpu_regfile #(
     parameter integer XLEN = 32,
     parameter integer ENABLE_RS3_READ_PORT = 1,
-    parameter integer ENABLE_FOLD_READ_PORTS = 1
+    parameter integer ENABLE_FOLD_READ_PORTS = 1,
+    parameter integer ENABLE_FOLD_RS3_READ_PORT = 1
 ) (
     input  wire            clk,
     input  wire            rst_n,
@@ -73,7 +74,7 @@ assign fold_rs2_rdata =
     regs[fold_rs2_addr];
 
 assign fold_rs3_rdata =
-    ((ENABLE_FOLD_READ_PORTS == 0) || (ENABLE_RS3_READ_PORT == 0)) ? {XLEN{1'b0}} :
+    ((ENABLE_FOLD_READ_PORTS == 0) || (ENABLE_RS3_READ_PORT == 0) || (ENABLE_FOLD_RS3_READ_PORT == 0)) ? {XLEN{1'b0}} :
     (fold_rs3_addr == 5'd0) ? {XLEN{1'b0}} :
     (rd2_wen && (rd2_addr == fold_rs3_addr) && (rd2_addr != 5'd0)) ? rd2_wdata :
     (rd_wen && (rd_addr == fold_rs3_addr) && (rd_addr != 5'd0)) ? rd_wdata :

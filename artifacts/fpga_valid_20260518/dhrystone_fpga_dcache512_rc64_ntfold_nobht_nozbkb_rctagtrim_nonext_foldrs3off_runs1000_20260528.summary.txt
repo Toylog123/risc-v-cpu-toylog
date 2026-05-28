@@ -1,0 +1,13 @@
+log_path=D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\coremark7-dmips5-20260508\artifacts\fpga_valid_20260518\dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_foldrs3off_runs1000_20260528.log
+clock_hz=100000000
+runs=1000
+microseconds_per_run=4
+dhrystones_per_second=226212
+dmips=128.749004
+dmips_per_mhz=1.287490
+total_seconds=0.004421
+estimated_total_ticks=442063
+completion_cycles=485964
+benchmark=Dhrystone 2.2
+measurement_mode=host-parsed-from-uart-log
+competition_report_line=DMIPS/MHz (host-parsed): 1.287490 / Dhrystones/s 226212 / runs 1000
