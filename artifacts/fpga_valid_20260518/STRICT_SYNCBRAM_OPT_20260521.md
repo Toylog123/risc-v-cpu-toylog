@@ -1,4 +1,4 @@
-# Strict Sync-BRAM Optimization Record - 2026-05-21
+﻿# Strict Sync-BRAM Optimization Record - 2026-05-21
 
 This record tracks only hardware-side changes under the current PYNQ-Z2 / sync-BRAM validation line. CoreMark core workload files are not modified for these entries. CoreMark summaries are CRC-clean, short-runtime reproducible runs; a strict EEMBC public-valid report still requires a >=10 second run or board-level timing evidence.
 
@@ -14,9 +14,9 @@ Current frozen best valid candidate:
 
 | Commit | Tag | LUT | CoreMark/MHz | DMIPS/MHz | Hardware optimization point |
 |---|---|---:|---:|---:|---|
-| `49bcbf2` | `freeze-strict-dcache1024-nozbkb-9893lut-coremark5p66-20260526` | 9893 | 5.659572 | 1.287490 | DCache1024, RC128, branchfold next-cache, NT-load fold, no dynamic BHT, no ZBKB, DCache tag trim |
+| `this-commit` | `freeze-strict-rctagtrim-9796lut-coremark5p66-20260528` | 9796 | 5.659572 | 1.287490 | DCache1024, RC128, branchfold next-cache, NT-load fold, no dynamic BHT, no ZBKB, DCache tag trim, redirect-cache PC tag-width trim |
 
-Important handoff note: branch HEAD may contain later rejected-experiment commits. The best valid frozen point is the tag above, not necessarily HEAD.
+Important handoff note: the 9796-LUT row is the current RTL-level area improvement after the parameter space was exhausted. It preserves the 5.659572 CoreMark/MHz score and reduces LUT by trimming redirect-cache stored PC bits down to the actual tag bits.
 
 Next prepared experiment:
 
@@ -32,11 +32,19 @@ _tmp\run_coremark_ntfold_bht16.cmd
 
 Decision rule: promote only if CoreMark is CRC-clean (`0xfcaf`), the workload completes, Dhrystone is rerun for the exact candidate, and a matching LUT report is generated.
 
+2026-05-28 promotion evidence:
+
+- CoreMark summary: `coremark_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_iter10_20260528.summary.txt`
+- Dhrystone summary: `dhrystone_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_runs1000_20260528.summary.txt`
+- Synth util: `synth_util_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_9796lut_20260528.rpt`
+- Synth hierarchy: `synth_util_hier_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_9796lut_20260528.rpt`
+- Synth log: `pynq_synth_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_9796lut_20260528.log`
+
 ## Current Best Candidate Under 7000 LUT
 
 | Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Status | Hardware optimization point |
 |---|---:|---:|---:|---|---|
-| sync-BRAM baseline, RC1024 | 5938 | 3.413191 | 2.381087 | baseline | Current synchronous BRAM口径; no DMEM preissue |
+| sync-BRAM baseline, RC1024 | 5938 | 3.413191 | 2.381087 | baseline | Current synchronous BRAM鍙ｅ緞; no DMEM preissue |
 | DMEM preissue, RC1024 | 11064 | 3.767699 | 2.485060 | rejected | Earlier aligned word-load issue, but redirect cache area too high |
 | DMEM preissue, RC256 | 7226 | 3.755262 | TBD | rejected | Near-best performance, but exceeds 7000 LUT target |
 | DMEM preissue, RC128 | 6462 | 3.703951 | 2.485060 | current best | Keeps early aligned word-load issue while reducing redirect cache LUTRAM |
@@ -50,7 +58,7 @@ Decision rule: promote only if CoreMark is CRC-clean (`0xfcaf`), the workload co
 - Timing RC128: `synth_timing_xthead_baseupd_preissue_rc128_syncbram_cpu50_20260521.rpt`
 - RC256 rejected area reference: `synth_util_xthead_baseupd_preissue_rc256_syncbram_cpu50_20260521.rpt`
 
-## Strict口径 Notes
+## Strict鍙ｅ緞 Notes
 
 - Only RTL / microarchitecture options are counted here.
 - CoreMark algorithm files remain unchanged.
@@ -65,15 +73,15 @@ Decision rule: promote only if CoreMark is CRC-clean (`0xfcaf`), the workload co
 
 This freeze is a hardware-only exploration snapshot under the relaxed 10000-LUT cap. The CoreMark run keeps the public workload files unchanged and uses only RTL/microarchitecture and legal build/port-layer controls. The run is still marked as short-runtime because the simulator execution does not satisfy the EEMBC >=10 second public-valid runtime floor; the result is used for same-method hardware iteration and should be presented with that caveat. The copied synthesis timing report shows negative estimated WNS, so this point is not yet a timing-closed PYNQ-Z2 implementation result.
 
-Post-freeze rechecks on 2026-05-24 showed that the 9979-LUT number is not reproducible under the current corrected synthesis口径 using `RAM_BASE=32'h00010000`, `ROM_BYTES=65536`, and `RAM_BYTES=16384`. Keep the row above as a historical snapshot only; current engineering decisions must use the rechecked rows below.
+Post-freeze rechecks on 2026-05-24 showed that the 9979-LUT number is not reproducible under the current corrected synthesis鍙ｅ緞 using `RAM_BASE=32'h00010000`, `ROM_BYTES=65536`, and `RAM_BYTES=16384`. Keep the row above as a historical snapshot only; current engineering decisions must use the rechecked rows below.
 
 ## Current 2026-05-24 Strict Recheck
 
 | Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Status | Hardware optimization point |
 |---|---:|---:|---:|---|---|
-| DCache256 + RC128 + branchfold + dynamic BHT + NT-load fold + DCache load-use spec + tag trim + XThead MAC/base-update | 11594 | 5.220343 | TBD | area rejected under 10000 | Re-synthesized the high-score tag-trim path under the corrected RAM base and ROM/RAM size口径; score is valid for same-method comparison, but area is no longer below the 10000-LUT target |
+| DCache256 + RC128 + branchfold + dynamic BHT + NT-load fold + DCache load-use spec + tag trim + XThead MAC/base-update | 11594 | 5.220343 | TBD | area rejected under 10000 | Re-synthesized the high-score tag-trim path under the corrected RAM base and ROM/RAM size鍙ｅ緞; score is valid for same-method comparison, but area is no longer below the 10000-LUT target |
 | DCache256 + RC128 + branchfold + dynamic BHT + NT-load fold + DCache load-use spec + tag trim, no XCRC/no mempair/no base-update | 10298 | 5.150391 | TBD | area rejected under 10000 | Removes base-update and mempair hardware and disables XCRC while preserving the full CoreMark workload and CRC 0xfcaf; still slightly above 10000 LUT because DCache, fold-target decode and multiply datapath dominate |
-| DCache256 + RC128 + branchfold next-cache + BHT32 + tag trim, no NT-load fold/no XCRC/no mempair/no base-update | 9481 | 5.027695 | 1.261816 | superseded | Shrinks the dynamic branch predictor from 64 to 32 entries and removes the not-taken load fold path while preserving the branchfold next-cache path; this keeps CoreMark above 5 under the corrected synthesis口径 and reduces area below 10000 LUT |
+| DCache256 + RC128 + branchfold next-cache + BHT32 + tag trim, no NT-load fold/no XCRC/no mempair/no base-update | 9481 | 5.027695 | 1.261816 | superseded | Shrinks the dynamic branch predictor from 64 to 32 entries and removes the not-taken load fold path while preserving the branchfold next-cache path; this keeps CoreMark above 5 under the corrected synthesis鍙ｅ緞 and reduces area below 10000 LUT |
 | DCache256 + RC128 + branchfold next-cache + NT-load fold + BHT32 + tag trim, no XCRC/no mempair/no base-update | 9594 | 5.150391 | 1.261816 | superseded | Restores the not-taken load fold path on top of the BHT32 area reduction. This recovers the 5.15 CoreMark level while keeping the corrected synthesis path below 10000 LUT; Dhrystone is unchanged, indicating the gain is CoreMark front-end/load-use specific. |
 | DCache256 + RC128 + branchfold next-cache + NT-load fold + BHT16 + tag trim, no XCRC/no mempair/no base-update | 9163 | 5.150391 | 1.261816 | superseded | Reduces the dynamic branch predictor from 32 to 16 entries while preserving the measured CoreMark and Dhrystone results. This saves 431 LUT versus BHT32 and lowers predictor state without changing the benchmark workload. |
 | DCache256 + RC128 + branchfold next-cache + NT-load fold + BHT8 + tag trim, no XCRC/no mempair/no base-update | 8943 | 5.150391 | 1.261816 | superseded | Further reduces the dynamic BHT from 16 to 8 entries with no measured CoreMark or Dhrystone loss on the current workload. This saves 220 LUT versus BHT16 and 651 LUT versus BHT32, strengthening the low-area/low-state predictor story. |
@@ -82,7 +90,8 @@ Post-freeze rechecks on 2026-05-24 showed that the 9979-LUT number is not reprod
 | DCache256 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + tag trim, no XCRC/no mempair/no base-update | 8671 | 5.150524 | 1.261816 | superseded | Removes the dynamic BHT state entirely while keeping redirect-cache/next-cache and not-taken load fold. CoreMark and Dhrystone stay unchanged on the same workload, saving 118 LUT versus BHT2 and improving the low-power/low-state story. |
 | DCache512 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + tag trim, no XCRC/no mempair/no base-update | 9181 | 5.591969 | 1.287490 | superseded | Doubles DCache capacity from 256B to 512B while keeping the BHT-free front-end. This reduces CoreMark data-cache/load-use pressure and improves both CoreMark and Dhrystone while staying below 10000 LUT. |
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + tag trim, no XCRC/no mempair/no base-update | 9943 | 5.659572 | 1.287490 | superseded | Expands DCache to 1024B while retaining the BHT-free front end. CoreMark improves further and remains below the 10000-LUT cap, but the gain over DCache512 is modest and area margin is only 57 LUT. |
-| DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + tag trim, no XCRC/no mempair/no base-update | 9893 | 5.659572 | 1.287490 | current strict under-10000 candidate | Disables ZBKB in the current DCache1024 line. CoreMark and Dhrystone are unchanged, while LUT drops by 50 and leaves a slightly healthier margin below 10000. |
+| DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + tag trim, no XCRC/no mempair/no base-update | 9893 | 5.659572 | 1.287490 | superseded | Disables ZBKB in the current DCache1024 line. CoreMark and Dhrystone are unchanged, while LUT drops by 50 and leaves a slightly healthier margin below 10000. |
+| DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim, no XCRC/no mempair/no base-update | 9796 | 5.659572 | 1.287490 | current strict under-10000 candidate | Stores only the redirect-cache PC tag bits instead of the full 32-bit PC. CoreMark/Dhrystone are unchanged and LUT drops by another 97, making this the current best validated low-area RTL point. |
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB/no Zicond + tag trim, no XCRC/no mempair/no base-update | 9915 | 5.659572 | TBD | rejected | Disabling Zicond also preserves CoreMark, but synthesis increases LUT versus the no-ZBKB candidate, so Zicond is left enabled for the current best line. |
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB/no XThead condmove + tag trim, no XCRC/no mempair/no base-update | N/A | N/A | TBD | rejected | Disabling XThead conditional move caused CoreMark timeout at PC=0x00000478, so this path is required by the current compiled target or by the surrounding control/dataflow assumptions. |
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB/no Zbc + tag trim, no XCRC/no mempair/no base-update | N/A | N/A | TBD | rejected | Disabling Zbc caused CoreMark timeout at PC=0x00001b58, so Zbc remains required for the current compiled workload/hardware contract. |
@@ -141,13 +150,13 @@ Next optimization focus:
 | DCache256 + RC2048 + branchfold + dynamic BHT + NT-load fold + DCache load-use spec + tag trim | TBD | 5.446641 | TBD | synth timeout / area-risk | Valid CRC-clean simulation with diminishing gain over RC512/RC1024; synthesis was stopped after timeout and the candidate is not retained |
 | DCache256 + RC128 + ID ALU pair fold + branchfold + dynamic BHT + tag trim | N/A | N/A | TBD | rejected | Tried to fold a hot ALU pair in ID for hardware-side IPC improvement, but CoreMark timed out at PC=0x00001968 after 5,000,001 cycles |
 | DCache256 + RC128 + ID ALU dependency fold + branchfold + dynamic BHT + tag trim | N/A | N/A | TBD | rejected | Tried dependent ALU fold in ID, but CoreMark timed out at PC=0x000082e8 after 5,000,001 cycles |
-| DCache256 + RC128 + current corrected口径 re-synth of tag-trim base-update path | 11594 | 5.220343 | TBD | area rejected | Corrected the synthesis口径 to `RAM_BASE=32'h00010000`, `ROM_BYTES=65536`, `RAM_BYTES=16384`; the historical 9979-LUT area is not used as the current baseline |
-| DCache256 + RC128 + current corrected口径 no-base/no-mempair/no-XCRC path | 10298 | 5.150391 | TBD | area rejected | Legal hardware-only reduction path; CoreMark is CRC-clean, but area remains 298 LUT above the relaxed 10000-LUT target |
+| DCache256 + RC128 + current corrected鍙ｅ緞 re-synth of tag-trim base-update path | 11594 | 5.220343 | TBD | area rejected | Corrected the synthesis鍙ｅ緞 to `RAM_BASE=32'h00010000`, `ROM_BYTES=65536`, `RAM_BYTES=16384`; the historical 9979-LUT area is not used as the current baseline |
+| DCache256 + RC128 + current corrected鍙ｅ緞 no-base/no-mempair/no-XCRC path | 10298 | 5.150391 | TBD | area rejected | Legal hardware-only reduction path; CoreMark is CRC-clean, but area remains 298 LUT above the relaxed 10000-LUT target |
 | DCache256 + RC128 + no-base/no-mempair/no-XCRC/no-ZBKB path | 10319 | 5.150391 | TBD | rejected | ZBKB was not required by the executed workload, but disabling it changed synthesis structure and increased area, so the original ZBKB-enabled hardware remains preferred |
 | DCache256 + RC128 + branchfold only, no next-cache/no NT-load fold | TBD | 4.750792 | TBD | rejected | Removing both fold accelerators is CRC-clean but loses too much front-end performance |
 | DCache256 + RC128 + NT-load fold only, no branchfold next-cache | TBD | 4.860362 | TBD | rejected | Shows next-cache contributes more CoreMark benefit than NT-load fold for this workload |
 | DCache256 + RC128 + branchfold next-cache only, no NT-load fold, BHT64 | 10010 | 5.027695 | TBD | near miss | Keeps the high-value next-cache path and removes NT-load fold; score stays above 5 but area is 10 LUT above the 10000 target |
-| DCache256 + RC128 + branchfold next-cache only, no NT-load fold, BHT32 | 9481 | 5.027695 | 1.261816 | valid, superseded | BHT64 to BHT32 preserves CoreMark and saves enough control/register area to move the corrected口径 candidate below 10000 LUT |
+| DCache256 + RC128 + branchfold next-cache only, no NT-load fold, BHT32 | 9481 | 5.027695 | 1.261816 | valid, superseded | BHT64 to BHT32 preserves CoreMark and saves enough control/register area to move the corrected鍙ｅ緞 candidate below 10000 LUT |
 | DCache256 + RC128 + branchfold next-cache + NT-load fold, BHT32 | 9594 | 5.150391 | 1.261816 | valid, superseded | Adding back the not-taken load fold path costs 113 LUT over the 9481-LUT point and restores CoreMark to the corrected 5.15 level; benchmark workload remains unchanged and CRC stays 0xfcaf |
 | DCache256 + RC128 + branchfold next-cache + NT-load fold, BHT16 | 9163 | 5.150391 | 1.261816 | valid, superseded | BHT16 preserves the BHT32 CoreMark result and reduces synthesized LUT by 431; this is now the preferred low-resource configuration for the current corrected sync-BRAM line |
 | DCache256 + RC128 + branchfold next-cache + NT-load fold, BHT8 | 8943 | 5.150391 | 1.261816 | valid, superseded | BHT8 preserves the BHT16 score and cuts another 220 LUT; current workload behavior shows the front-end benefits come mainly from redirect-cache/next-cache and NT-load fold rather than a larger BHT table |
@@ -160,7 +169,8 @@ Next optimization focus:
 | DCache256 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, ICache enabled | N/A | N/A | TBD | rejected | Current ICache path timed out at PC=0x0000011c and is not valid for this sync-BRAM CoreMark line |
 | DCache512 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT | 9181 | 5.591969 | 1.287490 | valid, superseded | Increasing DCache to 512B sharply reduces load-use and memory-wait pressure while keeping area below the 10000-LUT cap; this is the current best strict hardware-only point |
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT | 9943 | 5.659572 | 1.287490 | valid, superseded | DCache1024 reduces CoreMark ticks again and still fits under 10000 LUT, although the area margin is tight; this becomes the current maximum-score strict point under the relaxed cap |
-| DCache1024 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB | 9893 | 5.659572 | 1.287490 | current strict under-10000 candidate | ZBKB is not exercised by this workload path; disabling it preserves score and frees 50 LUT, improving low-area evidence without changing benchmark code |
+| DCache1024 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB | 9893 | 5.659572 | 1.287490 | superseded | ZBKB is not exercised by this workload path; disabling it preserves score and frees 50 LUT, improving low-area evidence without changing benchmark code |
+| DCache1024 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB, redirect-cache tag-width trim | 9796 | 5.659572 | 1.287490 | current strict under-10000 candidate | Redirect cache stores only PC tag bits, not the full PC. This preserves CoreMark CRC `0xfcaf` and Dhrystone while saving 97 LUT versus the previous frozen best |
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB/no Zicond | 9915 | 5.659572 | TBD | rejected | Zicond removal changes synthesis packing unfavorably and costs 22 LUT versus no-ZBKB, so it is not retained |
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB/no XThead condmove | N/A | N/A | TBD | rejected | CoreMark timeout at PC=0x00000478; not a safe hardware trim |
 | DCache1024 + RC128 + branchfold next-cache + NT-load fold, no dynamic BHT, no ZBKB/no Zbc | N/A | N/A | TBD | rejected | CoreMark timeout at PC=0x00001b58; not a safe hardware trim |
@@ -305,3 +315,6 @@ Evidence:
 - Rejected log: `coremark_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_noexfwd_iter10_20260527.log`
 - Rejected log: `coremark_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_wordonly_iter10_20260527.log`
 - Incomplete log (interrupted): `coremark_fpga_dcache512_rc128_ntfold_nobht_nozbkb_iter10_20260527.log`
+
+
+

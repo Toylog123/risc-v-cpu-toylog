@@ -108,6 +108,8 @@ module YH_rv_cpu #(
 localparam integer SHAMT_W = $clog2(XLEN);
 localparam integer REDIRECT_CACHE_INDEX_BITS = $clog2(REDIRECT_CACHE_ENTRIES);
 localparam integer REDIRECT_CACHE_INDEX_MSB = REDIRECT_CACHE_INDEX_BITS + 1;
+localparam integer REDIRECT_CACHE_TAG_W = XLEN - REDIRECT_CACHE_INDEX_MSB - 1;
+localparam integer REDIRECT_CACHE_TAG_LSB = REDIRECT_CACHE_INDEX_MSB + 1;
 localparam integer BRANCH_BHT_INDEX_BITS = $clog2(BRANCH_BHT_ENTRIES);
 localparam integer DCACHEABLE_BYTES =
     (DCACHEABLE_LIMIT > DCACHEABLE_BASE) ? (DCACHEABLE_LIMIT - DCACHEABLE_BASE) : 1;
@@ -144,7 +146,7 @@ reg [XLEN-1:0] fetch_buf1_pc_r;       // 取指缓冲区 1 PC
 reg [31:0]     fetch_buf1_instruction_r; // 取指缓冲区 1 指令
 reg            redirect_cache_valid_r [0:REDIRECT_CACHE_ENTRIES-1];
 (* ram_style = "distributed" *)
-reg [XLEN-1:0] redirect_cache_pc_r [0:REDIRECT_CACHE_ENTRIES-1];
+reg [REDIRECT_CACHE_TAG_W-1:0] redirect_cache_pc_r [0:REDIRECT_CACHE_ENTRIES-1];
 (* ram_style = "distributed" *)
 reg [31:0]     redirect_cache_instruction_r [0:REDIRECT_CACHE_ENTRIES-1];
 integer        redirect_cache_reset_idx;
@@ -1677,7 +1679,7 @@ assign redirect_cache_lookup_valid =
 assign redirect_cache_hit =
     redirect_cache_lookup_valid &&
     redirect_cache_valid_r[redirect_cache_lookup_index] &&
-    (redirect_cache_pc_r[redirect_cache_lookup_index] == fetch_control_redirect_pc);
+    (redirect_cache_pc_r[redirect_cache_lookup_index] == fetch_control_redirect_pc[XLEN-1:REDIRECT_CACHE_TAG_LSB]);
 assign redirect_cache_deliver = redirect_cache_hit;
 assign redirect_cache_instruction = redirect_cache_instruction_r[redirect_cache_lookup_index];
 generate
@@ -1693,7 +1695,7 @@ if (ENABLE_ID_BRANCH_FOLD_NEXT_CACHE != 0) begin : gen_branch_fold_next_cache
     assign fold_next_cache_hit =
         id_branch_fold_valid &&
         redirect_cache_valid_r[fold_next_cache_lookup_index] &&
-        (redirect_cache_pc_r[fold_next_cache_lookup_index] == fold_next_cache_pc);
+        (redirect_cache_pc_r[fold_next_cache_lookup_index] == fold_next_cache_pc[XLEN-1:REDIRECT_CACHE_TAG_LSB]);
     assign fold_next_cache_deliver = fold_next_cache_hit;
     assign fold_next_cache_instruction = redirect_cache_instruction_r[fold_next_cache_lookup_index];
 end else begin : gen_no_branch_fold_next_cache
@@ -1715,7 +1717,7 @@ assign not_taken_next_cache_lookup_index =
     (REDIRECT_CACHE_XOR_INDEX != 0) ? not_taken_next_cache_lookup_index_xor : not_taken_next_cache_lookup_index_direct;
 assign not_taken_next_cache_match =
     redirect_cache_valid_r[not_taken_next_cache_lookup_index] &&
-    (redirect_cache_pc_r[not_taken_next_cache_lookup_index] == id_branch_not_taken_next_pc);
+    (redirect_cache_pc_r[not_taken_next_cache_lookup_index] == id_branch_not_taken_next_pc[XLEN-1:REDIRECT_CACHE_TAG_LSB]);
 assign not_taken_next_cache_hit =
     (id_branch_not_taken_fold_valid || id_early_alu_pair_valid || id_alu_dep_fold_valid) &&
     not_taken_next_cache_match;
@@ -1749,7 +1751,7 @@ assign regular_cache_lookup_valid =
 assign regular_cache_hit =
     regular_cache_lookup_valid &&
     redirect_cache_valid_r[regular_cache_lookup_index] &&
-    (redirect_cache_pc_r[regular_cache_lookup_index] == ifetch_addr);
+    (redirect_cache_pc_r[regular_cache_lookup_index] == ifetch_addr[XLEN-1:REDIRECT_CACHE_TAG_LSB]);
 assign regular_cache_deliver = regular_cache_hit;
 assign regular_cache_instruction = redirect_cache_instruction_r[regular_cache_lookup_index];
 
@@ -2996,7 +2998,7 @@ end
 
 always @(posedge clk) begin
     if (rst_n && !trap_r && redirect_cache_update_valid) begin
-        redirect_cache_pc_r[redirect_cache_update_index] <= fetch_queue_pc;
+        redirect_cache_pc_r[redirect_cache_update_index] <= fetch_queue_pc[XLEN-1:REDIRECT_CACHE_TAG_LSB];
         redirect_cache_instruction_r[redirect_cache_update_index] <= fetch_queue_instruction;
     end
 end

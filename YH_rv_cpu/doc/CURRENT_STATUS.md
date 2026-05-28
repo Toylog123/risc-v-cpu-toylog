@@ -1,6 +1,6 @@
-# CURRENT_STATUS
+﻿# CURRENT_STATUS
 
-> Updated: `2026-05-26`
+> Updated: `2026-05-28`
 > Branch: `codex/syncbram-h22-20260514`
 > Current optimization line: strict/public sync-BRAM hardware-only CoreMark/Dhrystone optimization
 
@@ -10,23 +10,23 @@
   `artifacts/fpga_valid_20260518/SYNCBRAM_OPT_HANDOFF_20260526.md`
 - Main experiment ledger:
   `artifacts/fpga_valid_20260518/STRICT_SYNCBRAM_OPT_20260521.md`
-- Current frozen best strict under-10000 LUT candidate:
-  - commit: `49bcbf2`
-  - tag: `freeze-strict-dcache1024-nozbkb-9893lut-coremark5p66-20260526`
-  - LUT: `9893`
+- Current validated best strict under-10000 LUT candidate:
+  - commit: `this-commit`
+  - tag: `freeze-strict-rctagtrim-9796lut-coremark5p66-20260528`
+  - LUT: `9796`
   - CoreMark/MHz: `5.659572`
   - DMIPS/MHz: `1.287490`
 - Candidate configuration:
-  `DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim`
+  `DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
 - Evidence:
-  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_iter10_20260526.summary.txt`
-  - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_runs1000_20260526.summary.txt`
-  - `artifacts/fpga_valid_20260518/synth_util_dcache1024_rc128_ntfold_nobht_nozbkb_9893lut_20260526.rpt`
-  - `artifacts/fpga_valid_20260518/synth_util_hier_dcache1024_rc128_ntfold_nobht_nozbkb_9893lut_20260526.rpt`
+  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_iter10_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_runs1000_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/synth_util_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_9796lut_20260528.rpt`
+  - `artifacts/fpga_valid_20260518/synth_util_hier_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_9796lut_20260528.rpt`
 - Important caveat:
   CoreMark is full-workload and CRC-clean, but the retained evidence is a short reproducible run and records `strict_eembc_10s_compliant=no`.
 - Takeover rule:
-  HEAD currently includes later rejected-experiment commits. Do not assume HEAD is the best valid candidate; use the tag above as the current frozen best.
+  Freeze the validated 2026-05-28 redirect-cache tag-width trim before starting another invasive RTL experiment.
 
 > Updated: `2026-05-14 17:50`
 > Branch: `opt/coremark8-hw-20260512`
@@ -69,91 +69,91 @@ merged into this Method A score without a matching sync BRAM run.
 
 ## DCache/ICache Integration Status
 
-### Phase 1: DCache Integration (RTL修改完成，待功能验证)
+### Phase 1: DCache Integration (RTL淇敼瀹屾垚锛屽緟鍔熻兘楠岃瘉)
 **Date:** 2026-04-27
 
-**RTL修改完成，iverilog编译验证通过：**
-- `rtl/YH_rv_cpu.v` (+74行): dcache信号声明、gen_dcache块实例化、mem_wait修复
-- `rtl/YH_rv_cpu_hazard_unit.v` (+14行): dcache_wait输入、stall_decode逻辑
-- `rtl/YH_rv_cpu_soc.v` (+6行): dmem_we/dmem_ready接口信号
+**RTL淇敼瀹屾垚锛宨verilog缂栬瘧楠岃瘉閫氳繃锛?*
+- `rtl/YH_rv_cpu.v` (+74琛?: dcache淇″彿澹版槑銆乬en_dcache鍧楀疄渚嬪寲銆乵em_wait淇
+- `rtl/YH_rv_cpu_hazard_unit.v` (+14琛?: dcache_wait杈撳叆銆乻tall_decode閫昏緫
+- `rtl/YH_rv_cpu_soc.v` (+6琛?: dmem_we/dmem_ready鎺ュ彛淇″彿
 
 **DCACHE_EN Parameter:**
-- `0`: 直连dmem路径（原有行为）
-- `1`: 通过dcache连接（代码框架完成）
+- `0`: 鐩磋繛dmem璺緞锛堝師鏈夎涓猴級
+- `1`: 閫氳繃dcache杩炴帴锛堜唬鐮佹鏋跺畬鎴愶級
 
-**功能测试状态（历史记录）：**
+**鍔熻兘娴嬭瘯鐘舵€侊紙鍘嗗彶璁板綍锛夛細**
 
-| 测试项 | 结果 | 日期 | 说明 |
+| 娴嬭瘯椤?| 缁撴灉 | 鏃ユ湡 | 璇存槑 |
 |--------|------|------|------|
-| M扩展测试 | **12/13 FAIL** | 2026-04-22 | MUL/DIV/REM指令有bug，非本次修改引入 |
-| CoreMark Short | **0.925186 CoreMark/MHz** | 2026-04-12 | PASS，短运行，competition_reportable=yes |
-| riscv-tests rv32 | **42/42 PASS** | 2026-04-12 | full-ui测试 |
+| M鎵╁睍娴嬭瘯 | **12/13 FAIL** | 2026-04-22 | MUL/DIV/REM鎸囦护鏈塨ug锛岄潪鏈淇敼寮曞叆 |
+| CoreMark Short | **0.925186 CoreMark/MHz** | 2026-04-12 | PASS锛岀煭杩愯锛宑ompetition_reportable=yes |
+| riscv-tests rv32 | **42/42 PASS** | 2026-04-12 | full-ui娴嬭瘯 |
 
-**2026-04-27 测试记录：**
-- M扩展测试：stable版本(eab5713)运行结果0/11通过（寄存器='z'，CPU未运行）
-  - 原因：prj文件不包含完整RTL模块链
-  - M扩展已知问题：ALU实现bug，12/13 FAIL from 2026-04-22
-- riscv-tests: 之前运行PASS
+**2026-04-27 娴嬭瘯璁板綍锛?*
+- M鎵╁睍娴嬭瘯锛歴table鐗堟湰(eab5713)杩愯缁撴灉0/11閫氳繃锛堝瘎瀛樺櫒='z'锛孋PU鏈繍琛岋級
+  - 鍘熷洜锛歱rj鏂囦欢涓嶅寘鍚畬鏁碦TL妯″潡閾?
+  - M鎵╁睍宸茬煡闂锛欰LU瀹炵幇bug锛?2/13 FAIL from 2026-04-22
+- riscv-tests: 涔嬪墠杩愯PASS
 
-**Git Tag备份点：**
-- `v-before-current-test-2026-04-27` - DCACHE集成修改前备份
-- `v-baseline-m-ext-known-issue-2026-04-27` - M扩展已知问题状态
+**Git Tag澶囦唤鐐癸細**
+- `v-before-current-test-2026-04-27` - DCACHE闆嗘垚淇敼鍓嶅浠?
+- `v-baseline-m-ext-known-issue-2026-04-27` - M鎵╁睍宸茬煡闂鐘舵€?
 
-**2026-04-27 测试验证结果：**
-| 测试项 | 结果 | 日期 | 说明 |
+**2026-04-27 娴嬭瘯楠岃瘉缁撴灉锛?*
+| 娴嬭瘯椤?| 缁撴灉 | 鏃ユ湡 | 璇存槑 |
 |--------|------|------|------|
-| 基本CPU测试 | **PASS** | 2026-04-27 | x3=15 x6=42 dmem0=15 |
-| M扩展测试 | **9/10 PASS** | 2026-04-27 | m_correct版本，仅MULHSU失败 |
-| riscv-tests | **42/42 PASS** | 2026-04-12 | 历史基线 |
-| CoreMark | **0.925186** | 2026-04-12 | 历史基线 |
+| 鍩烘湰CPU娴嬭瘯 | **PASS** | 2026-04-27 | x3=15 x6=42 dmem0=15 |
+| M鎵╁睍娴嬭瘯 | **9/10 PASS** | 2026-04-27 | m_correct鐗堟湰锛屼粎MULHSU澶辫触 |
+| riscv-tests | **42/42 PASS** | 2026-04-12 | 鍘嗗彶鍩虹嚎 |
+| CoreMark | **0.925186** | 2026-04-12 | 鍘嗗彶鍩虹嚎 |
 
-**M扩展状态分析：**
+**M鎵╁睍鐘舵€佸垎鏋愶細**
 - MUL/MULH/MULHU: PASS
 - DIV/DIVU/REM/REMU: PASS  
-- MULHSU: FAIL (可能实现问题或测试预期错误)
-- 相比之前12/13 FAIL，现9/10 PASS有改善
+- MULHSU: FAIL (鍙兘瀹炵幇闂鎴栨祴璇曢鏈熼敊璇?
+- 鐩告瘮涔嬪墠12/13 FAIL锛岀幇9/10 PASS鏈夋敼鍠?
 
-**结论：DCACHE集成RTL正确，CPU基本功能正常。**
+**缁撹锛欴CACHE闆嗘垚RTL姝ｇ‘锛孋PU鍩烘湰鍔熻兘姝ｅ父銆?*
 
 **Pending Verification:**
-- [x] 基本CPU测试 - PASS
-- [x] M扩展测试 - 已知问题，非本次修改引入
-- [ ] riscv-tests rv32 重新验证 (DCACHE_EN=0)
-- [ ] riscv-tests rv64 重新验证 (DCACHE_EN=0)
-- [ ] CoreMark Smoke测试 (DCACHE_EN=0)
-- [ ] CoreMark Smoke测试 (DCACHE_EN=1)
+- [x] 鍩烘湰CPU娴嬭瘯 - PASS
+- [x] M鎵╁睍娴嬭瘯 - 宸茬煡闂锛岄潪鏈淇敼寮曞叆
+- [ ] riscv-tests rv32 閲嶆柊楠岃瘉 (DCACHE_EN=0)
+- [ ] riscv-tests rv64 閲嶆柊楠岃瘉 (DCACHE_EN=0)
+- [ ] CoreMark Smoke娴嬭瘯 (DCACHE_EN=0)
+- [ ] CoreMark Smoke娴嬭瘯 (DCACHE_EN=1)
 - [ ] riscv-tests (DCACHE_EN=1)
-- [ ] CoreMark Score测试 (DCACHE_EN=1)
+- [ ] CoreMark Score娴嬭瘯 (DCACHE_EN=1)
 
-### Phase 2: ICache Integration (尝试完成，存在Block RAM时序问题)
+### Phase 2: ICache Integration (灏濊瘯瀹屾垚锛屽瓨鍦˙lock RAM鏃跺簭闂)
 **Date:** 2026-04-28
 
-**ICACHE集成状态：**
-- `rtl/YH_rv_cpu_icache.v` 已实现完整的直接映射指令缓存
-- `rtl/YH_rv_cpu_hazard_unit.v` 已添加 icache_wait 输入
-- `rtl/YH_rv_cpu.v` 已修复 imem_req 多驱动冲突
+**ICACHE闆嗘垚鐘舵€侊細**
+- `rtl/YH_rv_cpu_icache.v` 宸插疄鐜板畬鏁寸殑鐩存帴鏄犲皠鎸囦护缂撳瓨
+- `rtl/YH_rv_cpu_hazard_unit.v` 宸叉坊鍔?icache_wait 杈撳叆
+- `rtl/YH_rv_cpu.v` 宸蹭慨澶?imem_req 澶氶┍鍔ㄥ啿绐?
 
-**核心问题：Block RAM同步读时序问题**
-- Block RAM在同一个时钟周期内写后读返回旧数据
-- ICACHE需要立即返回刚写入的缓存数据给CPU
-- 多次尝试解决方案均失败：STATE_BACKFILL、distributed RAM等
-- **当前状态**: ICACHE_EN=0，保持稳定
+**鏍稿績闂锛欱lock RAM鍚屾璇绘椂搴忛棶棰?*
+- Block RAM鍦ㄥ悓涓€涓椂閽熷懆鏈熷唴鍐欏悗璇昏繑鍥炴棫鏁版嵁
+- ICACHE闇€瑕佺珛鍗宠繑鍥炲垰鍐欏叆鐨勭紦瀛樻暟鎹粰CPU
+- 澶氭灏濊瘯瑙ｅ喅鏂规鍧囧け璐ワ細STATE_BACKFILL銆乨istributed RAM绛?
+- **褰撳墠鐘舵€?*: ICACHE_EN=0锛屼繚鎸佺ǔ瀹?
 
-**Git提交历史：**
+**Git鎻愪氦鍘嗗彶锛?*
 ```
-00d9691 feat: ICACHE STATE_BACKFILL方案尝试 - CPU先获取数据后继续填充
-45f58f3 feat: ICACHE尝试使用distributed RAM解决block RAM时序问题
-70f03be fix: ICACHE集成修复 - imem_req冲突和hazard unit连接
+00d9691 feat: ICACHE STATE_BACKFILL鏂规灏濊瘯 - CPU鍏堣幏鍙栨暟鎹悗缁х画濉厖
+45f58f3 feat: ICACHE灏濊瘯浣跨敤distributed RAM瑙ｅ喅block RAM鏃跺簭闂
+70f03be fix: ICACHE闆嗘垚淇 - imem_req鍐茬獊鍜宧azard unit杩炴帴
 02358a5 fix: icache refill offset comparison using miss_addr_r not addr
 36d8ee3 fix: icache hit_way_r update in COMPARE state for correct tag selection
 ```
 
-**稳定基线（ICACHE_EN=0, DCACHE_EN=0）：**
-| 测试项 | 结果 | 日期 |
+**绋冲畾鍩虹嚎锛圛CACHE_EN=0, DCACHE_EN=0锛夛細**
+| 娴嬭瘯椤?| 缁撴灉 | 鏃ユ湡 |
 |--------|------|------|
 | CoreMark Score | **0.925186 CM/MHz** | 2026-04-28 |
-| M扩展测试 | 9/10 PASS | 2026-04-27 |
-| riscv-tests rv32 | 42/42 PASS | 历史 |
+| M鎵╁睍娴嬭瘯 | 9/10 PASS | 2026-04-27 |
+| riscv-tests rv32 | 42/42 PASS | 鍘嗗彶 |
 
 ## Frozen engineering baseline
 
@@ -235,11 +235,11 @@ merged into this Method A score without a matching sync BRAM run.
 ## Recommended next step
 
 ### DCache/ICache Integration Path:
-1. **Immediate:** 手动运行测试验证DCACHE_EN=0路径仍正常
+1. **Immediate:** 鎵嬪姩杩愯娴嬭瘯楠岃瘉DCACHE_EN=0璺緞浠嶆甯?
    - `scripts\run_m_extension_test.bat`
    - `scripts\run_coremark_smoke.bat rv32`
-2. **验证通过后:** 切换DCACHE_EN=1，运行相同测试
-3. **ICache集成:** DCache验证通过后开始
+2. **楠岃瘉閫氳繃鍚?** 鍒囨崲DCACHE_EN=1锛岃繍琛岀浉鍚屾祴璇?
+3. **ICache闆嗘垚:** DCache楠岃瘉閫氳繃鍚庡紑濮?
 
 ### Legacy Optimization Path (if time permits):
 - First finish freeze-refresh on the retained RTL:
@@ -259,4 +259,7 @@ merged into this Method A score without a matching sync BRAM run.
 - `YH_rv_cpu/doc/YH_rv_cpu_todo.md`
 - `YH_rv_cpu/doc/YH_rv_cpu_change_log.md`
 - `YH_rv_cpu/doc/performance_experiment_log.md`
-- `YH_rv_cpu/doc/cache_axi_integration_design.md` (DCache/ICache设计)
+- `YH_rv_cpu/doc/cache_axi_integration_design.md` (DCache/ICache璁捐)
+
+
+

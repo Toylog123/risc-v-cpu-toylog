@@ -1,6 +1,6 @@
-# Sync-BRAM CoreMark Optimization Handoff
+﻿# Sync-BRAM CoreMark Optimization Handoff
 
-Updated: 2026-05-27
+Updated: 2026-05-28
 
 ## 1. Project Scope
 
@@ -18,7 +18,7 @@ Active branch:
 codex/syncbram-h22-20260514
 ```
 
-Primary rule: keep all engineering optimization in this English-path worktree. Do not use `01-项目管理` as an engineering source path because the submission material there is treated as frozen/project-management material.
+Primary rule: keep all engineering optimization in this English-path worktree. Do not use `01-椤圭洰绠＄悊` as an engineering source path because the submission material there is treated as frozen/project-management material.
 
 ## 2. Current Best Frozen Candidate
 
@@ -26,24 +26,24 @@ Best strict under-10000 LUT candidate:
 
 | Commit | Tag | LUT | CoreMark/MHz | DMIPS/MHz | Status |
 |---|---|---:|---:|---:|---|
-| `49bcbf2` | `freeze-strict-dcache1024-nozbkb-9893lut-coremark5p66-20260526` | 9893 | 5.659572 | 1.287490 | current frozen best |
+| `this-commit` | `freeze-strict-rctagtrim-9796lut-coremark5p66-20260528` | 9796 | 5.659572 | 1.287490 | current validated best |
 
 Configuration summary:
 
 ```text
 DCache1024 + RC128 + branchfold next-cache + NT-load fold
-no dynamic BHT + no ZBKB + DCache tag trim
+no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim
 sync-BRAM / PYNQ-Z2-oriented path
 ```
 
 Evidence files:
 
 ```text
-artifacts/fpga_valid_20260518/coremark_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_iter10_20260526.summary.txt
-artifacts/fpga_valid_20260518/dhrystone_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_runs1000_20260526.summary.txt
-artifacts/fpga_valid_20260518/synth_util_dcache1024_rc128_ntfold_nobht_nozbkb_9893lut_20260526.rpt
-artifacts/fpga_valid_20260518/synth_util_hier_dcache1024_rc128_ntfold_nobht_nozbkb_9893lut_20260526.rpt
-artifacts/fpga_valid_20260518/pynq_synth_dcache1024_rc128_ntfold_nobht_nozbkb_9893lut_20260526.log
+artifacts/fpga_valid_20260518/coremark_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_iter10_20260528.summary.txt
+artifacts/fpga_valid_20260518/dhrystone_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_runs1000_20260528.summary.txt
+artifacts/fpga_valid_20260518/synth_util_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_9796lut_20260528.rpt
+artifacts/fpga_valid_20260518/synth_util_hier_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_9796lut_20260528.rpt
+artifacts/fpga_valid_20260518/pynq_synth_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_9796lut_20260528.log
 ```
 
 Important measurement caveat:
@@ -56,7 +56,7 @@ Do not present it as an official 10-second EEMBC-compliant run unless a 10-secon
 
 ## 3. Rules That Must Not Be Broken
 
-Strict/public口径:
+Strict/public鍙ｅ緞:
 
 - Only optimize hardware RTL, parameters, SoC structure, board integration, or allowed port layer details.
 - Do not modify CoreMark algorithm files:
@@ -87,9 +87,10 @@ Recent commits:
 | `059f69c` | recorded no-Zbc timeout |
 | `c2b7c46` | recorded no-XThead-condmove timeout |
 | `cb60452` | recorded no-Zicond area regression |
-| `49bcbf2` | current best frozen valid candidate |
+| `this-commit` | current best validated redirect-cache tag-width trim candidate |
+| `49bcbf2` | previous best frozen valid candidate |
 
-Do not assume HEAD is the best valid build. Use the tag above as the current best freeze.
+Do not assume old tags are the best valid build. The 2026-05-28 redirect-cache tag-width trim is the current best validated RTL candidate and should be frozen before new architectural experiments.
 
 ## 5. Rejected Or Superseded Paths
 
@@ -115,7 +116,7 @@ artifacts/fpga_valid_20260518/STRICT_SYNCBRAM_OPT_20260521.md
 
 ## 6. Current Work-In-Progress
 
-**Parameter space is fully explored.** All viable parameter combinations have been tested:
+**Parameter space is fully explored.** All viable parameter combinations have been tested. Further gains now require RTL-level area changes:
 
 - DCache: 128 (timeout), 256 (5.22), 512 (5.59), 1024 (5.66 best), 2048 (over budget)
 - RC: 64 (timeout), 128 (best), 256 (over budget)
@@ -125,7 +126,7 @@ artifacts/fpga_valid_20260518/STRICT_SYNCBRAM_OPT_20260521.md
 - Word-only / fetch redirect reuse / XOR index: all tested, rejected
 - Non-power-of-2 sizes: invalid (X propagation)
 
-No new parameter-level experiments remain. Any further improvement requires RTL-level changes beyond parameter tuning.
+No new parameter-level experiments remain. The first successful RTL-level area change is redirect-cache tag-width trim, which saves 97 LUT without changing CoreMark/Dhrystone.
 
 ## 7. Standard Experiment Flow
 
@@ -147,7 +148,7 @@ Use this one-variable-at-a-time loop:
 
 Recommended concise report format to the user:
 
-| LUT | CoreMark/MHz | DMIPS/MHz | 技术优化点 |
+| LUT | CoreMark/MHz | DMIPS/MHz | 鎶€鏈紭鍖栫偣 |
 |---:|---:|---:|---|
 | value | value | value | short candidate name |
 
@@ -161,7 +162,9 @@ Recommended concise report format to the user:
 | T04 | No EX-branch-forward | completed | P0 | rejected (5.480 CM/MHz, 3.2% regression) | Done |
 | T05 | Word-only cache | completed | P0 | rejected (4.783 CM/MHz, 15% regression) | Done |
 | T06 | Non-power-of-2 DCache/RC | completed | P0 | invalid (X propagation) | Done |
-| T07 | Parameter space exhausted | completed | P0 | all viable combinations tested | Frozen best is final |
+| T07 | Parameter space exhausted | completed | P0 | all viable combinations tested | Use RTL-level changes only |
+| T08 | Redirect-cache tag-width trim | completed | P0 | 9796 LUT, 5.659572 CoreMark/MHz, 1.287490 DMIPS/MHz | Freeze as current best |
+| T09 | Explore 5k-class low-area path | pending | P0 | Reproduce or migrate 4739/5742/5908 LUT historical candidates under current strict鍙ｅ緞 | Start from historical low-area summaries and re-run exact configs |
 
 ## 9. Commands For Takeover
 
@@ -197,24 +200,24 @@ Do not kill Vivado processes that belong to another project path.
 
 ## 11. Final Assessment (2026-05-27)
 
-The parameter-level optimization space is **fully exhausted**. Every viable combination of DCache size, redirect cache size, branch prediction mode, fold accelerators, forwarding paths, and cache features has been tested with CRC-validated CoreMark simulation.
+The parameter-level optimization space is **fully exhausted**. Every viable combination of DCache size, redirect cache size, branch prediction mode, fold accelerators, forwarding paths, and cache features has been tested with CRC-validated CoreMark simulation. On 2026-05-28, an RTL-level redirect-cache tag-width trim reduced the best candidate from 9893 to 9796 LUT without changing CoreMark or Dhrystone.
 
 **Area breakdown of frozen best (9893 LUT):**
 
 | Module | LUT | % |
 |---|---:|---:|
-| DCache | 6039 | 61% |
+| DCache | 6048 | 62% |
 | Regfile | 1667 | 17% |
-| fold_target_id_stage | 534 | 5% |
-| Other (ALU, hazard, decoder, etc.) | 1653 | 17% |
+| fold_target_id_stage | 559 | 6% |
+| Other (ALU, hazard, decoder, etc.) | 1522 | 15% |
 
 All modules are at or near functional minimum. DCache cannot be reduced without losing performance (DCache512 = 5.59 CM/MHz, 14% worse). Regfile has 6 read + 2 write ports, all used by the fold pipeline. The fold decoder requires full ISA decode for correctness.
 
 **Possible but high-risk RTL directions:**
-1. Simplify redirect cache structure (reduce bits/entry) — requires RTL modification
-2. Remove fold rs3 port — historical attempt caused timeout
-3. Simplify fold decoder — historical attempt caused timeout
-4. Reduce DCache tag width further — already at minimum
+1. Simplify redirect cache structure (reduce bits/entry) 鈥?requires RTL modification
+2. Remove fold rs3 port 鈥?historical attempt caused timeout
+3. Simplify fold decoder 鈥?historical attempt caused timeout
+4. Reduce DCache tag width further 鈥?already at minimum
 
 **Recommendation:** The frozen best at 9893 LUT / 5.660 CoreMark/MHz / 1.287 DMIPS/MHz represents the practical performance ceiling under the 10000-LUT constraint with parameter-level tuning. Further improvement requires significant RTL architectural changes with uncertain risk/reward.
 
@@ -223,45 +226,48 @@ All modules are at or near functional minimum. DCache cannot be reduced without 
 Copy this prompt to the next agent:
 
 ```text
-你接手的是 YH_rv_cpu 的严格口径硬件优化任务。工作目录是：
+浣犳帴鎵嬬殑鏄?YH_rv_cpu 鐨勪弗鏍煎彛寰勭‖浠朵紭鍖栦换鍔°€傚伐浣滅洰褰曟槸锛?
 D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\coremark7-dmips5-20260508
 
-当前分支是：
+褰撳墠鍒嗘敮鏄細
 codex/syncbram-h22-20260514
 
-先读这些文件：
+鍏堣杩欎簺鏂囦欢锛?
 1. artifacts/fpga_valid_20260518/SYNCBRAM_OPT_HANDOFF_20260526.md
 2. artifacts/fpga_valid_20260518/STRICT_SYNCBRAM_OPT_20260521.md
 3. YH_rv_cpu/doc/CURRENT_STATUS.md
 4. .codex-handoff.json
 
-当前最佳冻结版本不是 HEAD，而是：
+褰撳墠鏈€浣冲喕缁撶増鏈笉鏄?HEAD锛岃€屾槸锛?
 commit 49bcbf2
 tag freeze-strict-dcache1024-nozbkb-9893lut-coremark5p66-20260526
 
-当前最佳严格指标：
+褰撳墠鏈€浣充弗鏍兼寚鏍囷細
 9893 LUT
 5.659572 CoreMark/MHz
 1.287490 DMIPS/MHz
 
-参数空间已完全穷尽。所有可行的参数组合均已测试并记录：
-- DCache: 128/256/512/1024/2048 → 1024 最优
-- RC: 64/128/256 → 128 最优
-- 静态预测: mode 0/1/2 → mode 0 最优
-- BHT: 禁用最优，所有尺寸已测
-- 分支折叠/NT-load折叠/EX转发/RC查找: 全部已测，启用最优
-- word-only/fetch redirect reuse/XOR index: 全部已测，拒绝
-- 非2的幂尺寸: 无效（X传播）
+鍙傛暟绌洪棿宸插畬鍏ㄧ┓灏姐€傛墍鏈夊彲琛岀殑鍙傛暟缁勫悎鍧囧凡娴嬭瘯骞惰褰曪細
+- DCache: 128/256/512/1024/2048 鈫?1024 鏈€浼?
+- RC: 64/128/256 鈫?128 鏈€浼?
+- 闈欐€侀娴? mode 0/1/2 鈫?mode 0 鏈€浼?
+- BHT: 绂佺敤鏈€浼橈紝鎵€鏈夊昂瀵稿凡娴?
+- 鍒嗘敮鎶樺彔/NT-load鎶樺彔/EX杞彂/RC鏌ユ壘: 鍏ㄩ儴宸叉祴锛屽惎鐢ㄦ渶浼?
+- word-only/fetch redirect reuse/XOR index: 鍏ㄩ儴宸叉祴锛屾嫆缁?
+- 闈?鐨勫箓灏哄: 鏃犳晥锛圶浼犳挱锛?
 
-没有任何新的参数级实验可以做。任何进一步改进需要 RTL 级别的架构修改，而不仅仅是参数调优。
+娌℃湁浠讳綍鏂扮殑鍙傛暟绾у疄楠屽彲浠ュ仛銆備换浣曡繘涓€姝ユ敼杩涢渶瑕?RTL 绾у埆鐨勬灦鏋勪慨鏀癸紝鑰屼笉浠呬粎鏄弬鏁拌皟浼樸€?
 
-必须遵守：
-- 只能做硬件 RTL/参数/SoC 结构优化。
-- 不要修改 CoreMark 核心算法文件。
-- 所有指标必须 CRC 通过、日志可追溯、LUT 报告可追溯。
-- 不要碰 01-项目管理 的冻结提交材料。
+蹇呴』閬靛畧锛?
+- 鍙兘鍋氱‖浠?RTL/鍙傛暟/SoC 缁撴瀯浼樺寲銆?
+- 涓嶈淇敼 CoreMark 鏍稿績绠楁硶鏂囦欢銆?
+- 鎵€鏈夋寚鏍囧繀椤?CRC 閫氳繃銆佹棩蹇楀彲杩芥函銆丩UT 鎶ュ憡鍙拷婧€?
+- 涓嶈纰?01-椤圭洰绠＄悊 鐨勫喕缁撴彁浜ゆ潗鏂欍€?
 
-给用户汇报时只用表格列：
-LUT、CoreMark/MHz、DMIPS/MHz、技术优化点。
+缁欑敤鎴锋眹鎶ユ椂鍙敤琛ㄦ牸鍒楋細
+LUT銆丆oreMark/MHz銆丏MIPS/MHz銆佹妧鏈紭鍖栫偣銆?
 ```
+
+
+
 
