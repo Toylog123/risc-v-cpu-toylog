@@ -29,6 +29,7 @@
   - latest rejected DCache port trim: single tag/valid read arbitration measured `7531 LUT / 4.908619 CoreMark/MHz`; the 65-LUT saving is not worth dropping below 5.
   - latest rejected folded operand trim: disabling folded rs1 read while enabling next-cache measured `7501 LUT / 4.934412 CoreMark/MHz`; the 95-LUT saving is not worth dropping below 5.
   - latest valid-but-not-promoted capacity tradeoff: `DCache256 + RC128 + next-cache` measured `7914 LUT / 5.106160 CoreMark/MHz`; it scores higher than the 7596-LUT line but costs 318 extra LUT.
+  - latest DCache capacity floor: DCache128 is CRC-clean but too slow (`4.369157` with RC64/nonext, `4.695781` with RC128/next-cache), so the current 5+ low-area target needs at least DCache256 plus a larger front-end or DCache512 with RC64.
   - latest rejected ISA trim: disabling XThead MAC made the existing benchmark image timeout at `PC=0000004c`, so the current compiled workload depends on that hardware path.
 - Candidate configuration:
   `DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
