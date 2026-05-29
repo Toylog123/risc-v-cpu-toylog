@@ -34,10 +34,13 @@ Current lower-area 5+ candidate:
 
 2026-05-29 high-score reference recheck: after the regfile/fold-port area trims, the DCache1024/RC128 line was rerun under the same strict sync-BRAM hardware-only rules. It is CRC-clean at `8983 LUT / 5.608440 CoreMark/MHz / 1.287490 DMIPS/MHz`. This is the current best under-10000-LUT reference point, but not the low-area recommendation because the 7437-LUT line is much smaller.
 
+2026-05-29 medium-area tradeoff: DCache256/RC128 was rerun as a middle point between the 7437-LUT low-area line and the 8983-LUT high-score line. It is CRC-clean at `7914 LUT / 5.106160 CoreMark/MHz / 1.261816 DMIPS/MHz`. This buys about `+0.063418 CoreMark/MHz` over the 7437-LUT line at the cost of `+477 LUT`, but DMIPS is slightly lower.
+
 2026-05-29 rejected boundaries:
 
 - `DCache512 + RC16 + branchfold next-cache`: CRC-clean, but drops to `4.950213 CoreMark/MHz`; RC16 is below the current 5+ capacity floor.
 - `DCache512 + RC32 + branchfold next-cache + DCache word-only`: CRC-clean, but drops to `4.427367 CoreMark/MHz`; CoreMark uses enough byte/halfword traffic that bypassing non-word accesses loses too much locality.
+- `DCache512 + RC32 + branchfold next-cache + no NT-load fold`: CRC-clean at `5.042666 CoreMark/MHz`, but synthesizes to `7578 LUT`, so it is larger and fractionally slower than the retained `7437 LUT / 5.042742` low-area point.
 
 Next prepared experiment:
 
@@ -110,8 +113,16 @@ Decision rule: promote only if CoreMark is CRC-clean (`0xfcaf`), the workload co
 - High-score DCache1024/RC128 recheck synth util: `synth_util_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_current_8983lut_20260529.rpt`
 - High-score DCache1024/RC128 recheck synth hierarchy: `synth_util_hier_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_current_8983lut_20260529.rpt`
 - High-score DCache1024/RC128 recheck synth timing: `synth_timing_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_current_8983lut_20260529.rpt`
+- Medium-area DCache256/RC128 CoreMark summary: `coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256r128_recheck_iter10_20260528.summary.txt`
+- Medium-area DCache256/RC128 Dhrystone summary: `dhrystone_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256r128_runs1000_20260528.summary.txt`
+- Medium-area DCache256/RC128 synth util: `synth_util_dcache256_rc128_ntfold_nobht_nozbkb_rctagtrim_current_7914lut_20260529.rpt`
+- Medium-area DCache256/RC128 synth hierarchy: `synth_util_hier_dcache256_rc128_ntfold_nobht_nozbkb_rctagtrim_current_7914lut_20260529.rpt`
+- Medium-area DCache256/RC128 synth timing: `synth_timing_dcache256_rc128_ntfold_nobht_nozbkb_rctagtrim_current_7914lut_20260529.rpt`
 - Rejected RC16 summary: `coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_rc16_next_recheck_iter10_20260528.summary.txt`
 - Rejected word-only summary: `coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_rc32_next_wordonly_recheck_iter10_20260528.summary.txt`
+- Rejected no-NT-load-fold RC32 summary: `coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nontload_r32nn_recheck_iter10_20260528.summary.txt`
+- Rejected no-NT-load-fold RC32 synth util: `synth_util_dcache512_rc32_next_nontload_r32nn_7578lut_20260529.rpt`
+- Rejected no-NT-load-fold RC32 synth hierarchy: `synth_util_hier_dcache512_rc32_next_nontload_r32nn_7578lut_20260529.rpt`
 
 ## Current Best Candidate Under 7000 LUT
 

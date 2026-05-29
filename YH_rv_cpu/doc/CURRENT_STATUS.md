@@ -29,9 +29,16 @@
   - DMIPS/MHz: `1.287490`
   - configuration: `DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim + regfile/fold-port area trims`
   - note: this is the current high-score reference below 10000 LUT, not the low-area recommendation.
+- Current medium-area tradeoff:
+  - LUT: `7914`
+  - CoreMark/MHz: `5.106160`
+  - DMIPS/MHz: `1.261816`
+  - configuration: `DCache256 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
+  - note: this improves CoreMark over the 7437-LUT low-area line by `0.063418 CoreMark/MHz`, but costs `477 LUT` and has slightly lower DMIPS.
 - New rejected boundaries:
   - `DCache512 + RC16 + next-cache`: `4.950213 CoreMark/MHz`, CRC-clean but below 5.
   - `DCache512 + RC32 + next-cache + DCache word-only`: `4.427367 CoreMark/MHz`, CRC-clean but too slow because byte/halfword traffic loses DCache locality.
+  - `DCache512 + RC32 + next-cache + no NT-load fold`: `7578 LUT / 5.042666 CoreMark/MHz`, CRC-clean but larger and fractionally slower than the retained 7437-LUT low-area point.
 
 ## 2026-05-26 Strict sync-BRAM optimization handoff
 
