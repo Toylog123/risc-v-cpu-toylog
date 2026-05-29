@@ -4,15 +4,17 @@
 > Branch: `codex/syncbram-h22-20260514`
 > Current optimization line: strict/public sync-BRAM hardware-only CoreMark/Dhrystone optimization
 
-## 2026-05-29 Low-area 5+ freeze candidate
+## 2026-05-29 Selected main frozen baseline
 
-- Current preferred lower-area 5+ candidate:
+- Selected main frozen baseline for handoff and later document updates:
   - tag target: `freeze-strict-dcache512-rc32-next-foldrs23off-nord2-7437lut-coremark5p04-20260529`
+  - commit: `5c4476b`
   - LUT: `7437`
   - CoreMark/MHz: `5.042742`
   - DMIPS/MHz: `1.287490`
   - configuration: `DCache512 + RC32 + branchfold next-cache + NT-load fold + fold-rs2/rs3 read ports gated off + inactive regfile second write port disabled + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
-  - note: this replaces the previous 7596-LUT low-area 5+ point as the preferred low-area freeze candidate. It saves 159 LUT while keeping CoreMark above 5; DMIPS is unchanged.
+  - decision: this is the current recommended frozen version because it keeps CoreMark above 5 while cutting area to 7437 LUT. Use this row as the default baseline unless the user explicitly asks for the larger high-score reference.
+  - note: this replaces the previous 7596-LUT low-area 5+ point as the preferred main freeze. It saves 159 LUT while keeping CoreMark above 5; DMIPS is unchanged.
 - Evidence:
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_rc32_next_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_rc32_next_runs1000_20260528.summary.txt`
@@ -21,6 +23,8 @@
   - `artifacts/fpga_valid_20260518/synth_timing_dcache512_rc32_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_next_7437lut_20260529.rpt`
 - Caveat:
   CoreMark remains full-workload and CRC-clean, but the retained evidence is still a short reproducible run with `strict_eembc_10s_compliant=no`.
+- Do not mix with interrupted follow-up trials:
+  The later M-extension Dhrystone exploration was interrupted and produced no valid metric, so it is not part of this frozen baseline.
 
 - Current best under-10000-LUT reference:
   - tag target: `freeze-strict-dcache1024-rc128-current-8983lut-coremark5p60-20260529`
