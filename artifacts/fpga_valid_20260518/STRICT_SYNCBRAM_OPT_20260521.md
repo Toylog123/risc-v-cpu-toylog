@@ -32,6 +32,13 @@ Current lower-area 5+ candidate:
 
 2026-05-29 note: RC32 was rechecked with branchfold next-cache re-enabled. This keeps the full CoreMark workload CRC-clean (`crcfinal=0xfcaf`) and preserves the 5+ target at lower LUT: `7437 LUT / 5.042742 CoreMark/MHz / 1.287490 DMIPS/MHz`. This is now the preferred low-area 5+ frozen point. Compared with the previous 7596-LUT point, it saves another 159 LUT while losing only 0.024860 CoreMark/MHz. DMIPS is unchanged because this path mainly changes front-end redirect/cache area rather than the Dhrystone-dominant integer/control mix.
 
+2026-05-29 high-score reference recheck: after the regfile/fold-port area trims, the DCache1024/RC128 line was rerun under the same strict sync-BRAM hardware-only rules. It is CRC-clean at `8983 LUT / 5.608440 CoreMark/MHz / 1.287490 DMIPS/MHz`. This is the current best under-10000-LUT reference point, but not the low-area recommendation because the 7437-LUT line is much smaller.
+
+2026-05-29 rejected boundaries:
+
+- `DCache512 + RC16 + branchfold next-cache`: CRC-clean, but drops to `4.950213 CoreMark/MHz`; RC16 is below the current 5+ capacity floor.
+- `DCache512 + RC32 + branchfold next-cache + DCache word-only`: CRC-clean, but drops to `4.427367 CoreMark/MHz`; CoreMark uses enough byte/halfword traffic that bypassing non-word accesses loses too much locality.
+
 Next prepared experiment:
 
 ```text
@@ -98,6 +105,13 @@ Decision rule: promote only if CoreMark is CRC-clean (`0xfcaf`), the workload co
 - DCache512 RC32+next low-area synth util: `synth_util_dcache512_rc32_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_next_7437lut_20260529.rpt`
 - DCache512 RC32+next low-area synth hierarchy: `synth_util_hier_dcache512_rc32_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_next_7437lut_20260529.rpt`
 - DCache512 RC32+next low-area synth timing: `synth_timing_dcache512_rc32_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_next_7437lut_20260529.rpt`
+- High-score DCache1024/RC128 recheck CoreMark summary: `coremark_fpga_dcache1024_rc64_ntfold_nobht_nozbkb_rctagtrim_rc128_current_rerun_recheck_iter10_20260528.summary.txt`
+- High-score DCache1024/RC128 recheck Dhrystone summary: `dhrystone_fpga_dcache1024_rc64_ntfold_nobht_nozbkb_rctagtrim_rc128_current_rerun_runs1000_20260528.summary.txt`
+- High-score DCache1024/RC128 recheck synth util: `synth_util_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_current_8983lut_20260529.rpt`
+- High-score DCache1024/RC128 recheck synth hierarchy: `synth_util_hier_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_current_8983lut_20260529.rpt`
+- High-score DCache1024/RC128 recheck synth timing: `synth_timing_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_current_8983lut_20260529.rpt`
+- Rejected RC16 summary: `coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_rc16_next_recheck_iter10_20260528.summary.txt`
+- Rejected word-only summary: `coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_rc32_next_wordonly_recheck_iter10_20260528.summary.txt`
 
 ## Current Best Candidate Under 7000 LUT
 

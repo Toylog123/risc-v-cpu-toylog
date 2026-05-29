@@ -22,6 +22,17 @@
 - Caveat:
   CoreMark remains full-workload and CRC-clean, but the retained evidence is still a short reproducible run with `strict_eembc_10s_compliant=no`.
 
+- Current best under-10000-LUT reference:
+  - tag target: `freeze-strict-dcache1024-rc128-current-8983lut-coremark5p60-20260529`
+  - LUT: `8983`
+  - CoreMark/MHz: `5.608440`
+  - DMIPS/MHz: `1.287490`
+  - configuration: `DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim + regfile/fold-port area trims`
+  - note: this is the current high-score reference below 10000 LUT, not the low-area recommendation.
+- New rejected boundaries:
+  - `DCache512 + RC16 + next-cache`: `4.950213 CoreMark/MHz`, CRC-clean but below 5.
+  - `DCache512 + RC32 + next-cache + DCache word-only`: `4.427367 CoreMark/MHz`, CRC-clean but too slow because byte/halfword traffic loses DCache locality.
+
 ## 2026-05-26 Strict sync-BRAM optimization handoff
 
 - Primary handoff:
