@@ -27,6 +27,7 @@ Selected main frozen low-area 5+ baseline:
 | `tag target` | `freeze-strict-dcache512-rc64-nonext-foldrs23off-7639lut-coremark5p07-20260528` | 7639 | 5.067602 | 1.287490 | DCache512, RC64, branchfold, no branchfold next-cache, NT-load fold, fold-rs2/rs3 read ports gated off, no dynamic BHT, no ZBKB, DCache tag trim, redirect-cache PC tag-width trim |
 | `tag target` | `freeze-strict-dcache512-rc64-nonext-foldrs23off-nord2-7596lut-coremark5p07-20260528` | 7596 | 5.067602 | 1.287490 | DCache512, RC64, branchfold, no branchfold next-cache, NT-load fold, fold-rs2/rs3 read ports gated off, inactive regfile second write port disabled, no dynamic BHT, no ZBKB, DCache tag trim, redirect-cache PC tag-width trim |
 | `5c4476b` | `freeze-strict-dcache512-rc32-next-foldrs23off-nord2-7437lut-coremark5p04-20260529` | 7437 | 5.042742 | 1.287490 | Selected main frozen baseline. DCache512, RC32, branchfold next-cache re-enabled, NT-load fold, fold-rs2/rs3 read ports gated off, inactive regfile second write port disabled, no dynamic BHT, no ZBKB, DCache tag trim, redirect-cache PC tag-width trim |
+| `tag target` | `freeze-strict-dcache512-rc32-next-nozicond-7377lut-coremark5p04-20260531` | 7377 | 5.042742 | 1.287490 | Current selected main frozen baseline. Same RC32/next low-area path as the 7437-LUT point, with Zicond hardware disabled. CoreMark and Dhrystone stay unchanged while synthesis drops another 60 LUT. |
 
 2026-05-28 note: the historical RC64 timeout was rechecked because its old log showed a missing `YH_rv_cpu_coremark_rv32.mem32.hex` warning. With corrected runtime staging, RC64 is CRC-clean. DCache512/RC64 with branchfold next-cache disabled, fold-rs2/rs3 read-port gating, and inactive regfile second-write-port gating is the newest lower-area 5+ point: it saves 2200 LUT versus the RC128 current best, at the cost of a CoreMark drop from 5.659572 to 5.067602. DCache256/RC64 is also CRC-clean but drops below 5 CoreMark/MHz (`4.891219`).
 
@@ -34,15 +35,19 @@ Selected main frozen low-area 5+ baseline:
 
 2026-05-29 freeze decision update: the user selected the `7437 LUT / 5.042742 CoreMark/MHz / 1.287490 DMIPS/MHz` point as the main frozen version because it has the best low-area balance among the validated 5+ CoreMark candidates. The `8983 LUT / 5.608440 CoreMark/MHz` point remains a larger high-score reference only. Interrupted M-extension Dhrystone experiments after this decision produced no valid metric and must not be mixed into the frozen evidence.
 
-2026-05-29 high-score reference recheck: after the regfile/fold-port area trims, the DCache1024/RC128 line was rerun under the same strict sync-BRAM hardware-only rules. It is CRC-clean at `8983 LUT / 5.608440 CoreMark/MHz / 1.287490 DMIPS/MHz`. This is the current best under-10000-LUT reference point, but not the low-area recommendation because the 7437-LUT line is much smaller.
+2026-05-31 freeze decision update: the same low-area RC32/next path was rechecked with Zicond disabled. The exact CoreMark/Dhrystone metrics are unchanged (`5.042742 CoreMark/MHz / 1.287490 DMIPS/MHz`), while synthesis reports `7377 LUT`. This supersedes the 7437-LUT point as the selected main low-area freeze. The older 7437-LUT tag remains a valid comparison baseline.
 
-2026-05-29 medium-area tradeoff: DCache256/RC128 was rerun as a middle point between the 7437-LUT low-area line and the 8983-LUT high-score line. It is CRC-clean at `7914 LUT / 5.106160 CoreMark/MHz / 1.261816 DMIPS/MHz`. This buys about `+0.063418 CoreMark/MHz` over the 7437-LUT line at the cost of `+477 LUT`, but DMIPS is slightly lower.
+2026-05-29 high-score reference recheck: after the regfile/fold-port area trims, the DCache1024/RC128 line was rerun under the same strict sync-BRAM hardware-only rules. It is CRC-clean at `8983 LUT / 5.608440 CoreMark/MHz / 1.287490 DMIPS/MHz`. This is the current best under-10000-LUT reference point, but not the low-area recommendation because the selected 7377-LUT line is much smaller.
+
+2026-05-29 medium-area tradeoff: DCache256/RC128 was rerun as a middle point between the low-area line and the 8983-LUT high-score line. It is CRC-clean at `7914 LUT / 5.106160 CoreMark/MHz / 1.261816 DMIPS/MHz`. Against the selected 7377-LUT line, this buys about `+0.063418 CoreMark/MHz` at the cost of `+537 LUT`, but DMIPS is slightly lower.
 
 2026-05-29 rejected boundaries:
 
 - `DCache512 + RC16 + branchfold next-cache`: CRC-clean, but drops to `4.950213 CoreMark/MHz`; RC16 is below the current 5+ capacity floor.
 - `DCache512 + RC32 + branchfold next-cache + DCache word-only`: CRC-clean, but drops to `4.427367 CoreMark/MHz`; CoreMark uses enough byte/halfword traffic that bypassing non-word accesses loses too much locality.
-- `DCache512 + RC32 + branchfold next-cache + no NT-load fold`: CRC-clean at `5.042666 CoreMark/MHz`, but synthesizes to `7578 LUT`, so it is larger and fractionally slower than the retained `7437 LUT / 5.042742` low-area point.
+- `DCache512 + RC32 + branchfold next-cache + no NT-load fold`: CRC-clean at `5.042666 CoreMark/MHz`, but synthesizes to `7578 LUT`, so it is larger and fractionally slower than the retained `7377 LUT / 5.042742` low-area point.
+- `DCache512 + RC32 + branchfold next-cache + no XThead condmove`: timed out at `PC=000004a8`; this hardware path must remain enabled for the current legal benchmark image.
+- `DCache512 + RC32 + branchfold next-cache + no regular redirect lookup`: CRC-clean but drops to `4.837321 CoreMark/MHz`; the regular lookup path remains part of the 5+ front-end design.
 
 Next prepared experiment:
 
@@ -110,6 +115,10 @@ Decision rule: promote only if CoreMark is CRC-clean (`0xfcaf`), the workload co
 - DCache512 RC32+next low-area synth util: `synth_util_dcache512_rc32_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_next_7437lut_20260529.rpt`
 - DCache512 RC32+next low-area synth hierarchy: `synth_util_hier_dcache512_rc32_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_next_7437lut_20260529.rpt`
 - DCache512 RC32+next low-area synth timing: `synth_timing_dcache512_rc32_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_next_7437lut_20260529.rpt`
+- DCache512 RC32+next no-Zicond selected freeze CoreMark summary: `coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_rc32_next_nozicond_recheck_iter10_20260528.summary.txt`
+- DCache512 RC32+next no-Zicond selected freeze Dhrystone summary: `dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_rc32_next_nozicond_runs1000_20260528.summary.txt`
+- DCache512 RC32+next no-Zicond selected freeze synth util: `synth_util_dcache512_rc32_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_next_nozicond_7377lut_20260531.rpt`
+- DCache512 RC32+next no-Zicond selected freeze synth hierarchy: `synth_util_hier_dcache512_rc32_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_next_nozicond_7377lut_20260531.rpt`
 - High-score DCache1024/RC128 recheck CoreMark summary: `coremark_fpga_dcache1024_rc64_ntfold_nobht_nozbkb_rctagtrim_rc128_current_rerun_recheck_iter10_20260528.summary.txt`
 - High-score DCache1024/RC128 recheck Dhrystone summary: `dhrystone_fpga_dcache1024_rc64_ntfold_nobht_nozbkb_rctagtrim_rc128_current_rerun_runs1000_20260528.summary.txt`
 - High-score DCache1024/RC128 recheck synth util: `synth_util_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_current_8983lut_20260529.rpt`

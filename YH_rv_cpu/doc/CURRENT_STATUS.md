@@ -1,31 +1,37 @@
 ﻿# CURRENT_STATUS
 
-> Updated: `2026-05-29`
+> Updated: `2026-05-31`
 > Branch: `codex/syncbram-h22-20260514`
 > Current optimization line: strict/public sync-BRAM hardware-only CoreMark/Dhrystone optimization
 
-## 2026-05-29 Selected main frozen baseline
+## 2026-05-31 Selected main frozen baseline
 
 - Selected main frozen baseline for handoff and later document updates:
-  - tag target: `freeze-strict-dcache512-rc32-next-foldrs23off-nord2-7437lut-coremark5p04-20260529`
-  - commit: `5c4476b`
-  - LUT: `7437`
+  - tag target: `freeze-strict-dcache512-rc32-next-nozicond-7377lut-coremark5p04-20260531`
+  - commit: `tag target`
+  - LUT: `7377`
   - CoreMark/MHz: `5.042742`
   - DMIPS/MHz: `1.287490`
-  - configuration: `DCache512 + RC32 + branchfold next-cache + NT-load fold + fold-rs2/rs3 read ports gated off + inactive regfile second write port disabled + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
-  - decision: this is the current recommended frozen version because it keeps CoreMark above 5 while cutting area to 7437 LUT. Use this row as the default baseline unless the user explicitly asks for the larger high-score reference.
-  - note: this replaces the previous 7596-LUT low-area 5+ point as the preferred main freeze. It saves 159 LUT while keeping CoreMark above 5; DMIPS is unchanged.
+  - configuration: `DCache512 + RC32 + branchfold next-cache + NT-load fold + fold-rs2/rs3 read ports gated off + inactive regfile second write port disabled + no dynamic BHT + no ZBKB + no Zicond + DCache tag trim + redirect-cache tag-width trim`
+  - decision: this is the current recommended frozen version because it keeps CoreMark above 5 while cutting area to 7377 LUT. Use this row as the default baseline unless the user explicitly asks for the larger high-score reference.
+  - note: this replaces the previous 7437-LUT low-area 5+ point as the preferred main freeze. It saves 60 LUT with no measured CoreMark or DMIPS loss on the retained strict sync-BRAM evidence.
 - Evidence:
-  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_rc32_next_recheck_iter10_20260528.summary.txt`
-  - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_rc32_next_runs1000_20260528.summary.txt`
-  - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc32_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_next_7437lut_20260529.rpt`
-  - `artifacts/fpga_valid_20260518/synth_util_hier_dcache512_rc32_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_next_7437lut_20260529.rpt`
-  - `artifacts/fpga_valid_20260518/synth_timing_dcache512_rc32_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_next_7437lut_20260529.rpt`
+  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_rc32_next_nozicond_recheck_iter10_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_rc32_next_nozicond_runs1000_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc32_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_next_nozicond_7377lut_20260531.rpt`
+  - `artifacts/fpga_valid_20260518/synth_util_hier_dcache512_rc32_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_next_nozicond_7377lut_20260531.rpt`
 - Caveat:
   CoreMark remains full-workload and CRC-clean, but the retained evidence is still a short reproducible run with `strict_eembc_10s_compliant=no`.
 - Do not mix with interrupted follow-up trials:
   The later M-extension Dhrystone exploration was interrupted and produced no valid metric, so it is not part of this frozen baseline.
 
+- Previous selected low-area baseline:
+  - tag target: `freeze-strict-dcache512-rc32-next-foldrs23off-nord2-7437lut-coremark5p04-20260529`
+  - commit: `5c4476b`
+  - LUT: `7437`
+  - CoreMark/MHz: `5.042742`
+  - DMIPS/MHz: `1.287490`
+  - note: superseded by the 7377-LUT no-Zicond point because performance is unchanged and area is lower.
 - Current best under-10000-LUT reference:
   - tag target: `freeze-strict-dcache1024-rc128-current-8983lut-coremark5p60-20260529`
   - LUT: `8983`
@@ -38,11 +44,13 @@
   - CoreMark/MHz: `5.106160`
   - DMIPS/MHz: `1.261816`
   - configuration: `DCache256 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
-  - note: this improves CoreMark over the 7437-LUT low-area line by `0.063418 CoreMark/MHz`, but costs `477 LUT` and has slightly lower DMIPS.
+  - note: this improves CoreMark over the current 7377-LUT low-area line by `0.063418 CoreMark/MHz`, but costs `537 LUT` and has slightly lower DMIPS.
 - New rejected boundaries:
   - `DCache512 + RC16 + next-cache`: `4.950213 CoreMark/MHz`, CRC-clean but below 5.
   - `DCache512 + RC32 + next-cache + DCache word-only`: `4.427367 CoreMark/MHz`, CRC-clean but too slow because byte/halfword traffic loses DCache locality.
-  - `DCache512 + RC32 + next-cache + no NT-load fold`: `7578 LUT / 5.042666 CoreMark/MHz`, CRC-clean but larger and fractionally slower than the retained 7437-LUT low-area point.
+  - `DCache512 + RC32 + next-cache + no NT-load fold`: `7578 LUT / 5.042666 CoreMark/MHz`, CRC-clean but larger and fractionally slower than the retained 7377-LUT low-area point.
+  - `DCache512 + RC32 + next-cache + no XThead condmove`: timeout at `PC=000004a8`; the current legal benchmark image still depends on this hardware path.
+  - `DCache512 + RC32 + next-cache + no regular redirect lookup`: CRC-clean but drops to `4.837321 CoreMark/MHz`; regular lookup is still required for the 5+ front-end path.
 
 ## 2026-05-26 Strict sync-BRAM optimization handoff
 
