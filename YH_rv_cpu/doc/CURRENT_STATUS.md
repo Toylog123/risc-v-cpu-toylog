@@ -22,6 +22,7 @@
   - `DCache256 + RC128 + no Zicond + fetch redirect reuse`: CRC-clean and unchanged at `5.106160 CoreMark/MHz`; no promotion without benefit.
   - `DCache256 + RC128 + no Zicond + DCache next-prefetch`: CRC-clean but `5.099317 CoreMark/MHz`, lower than the retained point.
   - `DCache512 + RC32 + no Zicond + DCache next-prefetch`: CRC-clean at `5.067158 CoreMark/MHz` and `1.287501 DMIPS/MHz`, but synthesis reports `8407 LUT`, above the 8000-LUT limit.
+  - `DCache512 + RC32 + no Zicond + static predict mode 1`: CRC-clean and unchanged at `5.042742 CoreMark/MHz`; no measured benefit.
 - New evidence:
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_runs1000_20260528.summary.txt`
@@ -34,6 +35,7 @@
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_d512_rc32_next_nozicond_dnextpf_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_d512_rc32_next_nozicond_dnextpf_runs1000_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc32_next_nozicond_dnextpf_20260601.rpt`
+  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_d512_rc32_next_nozicond_static1_recheck_iter10_20260528.summary.txt`
 
 ## 2026-05-31 Selected main frozen baseline
 
