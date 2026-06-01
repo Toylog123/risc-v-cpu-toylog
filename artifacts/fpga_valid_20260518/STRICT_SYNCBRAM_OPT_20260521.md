@@ -556,6 +556,7 @@ tradeoff was added for a higher CoreMark option below 8000 LUT.
 | DCache256 + RC128 + next, no Zicond, DCache next-prefetch | TBD | 5.099317 | TBD | Enables data-cache next-line prefetch | Rejected: CRC-clean but slower than the retained point |
 | DCache512 + RC32 + next, no Zicond, DCache next-prefetch | 8407 | 5.067158 | 1.287501 | Enables data-cache next-line prefetch on the 7377-LUT low-area baseline | Area rejected: improves CoreMark versus 7377, but exceeds the 8000-LUT limit |
 | DCache512 + RC32 + next, no Zicond, static predict mode 1 | TBD | 5.042742 | TBD | Switches static branch predict mode | Neutral: CRC-clean but no measured performance benefit |
+| DCache256 + RC128 + next, no Zicond, no DCache load-use speculation | TBD | 4.898993 | TBD | Disables DCache load-use probe/speculation | Rejected: below 5 CoreMark/MHz; load-use probe is required for the under-8000 performance line |
 
 Evidence for `DCache256 + RC128 + next, no Zicond`:
 
@@ -573,6 +574,7 @@ Evidence for `DCache256 + RC128 + next, no Zicond`:
 - DCache512/RC32 area-rejected DCache-next-prefetch Dhrystone: `dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_d512_rc32_next_nozicond_dnextpf_runs1000_20260528.summary.txt`
 - DCache512/RC32 area-rejected DCache-next-prefetch synth util: `synth_util_dcache512_rc32_next_nozicond_dnextpf_20260601.rpt`
 - DCache512/RC32 neutral static-predict CoreMark: `coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_d512_rc32_next_nozicond_static1_recheck_iter10_20260528.summary.txt`
+- DCache256/RC128 rejected no-load-use-spec CoreMark: `coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_nolspec_d256_rc128_next_nozicond_nolspec_recheck_iter10_20260528.summary.txt`
 
 
 
