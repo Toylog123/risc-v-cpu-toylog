@@ -1,0 +1,43 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Mon Jun  1 15:16:03 2026
+| Host         : Toylog_desktop running 64-bit major release  (build 9200)
+| Command      : report_utilization -hierarchical -hierarchical_depth 6 -file V:/project/reports/pynq_z2_sysclk_8p000ns_cpu50/synth_utilization_hierarchical.rpt
+| Design       : YH_rv_cpu_fpga_top
+| Device       : xc7z020clg400-1
+| Speed File   : -1
+| Design State : Synthesized
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++----------------------------------+----------------------+------------+------------+---------+------+------+--------+--------+------------+
+|             Instance             |        Module        | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs | RAMB36 | RAMB18 | DSP Blocks |
++----------------------------------+----------------------+------------+------------+---------+------+------+--------+--------+------------+
+| YH_rv_cpu_fpga_top               |                (top) |       6619 |       6435 |     184 |    0 | 2851 |     20 |      0 |          8 |
+|   (YH_rv_cpu_fpga_top)           |                (top) |          1 |          1 |       0 |    0 |   41 |      0 |      0 |          0 |
+|   u_soc                          |        YH_rv_cpu_soc |       6598 |       6414 |     184 |    0 | 2787 |     20 |      0 |          8 |
+|     (u_soc)                      |        YH_rv_cpu_soc |        117 |        117 |       0 |    0 |  206 |      0 |      0 |          0 |
+|     u_cpu                        |            YH_rv_cpu |       6413 |       6229 |     184 |    0 | 2580 |      0 |      0 |          8 |
+|       (u_cpu)                    |            YH_rv_cpu |        496 |        336 |     160 |    0 | 1375 |      0 |      0 |          0 |
+|       gen_dcache.u_dcache        |     YH_rv_cpu_dcache |       3715 |       3691 |      24 |    0 |  181 |      0 |      0 |          0 |
+|       u_ex_stage                 |   YH_rv_cpu_ex_stage |        125 |        125 |       0 |    0 |    0 |      0 |      0 |          8 |
+|         u_alu                    |        YH_rv_cpu_alu |        125 |        125 |       0 |    0 |    0 |      0 |      0 |          8 |
+|       u_fold_target_id_stage     |   YH_rv_cpu_id_stage |        705 |        705 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         (u_fold_target_id_stage) |   YH_rv_cpu_id_stage |        508 |        508 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         u_decoder                |  YH_rv_cpu_decoder_1 |        197 |        197 |       0 |    0 |    0 |      0 |      0 |          0 |
+|       u_id_stage                 | YH_rv_cpu_id_stage_0 |        187 |        187 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         u_decoder                |    YH_rv_cpu_decoder |        187 |        187 |       0 |    0 |    0 |      0 |      0 |          0 |
+|       u_regfile                  |    YH_rv_cpu_regfile |       1157 |       1157 |       0 |    0 | 1024 |      0 |      0 |          0 |
+|     u_dmem_ram                   |       YH_rv_dmem_ram |         51 |         51 |       0 |    0 |    0 |      4 |      0 |          0 |
++----------------------------------+----------------------+------------+------------+---------+------+------+--------+--------+------------+
+
+

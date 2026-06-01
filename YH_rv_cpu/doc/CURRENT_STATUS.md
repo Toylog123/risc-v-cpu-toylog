@@ -365,17 +365,34 @@ modify CoreMark core algorithm files.
 | Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Status |
 |---|---:|---:|---:|---|
 | DCache64 + RC64 + next | 6832 | 4.336028 | 1.166238 | Current best low-area/performance tradeoff; +138 LUT over floor candidate |
+| DCache64 + RC32 + next, no Zicond | 6619 | 4.181261 | 1.166238 | New lowest verified LUT point above initial submission; disables unused Zicond hardware under the RC32/next-cache profile |
+| DCache64 + RC64 + next, read-mux share RTL cleanup | 6955 | 4.336028 | TBD | Rejected; behavior unchanged but Vivado LUT increased |
 | DCache64 + RC64 + next, no load-use spec | 6955 | 4.289242 | 1.149744 | Rejected; LUT increased and score decreased |
 | DCache64 + RC64 + next, no Zicond | 6860 | 4.336028 | TBD | Rejected; performance unchanged and LUT increased |
 | DCache64 + RC64 + next, no Zbc | TBD | timeout | TBD | Rejected; CoreMark did not complete within the simulation budget |
 | DCache128 + RC32 + next | 6955 | 4.329743 | 1.208287 | Balanced low-area/performance candidate; +261 LUT over current low-area freeze |
 | DCache128 + RC64 + next | synth pending | 4.495875 | 1.208287 | Performance-valid but not frozen; synth did not close in the time budget |
 | DCache64 + RC32 + next | 6694 | 4.181261 | 1.166238 | Current low-area freeze candidate; above initial submission |
+| DCache64 + RC32 + next, no regular lookup | TBD | 4.041588 | TBD | Rejected; below initial submission |
+| DCache64 + RC32 + next, no XThead condmov | TBD | timeout | TBD | Rejected; CoreMark did not complete within the simulation budget |
+| DCache64 + RC32 + next, no XThead MUL/MAC | TBD | timeout | TBD | Rejected; CoreMark did not complete within the simulation budget |
+| DCache64 + RC32 + next, regfile LUTRAM/no-reset | TBD | timeout | TBD | Rejected; removing architectural register reset broke the current simulation profile |
 | DCache64 + RC32 + next + word-only DCache | TBD | 3.970315 | TBD | Rejected; word-only data path hurts workload correctness/performance envelope |
 | DCache64 + RC16 + next | TBD | 4.117348 | TBD | Rejected; RC16 loses too much redirect locality |
 | DCache32 + RC32 + next | TBD | 4.074163 | TBD | Rejected; below initial submission |
 
-Evidence for the current low-area candidate:
+Evidence for the current lowest-LUT candidate:
+
+- CoreMark summary:
+  `artifacts/fpga_valid_20260518/coremark_fpga_dcache64_rc64_ntfold_nobht_nozbkb_rctagtrim_d64_rc32_next_nozicond_recheck_iter10_20260528.summary.txt`
+- Dhrystone summary:
+  `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache64_rc64_ntfold_nobht_nozbkb_rctagtrim_d64_rc32_next_nozicond_runs1000_20260528.summary.txt`
+- Vivado synth utilization:
+  `artifacts/fpga_valid_20260518/synth_util_dcache64_rc32_next_nozicond_6619lut_20260601.rpt`
+- Vivado synth hierarchy:
+  `artifacts/fpga_valid_20260518/synth_util_hier_dcache64_rc32_next_nozicond_6619lut_20260601.rpt`
+
+Evidence for the previous low-area candidate:
 
 - CoreMark summary:
   `artifacts/fpga_valid_20260518/coremark_fpga_dcache64_rc64_ntfold_nobht_nozbkb_rctagtrim_d64_rc32_next_recheck_iter10_20260528.summary.txt`
