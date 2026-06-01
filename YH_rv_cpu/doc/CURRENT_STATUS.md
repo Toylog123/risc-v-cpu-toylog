@@ -11,9 +11,10 @@
   - tag: `freeze-strict-dcache512-rc32-next-nozicond-7377lut-coremark5p04-20260531`
   - reason: lowest recorded LUT point that keeps CoreMark above 5 under the current strict sync-BRAM evidence.
 - New under-8000 performance/area tradeoff:
-  - `7897 LUT / 5.106160 CoreMark/MHz / 1.261816 DMIPS/MHz`
+  - `7827 LUT / 5.106160 CoreMark/MHz / 1.261816 DMIPS/MHz`
   - configuration: `DCache256 + RC128 + branchfold next-cache + NT-load fold + no Zicond + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
-  - decision: valid candidate when a slightly higher CoreMark score is preferred while staying below 8000 LUT. Compared with the 7377-LUT baseline, it costs `+520 LUT` and gains `+0.063418 CoreMark/MHz`; DMIPS is slightly lower.
+  - synthesis option: quick synth utilization with retiming disabled.
+  - decision: valid candidate when a slightly higher CoreMark score is preferred while staying below 8000 LUT. Compared with the 7377-LUT baseline, it costs `+450 LUT` and gains `+0.063418 CoreMark/MHz`; DMIPS is slightly lower. Implementation timing still needs a later full place/route check before board-facing promotion.
 - Rejected/neutral checks from the same batch:
   - `DCache512 + RC32 + no Zicond + redirect-cache XOR index`: CRC-clean but `4.998261 CoreMark/MHz`, below the 5+ target.
   - `DCache512 + RC32 + no Zicond + fetch redirect reuse`: CRC-clean and unchanged at `5.042742 CoreMark/MHz`; no promotion because it adds a hardware option without measured benefit.
@@ -29,6 +30,8 @@
   - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_runs1000_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/synth_util_dcache256_rc128_next_nozicond_20260601.rpt`
   - `artifacts/fpga_valid_20260518/synth_util_hier_dcache256_rc128_next_nozicond_20260601.rpt`
+  - `artifacts/fpga_valid_20260518/synth_util_dcache256_rc128_next_nozicond_noretiming_20260601.rpt`
+  - `artifacts/fpga_valid_20260518/synth_util_hier_dcache256_rc128_next_nozicond_noretiming_20260601.rpt`
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_xor1_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_fetchreuse_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_noreglookup_recheck_iter10_20260528.summary.txt`
