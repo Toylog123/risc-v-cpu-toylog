@@ -550,6 +550,10 @@ tradeoff was added for a higher CoreMark option below 8000 LUT.
 | DCache512 + RC32 + next, no Zicond, redirect-cache XOR index | TBD | 4.998261 | TBD | XOR indexing on the redirect cache | Rejected: CRC-clean but below 5 CoreMark/MHz |
 | DCache512 + RC32 + next, no Zicond, fetch redirect reuse | TBD | 5.042742 | TBD | Enables fetch redirect reuse path | Neutral: CRC-clean but no measured performance benefit |
 | DCache256 + RC128 + next, no Zicond, no NT-load fold | TBD | N/A | TBD | Attempts to remove NT-load fold in the DCache256/RC128 tradeoff | No metric: xsim generated-C compile failed before benchmark output |
+| DCache256 + RC128 + next, no Zicond, redirect-cache XOR index | TBD | 5.096227 | TBD | XOR indexing on the redirect cache | Rejected: CRC-clean but slower than the retained 5.106160 point |
+| DCache256 + RC128 + next, no Zicond, fetch redirect reuse | TBD | 5.106160 | TBD | Enables fetch redirect reuse path | Neutral: CRC-clean but no measured performance benefit |
+| DCache256 + RC128 + next, no Zicond, no regular lookup | TBD | 4.598094 | TBD | Disables regular redirect-cache lookup | Rejected: regular lookup is required for this front-end path |
+| DCache256 + RC128 + next, no Zicond, DCache next-prefetch | TBD | 5.099317 | TBD | Enables data-cache next-line prefetch | Rejected: CRC-clean but slower than the retained point |
 
 Evidence for `DCache256 + RC128 + next, no Zicond`:
 
@@ -559,6 +563,10 @@ Evidence for `DCache256 + RC128 + next, no Zicond`:
 - Synth hierarchy: `synth_util_hier_dcache256_rc128_next_nozicond_20260601.rpt`
 - Rejected XOR CoreMark: `coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_d512_rc32_next_nozicond_xor1_recheck_iter10_20260528.summary.txt`
 - Neutral fetch-reuse CoreMark: `coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_d512_rc32_next_nozicond_fetchreuse_recheck_iter10_20260528.summary.txt`
+- DCache256/RC128 rejected XOR CoreMark: `coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_xor1_recheck_iter10_20260528.summary.txt`
+- DCache256/RC128 neutral fetch-reuse CoreMark: `coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_fetchreuse_recheck_iter10_20260528.summary.txt`
+- DCache256/RC128 rejected no-regular-lookup CoreMark: `coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_noreglookup_recheck_iter10_20260528.summary.txt`
+- DCache256/RC128 rejected DCache-next-prefetch CoreMark: `coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_dnextpf_recheck_iter10_20260528.summary.txt`
 
 
 

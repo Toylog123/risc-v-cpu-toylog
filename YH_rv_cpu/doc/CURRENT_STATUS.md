@@ -18,11 +18,18 @@
   - `DCache512 + RC32 + no Zicond + redirect-cache XOR index`: CRC-clean but `4.998261 CoreMark/MHz`, below the 5+ target.
   - `DCache512 + RC32 + no Zicond + fetch redirect reuse`: CRC-clean and unchanged at `5.042742 CoreMark/MHz`; no promotion because it adds a hardware option without measured benefit.
   - `DCache256 + RC128 + no Zicond + no NT-load fold`: xsim generated-C compile failed before benchmark output; no metric recorded.
+  - `DCache256 + RC128 + no Zicond + redirect-cache XOR index`: CRC-clean but `5.096227 CoreMark/MHz`, lower than the retained `5.106160` point.
+  - `DCache256 + RC128 + no Zicond + fetch redirect reuse`: CRC-clean and unchanged at `5.106160 CoreMark/MHz`; no promotion without benefit.
+  - `DCache256 + RC128 + no Zicond + DCache next-prefetch`: CRC-clean but `5.099317 CoreMark/MHz`, lower than the retained point.
 - New evidence:
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_runs1000_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/synth_util_dcache256_rc128_next_nozicond_20260601.rpt`
   - `artifacts/fpga_valid_20260518/synth_util_hier_dcache256_rc128_next_nozicond_20260601.rpt`
+  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_xor1_recheck_iter10_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_fetchreuse_recheck_iter10_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_noreglookup_recheck_iter10_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_dnextpf_recheck_iter10_20260528.summary.txt`
 
 ## 2026-05-31 Selected main frozen baseline
 
