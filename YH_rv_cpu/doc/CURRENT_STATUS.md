@@ -11,6 +11,11 @@
   - tag target: `freeze-strict-dcache512-rc32-next-nozicond-noretiming-notiming-7216lut-coremark5p04-20260601`
   - reason: lowest recorded LUT point that keeps CoreMark above 5 under the current strict sync-BRAM evidence. This is the same RTL/benchmark configuration as the previous 7377-LUT baseline, with retiming disabled and timing-driven synth disabled for the quick utilization run.
 - New under-8000 performance/area tradeoff:
+  - `7316 LUT / 5.067602 CoreMark/MHz / 1.287490 DMIPS/MHz`
+  - configuration: `DCache512 + RC64 + branchfold + no branchfold next-cache + NT-load fold + no Zicond + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
+  - synthesis option: quick synth utilization with retiming disabled and timing-driven override disabled.
+  - decision: current best balanced low-resource point. Compared with the 7216-LUT minimum-area baseline, it costs `+100 LUT` and gains `+0.024860 CoreMark/MHz` while keeping the same DMIPS/MHz.
+- Higher-CoreMark under-8000 performance/area tradeoff:
   - `7676 LUT / 5.106160 CoreMark/MHz / 1.261816 DMIPS/MHz`
   - configuration: `DCache256 + RC128 + branchfold next-cache + NT-load fold + no Zicond + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
   - synthesis option: quick synth utilization with retiming disabled and timing-driven override disabled.
@@ -28,6 +33,10 @@
 - New evidence:
   - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc32_next_nozicond_noretiming_notiming_20260601.rpt`
   - `artifacts/fpga_valid_20260518/synth_util_hier_dcache512_rc32_next_nozicond_noretiming_notiming_20260601.rpt`
+  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_nonext_nozicond_recheck_iter10_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_nonext_nozicond_runs1000_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc64_nonext_nozicond_noretiming_notiming_20260601.rpt`
+  - `artifacts/fpga_valid_20260518/synth_util_hier_dcache512_rc64_nonext_nozicond_noretiming_notiming_20260601.rpt`
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_runs1000_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/synth_util_dcache256_rc128_next_nozicond_20260601.rpt`
@@ -114,7 +123,7 @@
   - LUT: `7596`
   - CoreMark/MHz: `5.067602`
   - DMIPS/MHz: `1.287490`
-  - note: DCache512/RC64 with branch-fold next-cache disabled, fold-rs2/rs3 read-port gating, and the inactive regfile second write port disabled is the newest low-area 5+ point. DCache256/RC64 remains CRC-clean but drops below 5 CoreMark/MHz (`4.891219`); disabling both next-cache and NT-load fold also drops below 5 (`4.981265`).
+  - note: DCache512/RC64 with branch-fold next-cache disabled, fold-rs2/rs3 read-port gating, inactive regfile second write port disabled, and no Zicond now has a no-retiming/no-timing-driven quick synth at `7316 LUT / 5.067602 CoreMark/MHz / 1.287490 DMIPS/MHz`. DCache256/RC64 remains CRC-clean but drops below 5 CoreMark/MHz (`4.891219`); disabling both next-cache and NT-load fold also drops below 5 (`4.981265`).
   - latest rejected boundary: turning off the folded rs1 read port is CRC-clean but drops to `4.934412 CoreMark/MHz`; keep fold-rs1 enabled for the low-area 5+ line.
   - latest rejected capacity trim: reducing redirect cache from RC64 to RC32 is CRC-clean but drops to `4.894676 CoreMark/MHz`; keep RC64 for the low-area 5+ line.
   - latest rejected area experiment: store-hit invalidate on the DCache512/RC64/nonext line measured `8330 LUT / 4.764133 CoreMark/MHz`; it is correct but loses too much store/load locality and is not retained.
