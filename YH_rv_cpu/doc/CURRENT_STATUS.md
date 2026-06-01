@@ -364,8 +364,11 @@ modify CoreMark core algorithm files.
 
 | Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Status |
 |---|---:|---:|---:|---|
+| DCache64 + RC64 + next | 6832 | 4.336028 | 1.166238 | Current best low-area/performance tradeoff; +138 LUT over floor candidate |
 | DCache128 + RC32 + next | 6955 | 4.329743 | 1.208287 | Balanced low-area/performance candidate; +261 LUT over current low-area freeze |
+| DCache128 + RC64 + next | synth pending | 4.495875 | 1.208287 | Performance-valid but not frozen; synth did not close in the time budget |
 | DCache64 + RC32 + next | 6694 | 4.181261 | 1.166238 | Current low-area freeze candidate; above initial submission |
+| DCache64 + RC32 + next + word-only DCache | TBD | 3.970315 | TBD | Rejected; word-only data path hurts workload correctness/performance envelope |
 | DCache64 + RC16 + next | TBD | 4.117348 | TBD | Rejected; RC16 loses too much redirect locality |
 | DCache32 + RC32 + next | TBD | 4.074163 | TBD | Rejected; below initial submission |
 
@@ -381,6 +384,10 @@ Evidence for the current low-area candidate:
   `artifacts/fpga_valid_20260518/coremark_fpga_dcache128_rc64_ntfold_nobht_nozbkb_rctagtrim_d128_rc32_next_recheck_iter10_20260528.summary.txt`,
   `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache128_rc64_ntfold_nobht_nozbkb_rctagtrim_d128_rc32_next_runs1000_20260528.summary.txt`,
   `artifacts/fpga_valid_20260518/synth_util_dcache128_rc32_next_loadspec_6955lut_20260601.rpt`
+- Current tradeoff candidate evidence:
+  `artifacts/fpga_valid_20260518/coremark_fpga_dcache64_rc64_ntfold_nobht_nozbkb_rctagtrim_d64_rc64_next_recheck_iter10_20260528.summary.txt`,
+  `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache64_rc64_ntfold_nobht_nozbkb_rctagtrim_d64_rc64_next_runs1000_20260528.summary.txt`,
+  `artifacts/fpga_valid_20260518/synth_util_dcache64_rc64_next_loadspec_6832lut_20260601.rpt`
 - Strict EEMBC 10-second compliance is still marked `no`; the result is a
   CRC-clean full workload short run for architecture exploration and report
   comparison, not an official EEMBC-published score.

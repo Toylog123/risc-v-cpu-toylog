@@ -474,8 +474,11 @@ low-power-first exploration. The current acceptance boundary is:
 
 | Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Optimization point | Decision |
 |---|---:|---:|---:|---|---|
+| DCache64 + RC64 + next | 6832 | 4.336028 | 1.166238 | 64-entry DCache, 64-entry return/redirect cache, next-cache path retained | Current best low-area/performance tradeoff; +138 LUT over the minimum floor |
 | DCache128 + RC32 + next | 6955 | 4.329743 | 1.208287 | 128-entry DCache, 32-entry return/redirect cache, next-cache path retained | Balanced candidate: better score than the 6694-LUT floor for +261 LUT |
+| DCache128 + RC64 + next | synth pending | 4.495875 | 1.208287 | 128-entry DCache, 64-entry return/redirect cache, next-cache path retained | Performance-valid but not frozen; synth did not close in the time budget |
 | DCache64 + RC32 + next | 6694 | 4.181261 | 1.166238 | 64-entry DCache, 32-entry return/redirect cache, next-cache path retained, no dynamic BHT/ZBKB/Zicond | Freeze candidate: lowest verified LUT point above initial submission |
+| DCache64 + RC32 + next + word-only DCache | TBD | 3.970315 | TBD | Word-only DCache data path trim | Rejected: below initial submission |
 | DCache64 + RC16 + next | TBD | 4.117348 | TBD | RC reduced from 32 to 16 | Rejected: below initial submission |
 | DCache32 + RC32 + next | TBD | 4.074163 | TBD | Further DCache reduction | Rejected: below initial submission |
 
@@ -492,6 +495,18 @@ Evidence for `DCache128 + RC32 + next`:
 - Dhrystone: `dhrystone_fpga_dcache128_rc64_ntfold_nobht_nozbkb_rctagtrim_d128_rc32_next_runs1000_20260528.summary.txt`
 - Synth util: `synth_util_dcache128_rc32_next_loadspec_6955lut_20260601.rpt`
 - Synth hierarchy: `synth_util_hier_dcache128_rc32_next_loadspec_6955lut_20260601.rpt`
+
+Evidence for `DCache64 + RC64 + next`:
+
+- CoreMark: `coremark_fpga_dcache64_rc64_ntfold_nobht_nozbkb_rctagtrim_d64_rc64_next_recheck_iter10_20260528.summary.txt`
+- Dhrystone: `dhrystone_fpga_dcache64_rc64_ntfold_nobht_nozbkb_rctagtrim_d64_rc64_next_runs1000_20260528.summary.txt`
+- Synth util: `synth_util_dcache64_rc64_next_loadspec_6832lut_20260601.rpt`
+- Synth hierarchy: `synth_util_hier_dcache64_rc64_next_loadspec_6832lut_20260601.rpt`
+
+Performance-only evidence for `DCache128 + RC64 + next`:
+
+- CoreMark: `coremark_fpga_dcache128_rc64_ntfold_nobht_nozbkb_rctagtrim_d128_rc64_next_recheck_iter10_20260528.summary.txt`
+- Dhrystone: `dhrystone_fpga_dcache128_rc64_ntfold_nobht_nozbkb_rctagtrim_d128_rc64_next_runs1000_20260528.summary.txt`
 
 Next low-area trials should avoid further RC reduction unless a new compensating
 front-end optimization is added. `DCache64 + RC16 + next` is already below the
