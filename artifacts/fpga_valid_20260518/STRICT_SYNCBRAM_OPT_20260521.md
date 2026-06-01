@@ -461,5 +461,32 @@ Evidence:
 - Rejected log: `coremark_fpga_dcache1024_rc128_ntfold_nobht_nozbkb_wordonly_iter10_20260527.log`
 - Incomplete log (interrupted): `coremark_fpga_dcache512_rc128_ntfold_nobht_nozbkb_iter10_20260527.log`
 
+## 2026-06-01 low-area strict sync-BRAM checkpoint
+
+Objective changed from maximum CoreMark under 10k LUT to low-resource /
+low-power-first exploration. The current acceptance boundary is:
+
+- CoreMark/MHz must stay above the initial submission result `4.137461`.
+- RTL must remain sync-BRAM and PYNQ-Z2 compatible.
+- CoreMark core algorithm files remain unchanged.
+- Short-run summaries are acceptable for exploration, but the strict EEMBC
+  10-second compliance field must remain visible.
+
+| Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Optimization point | Decision |
+|---|---:|---:|---:|---|---|
+| DCache64 + RC32 + next | 6694 | 4.181261 | 1.166238 | 64-entry DCache, 32-entry return/redirect cache, next-cache path retained, no dynamic BHT/ZBKB/Zicond | Freeze candidate: lowest verified LUT point above initial submission |
+| DCache32 + RC32 + next | TBD | 4.074163 | TBD | Further DCache reduction | Rejected: below initial submission |
+
+Evidence for `DCache64 + RC32 + next`:
+
+- CoreMark: `coremark_fpga_dcache64_rc64_ntfold_nobht_nozbkb_rctagtrim_d64_rc32_next_recheck_iter10_20260528.summary.txt`
+- Dhrystone: `dhrystone_fpga_dcache64_rc64_ntfold_nobht_nozbkb_rctagtrim_d64_rc32_next_runs1000_20260528.summary.txt`
+- Synth util: `synth_util_dcache64_rc32_next_loadspec_6694lut_20260601.rpt`
+- Synth hierarchy: `synth_util_hier_dcache64_rc32_next_loadspec_6694lut_20260601.rpt`
+
+Next low-area trials should try RC depth reduction first (`DCache64 + RC16 +
+next`) before removing next-cache/load-use speculation, because the latter
+already pushed the margin down to the initial-submission boundary.
+
 
 

@@ -355,5 +355,29 @@ merged into this Method A score without a matching sync BRAM run.
 - `YH_rv_cpu/doc/performance_experiment_log.md`
 - `YH_rv_cpu/doc/cache_axi_integration_design.md` (DCache/ICache璁捐)
 
+## 2026-06-01 strict sync-BRAM low-area status
+
+Current optimization direction is low LUT / low switching activity first, while
+keeping CoreMark/MHz above the initial submission result `4.137461`. All numbers
+below use the current strict sync-BRAM, PYNQ-Z2-compatible RTL flow and do not
+modify CoreMark core algorithm files.
+
+| Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Status |
+|---|---:|---:|---:|---|
+| DCache64 + RC32 + next | 6694 | 4.181261 | 1.166238 | Current low-area freeze candidate; above initial submission |
+| DCache32 + RC32 + next | TBD | 4.074163 | TBD | Rejected; below initial submission |
+
+Evidence for the current low-area candidate:
+
+- CoreMark summary:
+  `artifacts/fpga_valid_20260518/coremark_fpga_dcache64_rc64_ntfold_nobht_nozbkb_rctagtrim_d64_rc32_next_recheck_iter10_20260528.summary.txt`
+- Dhrystone summary:
+  `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache64_rc64_ntfold_nobht_nozbkb_rctagtrim_d64_rc32_next_runs1000_20260528.summary.txt`
+- Vivado synth utilization:
+  `artifacts/fpga_valid_20260518/synth_util_dcache64_rc32_next_loadspec_6694lut_20260601.rpt`
+- Strict EEMBC 10-second compliance is still marked `no`; the result is a
+  CRC-clean full workload short run for architecture exploration and report
+  comparison, not an official EEMBC-published score.
+
 
 
