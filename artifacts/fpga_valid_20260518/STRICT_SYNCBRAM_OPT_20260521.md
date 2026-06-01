@@ -560,6 +560,7 @@ tradeoff was added for a higher CoreMark option below 8000 LUT.
 | DCache512 + RC32 + next, no Zicond | 7377 | 5.042742 | 1.287490 | Previous lowest-LUT 5+ baseline; DCache512, RC32, branchfold next-cache, NT-load fold, fold-rs2/rs3 read ports gated off, inactive regfile second write port disabled, no dynamic BHT, no ZBKB, no Zicond | Superseded by the no-retiming/no-timing-driven 7216-LUT synth |
 | DCache512 + RC32 + next, no Zicond, retiming/timing-driven override disabled | 7216 | 5.042742 | 1.287490 | Same RTL/benchmark evidence as the 7377-LUT line; Vivado quick synth disables retiming and timing-driven override | Current lowest-LUT 5+ baseline |
 | DCache512 + RC64 + nonext, no Zicond, retiming/timing-driven override disabled | 7316 | 5.067602 | 1.287490 | Disables branchfold next-cache, increases redirect cache to RC64, keeps NT-load fold, disables Zicond, and uses no-retiming/no-timing-driven quick synth | Current balanced low-resource candidate; +100 LUT versus 7216 for +0.024860 CoreMark/MHz |
+| DCache512 + RC64 + nonext, no Zicond, timing-driven impl | 7674 impl | 5.067602 | 1.287490 | Same benchmark/RTL configuration as the balanced candidate, but run through full implementation with timing-driven synthesis and retiming | Rejected for board-facing use: post-route `WNS -11.425 ns`; keep only as timing-failure evidence |
 | DCache512 + RC32 + next, no Zicond, static predict mode 1, retiming/timing-driven override disabled | 7232 | 5.042742 | TBD | Static predict mode 1 is performance-neutral from the prior CoreMark run, but the same quick synth options produce a larger design than the 7216-LUT mode-0 baseline | Rejected: +16 LUT with no measured performance gain |
 | DCache512 + RC32 + next, no Zicond, no Zbc | N/A | N/A | TBD | Attempts to trim Zbc hardware from the current low-area line | Rejected: CoreMark times out at `PC=00000478`; the current legal benchmark image depends on Zbc |
 | DCache512 + RC32 + next, no Zicond, no XThead condmove | N/A | N/A | TBD | Attempts to trim XThead conditional-move hardware from the current low-area line | Rejected: CoreMark times out at `PC=000004a8`; the current legal benchmark image depends on condmove |
@@ -598,6 +599,17 @@ Evidence for `DCache256 + RC128 + next, no Zicond`:
 - DCache512/RC32 area-rejected DCache-next-prefetch synth util: `synth_util_dcache512_rc32_next_nozicond_dnextpf_20260601.rpt`
 - DCache512/RC32 neutral static-predict CoreMark: `coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_d512_rc32_next_nozicond_static1_recheck_iter10_20260528.summary.txt`
 - DCache256/RC128 rejected no-load-use-spec CoreMark: `coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_nolspec_d256_rc128_next_nozicond_nolspec_recheck_iter10_20260528.summary.txt`
+- DCache512/RC64/nonext timing-driven implementation synth util: `synth_util_dcache512_rc64_nonext_nozicond_timingdriven_implrun_20260601.rpt`
+- DCache512/RC64/nonext timing-driven implementation utilization: `impl_util_dcache512_rc64_nonext_nozicond_timingdriven_timingfail_20260601.rpt`
+- DCache512/RC64/nonext timing-driven implementation timing: `impl_timing_dcache512_rc64_nonext_nozicond_timingdriven_timingfail_20260601.rpt`
+
+Implementation timing note: the timing-driven full implementation of the
+balanced DCache512/RC64/nonext/no-Zicond line produced `7674 LUT` but failed
+50 MHz timing with `WNS -11.425 ns`. The reported critical path starts at the
+synchronous instruction ROM/BRAM read data register and reaches the IF/ID
+instruction register. This result should guide the next RTL work toward
+shortening or staging the sync-ROM fetch-to-decode path; it must not be
+promoted as a board-valid bitstream.
 
 
 
