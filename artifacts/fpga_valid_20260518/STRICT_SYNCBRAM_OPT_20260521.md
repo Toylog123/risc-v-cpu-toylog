@@ -559,6 +559,7 @@ tradeoff was added for a higher CoreMark option below 8000 LUT.
 |---|---:|---:|---:|---|---|
 | DCache512 + RC32 + next, no Zicond | 7377 | 5.042742 | 1.287490 | Previous lowest-LUT 5+ baseline; DCache512, RC32, branchfold next-cache, NT-load fold, fold-rs2/rs3 read ports gated off, inactive regfile second write port disabled, no dynamic BHT, no ZBKB, no Zicond | Superseded by the no-retiming/no-timing-driven 7216-LUT synth |
 | DCache512 + RC32 + next, no Zicond, retiming/timing-driven override disabled | 7216 | 5.042742 | 1.287490 | Same RTL/benchmark evidence as the 7377-LUT line; Vivado quick synth disables retiming and timing-driven override | Current lowest-LUT 5+ baseline |
+| DCache512 + RC32 + next, no Zicond, timing-driven impl | 7532 impl | 5.042742 | 1.287490 | Same benchmark/RTL configuration as the low-LUT 5+ candidate, but run through full implementation with timing-driven synthesis and retiming | Rejected for board-facing use: post-route `WNS -12.744 ns`; critical path remains sync instruction ROM to IF/ID/front-end control |
 | DCache512 + RC64 + nonext, no Zicond, retiming/timing-driven override disabled | 7316 | 5.067602 | 1.287490 | Disables branchfold next-cache, increases redirect cache to RC64, keeps NT-load fold, disables Zicond, and uses no-retiming/no-timing-driven quick synth | Current balanced low-resource candidate; +100 LUT versus 7216 for +0.024860 CoreMark/MHz |
 | DCache512 + RC64 + nonext, no Zicond, timing-driven impl | 7674 impl | 5.067602 | 1.287490 | Same benchmark/RTL configuration as the balanced candidate, but run through full implementation with timing-driven synthesis and retiming | Rejected for board-facing use: post-route `WNS -11.425 ns`; keep only as timing-failure evidence |
 | DCache512 + RC32 + next, no Zicond, static predict mode 1, retiming/timing-driven override disabled | 7232 | 5.042742 | TBD | Static predict mode 1 is performance-neutral from the prior CoreMark run, but the same quick synth options produce a larger design than the 7216-LUT mode-0 baseline | Rejected: +16 LUT with no measured performance gain |
@@ -602,6 +603,9 @@ Evidence for `DCache256 + RC128 + next, no Zicond`:
 - DCache512/RC64/nonext timing-driven implementation synth util: `synth_util_dcache512_rc64_nonext_nozicond_timingdriven_implrun_20260601.rpt`
 - DCache512/RC64/nonext timing-driven implementation utilization: `impl_util_dcache512_rc64_nonext_nozicond_timingdriven_timingfail_20260601.rpt`
 - DCache512/RC64/nonext timing-driven implementation timing: `impl_timing_dcache512_rc64_nonext_nozicond_timingdriven_timingfail_20260601.rpt`
+- DCache512/RC32/next timing-driven implementation synth util: `synth_util_dcache512_rc32_next_nozicond_timingdriven_implrun_20260601.rpt`
+- DCache512/RC32/next timing-driven implementation utilization: `impl_util_dcache512_rc32_next_nozicond_timingdriven_timingfail_20260601.rpt`
+- DCache512/RC32/next timing-driven implementation timing: `impl_timing_dcache512_rc32_next_nozicond_timingdriven_timingfail_20260601.rpt`
 
 Implementation timing note: the timing-driven full implementation of the
 balanced DCache512/RC64/nonext/no-Zicond line produced `7674 LUT` but failed
@@ -609,7 +613,10 @@ balanced DCache512/RC64/nonext/no-Zicond line produced `7674 LUT` but failed
 synchronous instruction ROM/BRAM read data register and reaches the IF/ID
 instruction register. This result should guide the next RTL work toward
 shortening or staging the sync-ROM fetch-to-decode path; it must not be
-promoted as a board-valid bitstream.
+promoted as a board-valid bitstream. The DCache512/RC32/next/no-Zicond low-LUT
+line was also checked through full implementation and produced `7532 LUT` with
+`WNS -12.744 ns`; changing cache capacity/redirect-cache size alone is not
+enough to close timing.
 
 
 

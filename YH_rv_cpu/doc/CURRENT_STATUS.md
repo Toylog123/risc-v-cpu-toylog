@@ -26,6 +26,13 @@
   - post-route timing: `WNS -11.425 ns`, `TNS -6709.239 ns`.
   - critical path begins at the sync instruction ROM/BRAM output and ends at `u_cpu/if_id_instruction_r_reg[31]/D`.
   - decision: recorded as a timing-fail implementation artifact only. Do not use this bitstream/report as board-facing 50 MHz evidence.
+- Full implementation timing check for the 7216/7377 low-LUT line:
+  - configuration: `DCache512 + RC32 + branchfold next-cache + NT-load fold + no Zicond`, with timing-driven synthesis and retiming enabled.
+  - synthesis utilization in this implementation run: `7377 LUT / 3229 FF / 20 BRAM / 8 DSP`.
+  - post-route utilization: `7532 LUT / 3230 FF / 20 BRAM / 8 DSP`.
+  - post-route timing: `WNS -12.744 ns`, `TNS -11157.795 ns`.
+  - critical path begins at the sync instruction ROM/BRAM output and ends at `u_cpu/if_id_pc_r_reg[14]/CE`.
+  - decision: recorded as a timing-fail implementation artifact only. The next RTL work should reduce same-cycle fetch/decode/front-end control fan-in instead of changing only Vivado switches.
 - Rejected/neutral checks from the same batch:
   - `DCache512 + RC32 + no Zicond + redirect-cache XOR index`: CRC-clean but `4.998261 CoreMark/MHz`, below the 5+ target.
   - `DCache512 + RC32 + no Zicond + fetch redirect reuse`: CRC-clean and unchanged at `5.042742 CoreMark/MHz`; no promotion because it adds a hardware option without measured benefit.
@@ -48,6 +55,9 @@
   - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc64_nonext_nozicond_timingdriven_implrun_20260601.rpt`
   - `artifacts/fpga_valid_20260518/impl_util_dcache512_rc64_nonext_nozicond_timingdriven_timingfail_20260601.rpt`
   - `artifacts/fpga_valid_20260518/impl_timing_dcache512_rc64_nonext_nozicond_timingdriven_timingfail_20260601.rpt`
+  - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc32_next_nozicond_timingdriven_implrun_20260601.rpt`
+  - `artifacts/fpga_valid_20260518/impl_util_dcache512_rc32_next_nozicond_timingdriven_timingfail_20260601.rpt`
+  - `artifacts/fpga_valid_20260518/impl_timing_dcache512_rc32_next_nozicond_timingdriven_timingfail_20260601.rpt`
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_runs1000_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/synth_util_dcache256_rc128_next_nozicond_20260601.rpt`
