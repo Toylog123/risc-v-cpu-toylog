@@ -537,5 +537,28 @@ front-end optimization is added. `DCache64 + RC16 + next` is already below the
 initial-submission boundary; the better near-term search space is DCache128/64
 with small front-end control trims that preserve next-cache hit behavior.
 
+## 2026-06-01 under-8000 5+ follow-up
+
+The user selected the under-8000 LUT / CoreMark > 5 objective. The 7377-LUT
+no-Zicond point remains the lowest-LUT 5+ baseline, and a new DCache256/RC128
+tradeoff was added for a higher CoreMark option below 8000 LUT.
+
+| Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Optimization point | Decision |
+|---|---:|---:|---:|---|---|
+| DCache512 + RC32 + next, no Zicond | 7377 | 5.042742 | 1.287490 | Current lowest-LUT 5+ baseline; DCache512, RC32, branchfold next-cache, NT-load fold, fold-rs2/rs3 read ports gated off, inactive regfile second write port disabled, no dynamic BHT, no ZBKB, no Zicond | Keep as low-resource baseline |
+| DCache256 + RC128 + next, no Zicond | 7897 | 5.106160 | 1.261816 | Trades DCache capacity for larger redirect cache; keeps branchfold next-cache and NT-load fold, disables Zicond, keeps no dynamic BHT/no ZBKB/tag trims | Valid under-8000 higher-CoreMark candidate |
+| DCache512 + RC32 + next, no Zicond, redirect-cache XOR index | TBD | 4.998261 | TBD | XOR indexing on the redirect cache | Rejected: CRC-clean but below 5 CoreMark/MHz |
+| DCache512 + RC32 + next, no Zicond, fetch redirect reuse | TBD | 5.042742 | TBD | Enables fetch redirect reuse path | Neutral: CRC-clean but no measured performance benefit |
+| DCache256 + RC128 + next, no Zicond, no NT-load fold | TBD | N/A | TBD | Attempts to remove NT-load fold in the DCache256/RC128 tradeoff | No metric: xsim generated-C compile failed before benchmark output |
+
+Evidence for `DCache256 + RC128 + next, no Zicond`:
+
+- CoreMark: `coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_recheck_iter10_20260528.summary.txt`
+- Dhrystone: `dhrystone_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_runs1000_20260528.summary.txt`
+- Synth util: `synth_util_dcache256_rc128_next_nozicond_20260601.rpt`
+- Synth hierarchy: `synth_util_hier_dcache256_rc128_next_nozicond_20260601.rpt`
+- Rejected XOR CoreMark: `coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_d512_rc32_next_nozicond_xor1_recheck_iter10_20260528.summary.txt`
+- Neutral fetch-reuse CoreMark: `coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_d512_rc32_next_nozicond_fetchreuse_recheck_iter10_20260528.summary.txt`
+
 
 

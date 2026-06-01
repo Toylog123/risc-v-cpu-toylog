@@ -4,6 +4,26 @@
 > Branch: `codex/syncbram-h22-20260514`
 > Current optimization line: strict/public sync-BRAM hardware-only CoreMark/Dhrystone optimization
 
+## 2026-06-01 under-8000 LUT 5+ update
+
+- Current recommended low-resource baseline remains:
+  - `7377 LUT / 5.042742 CoreMark/MHz / 1.287490 DMIPS/MHz`
+  - tag: `freeze-strict-dcache512-rc32-next-nozicond-7377lut-coremark5p04-20260531`
+  - reason: lowest recorded LUT point that keeps CoreMark above 5 under the current strict sync-BRAM evidence.
+- New under-8000 performance/area tradeoff:
+  - `7897 LUT / 5.106160 CoreMark/MHz / 1.261816 DMIPS/MHz`
+  - configuration: `DCache256 + RC128 + branchfold next-cache + NT-load fold + no Zicond + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
+  - decision: valid candidate when a slightly higher CoreMark score is preferred while staying below 8000 LUT. Compared with the 7377-LUT baseline, it costs `+520 LUT` and gains `+0.063418 CoreMark/MHz`; DMIPS is slightly lower.
+- Rejected/neutral checks from the same batch:
+  - `DCache512 + RC32 + no Zicond + redirect-cache XOR index`: CRC-clean but `4.998261 CoreMark/MHz`, below the 5+ target.
+  - `DCache512 + RC32 + no Zicond + fetch redirect reuse`: CRC-clean and unchanged at `5.042742 CoreMark/MHz`; no promotion because it adds a hardware option without measured benefit.
+  - `DCache256 + RC128 + no Zicond + no NT-load fold`: xsim generated-C compile failed before benchmark output; no metric recorded.
+- New evidence:
+  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_recheck_iter10_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_runs1000_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/synth_util_dcache256_rc128_next_nozicond_20260601.rpt`
+  - `artifacts/fpga_valid_20260518/synth_util_hier_dcache256_rc128_next_nozicond_20260601.rpt`
+
 ## 2026-05-31 Selected main frozen baseline
 
 - Selected main frozen baseline for handoff and later document updates:
