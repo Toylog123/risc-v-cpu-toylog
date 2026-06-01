@@ -365,7 +365,8 @@ modify CoreMark core algorithm files.
 | Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Status |
 |---|---:|---:|---:|---|
 | DCache64 + RC64 + next | 6832 | 4.336028 | 1.166238 | Current best low-area/performance tradeoff; +138 LUT over floor candidate |
-| DCache64 + RC32 + next, no Zicond | 6619 | 4.181261 | 1.166238 | New lowest verified LUT point above initial submission; disables unused Zicond hardware under the RC32/next-cache profile |
+| DCache64 + RC32 + next, no Zicond, no NT-load fold | 6523 | 4.181209 | 1.166238 | New lowest verified LUT point above initial submission; trims Zicond and not-taken load fold while retaining next-cache branch fold |
+| DCache64 + RC32 + next, no Zicond | 6619 | 4.181261 | 1.166238 | Previous lowest verified LUT point; disables unused Zicond hardware under the RC32/next-cache profile |
 | DCache64 + RC64 + next, read-mux share RTL cleanup | 6955 | 4.336028 | TBD | Rejected; behavior unchanged but Vivado LUT increased |
 | DCache64 + RC64 + next, no load-use spec | 6955 | 4.289242 | 1.149744 | Rejected; LUT increased and score decreased |
 | DCache64 + RC64 + next, no Zicond | 6860 | 4.336028 | TBD | Rejected; performance unchanged and LUT increased |
@@ -382,6 +383,17 @@ modify CoreMark core algorithm files.
 | DCache32 + RC32 + next | TBD | 4.074163 | TBD | Rejected; below initial submission |
 
 Evidence for the current lowest-LUT candidate:
+
+- CoreMark summary:
+  `artifacts/fpga_valid_20260518/coremark_fpga_dcache64_rc64_ntfold_nobht_nozbkb_rctagtrim_nontload_d64_rc32_next_nozicond_nontload_recheck_iter10_20260528.summary.txt`
+- Dhrystone summary:
+  `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache64_rc64_ntfold_nobht_nozbkb_rctagtrim_nontload_d64_rc32_next_nozicond_nontload_runs1000_20260528.summary.txt`
+- Vivado synth utilization:
+  `artifacts/fpga_valid_20260518/synth_util_dcache64_rc32_next_nozicond_nontload_6523lut_20260601.rpt`
+- Vivado synth hierarchy:
+  `artifacts/fpga_valid_20260518/synth_util_hier_dcache64_rc32_next_nozicond_nontload_6523lut_20260601.rpt`
+
+Evidence for the previous no-Zicond low-LUT candidate:
 
 - CoreMark summary:
   `artifacts/fpga_valid_20260518/coremark_fpga_dcache64_rc64_ntfold_nobht_nozbkb_rctagtrim_d64_rc32_next_nozicond_recheck_iter10_20260528.summary.txt`

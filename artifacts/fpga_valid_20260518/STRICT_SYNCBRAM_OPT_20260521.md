@@ -475,6 +475,7 @@ low-power-first exploration. The current acceptance boundary is:
 | Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Optimization point | Decision |
 |---|---:|---:|---:|---|---|
 | DCache64 + RC64 + next | 6832 | 4.336028 | 1.166238 | 64-entry DCache, 64-entry return/redirect cache, next-cache path retained | Current best low-area/performance tradeoff; +138 LUT over the minimum floor |
+| DCache64 + RC32 + next, no Zicond, no NT-load fold | 6523 | 4.181209 | 1.166238 | 64-entry DCache, 32-entry return/redirect cache, next-cache path retained, Zicond and not-taken load fold disabled | New lowest verified LUT point above the initial submission boundary |
 | DCache64 + RC32 + next, no Zicond | 6619 | 4.181261 | 1.166238 | 64-entry DCache, 32-entry return/redirect cache, next-cache path retained, Zicond hardware disabled | New lowest verified LUT point above the initial submission boundary |
 | DCache64 + RC64 + next, read-mux share RTL cleanup | 6955 | 4.336028 | TBD | DCache array read expression sharing / valid vector cleanup | Rejected: behavior unchanged but Vivado increased LUT |
 | DCache64 + RC64 + next, no load-use spec | 6955 | 4.289242 | 1.149744 | Disable DCache probe/load-use speculation | Rejected: LUT increased and score decreased |
@@ -490,6 +491,13 @@ low-power-first exploration. The current acceptance boundary is:
 | DCache64 + RC32 + next + word-only DCache | TBD | 3.970315 | TBD | Word-only DCache data path trim | Rejected: below initial submission |
 | DCache64 + RC16 + next | TBD | 4.117348 | TBD | RC reduced from 32 to 16 | Rejected: below initial submission |
 | DCache32 + RC32 + next | TBD | 4.074163 | TBD | Further DCache reduction | Rejected: below initial submission |
+
+Evidence for `DCache64 + RC32 + next, no Zicond, no NT-load fold`:
+
+- CoreMark: `coremark_fpga_dcache64_rc64_ntfold_nobht_nozbkb_rctagtrim_nontload_d64_rc32_next_nozicond_nontload_recheck_iter10_20260528.summary.txt`
+- Dhrystone: `dhrystone_fpga_dcache64_rc64_ntfold_nobht_nozbkb_rctagtrim_nontload_d64_rc32_next_nozicond_nontload_runs1000_20260528.summary.txt`
+- Synth util: `synth_util_dcache64_rc32_next_nozicond_nontload_6523lut_20260601.rpt`
+- Synth hierarchy: `synth_util_hier_dcache64_rc32_next_nozicond_nontload_6523lut_20260601.rpt`
 
 Evidence for `DCache64 + RC32 + next, no Zicond`:
 
