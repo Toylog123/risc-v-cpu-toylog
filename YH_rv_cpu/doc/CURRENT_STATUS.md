@@ -25,6 +25,7 @@
   - configuration: `DCache512 + RC128 + no branchfold next-cache + NT-load fold + no Zicond + no ID-branch EX-forward`.
   - synthesis option: quick synth utilization with retiming disabled and timing-driven override disabled.
   - decision: current best under-8000 strict sync-BRAM performance/area point. It improves CoreMark by `+0.102569` versus the previous 7676-LUT higher-CoreMark candidate while saving `512 LUT`; it also improves CoreMark by `+0.185249` versus the 6872-LUT minimum-area 5+ candidate at a `+292 LUT` cost. Full implementation timing still needs a later board-facing check.
+  - full implementation check: timing-driven implementation reports `7677 LUT / WNS -11.408 ns`; recorded as timing-fail evidence only. The worst path moved from sync instruction ROM to the execute/memory address and ID/EX control network, so the next board-facing work should reduce decode/control fan-in rather than only resizing caches.
 - New under-8000 high-CoreMark candidate:
   - `7853 LUT / 5.281995 CoreMark/MHz / 1.275942 DMIPS/MHz`
   - configuration: `DCache512 + RC256 + no branchfold next-cache + NT-load fold + no Zicond + no ID-branch EX-forward`.
@@ -52,6 +53,7 @@
   - `DCache512 + RC32 + no Zicond + IMEM output register`: CRC-clean but `3.988680 CoreMark/MHz`, below the initial submission and 5+ targets. This confirms that a coarse extra fetch cycle can help timing structurally but costs too much benchmark throughput.
   - `DCache512 + RC32 + no Zicond + no ID branch fold`: CRC-clean but `4.880429 CoreMark/MHz`, below the 5+ target.
   - `DCache512 + RC32 + no Zicond + no ID-branch EX-forward`: CRC-clean but `4.994062 CoreMark/MHz`, just below the 5+ target.
+  - `DCache256 + RC256 + no Zicond + no ID-branch EX-forward`: CRC-clean but `4.862945 CoreMark/MHz`, showing the retained 5+ no-EX-forward family still needs DCache512 for CoreMark locality.
   - `DCache512 + RC32 + no Zicond + redirect-cache XOR index`: CRC-clean but `4.998261 CoreMark/MHz`, below the 5+ target.
   - `DCache512 + RC32 + no Zicond + fetch redirect reuse`: CRC-clean and unchanged at `5.042742 CoreMark/MHz`; no promotion because it adds a hardware option without measured benefit.
   - `DCache256 + RC128 + no Zicond + no NT-load fold`: xsim generated-C compile failed before benchmark output; no metric recorded.
@@ -80,11 +82,15 @@
   - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc128_nonext_nozicond_noexfwd_noretiming_notiming_7164lut_20260601.rpt`
   - `artifacts/fpga_valid_20260518/synth_util_hier_dcache512_rc128_nonext_nozicond_noexfwd_noretiming_notiming_7164lut_20260601.rpt`
   - `artifacts/fpga_valid_20260518/synth_timing_dcache512_rc128_nonext_nozicond_noexfwd_noretiming_notiming_7164lut_20260601.rpt`
+  - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc128_nonext_nozicond_noexfwd_timingdriven_implrun_20260602.rpt`
+  - `artifacts/fpga_valid_20260518/impl_util_dcache512_rc128_nonext_nozicond_noexfwd_timingdriven_timingfail_20260602.rpt`
+  - `artifacts/fpga_valid_20260518/impl_timing_dcache512_rc128_nonext_nozicond_noexfwd_timingdriven_timingfail_20260602.rpt`
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_rc256_nonext_nozicond_noexfwd_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_rc256_nonext_nozicond_noexfwd_runs1000_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc256_nonext_nozicond_noexfwd_noretiming_notiming_7853lut_20260602.rpt`
   - `artifacts/fpga_valid_20260518/synth_util_hier_dcache512_rc256_nonext_nozicond_noexfwd_noretiming_notiming_7853lut_20260602.rpt`
   - `artifacts/fpga_valid_20260518/synth_timing_dcache512_rc256_nonext_nozicond_noexfwd_noretiming_notiming_7853lut_20260602.rpt`
+  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_d256_rc256_nonext_nozicond_noexfwd_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_rc32_next_nozicond_nofold_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_rc32_next_nozicond_noexfwd_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc64_nonext_nozicond_timingdriven_implrun_20260601.rpt`
