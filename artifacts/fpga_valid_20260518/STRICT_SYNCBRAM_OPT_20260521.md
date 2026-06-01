@@ -28,6 +28,7 @@ Selected main frozen low-area 5+ baseline:
 | `tag target` | `freeze-strict-dcache512-rc64-nonext-foldrs23off-nord2-7596lut-coremark5p07-20260528` | 7596 | 5.067602 | 1.287490 | DCache512, RC64, branchfold, no branchfold next-cache, NT-load fold, fold-rs2/rs3 read ports gated off, inactive regfile second write port disabled, no dynamic BHT, no ZBKB, DCache tag trim, redirect-cache PC tag-width trim |
 | `5c4476b` | `freeze-strict-dcache512-rc32-next-foldrs23off-nord2-7437lut-coremark5p04-20260529` | 7437 | 5.042742 | 1.287490 | Selected main frozen baseline. DCache512, RC32, branchfold next-cache re-enabled, NT-load fold, fold-rs2/rs3 read ports gated off, inactive regfile second write port disabled, no dynamic BHT, no ZBKB, DCache tag trim, redirect-cache PC tag-width trim |
 | `tag target` | `freeze-strict-dcache512-rc32-next-nozicond-7377lut-coremark5p04-20260531` | 7377 | 5.042742 | 1.287490 | Current selected main frozen baseline. Same RC32/next low-area path as the 7437-LUT point, with Zicond hardware disabled. CoreMark and Dhrystone stay unchanged while synthesis drops another 60 LUT. |
+| `tag target` | `freeze-strict-dcache512-rc32-next-nozicond-noretiming-notiming-7216lut-coremark5p04-20260601` | 7216 | 5.042742 | 1.287490 | Current selected low-resource freeze. Same RTL/benchmark evidence as the 7377-LUT no-Zicond point; Vivado quick synth disables retiming and timing-driven override, saving another 161 LUT. |
 
 2026-05-28 note: the historical RC64 timeout was rechecked because its old log showed a missing `YH_rv_cpu_coremark_rv32.mem32.hex` warning. With corrected runtime staging, RC64 is CRC-clean. DCache512/RC64 with branchfold next-cache disabled, fold-rs2/rs3 read-port gating, and inactive regfile second-write-port gating is the newest lower-area 5+ point: it saves 2200 LUT versus the RC128 current best, at the cost of a CoreMark drop from 5.659572 to 5.067602. DCache256/RC64 is also CRC-clean but drops below 5 CoreMark/MHz (`4.891219`).
 
@@ -36,6 +37,8 @@ Selected main frozen low-area 5+ baseline:
 2026-05-29 freeze decision update: the user selected the `7437 LUT / 5.042742 CoreMark/MHz / 1.287490 DMIPS/MHz` point as the main frozen version because it has the best low-area balance among the validated 5+ CoreMark candidates. The `8983 LUT / 5.608440 CoreMark/MHz` point remains a larger high-score reference only. Interrupted M-extension Dhrystone experiments after this decision produced no valid metric and must not be mixed into the frozen evidence.
 
 2026-05-31 freeze decision update: the same low-area RC32/next path was rechecked with Zicond disabled. The exact CoreMark/Dhrystone metrics are unchanged (`5.042742 CoreMark/MHz / 1.287490 DMIPS/MHz`), while synthesis reports `7377 LUT`. This supersedes the 7437-LUT point as the selected main low-area freeze. The older 7437-LUT tag remains a valid comparison baseline.
+
+2026-06-01 low-resource synth update: the 7377-LUT no-Zicond low-area line was rerun with retiming disabled and timing-driven synth disabled. The RTL and benchmark evidence are unchanged, while quick synthesis reports `7216 LUT`. This supersedes the 7377-LUT point as the selected low-resource freeze; full implementation timing remains a later promotion check.
 
 2026-05-29 high-score reference recheck: after the regfile/fold-port area trims, the DCache1024/RC128 line was rerun under the same strict sync-BRAM hardware-only rules. It is CRC-clean at `8983 LUT / 5.608440 CoreMark/MHz / 1.287490 DMIPS/MHz`. This is the current best under-10000-LUT reference point, but not the low-area recommendation because the selected 7377-LUT line is much smaller.
 
@@ -119,6 +122,8 @@ Decision rule: promote only if CoreMark is CRC-clean (`0xfcaf`), the workload co
 - DCache512 RC32+next no-Zicond selected freeze Dhrystone summary: `dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_rc32_next_nozicond_runs1000_20260528.summary.txt`
 - DCache512 RC32+next no-Zicond selected freeze synth util: `synth_util_dcache512_rc32_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_next_nozicond_7377lut_20260531.rpt`
 - DCache512 RC32+next no-Zicond selected freeze synth hierarchy: `synth_util_hier_dcache512_rc32_ntfold_nobht_nozbkb_rctagtrim_foldrs23off_nord2_next_nozicond_7377lut_20260531.rpt`
+- DCache512 RC32+next no-Zicond no-retiming/no-timing-driven synth util: `synth_util_dcache512_rc32_next_nozicond_noretiming_notiming_20260601.rpt`
+- DCache512 RC32+next no-Zicond no-retiming/no-timing-driven synth hierarchy: `synth_util_hier_dcache512_rc32_next_nozicond_noretiming_notiming_20260601.rpt`
 - High-score DCache1024/RC128 recheck CoreMark summary: `coremark_fpga_dcache1024_rc64_ntfold_nobht_nozbkb_rctagtrim_rc128_current_rerun_recheck_iter10_20260528.summary.txt`
 - High-score DCache1024/RC128 recheck Dhrystone summary: `dhrystone_fpga_dcache1024_rc64_ntfold_nobht_nozbkb_rctagtrim_rc128_current_rerun_runs1000_20260528.summary.txt`
 - High-score DCache1024/RC128 recheck synth util: `synth_util_dcache1024_rc128_ntfold_nobht_nozbkb_rctagtrim_current_8983lut_20260529.rpt`
@@ -545,7 +550,8 @@ tradeoff was added for a higher CoreMark option below 8000 LUT.
 
 | Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Optimization point | Decision |
 |---|---:|---:|---:|---|---|
-| DCache512 + RC32 + next, no Zicond | 7377 | 5.042742 | 1.287490 | Current lowest-LUT 5+ baseline; DCache512, RC32, branchfold next-cache, NT-load fold, fold-rs2/rs3 read ports gated off, inactive regfile second write port disabled, no dynamic BHT, no ZBKB, no Zicond | Keep as low-resource baseline |
+| DCache512 + RC32 + next, no Zicond | 7377 | 5.042742 | 1.287490 | Previous lowest-LUT 5+ baseline; DCache512, RC32, branchfold next-cache, NT-load fold, fold-rs2/rs3 read ports gated off, inactive regfile second write port disabled, no dynamic BHT, no ZBKB, no Zicond | Superseded by the no-retiming/no-timing-driven 7216-LUT synth |
+| DCache512 + RC32 + next, no Zicond, retiming/timing-driven override disabled | 7216 | 5.042742 | 1.287490 | Same RTL/benchmark evidence as the 7377-LUT line; Vivado quick synth disables retiming and timing-driven override | Current lowest-LUT 5+ baseline |
 | DCache256 + RC128 + next, no Zicond | 7897 | 5.106160 | 1.261816 | Trades DCache capacity for larger redirect cache; keeps branchfold next-cache and NT-load fold, disables Zicond, keeps no dynamic BHT/no ZBKB/tag trims | Valid under-8000 higher-CoreMark candidate |
 | DCache256 + RC128 + next, no Zicond, synth retiming disabled | 7827 | 5.106160 | 1.261816 | Same RTL/benchmark evidence as 7897 point; Vivado quick synth run with retiming disabled | New lower-LUT implementation of the under-8000 higher-CoreMark candidate; full implementation timing still needs recheck |
 | DCache256 + RC128 + next, no Zicond, retiming/timing-driven override disabled | 7676 | 5.106160 | 1.261816 | Same RTL/benchmark evidence as the 7897/7827 points; Vivado quick synth with retiming disabled and timing-driven override disabled | Current under-8000 higher-CoreMark candidate; saves 151 LUT versus the no-retiming-only synth and 221 LUT versus the original quick synth |
