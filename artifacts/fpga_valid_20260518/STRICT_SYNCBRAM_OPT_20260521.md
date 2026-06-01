@@ -474,7 +474,9 @@ low-power-first exploration. The current acceptance boundary is:
 
 | Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Optimization point | Decision |
 |---|---:|---:|---:|---|---|
+| DCache128 + RC32 + next | 6955 | 4.329743 | 1.208287 | 128-entry DCache, 32-entry return/redirect cache, next-cache path retained | Balanced candidate: better score than the 6694-LUT floor for +261 LUT |
 | DCache64 + RC32 + next | 6694 | 4.181261 | 1.166238 | 64-entry DCache, 32-entry return/redirect cache, next-cache path retained, no dynamic BHT/ZBKB/Zicond | Freeze candidate: lowest verified LUT point above initial submission |
+| DCache64 + RC16 + next | TBD | 4.117348 | TBD | RC reduced from 32 to 16 | Rejected: below initial submission |
 | DCache32 + RC32 + next | TBD | 4.074163 | TBD | Further DCache reduction | Rejected: below initial submission |
 
 Evidence for `DCache64 + RC32 + next`:
@@ -484,9 +486,17 @@ Evidence for `DCache64 + RC32 + next`:
 - Synth util: `synth_util_dcache64_rc32_next_loadspec_6694lut_20260601.rpt`
 - Synth hierarchy: `synth_util_hier_dcache64_rc32_next_loadspec_6694lut_20260601.rpt`
 
-Next low-area trials should try RC depth reduction first (`DCache64 + RC16 +
-next`) before removing next-cache/load-use speculation, because the latter
-already pushed the margin down to the initial-submission boundary.
+Evidence for `DCache128 + RC32 + next`:
+
+- CoreMark: `coremark_fpga_dcache128_rc64_ntfold_nobht_nozbkb_rctagtrim_d128_rc32_next_recheck_iter10_20260528.summary.txt`
+- Dhrystone: `dhrystone_fpga_dcache128_rc64_ntfold_nobht_nozbkb_rctagtrim_d128_rc32_next_runs1000_20260528.summary.txt`
+- Synth util: `synth_util_dcache128_rc32_next_loadspec_6955lut_20260601.rpt`
+- Synth hierarchy: `synth_util_hier_dcache128_rc32_next_loadspec_6955lut_20260601.rpt`
+
+Next low-area trials should avoid further RC reduction unless a new compensating
+front-end optimization is added. `DCache64 + RC16 + next` is already below the
+initial-submission boundary; the better near-term search space is DCache128/64
+with small front-end control trims that preserve next-cache hit behavior.
 
 
 

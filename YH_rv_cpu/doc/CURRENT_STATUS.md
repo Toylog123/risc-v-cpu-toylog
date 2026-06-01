@@ -364,7 +364,9 @@ modify CoreMark core algorithm files.
 
 | Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Status |
 |---|---:|---:|---:|---|
+| DCache128 + RC32 + next | 6955 | 4.329743 | 1.208287 | Balanced low-area/performance candidate; +261 LUT over current low-area freeze |
 | DCache64 + RC32 + next | 6694 | 4.181261 | 1.166238 | Current low-area freeze candidate; above initial submission |
+| DCache64 + RC16 + next | TBD | 4.117348 | TBD | Rejected; RC16 loses too much redirect locality |
 | DCache32 + RC32 + next | TBD | 4.074163 | TBD | Rejected; below initial submission |
 
 Evidence for the current low-area candidate:
@@ -375,6 +377,10 @@ Evidence for the current low-area candidate:
   `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache64_rc64_ntfold_nobht_nozbkb_rctagtrim_d64_rc32_next_runs1000_20260528.summary.txt`
 - Vivado synth utilization:
   `artifacts/fpga_valid_20260518/synth_util_dcache64_rc32_next_loadspec_6694lut_20260601.rpt`
+- Balanced candidate evidence:
+  `artifacts/fpga_valid_20260518/coremark_fpga_dcache128_rc64_ntfold_nobht_nozbkb_rctagtrim_d128_rc32_next_recheck_iter10_20260528.summary.txt`,
+  `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache128_rc64_ntfold_nobht_nozbkb_rctagtrim_d128_rc32_next_runs1000_20260528.summary.txt`,
+  `artifacts/fpga_valid_20260518/synth_util_dcache128_rc32_next_loadspec_6955lut_20260601.rpt`
 - Strict EEMBC 10-second compliance is still marked `no`; the result is a
   CRC-clean full workload short run for architecture exploration and report
   comparison, not an official EEMBC-published score.
