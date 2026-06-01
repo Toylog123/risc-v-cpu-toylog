@@ -365,6 +365,7 @@ modify CoreMark core algorithm files.
 | Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Status |
 |---|---:|---:|---:|---|
 | DCache64 + RC64 + next | 6832 | 4.336028 | 1.166238 | Current best low-area/performance tradeoff; +138 LUT over floor candidate |
+| DCache64 + RC64 + next, no load-use spec | 6955 | 4.289242 | 1.149744 | Rejected; LUT increased and score decreased |
 | DCache64 + RC64 + next, no Zicond | 6860 | 4.336028 | TBD | Rejected; performance unchanged and LUT increased |
 | DCache64 + RC64 + next, no Zbc | TBD | timeout | TBD | Rejected; CoreMark did not complete within the simulation budget |
 | DCache128 + RC32 + next | 6955 | 4.329743 | 1.208287 | Balanced low-area/performance candidate; +261 LUT over current low-area freeze |
