@@ -1,6 +1,6 @@
 ﻿# CURRENT_STATUS
 
-> Updated: `2026-05-31`
+> Updated: `2026-06-01`
 > Branch: `codex/syncbram-h22-20260514`
 > Current optimization line: strict/public sync-BRAM hardware-only CoreMark/Dhrystone optimization
 
@@ -11,10 +11,10 @@
   - tag: `freeze-strict-dcache512-rc32-next-nozicond-7377lut-coremark5p04-20260531`
   - reason: lowest recorded LUT point that keeps CoreMark above 5 under the current strict sync-BRAM evidence.
 - New under-8000 performance/area tradeoff:
-  - `7827 LUT / 5.106160 CoreMark/MHz / 1.261816 DMIPS/MHz`
+  - `7676 LUT / 5.106160 CoreMark/MHz / 1.261816 DMIPS/MHz`
   - configuration: `DCache256 + RC128 + branchfold next-cache + NT-load fold + no Zicond + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
-  - synthesis option: quick synth utilization with retiming disabled.
-  - decision: valid candidate when a slightly higher CoreMark score is preferred while staying below 8000 LUT. Compared with the 7377-LUT baseline, it costs `+450 LUT` and gains `+0.063418 CoreMark/MHz`; DMIPS is slightly lower. Implementation timing still needs a later full place/route check before board-facing promotion.
+  - synthesis option: quick synth utilization with retiming disabled and timing-driven override disabled.
+  - decision: current higher-CoreMark candidate below 8000 LUT. Compared with the 7377-LUT baseline, it costs `+299 LUT` and gains `+0.063418 CoreMark/MHz`; DMIPS is slightly lower. Implementation timing still needs a later full place/route check before board-facing promotion.
 - Rejected/neutral checks from the same batch:
   - `DCache512 + RC32 + no Zicond + redirect-cache XOR index`: CRC-clean but `4.998261 CoreMark/MHz`, below the 5+ target.
   - `DCache512 + RC32 + no Zicond + fetch redirect reuse`: CRC-clean and unchanged at `5.042742 CoreMark/MHz`; no promotion because it adds a hardware option without measured benefit.
@@ -32,6 +32,8 @@
   - `artifacts/fpga_valid_20260518/synth_util_hier_dcache256_rc128_next_nozicond_20260601.rpt`
   - `artifacts/fpga_valid_20260518/synth_util_dcache256_rc128_next_nozicond_noretiming_20260601.rpt`
   - `artifacts/fpga_valid_20260518/synth_util_hier_dcache256_rc128_next_nozicond_noretiming_20260601.rpt`
+  - `artifacts/fpga_valid_20260518/synth_util_dcache256_rc128_next_nozicond_noretiming_notiming_20260601.rpt`
+  - `artifacts/fpga_valid_20260518/synth_util_hier_dcache256_rc128_next_nozicond_noretiming_notiming_20260601.rpt`
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_xor1_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_fetchreuse_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_noreglookup_recheck_iter10_20260528.summary.txt`
@@ -78,11 +80,11 @@
   - configuration: `DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim + regfile/fold-port area trims`
   - note: this is the current high-score reference below 10000 LUT, not the low-area recommendation.
 - Current medium-area tradeoff:
-  - LUT: `7914`
+  - LUT: `7676`
   - CoreMark/MHz: `5.106160`
   - DMIPS/MHz: `1.261816`
   - configuration: `DCache256 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
-  - note: this improves CoreMark over the current 7377-LUT low-area line by `0.063418 CoreMark/MHz`, but costs `537 LUT` and has slightly lower DMIPS.
+  - note: this improves CoreMark over the current 7377-LUT low-area line by `0.063418 CoreMark/MHz`, but costs `299 LUT` and has slightly lower DMIPS. The latest quick synth disables retiming and timing-driven override for the recorded `7676 LUT` implementation.
 - New rejected boundaries:
   - `DCache512 + RC16 + next-cache`: `4.950213 CoreMark/MHz`, CRC-clean but below 5.
   - `DCache512 + RC32 + next-cache + DCache word-only`: `4.427367 CoreMark/MHz`, CRC-clean but too slow because byte/halfword traffic loses DCache locality.
@@ -114,7 +116,7 @@
   - latest rejected area experiment: store-hit invalidate on the DCache512/RC64/nonext line measured `8330 LUT / 4.764133 CoreMark/MHz`; it is correct but loses too much store/load locality and is not retained.
   - latest rejected DCache port trim: single tag/valid read arbitration measured `7531 LUT / 4.908619 CoreMark/MHz`; the 65-LUT saving is not worth dropping below 5.
   - latest rejected folded operand trim: disabling folded rs1 read while enabling next-cache measured `7501 LUT / 4.934412 CoreMark/MHz`; the 95-LUT saving is not worth dropping below 5.
-  - latest valid-but-not-promoted capacity tradeoff: `DCache256 + RC128 + next-cache` measured `7914 LUT / 5.106160 CoreMark/MHz`; it scores higher than the 7596-LUT line but costs 318 extra LUT.
+  - latest valid capacity tradeoff: `DCache256 + RC128 + next-cache` measured `7676 LUT / 5.106160 CoreMark/MHz` in the latest no-retiming/no-timing-driven quick synth; it scores higher than the 7377-LUT line at a 299-LUT cost.
   - latest DCache capacity floor: DCache128 is CRC-clean but too slow (`4.369157` with RC64/nonext, `4.695781` with RC128/next-cache), so the current 5+ low-area target needs at least DCache256 plus a larger front-end or DCache512 with RC64.
   - latest rejected ISA trim: disabling XThead MAC made the existing benchmark image timeout at `PC=0000004c`, so the current compiled workload depends on that hardware path.
 - Candidate configuration:
