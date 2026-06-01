@@ -30,6 +30,7 @@
   - `DCache512 + RC32 + no Zicond + DCache next-prefetch`: CRC-clean at `5.067158 CoreMark/MHz` and `1.287501 DMIPS/MHz`, but synthesis reports `8407 LUT`, above the 8000-LUT limit.
   - `DCache512 + RC32 + no Zicond + static predict mode 1`: CRC-clean and unchanged at `5.042742 CoreMark/MHz`; no measured benefit. The latest no-retiming/no-timing-driven synth reports `7232 LUT`, 16 LUT above the 7216-LUT mode-0 baseline.
   - `DCache256 + RC128 + no Zicond + no DCache load-use speculation`: CRC-clean but `4.898993 CoreMark/MHz`, below the 5+ target.
+  - `DCache512 + RC32 + no Zicond + no Zbc`: timeout at `PC=00000478`; the current compiled workload depends on Zbc, so this ISA subset cannot be trimmed.
 - New evidence:
   - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc32_next_nozicond_noretiming_notiming_20260601.rpt`
   - `artifacts/fpga_valid_20260518/synth_util_hier_dcache512_rc32_next_nozicond_noretiming_notiming_20260601.rpt`
