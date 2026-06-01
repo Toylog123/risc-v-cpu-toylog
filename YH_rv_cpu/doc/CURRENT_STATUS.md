@@ -25,6 +25,11 @@
   - configuration: `DCache512 + RC128 + no branchfold next-cache + NT-load fold + no Zicond + no ID-branch EX-forward`.
   - synthesis option: quick synth utilization with retiming disabled and timing-driven override disabled.
   - decision: current best under-8000 strict sync-BRAM performance/area point. It improves CoreMark by `+0.102569` versus the previous 7676-LUT higher-CoreMark candidate while saving `512 LUT`; it also improves CoreMark by `+0.185249` versus the 6872-LUT minimum-area 5+ candidate at a `+292 LUT` cost. Full implementation timing still needs a later board-facing check.
+- New under-8000 high-CoreMark candidate:
+  - `7853 LUT / 5.281995 CoreMark/MHz / 1.275942 DMIPS/MHz`
+  - configuration: `DCache512 + RC256 + no branchfold next-cache + NT-load fold + no Zicond + no ID-branch EX-forward`.
+  - synthesis option: quick synth utilization with retiming disabled and timing-driven override disabled.
+  - decision: highest recorded CoreMark below 8000 LUT in the current no-EX-forward family. Compared with the 7164-LUT recommended point, it costs `+689 LUT` for `+0.073266 CoreMark/MHz`; use when performance is prioritized over minimum LUT. Full implementation timing still needs a later board-facing check.
 - Higher-CoreMark under-8000 performance/area tradeoff:
   - `7676 LUT / 5.106160 CoreMark/MHz / 1.261816 DMIPS/MHz`
   - configuration: `DCache256 + RC128 + branchfold next-cache + NT-load fold + no Zicond + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
@@ -75,6 +80,11 @@
   - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc128_nonext_nozicond_noexfwd_noretiming_notiming_7164lut_20260601.rpt`
   - `artifacts/fpga_valid_20260518/synth_util_hier_dcache512_rc128_nonext_nozicond_noexfwd_noretiming_notiming_7164lut_20260601.rpt`
   - `artifacts/fpga_valid_20260518/synth_timing_dcache512_rc128_nonext_nozicond_noexfwd_noretiming_notiming_7164lut_20260601.rpt`
+  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_rc256_nonext_nozicond_noexfwd_recheck_iter10_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_rc256_nonext_nozicond_noexfwd_runs1000_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc256_nonext_nozicond_noexfwd_noretiming_notiming_7853lut_20260602.rpt`
+  - `artifacts/fpga_valid_20260518/synth_util_hier_dcache512_rc256_nonext_nozicond_noexfwd_noretiming_notiming_7853lut_20260602.rpt`
+  - `artifacts/fpga_valid_20260518/synth_timing_dcache512_rc256_nonext_nozicond_noexfwd_noretiming_notiming_7853lut_20260602.rpt`
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_rc32_next_nozicond_nofold_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_rc32_next_nozicond_noexfwd_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc64_nonext_nozicond_timingdriven_implrun_20260601.rpt`
