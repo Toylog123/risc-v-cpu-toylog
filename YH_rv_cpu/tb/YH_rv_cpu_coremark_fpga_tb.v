@@ -21,6 +21,7 @@ module YH_rv_cpu_coremark_fpga_tb #(
     parameter integer ENABLE_XTHEAD_ADDSL_EXTENSION = 0,
     parameter integer ENABLE_XTHEAD_MEMPAIR_EXTENSION = 1,
     parameter integer ENABLE_XTHEAD_BASE_UPDATE_EXTENSION = 1,
+    parameter integer IMEM_OUTPUT_REG = 0,
     parameter integer ENABLE_ID_BRANCH_EX_FORWARD = 1,
     parameter integer ENABLE_ID_BRANCH_FOLD = 0,
     parameter integer ENABLE_ID_BRANCH_FOLD_NEXT_CACHE = 1,
@@ -123,7 +124,7 @@ integer profile_fetch_drop_response_events;
 YH_rv_cpu_soc #(
     .XLEN(XLEN),
     .SYNC_IMEM(1),
-    .IMEM_OUTPUT_REG(0),
+    .IMEM_OUTPUT_REG(IMEM_OUTPUT_REG),
     .SYNC_DMEM(1),
     .DMEM_OUTPUT_REG(0),
     .DMEM_NEGEDGE_READ(DMEM_NEGEDGE_READ),

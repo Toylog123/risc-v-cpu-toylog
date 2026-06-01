@@ -34,6 +34,7 @@
   - critical path begins at the sync instruction ROM/BRAM output and ends at `u_cpu/if_id_pc_r_reg[14]/CE`.
   - decision: recorded as a timing-fail implementation artifact only. The next RTL work should reduce same-cycle fetch/decode/front-end control fan-in instead of changing only Vivado switches.
 - Rejected/neutral checks from the same batch:
+  - `DCache512 + RC32 + no Zicond + IMEM output register`: CRC-clean but `3.988680 CoreMark/MHz`, below the initial submission and 5+ targets. This confirms that a coarse extra fetch cycle can help timing structurally but costs too much benchmark throughput.
   - `DCache512 + RC32 + no Zicond + redirect-cache XOR index`: CRC-clean but `4.998261 CoreMark/MHz`, below the 5+ target.
   - `DCache512 + RC32 + no Zicond + fetch redirect reuse`: CRC-clean and unchanged at `5.042742 CoreMark/MHz`; no promotion because it adds a hardware option without measured benefit.
   - `DCache256 + RC128 + no Zicond + no NT-load fold`: xsim generated-C compile failed before benchmark output; no metric recorded.
@@ -58,6 +59,7 @@
   - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc32_next_nozicond_timingdriven_implrun_20260601.rpt`
   - `artifacts/fpga_valid_20260518/impl_util_dcache512_rc32_next_nozicond_timingdriven_timingfail_20260601.rpt`
   - `artifacts/fpga_valid_20260518/impl_timing_dcache512_rc32_next_nozicond_timingdriven_timingfail_20260601.rpt`
+  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_rc32_next_nozicond_imemout_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_d256_rc128_next_nozicond_runs1000_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/synth_util_dcache256_rc128_next_nozicond_20260601.rpt`
