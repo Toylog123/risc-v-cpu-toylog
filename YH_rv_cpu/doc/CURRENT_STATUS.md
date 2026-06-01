@@ -365,6 +365,7 @@ modify CoreMark core algorithm files.
 | Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Status |
 |---|---:|---:|---:|---|
 | DCache64 + RC64 + next | 6832 | 4.336028 | 1.166238 | Current best low-area/performance tradeoff; +138 LUT over floor candidate |
+| DCache64 + RC64 + next, no Zicond | 6860 | 4.336028 | TBD | Rejected; performance unchanged and LUT increased |
 | DCache128 + RC32 + next | 6955 | 4.329743 | 1.208287 | Balanced low-area/performance candidate; +261 LUT over current low-area freeze |
 | DCache128 + RC64 + next | synth pending | 4.495875 | 1.208287 | Performance-valid but not frozen; synth did not close in the time budget |
 | DCache64 + RC32 + next | 6694 | 4.181261 | 1.166238 | Current low-area freeze candidate; above initial submission |
