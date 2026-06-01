@@ -15,6 +15,11 @@
   - configuration: `DCache512 + RC64 + branchfold + no branchfold next-cache + NT-load fold + no Zicond + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
   - synthesis option: quick synth utilization with retiming disabled and timing-driven override disabled.
   - decision: current best balanced low-resource point. Compared with the 7216-LUT minimum-area baseline, it costs `+100 LUT` and gains `+0.024860 CoreMark/MHz` while keeping the same DMIPS/MHz.
+- New lowest-LUT 5+ candidate:
+  - `6872 LUT / 5.023480 CoreMark/MHz / 1.275942 DMIPS/MHz`
+  - configuration: `DCache512 + RC64 + no branchfold next-cache + NT-load fold + no Zicond + no ID-branch EX-forward`.
+  - synthesis option: quick synth utilization with retiming disabled and timing-driven override disabled.
+  - decision: current lowest recorded LUT point that still keeps CoreMark above 5 under the strict sync-BRAM evidence. It saves `344 LUT` versus the 7216-LUT line and `444 LUT` versus the 7316-LUT balanced line, with a small CoreMark/DMIPS reduction. Full implementation timing still needs a later board-facing check.
 - Higher-CoreMark under-8000 performance/area tradeoff:
   - `7676 LUT / 5.106160 CoreMark/MHz / 1.261816 DMIPS/MHz`
   - configuration: `DCache256 + RC128 + branchfold next-cache + NT-load fold + no Zicond + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
@@ -35,6 +40,8 @@
   - decision: recorded as a timing-fail implementation artifact only. The next RTL work should reduce same-cycle fetch/decode/front-end control fan-in instead of changing only Vivado switches.
 - Rejected/neutral checks from the same batch:
   - `DCache512 + RC32 + no Zicond + IMEM output register`: CRC-clean but `3.988680 CoreMark/MHz`, below the initial submission and 5+ targets. This confirms that a coarse extra fetch cycle can help timing structurally but costs too much benchmark throughput.
+  - `DCache512 + RC32 + no Zicond + no ID branch fold`: CRC-clean but `4.880429 CoreMark/MHz`, below the 5+ target.
+  - `DCache512 + RC32 + no Zicond + no ID-branch EX-forward`: CRC-clean but `4.994062 CoreMark/MHz`, just below the 5+ target.
   - `DCache512 + RC32 + no Zicond + redirect-cache XOR index`: CRC-clean but `4.998261 CoreMark/MHz`, below the 5+ target.
   - `DCache512 + RC32 + no Zicond + fetch redirect reuse`: CRC-clean and unchanged at `5.042742 CoreMark/MHz`; no promotion because it adds a hardware option without measured benefit.
   - `DCache256 + RC128 + no Zicond + no NT-load fold`: xsim generated-C compile failed before benchmark output; no metric recorded.
@@ -53,6 +60,13 @@
   - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_nonext_nozicond_runs1000_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc64_nonext_nozicond_noretiming_notiming_20260601.rpt`
   - `artifacts/fpga_valid_20260518/synth_util_hier_dcache512_rc64_nonext_nozicond_noretiming_notiming_20260601.rpt`
+  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_rc64_nonext_nozicond_noexfwd_recheck_iter10_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_rc64_nonext_nozicond_noexfwd_runs1000_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc64_nonext_nozicond_noexfwd_noretiming_notiming_6872lut_20260601.rpt`
+  - `artifacts/fpga_valid_20260518/synth_util_hier_dcache512_rc64_nonext_nozicond_noexfwd_noretiming_notiming_6872lut_20260601.rpt`
+  - `artifacts/fpga_valid_20260518/synth_timing_dcache512_rc64_nonext_nozicond_noexfwd_noretiming_notiming_6872lut_20260601.rpt`
+  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_rc32_next_nozicond_nofold_recheck_iter10_20260528.summary.txt`
+  - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_rc32_next_nozicond_noexfwd_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/synth_util_dcache512_rc64_nonext_nozicond_timingdriven_implrun_20260601.rpt`
   - `artifacts/fpga_valid_20260518/impl_util_dcache512_rc64_nonext_nozicond_timingdriven_timingfail_20260601.rpt`
   - `artifacts/fpga_valid_20260518/impl_timing_dcache512_rc64_nonext_nozicond_timingdriven_timingfail_20260601.rpt`
