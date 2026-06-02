@@ -555,6 +555,20 @@ The user selected the under-8000 LUT / CoreMark > 5 objective. The 7377-LUT
 no-Zicond point remains the lowest-LUT 5+ baseline, and a new DCache256/RC128
 tradeoff was added for a higher CoreMark option below 8000 LUT.
 
+2026-06-02 region-contest baseline decision: use
+`DCache512 + RC64 + nonext + no Zicond + no ID-branch EX-forward` as the
+current region-contest engineering baseline. Its recorded metrics are
+`6872 LUT / 5.023480 CoreMark/MHz / 1.275942 DMIPS/MHz`. This point is selected
+because it is the lowest-LUT strict sync-BRAM candidate that still keeps
+CoreMark above 5. The 7164/7853-LUT points remain useful exploration references
+when performance is prioritized, but all subsequent low-resource work should
+report deltas against the 6872-LUT baseline.
+
+Baseline evidence status: CoreMark, Dhrystone/DMIPS, and quick synth resource
+reports are present. Full implementation timing, bitstream generation, and
+board/UART evidence are still required before promoting it as a board-facing
+final package.
+
 | Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Optimization point | Decision |
 |---|---:|---:|---:|---|---|
 | DCache512 + RC32 + next, no Zicond | 7377 | 5.042742 | 1.287490 | Previous lowest-LUT 5+ baseline; DCache512, RC32, branchfold next-cache, NT-load fold, fold-rs2/rs3 read ports gated off, inactive regfile second write port disabled, no dynamic BHT, no ZBKB, no Zicond | Superseded by the no-retiming/no-timing-driven 7216-LUT synth |
@@ -562,7 +576,7 @@ tradeoff was added for a higher CoreMark option below 8000 LUT.
 | DCache512 + RC32 + next, no Zicond, timing-driven impl | 7532 impl | 5.042742 | 1.287490 | Same benchmark/RTL configuration as the low-LUT 5+ candidate, but run through full implementation with timing-driven synthesis and retiming | Rejected for board-facing use: post-route `WNS -12.744 ns`; critical path remains sync instruction ROM to IF/ID/front-end control |
 | DCache512 + RC32 + next, no Zicond, IMEM output register | TBD | 3.988680 | TBD | Adds one output register stage on the synchronous instruction ROM response path | Rejected: timing-friendly direction, but coarse fetch latency drops below the initial-submission and 5+ performance targets |
 | DCache512 + RC64 + nonext, no Zicond, retiming/timing-driven override disabled | 7316 | 5.067602 | 1.287490 | Disables branchfold next-cache, increases redirect cache to RC64, keeps NT-load fold, disables Zicond, and uses no-retiming/no-timing-driven quick synth | Current balanced low-resource candidate; +100 LUT versus 7216 for +0.024860 CoreMark/MHz |
-| DCache512 + RC64 + nonext, no Zicond, no ID-branch EX-forward | 6872 | 5.023480 | 1.275942 | Keeps the RC64/nonext front-end but removes the ID-stage branch compare path that depends on the EX-stage same-cycle result | New lowest-LUT 5+ candidate; saves 344 LUT versus the 7216 line, with small CoreMark/DMIPS loss |
+| DCache512 + RC64 + nonext, no Zicond, no ID-branch EX-forward | 6872 | 5.023480 | 1.275942 | Keeps the RC64/nonext front-end but removes the ID-stage branch compare path that depends on the EX-stage same-cycle result | Selected region-contest engineering baseline; lowest-LUT strict sync-BRAM 5+ point, pending full impl/board evidence |
 | DCache512 + RC128 + nonext, no Zicond, no ID-branch EX-forward | 7164 | 5.208729 | 1.275942 | Enlarges redirect cache to 128 entries while keeping no-next-cache and no EX-forward for lower ID/front-end area than the old DCache256/RC128 path | New recommended under-8000 performance/area candidate; beats the old 7676-LUT 5.106 point while saving 512 LUT |
 | DCache512 + RC128 + nonext, no Zicond, no ID-branch EX-forward, timing-driven impl | 7677 impl | 5.208729 | 1.275942 | Same benchmark configuration as the 7164-LUT recommended point, but run through full implementation with timing-driven synthesis and retiming | Rejected for board-facing use: post-route `WNS -11.408 ns`; worst path moved to MEM/address-to-ID/EX-control logic |
 | DCache512 + RC256 + nonext, no Zicond, no ID-branch EX-forward | 7853 | 5.281995 | 1.275942 | Further enlarges redirect cache to 256 entries while keeping no-next-cache and no EX-forward | New under-8000 high-CoreMark candidate; performance gain costs 689 LUT versus the 7164-LUT recommended point |

@@ -1,8 +1,26 @@
 ﻿# CURRENT_STATUS
 
-> Updated: `2026-06-01`
+> Updated: `2026-06-02`
 > Branch: `codex/syncbram-h22-20260514`
 > Current optimization line: strict/public sync-BRAM hardware-only CoreMark/Dhrystone optimization
+
+## 2026-06-02 region-contest baseline selection
+
+- Selected region-contest engineering baseline:
+  - `6872 LUT / 5.023480 CoreMark/MHz / 1.275942 DMIPS/MHz`
+  - configuration: `DCache512 + RC64 + no branchfold next-cache + NT-load fold + no Zicond + no ID-branch EX-forward`.
+  - reason: this is the lowest recorded LUT point that keeps CoreMark above 5 under the strict sync-BRAM evidence. It is better aligned with the low-area/low-power narrative than the larger 7164/7853-LUT exploration points.
+- Evidence already available:
+  - CoreMark full-workload short-run summary, CRC-clean acceptance: `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_rc64_nonext_nozicond_noexfwd_recheck_iter10_20260528.summary.txt`
+  - Dhrystone/DMIPS summary: `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_rc64_nonext_nozicond_noexfwd_runs1000_20260528.summary.txt`
+  - quick synthesis utilization/timing/hierarchy: `artifacts/fpga_valid_20260518/synth_util_dcache512_rc64_nonext_nozicond_noexfwd_noretiming_notiming_6872lut_20260601.rpt`
+- Evidence still required before calling it a board-facing submission version:
+  - full implementation timing report at 50 MHz,
+  - generated bitstream,
+  - board programming/UART evidence,
+  - optional strict 10-second CoreMark run if a stricter benchmark-valid report is needed.
+- Follow-up rule:
+  all later optimization should branch conceptually from this 6872-LUT baseline and report deltas against it. The 7164/7853-LUT points remain exploration references, not the default region-contest baseline.
 
 ## 2026-06-01 under-8000 LUT 5+ update
 
