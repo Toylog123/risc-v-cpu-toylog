@@ -10,6 +10,9 @@
   - `6872 LUT / 5.023480 CoreMark/MHz / 1.275942 DMIPS/MHz`
   - configuration: `DCache512 + RC64 + no branchfold next-cache + NT-load fold + no Zicond + no ID-branch EX-forward`.
   - reason: this is the lowest recorded LUT point that keeps CoreMark above 5 under the strict sync-BRAM evidence. It is better aligned with the low-area/low-power narrative than the larger 7164/7853-LUT exploration points.
+- Baseline package:
+  - `artifacts/region_baseline_6872_20260602/`
+  - use this directory as the handoff entry point for region-contest evidence, reproduction commands, and follow-up tasks.
 - Evidence already available:
   - CoreMark full-workload short-run summary, CRC-clean acceptance: `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_rc64_nonext_nozicond_noexfwd_recheck_iter10_20260528.summary.txt`
   - Dhrystone/DMIPS summary: `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_rc64_nonext_nozicond_noexfwd_runs1000_20260528.summary.txt`
