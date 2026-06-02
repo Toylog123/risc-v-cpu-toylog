@@ -36,8 +36,8 @@ against this 6872-LUT baseline.
 
 ## Evidence Boundary
 
-Available evidence covers CoreMark, Dhrystone/DMIPS, and quick synthesis
-resource reports. Full implementation timing, generated bitstream, and
-board/UART evidence are still required before this can be described as a final
-board-facing package.
-
+Available evidence covers CoreMark, Dhrystone/DMIPS, quick synthesis resource
+reports, and one diagnostic full-implementation attempt. The 2026-06-02
+implementation attempt reached `7063 LUT / WNS -10.360 ns`, so timing closure,
+a board-facing bitstream, and board/UART evidence are still required before
+this can be described as a final board-facing package.

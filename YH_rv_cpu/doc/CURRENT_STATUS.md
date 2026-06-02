@@ -25,6 +25,27 @@
 - Follow-up rule:
   all later optimization should branch conceptually from this 6872-LUT baseline and report deltas against it. The 7164/7853-LUT points remain exploration references, not the default region-contest baseline.
 
+## 2026-06-02 6872 baseline implementation audit
+
+- Exact 6872 quick-synthesis baseline was run through PYNQ-Z2 Vivado implementation.
+- Result:
+  - post-route utilization: `7063 LUT`.
+  - post-route timing: `WNS -10.360 ns`, `WHS +0.028 ns`.
+  - bitstream generation completed, but this bitstream is diagnostic only because setup timing failed.
+- Worst setup path:
+  - source: `u_soc/u_cpu/ex_mem_mem_addr_r_reg[3]/C`.
+  - destination: `u_soc/u_cpu/pc_r_reg[30]/D`.
+  - data path delay: `30.328 ns`.
+  - logic levels: `41`.
+- Interpretation:
+  the current board-facing blocker is the same-cycle MEM/DCache/load-use/redirect-cache/front-end control fan-in into PC selection. The next optimization should shorten this hardware path while keeping CoreMark core files unchanged.
+- Archived evidence:
+  - `artifacts/region_baseline_6872_20260602/reports/impl_utilization_6872baseline_7063lut_wns-10p360.rpt`
+  - `artifacts/region_baseline_6872_20260602/reports/impl_timing_6872baseline_7063lut_wns-10p360.rpt`
+  - `artifacts/region_baseline_6872_20260602/TEST_STATUS.md`
+  - `artifacts/region_baseline_6872_20260602/HANDOFF_20260602.md`
+- Do not describe this baseline as timing-closed or board-proven. Continue from the 6872 package and compare later variants against `6872 LUT / 5.023480 CoreMark/MHz / 1.275942 DMIPS/MHz`.
+
 ## 2026-06-01 under-8000 LUT 5+ update
 
 - Current recommended low-resource baseline:
