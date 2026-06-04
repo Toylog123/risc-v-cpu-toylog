@@ -29,6 +29,12 @@ module YH_rv_cpu #(
     parameter [31:0] DCACHEABLE_LIMIT = 32'h0001_4000,
     parameter integer DCACHE_SIZE_BYTES = 4096,
     parameter integer ENABLE_DCACHE_LOAD_USE_SPEC = 0,
+    parameter integer ENABLE_CONTROL_REDIRECT_DCACHE_LOAD_USE_SPEC = 1,
+    parameter integer ENABLE_BRANCH_REDIRECT_DCACHE_LOAD_USE_SPEC = 1,
+    parameter integer ENABLE_JALR_REDIRECT_DCACHE_LOAD_USE_SPEC = 1,
+    parameter integer ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC = 1,
+    parameter integer ENABLE_FOLD_DCACHE_LOAD_USE_SPEC = 1,
+    parameter integer ENABLE_FOLD_EXMEM_LOAD_USE_SPEC = 1,
     parameter integer ENABLE_DCACHE_NEXT_PREFETCH = 0,
     parameter integer ENABLE_DCACHE_WORD_ONLY = 0,
     parameter integer DCACHE_EN = 0,         // 数据缓存使能: 0=禁用, 1=启用
@@ -47,9 +53,13 @@ module YH_rv_cpu #(
     parameter integer ENABLE_XTHEAD_BASE_UPDATE_EXTENSION = 1,
     parameter integer ENABLE_XTHEAD_COND_MOVE = 1, // XThead 条件移动写回门控使能
     parameter integer ENABLE_ID_BRANCH_EX_FORWARD = 1, // ID 早分支允许使用 EX 本周期结果
+    parameter integer ENABLE_ID_BRANCH_EXMEM_LOAD_FORWARD = 1,
+    parameter integer ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD = 1,
     parameter integer ENABLE_REDIRECT_TARGET_CACHE = 1,
     parameter integer ENABLE_ID_BRANCH_FOLD = 0,
     parameter integer ENABLE_ID_BRANCH_FOLD_NEXT_CACHE = 1,
+    parameter integer ENABLE_EX_REDIRECT_FOLD = 1,
+    parameter integer ENABLE_ID_BRANCH_NT_NEXT_CACHE = 1,
     parameter integer ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD = 0,
     parameter integer ENABLE_ID_ALU_PAIR_FOLD = 0,
     parameter integer ENABLE_ID_ALU_DEP_FOLD = 0,
@@ -626,8 +636,20 @@ wire [XLEN-1:0] wb_data;
 wire [XLEN-1:0] ex_mem_forward_data;
 wire            ex_mem_load_data_ready;
 wire            id_ex_load_forward_ready;
+wire            id_ex_load_forward_ready_control;
+wire            id_ex_load_forward_ready_frontend;
+wire            id_ex_load_forward_ready_fold;
+wire            ex_mem_load_forward_ready_fold;
+wire            ex_mem_load_forward_ready_frontend;
 wire            id_ex_load_forward_ready_decode;
+wire            id_ex_load_forward_ready_decode_hazard;
 wire            if_id_mem_addr_dep_on_idex_load;
+wire            if_id_control_redirect_op;
+wire            if_id_control_redirect_dcache_block;
+wire            exmem_load_redirect_hazard;
+wire            exmem_load_frontend_hazard;
+wire            ex_operand_frontend_sensitive;
+wire            ex_mem_load_forward_ready_ex_operand;
 wire            ex_mem_load_forward_ready;
 wire            id_ex_dcache_load_use_safe;
 
@@ -807,6 +829,38 @@ assign id_ex_load_forward_ready =
     (LOAD_USE_FAST_FORWARD != 0) ||
     ex_dmem_preissue_valid ||
     id_ex_dcache_load_use_safe;
+assign id_ex_load_forward_ready_control =
+    (LOAD_USE_FAST_FORWARD != 0) ||
+    ex_dmem_preissue_valid ||
+    ((ENABLE_CONTROL_REDIRECT_DCACHE_LOAD_USE_SPEC != 0) && id_ex_dcache_load_use_safe);
+assign id_ex_load_forward_ready_frontend =
+    (LOAD_USE_FAST_FORWARD != 0) ||
+    ex_dmem_preissue_valid ||
+    ((ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC != 0) && id_ex_dcache_load_use_safe);
+assign id_ex_load_forward_ready_fold =
+    (LOAD_USE_FAST_FORWARD != 0) ||
+    ex_dmem_preissue_valid ||
+    ((ENABLE_FOLD_DCACHE_LOAD_USE_SPEC != 0) && id_ex_dcache_load_use_safe);
+assign if_id_control_redirect_op =
+    if_id_valid_r &&
+    (
+        id_branch ||
+        (id_jump && id_jalr)
+    );
+assign if_id_control_redirect_dcache_block =
+    if_id_valid_r &&
+    (
+        ((ENABLE_CONTROL_REDIRECT_DCACHE_LOAD_USE_SPEC == 0) &&
+         (id_branch || (id_jump && id_jalr))) ||
+        ((ENABLE_BRANCH_REDIRECT_DCACHE_LOAD_USE_SPEC == 0) && id_branch) ||
+        ((ENABLE_JALR_REDIRECT_DCACHE_LOAD_USE_SPEC == 0) && id_jump && id_jalr)
+    );
+assign ex_mem_load_forward_ready_fold =
+    (LOAD_USE_FAST_FORWARD != 0) ||
+    ((ENABLE_FOLD_EXMEM_LOAD_USE_SPEC != 0) && ex_mem_load_data_ready);
+assign ex_mem_load_forward_ready_frontend =
+    (LOAD_USE_FAST_FORWARD != 0) ||
+    ((ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC != 0) && ex_mem_load_data_ready);
 assign if_id_mem_addr_dep_on_idex_load =
     (DMEM_READ_PREISSUE != 0) &&
     if_id_valid_r &&
@@ -822,7 +876,24 @@ assign if_id_mem_addr_dep_on_idex_load =
 assign id_ex_load_forward_ready_decode =
     id_ex_load_forward_ready &&
     !if_id_mem_addr_dep_on_idex_load;
-assign ex_mem_load_forward_ready = (LOAD_USE_FAST_FORWARD != 0) || ex_mem_load_data_ready;
+assign id_ex_load_forward_ready_decode_hazard =
+    (if_id_control_redirect_dcache_block ? id_ex_load_forward_ready_control : id_ex_load_forward_ready_frontend) &&
+    !if_id_mem_addr_dep_on_idex_load;
+assign ex_mem_load_forward_ready =
+    (LOAD_USE_FAST_FORWARD != 0) ||
+    ex_mem_load_data_ready;
+assign ex_operand_frontend_sensitive =
+    (ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC == 0) &&
+    (
+        id_ex_branch_r ||
+        (id_ex_jump_r && id_ex_jalr_r) ||
+        id_ex_load_r ||
+        id_ex_store_r ||
+        id_ex_mret_r
+    );
+assign ex_mem_load_forward_ready_ex_operand =
+    ex_mem_load_forward_ready &&
+    (!ex_operand_frontend_sensitive || !ex_mem_load_r);
 
 assign store_data_load_use_hazard =
     if_id_valid_r &&
@@ -830,11 +901,46 @@ assign store_data_load_use_hazard =
     (
         (id_ex_valid_r && id_ex_load_r && !id_ex_load_forward_ready && id_ex_rd_en_r &&
          (id_ex_rd_addr_r != 5'd0) && (id_ex_rd_addr_r == id_rs3_addr)) ||
-        (ex_mem_valid_r && ex_mem_load_r && !ex_mem_load_forward_ready && ex_mem_rd_en_r &&
+        (ex_mem_valid_r && ex_mem_load_r && !ex_mem_load_forward_ready_frontend && ex_mem_rd_en_r &&
          (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == id_rs3_addr))
     );
+assign exmem_load_redirect_hazard =
+    (ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD == 0) &&
+    if_id_valid_r &&
+    ex_mem_valid_r &&
+    ex_mem_load_r &&
+    ex_mem_rd_en_r &&
+    (ex_mem_rd_addr_r != 5'd0) &&
+    (
+        (id_branch && (
+            (id_rs1_en && (id_rs1_addr == ex_mem_rd_addr_r)) ||
+            (id_rs2_en && (id_rs2_addr == ex_mem_rd_addr_r))
+        )) ||
+        (id_jump && id_jalr && id_rs1_en && (id_rs1_addr == ex_mem_rd_addr_r))
+    );
+assign exmem_load_frontend_hazard =
+    (ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC == 0) &&
+    if_id_valid_r &&
+    ex_mem_valid_r &&
+    ex_mem_load_r &&
+    ex_mem_rd_en_r &&
+    (ex_mem_rd_addr_r != 5'd0) &&
+    (
+        (if_id_control_redirect_op && (
+            (id_rs1_en && (id_rs1_addr == ex_mem_rd_addr_r)) ||
+            (id_rs2_en && (id_rs2_addr == ex_mem_rd_addr_r))
+        )) ||
+        ((id_load || id_store) && (
+            (id_rs1_en && (id_rs1_addr == ex_mem_rd_addr_r)) ||
+            (id_mem_indexed && id_rs2_en && (id_rs2_addr == ex_mem_rd_addr_r))
+        ))
+    );
 
-assign stall_decode = hazard_stall_decode || store_data_load_use_hazard;
+assign stall_decode =
+    hazard_stall_decode ||
+    store_data_load_use_hazard ||
+    exmem_load_redirect_hazard ||
+    exmem_load_frontend_hazard;
 
 // ================================================================
 // 重定向有效性
@@ -997,7 +1103,8 @@ assign id_branch_decode_idex_value_available =
     !id_ex_load_r &&
     !id_ex_csr_valid_r;
 assign id_branch_decode_exmem_value_available =
-    !ex_mem_load_r || ex_mem_load_forward_ready;
+    !ex_mem_load_r ||
+    ((ENABLE_ID_BRANCH_EXMEM_LOAD_FORWARD != 0) && ex_mem_load_forward_ready);
 assign id_branch_decode_rs1_idex_match =
     id_rs1_en &&
     id_ex_valid_r &&
@@ -1186,6 +1293,7 @@ assign branch_bht_update_taken = branch_bht_ex_update_valid ? ex_redirect_en : 1
 assign branch_bht_update_index = branch_bht_update_pc[BRANCH_BHT_INDEX_BITS+1:2];
 assign id_branch_fold_candidate =
     (ENABLE_ID_BRANCH_FOLD != 0) &&
+    ((ENABLE_EX_REDIRECT_FOLD != 0) || !ex_fetch_redirect_valid) &&
     id_branch_decode_redirect_valid &&
     redirect_cache_deliver;
 assign id_branch_not_taken_fold_pc = if_id_pc_r + {{(XLEN-3){1'b0}}, 3'd4};
@@ -1240,17 +1348,17 @@ assign fold_id_control_or_trap =
     fold_id_ebreak ||
     fold_id_mret;
 assign fold_id_hazard =
-    (fold_id_rs1_en && id_ex_valid_r && id_ex_load_r && !id_ex_load_forward_ready && id_ex_rd_en_r &&
+    (fold_id_rs1_en && id_ex_valid_r && id_ex_load_r && !id_ex_load_forward_ready_fold && id_ex_rd_en_r &&
      (id_ex_rd_addr_r != 5'd0) && (id_ex_rd_addr_r == fold_id_rs1_addr)) ||
-    (fold_id_rs2_en && id_ex_valid_r && id_ex_load_r && !id_ex_load_forward_ready && id_ex_rd_en_r &&
+    (fold_id_rs2_en && id_ex_valid_r && id_ex_load_r && !id_ex_load_forward_ready_fold && id_ex_rd_en_r &&
      (id_ex_rd_addr_r != 5'd0) && (id_ex_rd_addr_r == fold_id_rs2_addr)) ||
-    (fold_id_rs3_en && id_ex_valid_r && id_ex_load_r && !id_ex_load_forward_ready && id_ex_rd_en_r &&
+    (fold_id_rs3_en && id_ex_valid_r && id_ex_load_r && !id_ex_load_forward_ready_fold && id_ex_rd_en_r &&
      (id_ex_rd_addr_r != 5'd0) && (id_ex_rd_addr_r == fold_id_rs3_addr)) ||
-    (fold_id_rs1_en && ex_mem_valid_r && ex_mem_load_r && !ex_mem_load_data_ready && ex_mem_rd_en_r &&
+    (fold_id_rs1_en && ex_mem_valid_r && ex_mem_load_r && !ex_mem_load_forward_ready_fold && ex_mem_rd_en_r &&
      (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == fold_id_rs1_addr)) ||
-    (fold_id_rs2_en && ex_mem_valid_r && ex_mem_load_r && !ex_mem_load_data_ready && ex_mem_rd_en_r &&
+    (fold_id_rs2_en && ex_mem_valid_r && ex_mem_load_r && !ex_mem_load_forward_ready_fold && ex_mem_rd_en_r &&
      (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == fold_id_rs2_addr)) ||
-    (fold_id_rs3_en && ex_mem_valid_r && ex_mem_load_r && !ex_mem_load_data_ready && ex_mem_rd_en_r &&
+    (fold_id_rs3_en && ex_mem_valid_r && ex_mem_load_r && !ex_mem_load_forward_ready_fold && ex_mem_rd_en_r &&
      (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == fold_id_rs3_addr));
 assign id_branch_fold_valid =
     id_branch_fold_candidate &&
@@ -1726,6 +1834,7 @@ assign not_taken_next_cache_lookup_index_xor =
 assign not_taken_next_cache_lookup_index =
     (REDIRECT_CACHE_XOR_INDEX != 0) ? not_taken_next_cache_lookup_index_xor : not_taken_next_cache_lookup_index_direct;
 assign not_taken_next_cache_match =
+    (ENABLE_ID_BRANCH_NT_NEXT_CACHE != 0) &&
     redirect_cache_valid_r[not_taken_next_cache_lookup_index] &&
     (redirect_cache_pc_r[not_taken_next_cache_lookup_index] == id_branch_not_taken_next_pc[XLEN-1:REDIRECT_CACHE_TAG_LSB]);
 assign not_taken_next_cache_hit =
@@ -1755,7 +1864,8 @@ assign regular_cache_lookup_valid =
     (IMEM_OUTPUT_REG == 0) &&
     (ENABLE_REDIRECT_TARGET_CACHE != 0) &&
     (ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP != 0) &&
-    fetch_request_ok &&
+    !trap_r &&
+    !mem_wait &&
     !fetch_control_redirect_valid &&
     !fetch_queue_valid;
 assign regular_cache_hit =
@@ -2179,7 +2289,7 @@ YH_rv_cpu_hazard_unit #(
     .if_id_rs2_addr (id_rs2_addr),
     .id_ex_valid    (id_ex_valid_r),
     .id_ex_load     (id_ex_load_r),
-    .id_ex_load_ready(id_ex_load_forward_ready_decode),
+    .id_ex_load_ready(id_ex_load_forward_ready_decode_hazard),
     .id_ex_rd_en    (id_ex_rd_en_r),
     .id_ex_rd_addr  (id_ex_rd_addr_r),
     .id_ex_rs1_en   (id_ex_rs1_en_r),
@@ -2211,7 +2321,7 @@ always @* begin
     ex_store_src_forwarded = id_ex_rs3_value_r;
 
     if (id_ex_rs1_en_r && ex_mem_valid_r && ex_mem_rd_en_r &&
-        (!ex_mem_load_r || ex_mem_load_forward_ready) &&
+        (!ex_mem_load_r || ex_mem_load_forward_ready_ex_operand) &&
         (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == id_ex_rs1_addr_r)) begin
         ex_rs1_forwarded = ex_mem_forward_data;
     end else if (id_ex_rs1_en_r && ex_mem_valid_r && ex_mem_base_update_en_r &&
@@ -2226,7 +2336,7 @@ always @* begin
     end
 
     if (id_ex_rs2_en_r && ex_mem_valid_r && ex_mem_rd_en_r &&
-        (!ex_mem_load_r || ex_mem_load_forward_ready) &&
+        (!ex_mem_load_r || ex_mem_load_forward_ready_ex_operand) &&
         (ex_mem_rd_addr_r != 5'd0) && (ex_mem_rd_addr_r == id_ex_rs2_addr_r)) begin
         ex_rs2_forwarded = ex_mem_forward_data;
     end else if (id_ex_rs2_en_r && ex_mem_valid_r && ex_mem_base_update_en_r &&

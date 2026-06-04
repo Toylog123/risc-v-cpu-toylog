@@ -19,7 +19,10 @@ set input_clock_period_ns 8.000
 set synth_retiming 1
 set synth_no_timing_driven 0
 set quick_util_only 0
+set skip_phys_opt 0
+set impl_write_bitstream 1
 set cpu_clk_freq_hz 62500000
+set use_clk_mmcm_25m 0
 set use_clk_mmcm_62m5 1
 set use_clk_mmcm_50m 0
 set enable_m_extension 0
@@ -36,8 +39,12 @@ set enable_xthead_addsl_extension 0
 set enable_xthead_mempair_extension 1
 set enable_xthead_base_update_extension 1
 set enable_id_branch_ex_forward 0
+set enable_id_branch_exmem_load_forward 1
+set enable_ex_redirect_exmem_load_forward 1
 set enable_id_branch_fold 0
 set enable_id_branch_fold_next_cache 1
+set enable_ex_redirect_fold 1
+set enable_id_branch_nt_next_cache 1
 set enable_id_branch_not_taken_load_fold 0
 set enable_id_alu_pair_fold 0
 set enable_id_alu_dep_fold 0
@@ -54,6 +61,12 @@ set dmem_read_preissue 0
 set dcache_en 0
 set dcache_size_bytes 4096
 set enable_dcache_load_use_spec 0
+set enable_control_redirect_dcache_load_use_spec 1
+set enable_branch_redirect_dcache_load_use_spec 1
+set enable_jalr_redirect_dcache_load_use_spec 1
+set enable_frontend_dcache_load_use_spec 1
+set enable_fold_dcache_load_use_spec 1
+set enable_fold_exmem_load_use_spec 1
 set enable_dcache_next_prefetch 0
 set enable_dcache_word_only 0
 set icache_en 0
@@ -89,8 +102,17 @@ if {[info exists ::env(PYNQ_SYNTH_NO_TIMING_DRIVEN_OVERRIDE)] && $::env(PYNQ_SYN
 if {[info exists ::env(PYNQ_QUICK_UTIL_ONLY_OVERRIDE)] && $::env(PYNQ_QUICK_UTIL_ONLY_OVERRIDE) ne ""} {
     set quick_util_only $::env(PYNQ_QUICK_UTIL_ONLY_OVERRIDE)
 }
+if {[info exists ::env(PYNQ_SKIP_PHYS_OPT_OVERRIDE)] && $::env(PYNQ_SKIP_PHYS_OPT_OVERRIDE) ne ""} {
+    set skip_phys_opt $::env(PYNQ_SKIP_PHYS_OPT_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_IMPL_WRITE_BITSTREAM_OVERRIDE)] && $::env(PYNQ_IMPL_WRITE_BITSTREAM_OVERRIDE) ne ""} {
+    set impl_write_bitstream $::env(PYNQ_IMPL_WRITE_BITSTREAM_OVERRIDE)
+}
 if {[info exists ::env(PYNQ_CPU_CLK_FREQ_HZ_OVERRIDE)] && $::env(PYNQ_CPU_CLK_FREQ_HZ_OVERRIDE) ne ""} {
     set cpu_clk_freq_hz $::env(PYNQ_CPU_CLK_FREQ_HZ_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_USE_CLK_MMCM_25M_OVERRIDE)] && $::env(PYNQ_USE_CLK_MMCM_25M_OVERRIDE) ne ""} {
+    set use_clk_mmcm_25m $::env(PYNQ_USE_CLK_MMCM_25M_OVERRIDE)
 }
 if {[info exists ::env(PYNQ_USE_CLK_MMCM_62M5_OVERRIDE)] && $::env(PYNQ_USE_CLK_MMCM_62M5_OVERRIDE) ne ""} {
     set use_clk_mmcm_62m5 $::env(PYNQ_USE_CLK_MMCM_62M5_OVERRIDE)
@@ -140,11 +162,23 @@ if {[info exists ::env(PYNQ_ENABLE_XTHEAD_BASE_UPDATE_EXTENSION_OVERRIDE)] && $:
 if {[info exists ::env(PYNQ_ENABLE_ID_BRANCH_EX_FORWARD_OVERRIDE)] && $::env(PYNQ_ENABLE_ID_BRANCH_EX_FORWARD_OVERRIDE) ne ""} {
     set enable_id_branch_ex_forward $::env(PYNQ_ENABLE_ID_BRANCH_EX_FORWARD_OVERRIDE)
 }
+if {[info exists ::env(PYNQ_ENABLE_ID_BRANCH_EXMEM_LOAD_FORWARD_OVERRIDE)] && $::env(PYNQ_ENABLE_ID_BRANCH_EXMEM_LOAD_FORWARD_OVERRIDE) ne ""} {
+    set enable_id_branch_exmem_load_forward $::env(PYNQ_ENABLE_ID_BRANCH_EXMEM_LOAD_FORWARD_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD_OVERRIDE)] && $::env(PYNQ_ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD_OVERRIDE) ne ""} {
+    set enable_ex_redirect_exmem_load_forward $::env(PYNQ_ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD_OVERRIDE)
+}
 if {[info exists ::env(PYNQ_ENABLE_ID_BRANCH_FOLD_OVERRIDE)] && $::env(PYNQ_ENABLE_ID_BRANCH_FOLD_OVERRIDE) ne ""} {
     set enable_id_branch_fold $::env(PYNQ_ENABLE_ID_BRANCH_FOLD_OVERRIDE)
 }
 if {[info exists ::env(PYNQ_ENABLE_ID_BRANCH_FOLD_NEXT_CACHE_OVERRIDE)] && $::env(PYNQ_ENABLE_ID_BRANCH_FOLD_NEXT_CACHE_OVERRIDE) ne ""} {
     set enable_id_branch_fold_next_cache $::env(PYNQ_ENABLE_ID_BRANCH_FOLD_NEXT_CACHE_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_ENABLE_EX_REDIRECT_FOLD_OVERRIDE)] && $::env(PYNQ_ENABLE_EX_REDIRECT_FOLD_OVERRIDE) ne ""} {
+    set enable_ex_redirect_fold $::env(PYNQ_ENABLE_EX_REDIRECT_FOLD_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_ENABLE_ID_BRANCH_NT_NEXT_CACHE_OVERRIDE)] && $::env(PYNQ_ENABLE_ID_BRANCH_NT_NEXT_CACHE_OVERRIDE) ne ""} {
+    set enable_id_branch_nt_next_cache $::env(PYNQ_ENABLE_ID_BRANCH_NT_NEXT_CACHE_OVERRIDE)
 }
 if {[info exists ::env(PYNQ_ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD_OVERRIDE)] && $::env(PYNQ_ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD_OVERRIDE) ne ""} {
     set enable_id_branch_not_taken_load_fold $::env(PYNQ_ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD_OVERRIDE)
@@ -194,6 +228,24 @@ if {[info exists ::env(PYNQ_DCACHE_SIZE_BYTES_OVERRIDE)] && $::env(PYNQ_DCACHE_S
 if {[info exists ::env(PYNQ_ENABLE_DCACHE_LOAD_USE_SPEC_OVERRIDE)] && $::env(PYNQ_ENABLE_DCACHE_LOAD_USE_SPEC_OVERRIDE) ne ""} {
     set enable_dcache_load_use_spec $::env(PYNQ_ENABLE_DCACHE_LOAD_USE_SPEC_OVERRIDE)
 }
+if {[info exists ::env(PYNQ_ENABLE_CONTROL_REDIRECT_DCACHE_LOAD_USE_SPEC_OVERRIDE)] && $::env(PYNQ_ENABLE_CONTROL_REDIRECT_DCACHE_LOAD_USE_SPEC_OVERRIDE) ne ""} {
+    set enable_control_redirect_dcache_load_use_spec $::env(PYNQ_ENABLE_CONTROL_REDIRECT_DCACHE_LOAD_USE_SPEC_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_ENABLE_BRANCH_REDIRECT_DCACHE_LOAD_USE_SPEC_OVERRIDE)] && $::env(PYNQ_ENABLE_BRANCH_REDIRECT_DCACHE_LOAD_USE_SPEC_OVERRIDE) ne ""} {
+    set enable_branch_redirect_dcache_load_use_spec $::env(PYNQ_ENABLE_BRANCH_REDIRECT_DCACHE_LOAD_USE_SPEC_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_ENABLE_JALR_REDIRECT_DCACHE_LOAD_USE_SPEC_OVERRIDE)] && $::env(PYNQ_ENABLE_JALR_REDIRECT_DCACHE_LOAD_USE_SPEC_OVERRIDE) ne ""} {
+    set enable_jalr_redirect_dcache_load_use_spec $::env(PYNQ_ENABLE_JALR_REDIRECT_DCACHE_LOAD_USE_SPEC_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC_OVERRIDE)] && $::env(PYNQ_ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC_OVERRIDE) ne ""} {
+    set enable_frontend_dcache_load_use_spec $::env(PYNQ_ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_ENABLE_FOLD_DCACHE_LOAD_USE_SPEC_OVERRIDE)] && $::env(PYNQ_ENABLE_FOLD_DCACHE_LOAD_USE_SPEC_OVERRIDE) ne ""} {
+    set enable_fold_dcache_load_use_spec $::env(PYNQ_ENABLE_FOLD_DCACHE_LOAD_USE_SPEC_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_ENABLE_FOLD_EXMEM_LOAD_USE_SPEC_OVERRIDE)] && $::env(PYNQ_ENABLE_FOLD_EXMEM_LOAD_USE_SPEC_OVERRIDE) ne ""} {
+    set enable_fold_exmem_load_use_spec $::env(PYNQ_ENABLE_FOLD_EXMEM_LOAD_USE_SPEC_OVERRIDE)
+}
 if {[info exists ::env(PYNQ_ENABLE_DCACHE_NEXT_PREFETCH_OVERRIDE)] && $::env(PYNQ_ENABLE_DCACHE_NEXT_PREFETCH_OVERRIDE) ne ""} {
     set enable_dcache_next_prefetch $::env(PYNQ_ENABLE_DCACHE_NEXT_PREFETCH_OVERRIDE)
 }
@@ -211,6 +263,9 @@ if {$use_clk_mmcm_62m5 ne "0"} {
 }
 if {$use_clk_mmcm_50m ne "0"} {
     set cpu_clk_tag cpu50
+}
+if {$use_clk_mmcm_25m ne "0"} {
+    set cpu_clk_tag cpu25
 }
 if {$cpu_clk_tag eq "cpu62p5"} {
     set report_dir [file join $report_dir pynq_z2_sysclk_${clock_tag}ns]
@@ -238,7 +293,10 @@ puts "INFO: Input clock period = ${input_clock_period_ns} ns"
 puts "INFO: SYNTH_RETIMING = ${synth_retiming}"
 puts "INFO: SYNTH_NO_TIMING_DRIVEN = ${synth_no_timing_driven}"
 puts "INFO: QUICK_UTIL_ONLY = ${quick_util_only}"
+puts "INFO: SKIP_PHYS_OPT = ${skip_phys_opt}"
+puts "INFO: IMPL_WRITE_BITSTREAM = ${impl_write_bitstream}"
 puts "INFO: CPU clock frequency generic = ${cpu_clk_freq_hz} Hz"
+puts "INFO: USE_CLK_MMCM_25M = ${use_clk_mmcm_25m}"
 puts "INFO: USE_CLK_MMCM_62M5 = ${use_clk_mmcm_62m5}"
 puts "INFO: USE_CLK_MMCM_50M = ${use_clk_mmcm_50m}"
 puts "INFO: ENABLE_M_EXTENSION = ${enable_m_extension}"
@@ -255,8 +313,12 @@ puts "INFO: ENABLE_XTHEAD_ADDSL_EXTENSION = ${enable_xthead_addsl_extension}"
 puts "INFO: ENABLE_XTHEAD_MEMPAIR_EXTENSION = ${enable_xthead_mempair_extension}"
 puts "INFO: ENABLE_XTHEAD_BASE_UPDATE_EXTENSION = ${enable_xthead_base_update_extension}"
 puts "INFO: ENABLE_ID_BRANCH_EX_FORWARD = ${enable_id_branch_ex_forward}"
+puts "INFO: ENABLE_ID_BRANCH_EXMEM_LOAD_FORWARD = ${enable_id_branch_exmem_load_forward}"
+puts "INFO: ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD = ${enable_ex_redirect_exmem_load_forward}"
 puts "INFO: ENABLE_ID_BRANCH_FOLD = ${enable_id_branch_fold}"
 puts "INFO: ENABLE_ID_BRANCH_FOLD_NEXT_CACHE = ${enable_id_branch_fold_next_cache}"
+puts "INFO: ENABLE_EX_REDIRECT_FOLD = ${enable_ex_redirect_fold}"
+puts "INFO: ENABLE_ID_BRANCH_NT_NEXT_CACHE = ${enable_id_branch_nt_next_cache}"
 puts "INFO: ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD = ${enable_id_branch_not_taken_load_fold}"
 puts "INFO: ENABLE_ID_ALU_PAIR_FOLD = ${enable_id_alu_pair_fold}"
 puts "INFO: ENABLE_ID_ALU_DEP_FOLD = ${enable_id_alu_dep_fold}"
@@ -273,6 +335,12 @@ puts "INFO: DMEM_READ_PREISSUE = ${dmem_read_preissue}"
 puts "INFO: DCACHE_EN = ${dcache_en}"
 puts "INFO: DCACHE_SIZE_BYTES = ${dcache_size_bytes}"
 puts "INFO: ENABLE_DCACHE_LOAD_USE_SPEC = ${enable_dcache_load_use_spec}"
+puts "INFO: ENABLE_CONTROL_REDIRECT_DCACHE_LOAD_USE_SPEC = ${enable_control_redirect_dcache_load_use_spec}"
+puts "INFO: ENABLE_BRANCH_REDIRECT_DCACHE_LOAD_USE_SPEC = ${enable_branch_redirect_dcache_load_use_spec}"
+puts "INFO: ENABLE_JALR_REDIRECT_DCACHE_LOAD_USE_SPEC = ${enable_jalr_redirect_dcache_load_use_spec}"
+puts "INFO: ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC = ${enable_frontend_dcache_load_use_spec}"
+puts "INFO: ENABLE_FOLD_DCACHE_LOAD_USE_SPEC = ${enable_fold_dcache_load_use_spec}"
+puts "INFO: ENABLE_FOLD_EXMEM_LOAD_USE_SPEC = ${enable_fold_exmem_load_use_spec}"
 puts "INFO: ENABLE_DCACHE_NEXT_PREFETCH = ${enable_dcache_next_prefetch}"
 puts "INFO: ENABLE_DCACHE_WORD_ONLY = ${enable_dcache_word_only}"
 puts "INFO: ICACHE_EN = ${icache_en}"
@@ -339,6 +407,7 @@ if {$synth_no_timing_driven ne "0"} {
     lappend synth_cmd -no_timing_driven
 }
 lappend synth_cmd -generic "CLK_FREQ_HZ=$cpu_clk_freq_hz"
+lappend synth_cmd -generic "USE_CLK_MMCM_25M=$use_clk_mmcm_25m"
 lappend synth_cmd -generic "USE_CLK_MMCM_62M5=$use_clk_mmcm_62m5"
 lappend synth_cmd -generic "USE_CLK_MMCM_50M=$use_clk_mmcm_50m"
 lappend synth_cmd -generic "ENABLE_M_EXTENSION=$enable_m_extension"
@@ -355,8 +424,12 @@ lappend synth_cmd -generic "ENABLE_XTHEAD_ADDSL_EXTENSION=$enable_xthead_addsl_e
 lappend synth_cmd -generic "ENABLE_XTHEAD_MEMPAIR_EXTENSION=$enable_xthead_mempair_extension"
 lappend synth_cmd -generic "ENABLE_XTHEAD_BASE_UPDATE_EXTENSION=$enable_xthead_base_update_extension"
 lappend synth_cmd -generic "ENABLE_ID_BRANCH_EX_FORWARD=$enable_id_branch_ex_forward"
+lappend synth_cmd -generic "ENABLE_ID_BRANCH_EXMEM_LOAD_FORWARD=$enable_id_branch_exmem_load_forward"
+lappend synth_cmd -generic "ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD=$enable_ex_redirect_exmem_load_forward"
 lappend synth_cmd -generic "ENABLE_ID_BRANCH_FOLD=$enable_id_branch_fold"
 lappend synth_cmd -generic "ENABLE_ID_BRANCH_FOLD_NEXT_CACHE=$enable_id_branch_fold_next_cache"
+lappend synth_cmd -generic "ENABLE_EX_REDIRECT_FOLD=$enable_ex_redirect_fold"
+lappend synth_cmd -generic "ENABLE_ID_BRANCH_NT_NEXT_CACHE=$enable_id_branch_nt_next_cache"
 lappend synth_cmd -generic "ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD=$enable_id_branch_not_taken_load_fold"
 lappend synth_cmd -generic "ENABLE_ID_ALU_PAIR_FOLD=$enable_id_alu_pair_fold"
 lappend synth_cmd -generic "ENABLE_ID_ALU_DEP_FOLD=$enable_id_alu_dep_fold"
@@ -373,6 +446,12 @@ lappend synth_cmd -generic "DMEM_READ_PREISSUE=$dmem_read_preissue"
 lappend synth_cmd -generic "DCACHE_EN=$dcache_en"
 lappend synth_cmd -generic "DCACHE_SIZE_BYTES=$dcache_size_bytes"
 lappend synth_cmd -generic "ENABLE_DCACHE_LOAD_USE_SPEC=$enable_dcache_load_use_spec"
+lappend synth_cmd -generic "ENABLE_CONTROL_REDIRECT_DCACHE_LOAD_USE_SPEC=$enable_control_redirect_dcache_load_use_spec"
+lappend synth_cmd -generic "ENABLE_BRANCH_REDIRECT_DCACHE_LOAD_USE_SPEC=$enable_branch_redirect_dcache_load_use_spec"
+lappend synth_cmd -generic "ENABLE_JALR_REDIRECT_DCACHE_LOAD_USE_SPEC=$enable_jalr_redirect_dcache_load_use_spec"
+lappend synth_cmd -generic "ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC=$enable_frontend_dcache_load_use_spec"
+lappend synth_cmd -generic "ENABLE_FOLD_DCACHE_LOAD_USE_SPEC=$enable_fold_dcache_load_use_spec"
+lappend synth_cmd -generic "ENABLE_FOLD_EXMEM_LOAD_USE_SPEC=$enable_fold_exmem_load_use_spec"
 lappend synth_cmd -generic "ENABLE_DCACHE_NEXT_PREFETCH=$enable_dcache_next_prefetch"
 lappend synth_cmd -generic "ENABLE_DCACHE_WORD_ONLY=$enable_dcache_word_only"
 lappend synth_cmd -generic "ICACHE_EN=$icache_en"
@@ -417,14 +496,28 @@ if {$flow_mode eq "synth"} {
 
 run_checked "opt_design" [list opt_design -directive Explore]
 run_checked "place_design" [list place_design -directive Explore]
-run_checked "phys_opt_design_pre_route" [list phys_opt_design -directive Explore]
+if {$skip_phys_opt eq "0"} {
+    run_checked "phys_opt_design_pre_route" [list phys_opt_design -directive Explore]
+} else {
+    puts "INFO: SKIP_PHYS_OPT set; skipping pre-route phys_opt_design."
+}
 run_checked "route_design" [list route_design -directive Explore]
-run_checked "phys_opt_design_post_route" [list phys_opt_design -directive Explore]
+if {$skip_phys_opt eq "0"} {
+    run_checked "phys_opt_design_post_route" [list phys_opt_design -directive Explore]
+} else {
+    puts "INFO: SKIP_PHYS_OPT set; skipping post-route phys_opt_design."
+}
 run_checked "report_impl_utilization" [list report_utilization -file [file join $report_dir impl_utilization.rpt]]
 run_checked "report_impl_timing_summary" [list report_timing_summary -file [file join $report_dir impl_timing_summary.rpt]]
 run_checked "write_impl_checkpoint" [list write_checkpoint -force [file join $build_dir ${project_name}_sysclk_${clock_tag}ns_${cpu_clk_tag}_impl.dcp]]
-run_checked "write_bitstream" [list write_bitstream -force $bitstream_file]
+if {$impl_write_bitstream ne "0"} {
+    run_checked "write_bitstream" [list write_bitstream -force $bitstream_file]
+} else {
+    puts "INFO: IMPL_WRITE_BITSTREAM=0; skipping bitstream generation."
+}
 
 puts "INFO: PYNQ-Z2 implementation completed. Reports written to $report_dir"
-puts "INFO: Bitstream written to $bitstream_file"
+if {$impl_write_bitstream ne "0"} {
+    puts "INFO: Bitstream written to $bitstream_file"
+}
 exit 0

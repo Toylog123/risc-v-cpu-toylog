@@ -1,8 +1,32 @@
 ﻿# CURRENT_STATUS
 
-> Updated: `2026-06-02`
+> Updated: `2026-06-05`
 > Branch: `codex/syncbram-h22-20260514`
 > Current optimization line: strict/public sync-BRAM hardware-only CoreMark/Dhrystone optimization
+
+## 2026-06-05 frozen timing-closed CPU25 baseline
+
+- Current frozen board-facing baseline:
+  - `6791 post-route LUT / 4.501191 CoreMark/MHz / 1.205669 DMIPS/MHz`.
+  - PYNQ-Z2 CPU clock: `25 MHz` via new `USE_CLK_MMCM_25M` top-level generic.
+  - implementation timing: `WNS +0.291 ns`, `WHS +0.065 ns`; Vivado reports all user timing constraints met.
+  - bitstream: `project/YH_rv_cpu_pynq_z2_sysclk_8p000ns_cpu25.bit`.
+- Freeze package:
+  - `artifacts/freeze_timingclosed_cpu25_20260605/`.
+  - intended freeze tag: `freeze-timingclosed-cpu25-20260605`.
+- Configuration:
+  - `DCache512 + RC64 + no branchfold next-cache + NT-load fold + no Zicond + no ID-branch EX-forward`.
+  - timing guards: frontend DCache load-use speculation disabled, JALR/fold DCache load-use cuts enabled, EX operand frontend guard enabled.
+- Evidence:
+  - freeze package README: `artifacts/freeze_timingclosed_cpu25_20260605/README.md`.
+  - detailed record: `artifacts/fpga_valid_20260518/TIMING_CLOSED_CPU25_20260605.md`.
+  - implementation reports: `project/reports/pynq_z2_sysclk_8p000ns_cpu25/impl_timing_summary.rpt`, `project/reports/pynq_z2_sysclk_8p000ns_cpu25/impl_utilization.rpt`.
+  - CoreMark summary: `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_exopfrontguard_foldldcut_jalrldcut_recheck_iter10_20260528.summary.txt`.
+  - Dhrystone summary: `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_cpu25_timingclosed_frontguard_runs1000_20260528.summary.txt`.
+- Next board evidence needed:
+  - program this exact bitstream on PYNQ-Z2,
+  - capture UART output and PROGRAM_OK evidence,
+  - record a short video tying board output to the timing-closed bitstream.
 
 ## 2026-06-02 region-contest baseline selection
 

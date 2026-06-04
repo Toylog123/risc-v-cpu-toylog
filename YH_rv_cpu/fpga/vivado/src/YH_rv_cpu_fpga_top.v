@@ -2,6 +2,7 @@ module YH_rv_cpu_fpga_top #(
     parameter integer XLEN = 32,
     parameter integer CLK_FREQ_HZ = 100_000_000,
     parameter integer UART_BAUD = 115200,
+    parameter integer USE_CLK_MMCM_25M = 0,
     parameter integer USE_CLK_MMCM_62M5 = 0,
     parameter integer USE_CLK_MMCM_50M = 0,
     parameter integer ENABLE_M_EXTENSION = 1,
@@ -18,8 +19,12 @@ module YH_rv_cpu_fpga_top #(
     parameter integer ENABLE_XTHEAD_MEMPAIR_EXTENSION = 1,
     parameter integer ENABLE_XTHEAD_BASE_UPDATE_EXTENSION = 1,
     parameter integer ENABLE_ID_BRANCH_EX_FORWARD = 1,
+    parameter integer ENABLE_ID_BRANCH_EXMEM_LOAD_FORWARD = 1,
+    parameter integer ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD = 1,
     parameter integer ENABLE_ID_BRANCH_FOLD = 0,
     parameter integer ENABLE_ID_BRANCH_FOLD_NEXT_CACHE = 1,
+    parameter integer ENABLE_EX_REDIRECT_FOLD = 1,
+    parameter integer ENABLE_ID_BRANCH_NT_NEXT_CACHE = 1,
     parameter integer ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD = 0,
     parameter integer ENABLE_ID_ALU_PAIR_FOLD = 0,
     parameter integer ENABLE_ID_ALU_DEP_FOLD = 0,
@@ -39,6 +44,12 @@ module YH_rv_cpu_fpga_top #(
     parameter integer DCACHE_EN = 0,
     parameter integer DCACHE_SIZE_BYTES = 4096,
     parameter integer ENABLE_DCACHE_LOAD_USE_SPEC = 0,
+    parameter integer ENABLE_CONTROL_REDIRECT_DCACHE_LOAD_USE_SPEC = 1,
+    parameter integer ENABLE_BRANCH_REDIRECT_DCACHE_LOAD_USE_SPEC = 1,
+    parameter integer ENABLE_JALR_REDIRECT_DCACHE_LOAD_USE_SPEC = 1,
+    parameter integer ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC = 1,
+    parameter integer ENABLE_FOLD_DCACHE_LOAD_USE_SPEC = 1,
+    parameter integer ENABLE_FOLD_EXMEM_LOAD_USE_SPEC = 1,
     parameter integer ENABLE_DCACHE_NEXT_PREFETCH = 0,
     parameter integer ENABLE_DCACHE_WORD_ONLY = 0,
     parameter integer ICACHE_EN = 0,
@@ -79,7 +90,51 @@ assign uart_tx_busy = !uart_tx_ready;
 assign unused_uart_rx = uart_txd_in;
 
 generate
-if (USE_CLK_MMCM_50M != 0) begin : gen_pynq_clk_50m
+if (USE_CLK_MMCM_25M != 0) begin : gen_pynq_clk_25m
+    wire clkfb;
+    wire clkfb_buf;
+    wire clkout0;
+    wire mmcm_locked;
+
+    MMCME2_BASE #(
+        .BANDWIDTH("OPTIMIZED"),
+        .CLKIN1_PERIOD(8.000),
+        .CLKFBOUT_MULT_F(8.000),
+        .CLKFBOUT_PHASE(0.000),
+        .DIVCLK_DIVIDE(1),
+        .CLKOUT0_DIVIDE_F(40.000),
+        .CLKOUT0_DUTY_CYCLE(0.500),
+        .CLKOUT0_PHASE(0.000),
+        .REF_JITTER1(0.010),
+        .STARTUP_WAIT("FALSE")
+    ) u_clk_mmcm (
+        .CLKIN1(CLK100MHZ),
+        .CLKFBIN(clkfb_buf),
+        .CLKFBOUT(clkfb),
+        .CLKOUT0(clkout0),
+        .CLKOUT1(),
+        .CLKOUT2(),
+        .CLKOUT3(),
+        .CLKOUT4(),
+        .CLKOUT5(),
+        .CLKOUT6(),
+        .LOCKED(mmcm_locked),
+        .PWRDWN(1'b0),
+        .RST(!cpu_resetn)
+    );
+
+    BUFG u_clkfb_bufg (
+        .I(clkfb),
+        .O(clkfb_buf)
+    );
+
+    BUFG u_cpu_clk_bufg (
+        .I(clkout0),
+        .O(cpu_clk)
+    );
+
+    assign clk_locked = mmcm_locked;
+end else if (USE_CLK_MMCM_50M != 0) begin : gen_pynq_clk_50m
     wire clkfb;
     wire clkfb_buf;
     wire clkout0;
@@ -194,6 +249,12 @@ YH_rv_cpu_soc #(
     .DCACHE_EN        (DCACHE_EN),
     .DCACHE_SIZE_BYTES(DCACHE_SIZE_BYTES),
     .ENABLE_DCACHE_LOAD_USE_SPEC(ENABLE_DCACHE_LOAD_USE_SPEC),
+    .ENABLE_CONTROL_REDIRECT_DCACHE_LOAD_USE_SPEC(ENABLE_CONTROL_REDIRECT_DCACHE_LOAD_USE_SPEC),
+    .ENABLE_BRANCH_REDIRECT_DCACHE_LOAD_USE_SPEC(ENABLE_BRANCH_REDIRECT_DCACHE_LOAD_USE_SPEC),
+    .ENABLE_JALR_REDIRECT_DCACHE_LOAD_USE_SPEC(ENABLE_JALR_REDIRECT_DCACHE_LOAD_USE_SPEC),
+    .ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC(ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC),
+    .ENABLE_FOLD_DCACHE_LOAD_USE_SPEC(ENABLE_FOLD_DCACHE_LOAD_USE_SPEC),
+    .ENABLE_FOLD_EXMEM_LOAD_USE_SPEC(ENABLE_FOLD_EXMEM_LOAD_USE_SPEC),
     .ENABLE_DCACHE_NEXT_PREFETCH(ENABLE_DCACHE_NEXT_PREFETCH),
     .ENABLE_DCACHE_WORD_ONLY(ENABLE_DCACHE_WORD_ONLY),
     .ICACHE_EN        (ICACHE_EN),
@@ -215,8 +276,12 @@ YH_rv_cpu_soc #(
     .ENABLE_XTHEAD_MEMPAIR_EXTENSION(ENABLE_XTHEAD_MEMPAIR_EXTENSION),
     .ENABLE_XTHEAD_BASE_UPDATE_EXTENSION(ENABLE_XTHEAD_BASE_UPDATE_EXTENSION),
     .ENABLE_ID_BRANCH_EX_FORWARD(ENABLE_ID_BRANCH_EX_FORWARD),
+    .ENABLE_ID_BRANCH_EXMEM_LOAD_FORWARD(ENABLE_ID_BRANCH_EXMEM_LOAD_FORWARD),
+    .ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD(ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD),
     .ENABLE_ID_BRANCH_FOLD(ENABLE_ID_BRANCH_FOLD),
     .ENABLE_ID_BRANCH_FOLD_NEXT_CACHE(ENABLE_ID_BRANCH_FOLD_NEXT_CACHE),
+    .ENABLE_EX_REDIRECT_FOLD(ENABLE_EX_REDIRECT_FOLD),
+    .ENABLE_ID_BRANCH_NT_NEXT_CACHE(ENABLE_ID_BRANCH_NT_NEXT_CACHE),
     .ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD(ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD),
     .ENABLE_ID_ALU_PAIR_FOLD(ENABLE_ID_ALU_PAIR_FOLD),
     .ENABLE_ID_ALU_DEP_FOLD(ENABLE_ID_ALU_DEP_FOLD),
