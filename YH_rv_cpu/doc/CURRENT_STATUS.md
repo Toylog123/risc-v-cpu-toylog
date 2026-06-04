@@ -19,6 +19,7 @@
   - timing guards: frontend DCache load-use speculation disabled, JALR/fold DCache load-use cuts enabled, EX operand frontend guard enabled.
 - Evidence:
   - freeze package README: `artifacts/freeze_timingclosed_cpu25_20260605/README.md`.
+  - next-step task list: `artifacts/freeze_timingclosed_cpu25_20260605/NEXT_STEPS.md`.
   - detailed record: `artifacts/fpga_valid_20260518/TIMING_CLOSED_CPU25_20260605.md`.
   - implementation reports: `project/reports/pynq_z2_sysclk_8p000ns_cpu25/impl_timing_summary.rpt`, `project/reports/pynq_z2_sysclk_8p000ns_cpu25/impl_utilization.rpt`.
   - CoreMark summary: `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_exopfrontguard_foldldcut_jalrldcut_recheck_iter10_20260528.summary.txt`.
@@ -27,6 +28,10 @@
   - program this exact bitstream on PYNQ-Z2,
   - capture UART output and PROGRAM_OK evidence,
   - record a short video tying board output to the timing-closed bitstream.
+- Next execution batch:
+  - push commit/tag when ready,
+  - collect board PROGRAM_OK/UART/video evidence,
+  - add `BOARD_EVIDENCE.md` to the freeze package.
 
 ## 2026-06-02 region-contest baseline selection
 

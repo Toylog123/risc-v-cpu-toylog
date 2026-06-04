@@ -30,6 +30,7 @@ This directory freezes the first board-facing baseline that satisfies the curren
 - CoreMark summary: `evidence/coremark_summary_4p501191.txt`
 - Dhrystone summary: `evidence/dhrystone_summary_1p205669.txt`
 - Checksums: `SHA256SUMS.txt`
+- Follow-up task list: `NEXT_STEPS.md`
 
 ## Implementation Reproduction
 
@@ -102,4 +103,4 @@ cmd /c YH_rv_cpu\scripts\build_pynq_z2_project.bat impl
 - This replaces the earlier 6872-LUT 50 MHz timing-failing implementation audit as the project baseline for future work.
 - The original 6872 baseline remains useful as a performance/area reference, but it is not timing-closed.
 - Do not modify CoreMark core algorithm files when deriving later versions.
-- Next required evidence: PYNQ-Z2 PROGRAM_OK, UART capture, and board video for this exact bitstream.
+- Next required evidence is tracked in `NEXT_STEPS.md`: PYNQ-Z2 PROGRAM_OK, UART capture, and board video for this exact bitstream.
