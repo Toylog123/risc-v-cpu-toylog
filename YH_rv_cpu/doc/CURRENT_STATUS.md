@@ -20,6 +20,7 @@
 - Evidence:
   - freeze package README: `artifacts/freeze_timingclosed_cpu25_20260605/README.md`.
   - next-step task list: `artifacts/freeze_timingclosed_cpu25_20260605/NEXT_STEPS.md`.
+  - long-term optimization plan: `artifacts/freeze_timingclosed_cpu25_20260605/LONG_TERM_OPTIMIZATION_PLAN.md`.
   - detailed record: `artifacts/fpga_valid_20260518/TIMING_CLOSED_CPU25_20260605.md`.
   - implementation reports: `project/reports/pynq_z2_sysclk_8p000ns_cpu25/impl_timing_summary.rpt`, `project/reports/pynq_z2_sysclk_8p000ns_cpu25/impl_utilization.rpt`.
   - CoreMark summary: `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_nonext_exopfrontguard_foldldcut_jalrldcut_recheck_iter10_20260528.summary.txt`.
@@ -32,6 +33,10 @@
   - push commit/tag when ready,
   - collect board PROGRAM_OK/UART/video evidence,
   - add `BOARD_EVIDENCE.md` to the freeze package.
+- Long-term optimization focus:
+  - first finish board evidence for CPU25,
+  - then explore CPU30/CPU33 closure,
+  - then structurally shorten regular redirect-cache/front-end/PC critical paths before trying to recover more CoreMark/MHz.
 
 ## 2026-06-02 region-contest baseline selection
 

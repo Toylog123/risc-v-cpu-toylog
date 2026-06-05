@@ -7,6 +7,7 @@ This task list starts from the frozen timing-closed CPU25 baseline:
 - metrics: `6791 LUT / 4.501191 CoreMark/MHz / 1.205669 DMIPS/MHz`
 - timing: post-route `WNS +0.291 ns / WHS +0.065 ns`
 - bitstream: `artifacts/freeze_timingclosed_cpu25_20260605/YH_rv_cpu_pynq_z2_sysclk_8p000ns_cpu25.bit`
+- long-term roadmap: `LONG_TERM_OPTIMIZATION_PLAN.md`
 
 ## Pending Task Table
 
