@@ -1,0 +1,2333 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Thu Jun 11 10:08:33 2026
+| Host         : Toylog_desktop running 64-bit major release  (build 9200)
+| Command      : report_timing -max_paths 20 -nworst 5 -delay_type min -sort_by group -file V:/project/reports/pynq_z2_sysclk_8p000ns_cpu50/impl_timing_hold_top20.rpt
+| Design       : YH_rv_cpu_fpga_top
+| Device       : 7z020-clg400
+| Speed File   : -1  PRODUCTION 1.12 2019-11-22
+| Design State : Physopt postRoute
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (MET) :             0.104ns  (arrival time - required time)
+  Source:                 u_soc/uart_tx_data_reg[7]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_uart_tx/frame_r_reg[8]/D
+                            (rising edge-triggered cell FDPE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.584ns  (logic 0.187ns (32.011%)  route 0.397ns (67.989%))
+  Logic Levels:           1  (LUT2=1)
+  Clock Path Skew:        0.349ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.806ns
+    Source Clock Delay      (SCD):    -0.651ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.580    -0.651    u_soc/cpu_clk
+    SLICE_X64Y98         FDCE                                         r  u_soc/uart_tx_data_reg[7]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X64Y98         FDCE (Prop_fdce_C_Q)         0.141    -0.510 r  u_soc/uart_tx_data_reg[7]/Q
+                         net (fo=1, routed)           0.397    -0.113    u_uart_tx/Q[7]
+    SLICE_X62Y104        LUT2 (Prop_lut2_I1_O)        0.046    -0.067 r  u_uart_tx/frame_r[8]_i_1/O
+                         net (fo=1, routed)           0.000    -0.067    u_uart_tx/p_0_in[8]
+    SLICE_X62Y104        FDPE                                         r  u_uart_tx/frame_r_reg[8]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.934    -0.806    u_uart_tx/cpu_clk
+    SLICE_X62Y104        FDPE                                         r  u_uart_tx/frame_r_reg[8]/C
+                         clock pessimism              0.504    -0.302    
+    SLICE_X62Y104        FDPE (Hold_fdpe_C_D)         0.131    -0.171    u_uart_tx/frame_r_reg[8]
+  -------------------------------------------------------------------
+                         required time                          0.171    
+                         arrival time                          -0.067    
+  -------------------------------------------------------------------
+                         slack                                  0.104    
+
+Slack (MET) :             0.104ns  (arrival time - required time)
+  Source:                 u_soc/uart_tx_data_reg[7]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_uart_tx/frame_r_reg[8]/D
+                            (rising edge-triggered cell FDPE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.584ns  (logic 0.187ns (32.011%)  route 0.397ns (67.989%))
+  Logic Levels:           1  (LUT2=1)
+  Clock Path Skew:        0.349ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.806ns
+    Source Clock Delay      (SCD):    -0.651ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.580    -0.651    u_soc/cpu_clk
+    SLICE_X64Y98         FDCE                                         r  u_soc/uart_tx_data_reg[7]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X64Y98         FDCE (Prop_fdce_C_Q)         0.141    -0.510 f  u_soc/uart_tx_data_reg[7]/Q
+                         net (fo=1, routed)           0.397    -0.113    u_uart_tx/Q[7]
+    SLICE_X62Y104        LUT2 (Prop_lut2_I1_O)        0.046    -0.067 f  u_uart_tx/frame_r[8]_i_1/O
+                         net (fo=1, routed)           0.000    -0.067    u_uart_tx/p_0_in[8]
+    SLICE_X62Y104        FDPE                                         f  u_uart_tx/frame_r_reg[8]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.934    -0.806    u_uart_tx/cpu_clk
+    SLICE_X62Y104        FDPE                                         r  u_uart_tx/frame_r_reg[8]/C
+                         clock pessimism              0.504    -0.302    
+    SLICE_X62Y104        FDPE (Hold_fdpe_C_D)         0.131    -0.171    u_uart_tx/frame_r_reg[8]
+  -------------------------------------------------------------------
+                         required time                          0.171    
+                         arrival time                          -0.067    
+  -------------------------------------------------------------------
+                         slack                                  0.104    
+
+Slack (MET) :             0.119ns  (arrival time - required time)
+  Source:                 u_soc/uart_tx_data_reg[3]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_uart_tx/frame_r_reg[4]/D
+                            (rising edge-triggered cell FDPE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.599ns  (logic 0.185ns (30.872%)  route 0.414ns (69.128%))
+  Logic Levels:           1  (LUT3=1)
+  Clock Path Skew:        0.349ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.806ns
+    Source Clock Delay      (SCD):    -0.651ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.580    -0.651    u_soc/cpu_clk
+    SLICE_X65Y98         FDCE                                         r  u_soc/uart_tx_data_reg[3]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X65Y98         FDCE (Prop_fdce_C_Q)         0.141    -0.510 r  u_soc/uart_tx_data_reg[3]/Q
+                         net (fo=1, routed)           0.414    -0.096    u_uart_tx/Q[3]
+    SLICE_X62Y104        LUT3 (Prop_lut3_I2_O)        0.044    -0.052 r  u_uart_tx/frame_r[4]_i_1/O
+                         net (fo=1, routed)           0.000    -0.052    u_uart_tx/p_0_in[4]
+    SLICE_X62Y104        FDPE                                         r  u_uart_tx/frame_r_reg[4]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.934    -0.806    u_uart_tx/cpu_clk
+    SLICE_X62Y104        FDPE                                         r  u_uart_tx/frame_r_reg[4]/C
+                         clock pessimism              0.504    -0.302    
+    SLICE_X62Y104        FDPE (Hold_fdpe_C_D)         0.131    -0.171    u_uart_tx/frame_r_reg[4]
+  -------------------------------------------------------------------
+                         required time                          0.171    
+                         arrival time                          -0.052    
+  -------------------------------------------------------------------
+                         slack                                  0.119    
+
+Slack (MET) :             0.119ns  (arrival time - required time)
+  Source:                 u_soc/uart_tx_data_reg[3]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_uart_tx/frame_r_reg[4]/D
+                            (rising edge-triggered cell FDPE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.599ns  (logic 0.185ns (30.872%)  route 0.414ns (69.128%))
+  Logic Levels:           1  (LUT3=1)
+  Clock Path Skew:        0.349ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.806ns
+    Source Clock Delay      (SCD):    -0.651ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.580    -0.651    u_soc/cpu_clk
+    SLICE_X65Y98         FDCE                                         r  u_soc/uart_tx_data_reg[3]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X65Y98         FDCE (Prop_fdce_C_Q)         0.141    -0.510 f  u_soc/uart_tx_data_reg[3]/Q
+                         net (fo=1, routed)           0.414    -0.096    u_uart_tx/Q[3]
+    SLICE_X62Y104        LUT3 (Prop_lut3_I2_O)        0.044    -0.052 f  u_uart_tx/frame_r[4]_i_1/O
+                         net (fo=1, routed)           0.000    -0.052    u_uart_tx/p_0_in[4]
+    SLICE_X62Y104        FDPE                                         f  u_uart_tx/frame_r_reg[4]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.934    -0.806    u_uart_tx/cpu_clk
+    SLICE_X62Y104        FDPE                                         r  u_uart_tx/frame_r_reg[4]/C
+                         clock pessimism              0.504    -0.302    
+    SLICE_X62Y104        FDPE (Hold_fdpe_C_D)         0.131    -0.171    u_uart_tx/frame_r_reg[4]
+  -------------------------------------------------------------------
+                         required time                          0.171    
+                         arrival time                          -0.052    
+  -------------------------------------------------------------------
+                         slack                                  0.119    
+
+Slack (MET) :             0.137ns  (arrival time - required time)
+  Source:                 u_soc/g_dmem_posedge_tracking.dmem_rvalid_sync_r_reg/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/g_dmem_posedge_tracking.dmem_read_busy_r_reg/D
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.608ns  (logic 0.227ns (37.351%)  route 0.381ns (62.649%))
+  Logic Levels:           1  (LUT3=1)
+  Clock Path Skew:        0.350ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.801ns
+    Source Clock Delay      (SCD):    -0.647ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.584    -0.647    u_soc/cpu_clk
+    SLICE_X85Y98         FDCE                                         r  u_soc/g_dmem_posedge_tracking.dmem_rvalid_sync_r_reg/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X85Y98         FDCE (Prop_fdce_C_Q)         0.128    -0.519 f  u_soc/g_dmem_posedge_tracking.dmem_rvalid_sync_r_reg/Q
+                         net (fo=9, routed)           0.381    -0.139    u_soc/u_cpu/gen_dcache.u_dcache/dmem_rvalid_sync_r
+    SLICE_X82Y102        LUT3 (Prop_lut3_I0_O)        0.099    -0.040 r  u_soc/u_cpu/gen_dcache.u_dcache/g_dmem_posedge_tracking.dmem_read_busy_r_i_1/O
+                         net (fo=1, routed)           0.000    -0.040    u_soc/u_cpu_n_12
+    SLICE_X82Y102        FDCE                                         r  u_soc/g_dmem_posedge_tracking.dmem_read_busy_r_reg/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.939    -0.801    u_soc/cpu_clk
+    SLICE_X82Y102        FDCE                                         r  u_soc/g_dmem_posedge_tracking.dmem_read_busy_r_reg/C
+                         clock pessimism              0.504    -0.297    
+    SLICE_X82Y102        FDCE (Hold_fdce_C_D)         0.120    -0.177    u_soc/g_dmem_posedge_tracking.dmem_read_busy_r_reg
+  -------------------------------------------------------------------
+                         required time                          0.177    
+                         arrival time                          -0.040    
+  -------------------------------------------------------------------
+                         slack                                  0.137    
+
+Slack (MET) :             0.137ns  (arrival time - required time)
+  Source:                 u_soc/g_dmem_posedge_tracking.dmem_rvalid_sync_r_reg/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/g_dmem_posedge_tracking.dmem_read_busy_r_reg/D
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.608ns  (logic 0.227ns (37.351%)  route 0.381ns (62.649%))
+  Logic Levels:           1  (LUT3=1)
+  Clock Path Skew:        0.350ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.801ns
+    Source Clock Delay      (SCD):    -0.647ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.584    -0.647    u_soc/cpu_clk
+    SLICE_X85Y98         FDCE                                         r  u_soc/g_dmem_posedge_tracking.dmem_rvalid_sync_r_reg/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X85Y98         FDCE (Prop_fdce_C_Q)         0.128    -0.519 r  u_soc/g_dmem_posedge_tracking.dmem_rvalid_sync_r_reg/Q
+                         net (fo=9, routed)           0.381    -0.139    u_soc/u_cpu/gen_dcache.u_dcache/dmem_rvalid_sync_r
+    SLICE_X82Y102        LUT3 (Prop_lut3_I0_O)        0.099    -0.040 f  u_soc/u_cpu/gen_dcache.u_dcache/g_dmem_posedge_tracking.dmem_read_busy_r_i_1/O
+                         net (fo=1, routed)           0.000    -0.040    u_soc/u_cpu_n_12
+    SLICE_X82Y102        FDCE                                         f  u_soc/g_dmem_posedge_tracking.dmem_read_busy_r_reg/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.939    -0.801    u_soc/cpu_clk
+    SLICE_X82Y102        FDCE                                         r  u_soc/g_dmem_posedge_tracking.dmem_read_busy_r_reg/C
+                         clock pessimism              0.504    -0.297    
+    SLICE_X82Y102        FDCE (Hold_fdce_C_D)         0.120    -0.177    u_soc/g_dmem_posedge_tracking.dmem_read_busy_r_reg
+  -------------------------------------------------------------------
+                         required time                          0.177    
+                         arrival time                          -0.040    
+  -------------------------------------------------------------------
+                         slack                                  0.137    
+
+Slack (MET) :             0.164ns  (arrival time - required time)
+  Source:                 u_soc/uart_tx_data_reg[0]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_uart_tx/frame_r_reg[1]/D
+                            (rising edge-triggered cell FDPE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.633ns  (logic 0.186ns (29.363%)  route 0.447ns (70.637%))
+  Logic Levels:           1  (LUT3=1)
+  Clock Path Skew:        0.349ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.806ns
+    Source Clock Delay      (SCD):    -0.651ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.580    -0.651    u_soc/cpu_clk
+    SLICE_X64Y98         FDCE                                         r  u_soc/uart_tx_data_reg[0]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X64Y98         FDCE (Prop_fdce_C_Q)         0.141    -0.510 r  u_soc/uart_tx_data_reg[0]/Q
+                         net (fo=1, routed)           0.447    -0.063    u_uart_tx/Q[0]
+    SLICE_X62Y104        LUT3 (Prop_lut3_I2_O)        0.045    -0.018 r  u_uart_tx/frame_r[1]_i_1/O
+                         net (fo=1, routed)           0.000    -0.018    u_uart_tx/p_0_in[1]
+    SLICE_X62Y104        FDPE                                         r  u_uart_tx/frame_r_reg[1]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.934    -0.806    u_uart_tx/cpu_clk
+    SLICE_X62Y104        FDPE                                         r  u_uart_tx/frame_r_reg[1]/C
+                         clock pessimism              0.504    -0.302    
+    SLICE_X62Y104        FDPE (Hold_fdpe_C_D)         0.120    -0.182    u_uart_tx/frame_r_reg[1]
+  -------------------------------------------------------------------
+                         required time                          0.182    
+                         arrival time                          -0.018    
+  -------------------------------------------------------------------
+                         slack                                  0.164    
+
+Slack (MET) :             0.164ns  (arrival time - required time)
+  Source:                 u_soc/uart_tx_data_reg[0]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_uart_tx/frame_r_reg[1]/D
+                            (rising edge-triggered cell FDPE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.633ns  (logic 0.186ns (29.363%)  route 0.447ns (70.637%))
+  Logic Levels:           1  (LUT3=1)
+  Clock Path Skew:        0.349ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.806ns
+    Source Clock Delay      (SCD):    -0.651ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.580    -0.651    u_soc/cpu_clk
+    SLICE_X64Y98         FDCE                                         r  u_soc/uart_tx_data_reg[0]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X64Y98         FDCE (Prop_fdce_C_Q)         0.141    -0.510 f  u_soc/uart_tx_data_reg[0]/Q
+                         net (fo=1, routed)           0.447    -0.063    u_uart_tx/Q[0]
+    SLICE_X62Y104        LUT3 (Prop_lut3_I2_O)        0.045    -0.018 f  u_uart_tx/frame_r[1]_i_1/O
+                         net (fo=1, routed)           0.000    -0.018    u_uart_tx/p_0_in[1]
+    SLICE_X62Y104        FDPE                                         f  u_uart_tx/frame_r_reg[1]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.934    -0.806    u_uart_tx/cpu_clk
+    SLICE_X62Y104        FDPE                                         r  u_uart_tx/frame_r_reg[1]/C
+                         clock pessimism              0.504    -0.302    
+    SLICE_X62Y104        FDPE (Hold_fdpe_C_D)         0.120    -0.182    u_uart_tx/frame_r_reg[1]
+  -------------------------------------------------------------------
+                         required time                          0.182    
+                         arrival time                          -0.018    
+  -------------------------------------------------------------------
+                         slack                                  0.164    
+
+Slack (MET) :             0.171ns  (arrival time - required time)
+  Source:                 u_soc/uart_tx_data_reg[4]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_uart_tx/frame_r_reg[5]/D
+                            (rising edge-triggered cell FDPE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.642ns  (logic 0.186ns (28.984%)  route 0.456ns (71.016%))
+  Logic Levels:           1  (LUT3=1)
+  Clock Path Skew:        0.349ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.806ns
+    Source Clock Delay      (SCD):    -0.651ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.580    -0.651    u_soc/cpu_clk
+    SLICE_X64Y97         FDCE                                         r  u_soc/uart_tx_data_reg[4]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X64Y97         FDCE (Prop_fdce_C_Q)         0.141    -0.510 r  u_soc/uart_tx_data_reg[4]/Q
+                         net (fo=1, routed)           0.456    -0.055    u_uart_tx/Q[4]
+    SLICE_X62Y104        LUT3 (Prop_lut3_I2_O)        0.045    -0.010 r  u_uart_tx/frame_r[5]_i_1/O
+                         net (fo=1, routed)           0.000    -0.010    u_uart_tx/p_0_in[5]
+    SLICE_X62Y104        FDPE                                         r  u_uart_tx/frame_r_reg[5]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.934    -0.806    u_uart_tx/cpu_clk
+    SLICE_X62Y104        FDPE                                         r  u_uart_tx/frame_r_reg[5]/C
+                         clock pessimism              0.504    -0.302    
+    SLICE_X62Y104        FDPE (Hold_fdpe_C_D)         0.121    -0.181    u_uart_tx/frame_r_reg[5]
+  -------------------------------------------------------------------
+                         required time                          0.181    
+                         arrival time                          -0.010    
+  -------------------------------------------------------------------
+                         slack                                  0.171    
+
+Slack (MET) :             0.171ns  (arrival time - required time)
+  Source:                 u_soc/uart_tx_data_reg[4]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_uart_tx/frame_r_reg[5]/D
+                            (rising edge-triggered cell FDPE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.642ns  (logic 0.186ns (28.984%)  route 0.456ns (71.016%))
+  Logic Levels:           1  (LUT3=1)
+  Clock Path Skew:        0.349ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.806ns
+    Source Clock Delay      (SCD):    -0.651ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.580    -0.651    u_soc/cpu_clk
+    SLICE_X64Y97         FDCE                                         r  u_soc/uart_tx_data_reg[4]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X64Y97         FDCE (Prop_fdce_C_Q)         0.141    -0.510 f  u_soc/uart_tx_data_reg[4]/Q
+                         net (fo=1, routed)           0.456    -0.055    u_uart_tx/Q[4]
+    SLICE_X62Y104        LUT3 (Prop_lut3_I2_O)        0.045    -0.010 f  u_uart_tx/frame_r[5]_i_1/O
+                         net (fo=1, routed)           0.000    -0.010    u_uart_tx/p_0_in[5]
+    SLICE_X62Y104        FDPE                                         f  u_uart_tx/frame_r_reg[5]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.934    -0.806    u_uart_tx/cpu_clk
+    SLICE_X62Y104        FDPE                                         r  u_uart_tx/frame_r_reg[5]/C
+                         clock pessimism              0.504    -0.302    
+    SLICE_X62Y104        FDPE (Hold_fdpe_C_D)         0.121    -0.181    u_uart_tx/frame_r_reg[5]
+  -------------------------------------------------------------------
+                         required time                          0.181    
+                         arrival time                          -0.010    
+  -------------------------------------------------------------------
+                         slack                                  0.171    
+
+Slack (MET) :             0.172ns  (arrival time - required time)
+  Source:                 u_soc/uart_tx_data_reg[2]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_uart_tx/frame_r_reg[3]/D
+                            (rising edge-triggered cell FDPE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.643ns  (logic 0.186ns (28.949%)  route 0.457ns (71.051%))
+  Logic Levels:           1  (LUT3=1)
+  Clock Path Skew:        0.349ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.806ns
+    Source Clock Delay      (SCD):    -0.651ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.580    -0.651    u_soc/cpu_clk
+    SLICE_X65Y98         FDCE                                         r  u_soc/uart_tx_data_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X65Y98         FDCE (Prop_fdce_C_Q)         0.141    -0.510 r  u_soc/uart_tx_data_reg[2]/Q
+                         net (fo=1, routed)           0.457    -0.054    u_uart_tx/Q[2]
+    SLICE_X62Y104        LUT3 (Prop_lut3_I2_O)        0.045    -0.009 r  u_uart_tx/frame_r[3]_i_1/O
+                         net (fo=1, routed)           0.000    -0.009    u_uart_tx/p_0_in[3]
+    SLICE_X62Y104        FDPE                                         r  u_uart_tx/frame_r_reg[3]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.934    -0.806    u_uart_tx/cpu_clk
+    SLICE_X62Y104        FDPE                                         r  u_uart_tx/frame_r_reg[3]/C
+                         clock pessimism              0.504    -0.302    
+    SLICE_X62Y104        FDPE (Hold_fdpe_C_D)         0.121    -0.181    u_uart_tx/frame_r_reg[3]
+  -------------------------------------------------------------------
+                         required time                          0.181    
+                         arrival time                          -0.009    
+  -------------------------------------------------------------------
+                         slack                                  0.172    
+
+Slack (MET) :             0.172ns  (arrival time - required time)
+  Source:                 u_soc/uart_tx_data_reg[2]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_uart_tx/frame_r_reg[3]/D
+                            (rising edge-triggered cell FDPE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.643ns  (logic 0.186ns (28.949%)  route 0.457ns (71.051%))
+  Logic Levels:           1  (LUT3=1)
+  Clock Path Skew:        0.349ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.806ns
+    Source Clock Delay      (SCD):    -0.651ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.580    -0.651    u_soc/cpu_clk
+    SLICE_X65Y98         FDCE                                         r  u_soc/uart_tx_data_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X65Y98         FDCE (Prop_fdce_C_Q)         0.141    -0.510 f  u_soc/uart_tx_data_reg[2]/Q
+                         net (fo=1, routed)           0.457    -0.054    u_uart_tx/Q[2]
+    SLICE_X62Y104        LUT3 (Prop_lut3_I2_O)        0.045    -0.009 f  u_uart_tx/frame_r[3]_i_1/O
+                         net (fo=1, routed)           0.000    -0.009    u_uart_tx/p_0_in[3]
+    SLICE_X62Y104        FDPE                                         f  u_uart_tx/frame_r_reg[3]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.934    -0.806    u_uart_tx/cpu_clk
+    SLICE_X62Y104        FDPE                                         r  u_uart_tx/frame_r_reg[3]/C
+                         clock pessimism              0.504    -0.302    
+    SLICE_X62Y104        FDPE (Hold_fdpe_C_D)         0.121    -0.181    u_uart_tx/frame_r_reg[3]
+  -------------------------------------------------------------------
+                         required time                          0.181    
+                         arrival time                          -0.009    
+  -------------------------------------------------------------------
+                         slack                                  0.172    
+
+Slack (MET) :             0.177ns  (arrival time - required time)
+  Source:                 u_soc/u_cpu/ex_mem_pc4_r_reg[0]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/mem_wb_pc4_r_reg[0]/D
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.260ns  (logic 0.141ns (54.222%)  route 0.119ns (45.778%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.013ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.803ns
+    Source Clock Delay      (SCD):    -0.567ns
+    Clock Pessimism Removal (CPR):    -0.249ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.664    -0.567    u_soc/u_cpu/cpu_clk
+    SLICE_X85Y108        FDCE                                         r  u_soc/u_cpu/ex_mem_pc4_r_reg[0]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X85Y108        FDCE (Prop_fdce_C_Q)         0.141    -0.426 r  u_soc/u_cpu/ex_mem_pc4_r_reg[0]/Q
+                         net (fo=2, routed)           0.119    -0.307    u_soc/u_cpu/ex_mem_pc4_r_reg_n_0_[0]
+    SLICE_X84Y108        FDCE                                         r  u_soc/u_cpu/mem_wb_pc4_r_reg[0]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.937    -0.803    u_soc/u_cpu/cpu_clk
+    SLICE_X84Y108        FDCE                                         r  u_soc/u_cpu/mem_wb_pc4_r_reg[0]/C
+                         clock pessimism              0.249    -0.554    
+    SLICE_X84Y108        FDCE (Hold_fdce_C_D)         0.070    -0.484    u_soc/u_cpu/mem_wb_pc4_r_reg[0]
+  -------------------------------------------------------------------
+                         required time                          0.484    
+                         arrival time                          -0.307    
+  -------------------------------------------------------------------
+                         slack                                  0.177    
+
+Slack (MET) :             0.177ns  (arrival time - required time)
+  Source:                 u_soc/u_cpu/ex_mem_pc4_r_reg[0]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/mem_wb_pc4_r_reg[0]/D
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.260ns  (logic 0.141ns (54.222%)  route 0.119ns (45.778%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.013ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.803ns
+    Source Clock Delay      (SCD):    -0.567ns
+    Clock Pessimism Removal (CPR):    -0.249ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.664    -0.567    u_soc/u_cpu/cpu_clk
+    SLICE_X85Y108        FDCE                                         r  u_soc/u_cpu/ex_mem_pc4_r_reg[0]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X85Y108        FDCE (Prop_fdce_C_Q)         0.141    -0.426 f  u_soc/u_cpu/ex_mem_pc4_r_reg[0]/Q
+                         net (fo=2, routed)           0.119    -0.307    u_soc/u_cpu/ex_mem_pc4_r_reg_n_0_[0]
+    SLICE_X84Y108        FDCE                                         f  u_soc/u_cpu/mem_wb_pc4_r_reg[0]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.937    -0.803    u_soc/u_cpu/cpu_clk
+    SLICE_X84Y108        FDCE                                         r  u_soc/u_cpu/mem_wb_pc4_r_reg[0]/C
+                         clock pessimism              0.249    -0.554    
+    SLICE_X84Y108        FDCE (Hold_fdce_C_D)         0.070    -0.484    u_soc/u_cpu/mem_wb_pc4_r_reg[0]
+  -------------------------------------------------------------------
+                         required time                          0.484    
+                         arrival time                          -0.307    
+  -------------------------------------------------------------------
+                         slack                                  0.177    
+
+Slack (MET) :             0.179ns  (arrival time - required time)
+  Source:                 u_soc/u_cpu/fetch_buf1_instruction_r_reg[24]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/fetch_buf0_instruction_r_reg[24]/D
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.283ns  (logic 0.186ns (65.775%)  route 0.097ns (34.225%))
+  Logic Levels:           1  (LUT6=1)
+  Clock Path Skew:        0.013ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.754ns
+    Source Clock Delay      (SCD):    -0.518ns
+    Clock Pessimism Removal (CPR):    -0.249ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.713    -0.518    u_soc/u_cpu/cpu_clk
+    SLICE_X106Y113       FDCE                                         r  u_soc/u_cpu/fetch_buf1_instruction_r_reg[24]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X106Y113       FDCE (Prop_fdce_C_Q)         0.141    -0.377 r  u_soc/u_cpu/fetch_buf1_instruction_r_reg[24]/Q
+                         net (fo=2, routed)           0.097    -0.280    u_soc/u_cpu/gen_dcache.u_dcache/fetch_buf0_instruction_r_reg[31]_0[24]
+    SLICE_X107Y113       LUT6 (Prop_lut6_I5_O)        0.045    -0.235 r  u_soc/u_cpu/gen_dcache.u_dcache/fetch_buf0_instruction_r[24]_i_1/O
+                         net (fo=1, routed)           0.000    -0.235    u_soc/u_cpu/fetch_buf0_instruction_next_data__0[24]
+    SLICE_X107Y113       FDCE                                         r  u_soc/u_cpu/fetch_buf0_instruction_r_reg[24]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.986    -0.754    u_soc/u_cpu/cpu_clk
+    SLICE_X107Y113       FDCE                                         r  u_soc/u_cpu/fetch_buf0_instruction_r_reg[24]/C
+                         clock pessimism              0.249    -0.505    
+    SLICE_X107Y113       FDCE (Hold_fdce_C_D)         0.091    -0.414    u_soc/u_cpu/fetch_buf0_instruction_r_reg[24]
+  -------------------------------------------------------------------
+                         required time                          0.414    
+                         arrival time                          -0.235    
+  -------------------------------------------------------------------
+                         slack                                  0.179    
+
+Slack (MET) :             0.179ns  (arrival time - required time)
+  Source:                 u_soc/u_cpu/fetch_buf1_instruction_r_reg[24]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/fetch_buf0_instruction_r_reg[24]/D
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.283ns  (logic 0.186ns (65.775%)  route 0.097ns (34.225%))
+  Logic Levels:           1  (LUT6=1)
+  Clock Path Skew:        0.013ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.754ns
+    Source Clock Delay      (SCD):    -0.518ns
+    Clock Pessimism Removal (CPR):    -0.249ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.713    -0.518    u_soc/u_cpu/cpu_clk
+    SLICE_X106Y113       FDCE                                         r  u_soc/u_cpu/fetch_buf1_instruction_r_reg[24]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X106Y113       FDCE (Prop_fdce_C_Q)         0.141    -0.377 f  u_soc/u_cpu/fetch_buf1_instruction_r_reg[24]/Q
+                         net (fo=2, routed)           0.097    -0.280    u_soc/u_cpu/gen_dcache.u_dcache/fetch_buf0_instruction_r_reg[31]_0[24]
+    SLICE_X107Y113       LUT6 (Prop_lut6_I5_O)        0.045    -0.235 f  u_soc/u_cpu/gen_dcache.u_dcache/fetch_buf0_instruction_r[24]_i_1/O
+                         net (fo=1, routed)           0.000    -0.235    u_soc/u_cpu/fetch_buf0_instruction_next_data__0[24]
+    SLICE_X107Y113       FDCE                                         f  u_soc/u_cpu/fetch_buf0_instruction_r_reg[24]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.986    -0.754    u_soc/u_cpu/cpu_clk
+    SLICE_X107Y113       FDCE                                         r  u_soc/u_cpu/fetch_buf0_instruction_r_reg[24]/C
+                         clock pessimism              0.249    -0.505    
+    SLICE_X107Y113       FDCE (Hold_fdce_C_D)         0.091    -0.414    u_soc/u_cpu/fetch_buf0_instruction_r_reg[24]
+  -------------------------------------------------------------------
+                         required time                          0.414    
+                         arrival time                          -0.235    
+  -------------------------------------------------------------------
+                         slack                                  0.179    
+
+Slack (MET) :             0.194ns  (arrival time - required time)
+  Source:                 u_soc/uart_tx_data_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_uart_tx/frame_r_reg[2]/D
+                            (rising edge-triggered cell FDPE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.675ns  (logic 0.187ns (27.723%)  route 0.488ns (72.277%))
+  Logic Levels:           1  (LUT3=1)
+  Clock Path Skew:        0.349ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.806ns
+    Source Clock Delay      (SCD):    -0.651ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.580    -0.651    u_soc/cpu_clk
+    SLICE_X64Y97         FDCE                                         r  u_soc/uart_tx_data_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X64Y97         FDCE (Prop_fdce_C_Q)         0.141    -0.510 r  u_soc/uart_tx_data_reg[1]/Q
+                         net (fo=1, routed)           0.488    -0.023    u_uart_tx/Q[1]
+    SLICE_X62Y104        LUT3 (Prop_lut3_I2_O)        0.046     0.023 r  u_uart_tx/frame_r[2]_i_1/O
+                         net (fo=1, routed)           0.000     0.023    u_uart_tx/p_0_in[2]
+    SLICE_X62Y104        FDPE                                         r  u_uart_tx/frame_r_reg[2]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.934    -0.806    u_uart_tx/cpu_clk
+    SLICE_X62Y104        FDPE                                         r  u_uart_tx/frame_r_reg[2]/C
+                         clock pessimism              0.504    -0.302    
+    SLICE_X62Y104        FDPE (Hold_fdpe_C_D)         0.131    -0.171    u_uart_tx/frame_r_reg[2]
+  -------------------------------------------------------------------
+                         required time                          0.171    
+                         arrival time                           0.023    
+  -------------------------------------------------------------------
+                         slack                                  0.194    
+
+Slack (MET) :             0.194ns  (arrival time - required time)
+  Source:                 u_soc/uart_tx_data_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_uart_tx/frame_r_reg[2]/D
+                            (rising edge-triggered cell FDPE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.675ns  (logic 0.187ns (27.723%)  route 0.488ns (72.277%))
+  Logic Levels:           1  (LUT3=1)
+  Clock Path Skew:        0.349ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.806ns
+    Source Clock Delay      (SCD):    -0.651ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.580    -0.651    u_soc/cpu_clk
+    SLICE_X64Y97         FDCE                                         r  u_soc/uart_tx_data_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X64Y97         FDCE (Prop_fdce_C_Q)         0.141    -0.510 f  u_soc/uart_tx_data_reg[1]/Q
+                         net (fo=1, routed)           0.488    -0.023    u_uart_tx/Q[1]
+    SLICE_X62Y104        LUT3 (Prop_lut3_I2_O)        0.046     0.023 f  u_uart_tx/frame_r[2]_i_1/O
+                         net (fo=1, routed)           0.000     0.023    u_uart_tx/p_0_in[2]
+    SLICE_X62Y104        FDPE                                         f  u_uart_tx/frame_r_reg[2]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.934    -0.806    u_uart_tx/cpu_clk
+    SLICE_X62Y104        FDPE                                         r  u_uart_tx/frame_r_reg[2]/C
+                         clock pessimism              0.504    -0.302    
+    SLICE_X62Y104        FDPE (Hold_fdpe_C_D)         0.131    -0.171    u_uart_tx/frame_r_reg[2]
+  -------------------------------------------------------------------
+                         required time                          0.171    
+                         arrival time                           0.023    
+  -------------------------------------------------------------------
+                         slack                                  0.194    
+
+Slack (MET) :             0.198ns  (arrival time - required time)
+  Source:                 u_soc/u_cpu/fetch_buf1_instruction_r_reg[0]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/fetch_buf0_instruction_r_reg[0]/D
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.302ns  (logic 0.209ns (69.158%)  route 0.093ns (30.842%))
+  Logic Levels:           1  (LUT6=1)
+  Clock Path Skew:        0.013ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.747ns
+    Source Clock Delay      (SCD):    -0.514ns
+    Clock Pessimism Removal (CPR):    -0.246ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.717    -0.514    u_soc/u_cpu/cpu_clk
+    SLICE_X112Y109       FDCE                                         r  u_soc/u_cpu/fetch_buf1_instruction_r_reg[0]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y109       FDCE (Prop_fdce_C_Q)         0.164    -0.350 r  u_soc/u_cpu/fetch_buf1_instruction_r_reg[0]/Q
+                         net (fo=2, routed)           0.093    -0.257    u_soc/u_cpu/gen_dcache.u_dcache/fetch_buf0_instruction_r_reg[31]_0[0]
+    SLICE_X113Y109       LUT6 (Prop_lut6_I5_O)        0.045    -0.212 r  u_soc/u_cpu/gen_dcache.u_dcache/fetch_buf0_instruction_r[0]_i_1/O
+                         net (fo=1, routed)           0.000    -0.212    u_soc/u_cpu/fetch_buf0_instruction_next_data__0[0]
+    SLICE_X113Y109       FDCE                                         r  u_soc/u_cpu/fetch_buf0_instruction_r_reg[0]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.993    -0.747    u_soc/u_cpu/cpu_clk
+    SLICE_X113Y109       FDCE                                         r  u_soc/u_cpu/fetch_buf0_instruction_r_reg[0]/C
+                         clock pessimism              0.246    -0.501    
+    SLICE_X113Y109       FDCE (Hold_fdce_C_D)         0.091    -0.410    u_soc/u_cpu/fetch_buf0_instruction_r_reg[0]
+  -------------------------------------------------------------------
+                         required time                          0.410    
+                         arrival time                          -0.212    
+  -------------------------------------------------------------------
+                         slack                                  0.198    
+
+Slack (MET) :             0.198ns  (arrival time - required time)
+  Source:                 u_soc/u_cpu/fetch_buf1_instruction_r_reg[0]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/fetch_buf0_instruction_r_reg[0]/D
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             gen_pynq_clk_50m.clkout0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.302ns  (logic 0.209ns (69.158%)  route 0.093ns (30.842%))
+  Logic Levels:           1  (LUT6=1)
+  Clock Path Skew:        0.013ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.747ns
+    Source Clock Delay      (SCD):    -0.514ns
+    Clock Pessimism Removal (CPR):    -0.246ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.717    -0.514    u_soc/u_cpu/cpu_clk
+    SLICE_X112Y109       FDCE                                         r  u_soc/u_cpu/fetch_buf1_instruction_r_reg[0]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y109       FDCE (Prop_fdce_C_Q)         0.164    -0.350 f  u_soc/u_cpu/fetch_buf1_instruction_r_reg[0]/Q
+                         net (fo=2, routed)           0.093    -0.257    u_soc/u_cpu/gen_dcache.u_dcache/fetch_buf0_instruction_r_reg[31]_0[0]
+    SLICE_X113Y109       LUT6 (Prop_lut6_I5_O)        0.045    -0.212 f  u_soc/u_cpu/gen_dcache.u_dcache/fetch_buf0_instruction_r[0]_i_1/O
+                         net (fo=1, routed)           0.000    -0.212    u_soc/u_cpu/fetch_buf0_instruction_next_data__0[0]
+    SLICE_X113Y109       FDCE                                         f  u_soc/u_cpu/fetch_buf0_instruction_r_reg[0]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.993    -0.747    u_soc/u_cpu/cpu_clk
+    SLICE_X113Y109       FDCE                                         r  u_soc/u_cpu/fetch_buf0_instruction_r_reg[0]/C
+                         clock pessimism              0.246    -0.501    
+    SLICE_X113Y109       FDCE (Hold_fdce_C_D)         0.091    -0.410    u_soc/u_cpu/fetch_buf0_instruction_r_reg[0]
+  -------------------------------------------------------------------
+                         required time                          0.410    
+                         arrival time                          -0.212    
+  -------------------------------------------------------------------
+                         slack                                  0.198    
+
+Slack (MET) :             0.995ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[2]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/if_id_pc_r_reg[8]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        1.229ns  (logic 0.254ns (20.659%)  route 0.975ns (79.341%))
+  Logic Levels:           2  (LUT1=1 LUT6=1)
+  Clock Path Skew:        0.326ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.775ns
+    Source Clock Delay      (SCD):    -0.597ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.634    -0.597    cpu_clk
+    SLICE_X112Y88        FDCE                                         r  reset_sync_r_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y88        FDCE (Prop_fdce_C_Q)         0.164    -0.433 r  reset_sync_r_reg[2]/Q
+                         net (fo=2, routed)           0.065    -0.369    u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1_0[2]
+    SLICE_X113Y88        LUT6 (Prop_lut6_I4_O)        0.045    -0.324 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, routed)           0.325     0.001    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+    SLICE_X107Y90        LUT1 (Prop_lut1_I0_O)        0.045     0.046 f  u_soc/u_cpu/u_regfile/cache_valid[0]_i_2/O
+                         net (fo=2633, routed)        0.586     0.632    u_soc/u_cpu/reset_sync_r_reg[1]
+    SLICE_X105Y103       FDCE                                         f  u_soc/u_cpu/if_id_pc_r_reg[8]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.965    -0.775    u_soc/u_cpu/cpu_clk
+    SLICE_X105Y103       FDCE                                         r  u_soc/u_cpu/if_id_pc_r_reg[8]/C
+                         clock pessimism              0.504    -0.271    
+    SLICE_X105Y103       FDCE (Remov_fdce_C_CLR)     -0.092    -0.363    u_soc/u_cpu/if_id_pc_r_reg[8]
+  -------------------------------------------------------------------
+                         required time                          0.363    
+                         arrival time                           0.632    
+  -------------------------------------------------------------------
+                         slack                                  0.995    
+
+Slack (MET) :             1.022ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[2]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/fetch_pc_r_reg[0]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        1.256ns  (logic 0.254ns (20.230%)  route 1.002ns (79.770%))
+  Logic Levels:           2  (LUT1=1 LUT6=1)
+  Clock Path Skew:        0.325ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.776ns
+    Source Clock Delay      (SCD):    -0.597ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.634    -0.597    cpu_clk
+    SLICE_X112Y88        FDCE                                         r  reset_sync_r_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y88        FDCE (Prop_fdce_C_Q)         0.164    -0.433 r  reset_sync_r_reg[2]/Q
+                         net (fo=2, routed)           0.065    -0.369    u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1_0[2]
+    SLICE_X113Y88        LUT6 (Prop_lut6_I4_O)        0.045    -0.324 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, routed)           0.325     0.001    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+    SLICE_X107Y90        LUT1 (Prop_lut1_I0_O)        0.045     0.046 f  u_soc/u_cpu/u_regfile/cache_valid[0]_i_2/O
+                         net (fo=2633, routed)        0.612     0.658    u_soc/u_cpu/reset_sync_r_reg[1]
+    SLICE_X101Y105       FDCE                                         f  u_soc/u_cpu/fetch_pc_r_reg[0]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.964    -0.776    u_soc/u_cpu/cpu_clk
+    SLICE_X101Y105       FDCE                                         r  u_soc/u_cpu/fetch_pc_r_reg[0]/C
+                         clock pessimism              0.504    -0.272    
+    SLICE_X101Y105       FDCE (Remov_fdce_C_CLR)     -0.092    -0.364    u_soc/u_cpu/fetch_pc_r_reg[0]
+  -------------------------------------------------------------------
+                         required time                          0.364    
+                         arrival time                           0.658    
+  -------------------------------------------------------------------
+                         slack                                  1.022    
+
+Slack (MET) :             1.022ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[2]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/fetch_pc_r_reg[16]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        1.256ns  (logic 0.254ns (20.230%)  route 1.002ns (79.770%))
+  Logic Levels:           2  (LUT1=1 LUT6=1)
+  Clock Path Skew:        0.325ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.776ns
+    Source Clock Delay      (SCD):    -0.597ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.634    -0.597    cpu_clk
+    SLICE_X112Y88        FDCE                                         r  reset_sync_r_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y88        FDCE (Prop_fdce_C_Q)         0.164    -0.433 r  reset_sync_r_reg[2]/Q
+                         net (fo=2, routed)           0.065    -0.369    u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1_0[2]
+    SLICE_X113Y88        LUT6 (Prop_lut6_I4_O)        0.045    -0.324 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, routed)           0.325     0.001    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+    SLICE_X107Y90        LUT1 (Prop_lut1_I0_O)        0.045     0.046 f  u_soc/u_cpu/u_regfile/cache_valid[0]_i_2/O
+                         net (fo=2633, routed)        0.612     0.658    u_soc/u_cpu/reset_sync_r_reg[1]
+    SLICE_X101Y105       FDCE                                         f  u_soc/u_cpu/fetch_pc_r_reg[16]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.964    -0.776    u_soc/u_cpu/cpu_clk
+    SLICE_X101Y105       FDCE                                         r  u_soc/u_cpu/fetch_pc_r_reg[16]/C
+                         clock pessimism              0.504    -0.272    
+    SLICE_X101Y105       FDCE (Remov_fdce_C_CLR)     -0.092    -0.364    u_soc/u_cpu/fetch_pc_r_reg[16]
+  -------------------------------------------------------------------
+                         required time                          0.364    
+                         arrival time                           0.658    
+  -------------------------------------------------------------------
+                         slack                                  1.022    
+
+Slack (MET) :             1.022ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[2]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/fetch_pc_r_reg[22]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        1.256ns  (logic 0.254ns (20.230%)  route 1.002ns (79.770%))
+  Logic Levels:           2  (LUT1=1 LUT6=1)
+  Clock Path Skew:        0.325ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.776ns
+    Source Clock Delay      (SCD):    -0.597ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.634    -0.597    cpu_clk
+    SLICE_X112Y88        FDCE                                         r  reset_sync_r_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y88        FDCE (Prop_fdce_C_Q)         0.164    -0.433 r  reset_sync_r_reg[2]/Q
+                         net (fo=2, routed)           0.065    -0.369    u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1_0[2]
+    SLICE_X113Y88        LUT6 (Prop_lut6_I4_O)        0.045    -0.324 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, routed)           0.325     0.001    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+    SLICE_X107Y90        LUT1 (Prop_lut1_I0_O)        0.045     0.046 f  u_soc/u_cpu/u_regfile/cache_valid[0]_i_2/O
+                         net (fo=2633, routed)        0.612     0.658    u_soc/u_cpu/reset_sync_r_reg[1]
+    SLICE_X101Y105       FDCE                                         f  u_soc/u_cpu/fetch_pc_r_reg[22]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.964    -0.776    u_soc/u_cpu/cpu_clk
+    SLICE_X101Y105       FDCE                                         r  u_soc/u_cpu/fetch_pc_r_reg[22]/C
+                         clock pessimism              0.504    -0.272    
+    SLICE_X101Y105       FDCE (Remov_fdce_C_CLR)     -0.092    -0.364    u_soc/u_cpu/fetch_pc_r_reg[22]
+  -------------------------------------------------------------------
+                         required time                          0.364    
+                         arrival time                           0.658    
+  -------------------------------------------------------------------
+                         slack                                  1.022    
+
+Slack (MET) :             1.022ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[2]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/fetch_pc_r_reg[23]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        1.256ns  (logic 0.254ns (20.230%)  route 1.002ns (79.770%))
+  Logic Levels:           2  (LUT1=1 LUT6=1)
+  Clock Path Skew:        0.325ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.776ns
+    Source Clock Delay      (SCD):    -0.597ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.634    -0.597    cpu_clk
+    SLICE_X112Y88        FDCE                                         r  reset_sync_r_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y88        FDCE (Prop_fdce_C_Q)         0.164    -0.433 r  reset_sync_r_reg[2]/Q
+                         net (fo=2, routed)           0.065    -0.369    u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1_0[2]
+    SLICE_X113Y88        LUT6 (Prop_lut6_I4_O)        0.045    -0.324 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, routed)           0.325     0.001    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+    SLICE_X107Y90        LUT1 (Prop_lut1_I0_O)        0.045     0.046 f  u_soc/u_cpu/u_regfile/cache_valid[0]_i_2/O
+                         net (fo=2633, routed)        0.612     0.658    u_soc/u_cpu/reset_sync_r_reg[1]
+    SLICE_X101Y105       FDCE                                         f  u_soc/u_cpu/fetch_pc_r_reg[23]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.964    -0.776    u_soc/u_cpu/cpu_clk
+    SLICE_X101Y105       FDCE                                         r  u_soc/u_cpu/fetch_pc_r_reg[23]/C
+                         clock pessimism              0.504    -0.272    
+    SLICE_X101Y105       FDCE (Remov_fdce_C_CLR)     -0.092    -0.364    u_soc/u_cpu/fetch_pc_r_reg[23]
+  -------------------------------------------------------------------
+                         required time                          0.364    
+                         arrival time                           0.658    
+  -------------------------------------------------------------------
+                         slack                                  1.022    
+
+Slack (MET) :             1.026ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[0]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/if_id_pc_r_reg[8]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        1.260ns  (logic 0.254ns (20.151%)  route 1.006ns (79.849%))
+  Logic Levels:           2  (LUT1=1 LUT6=1)
+  Clock Path Skew:        0.326ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.775ns
+    Source Clock Delay      (SCD):    -0.597ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.634    -0.597    cpu_clk
+    SLICE_X112Y88        FDCE                                         r  reset_sync_r_reg[0]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y88        FDCE (Prop_fdce_C_Q)         0.164    -0.433 r  reset_sync_r_reg[0]/Q
+                         net (fo=2, routed)           0.096    -0.338    u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1_0[0]
+    SLICE_X113Y88        LUT6 (Prop_lut6_I2_O)        0.045    -0.293 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, routed)           0.325     0.032    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+    SLICE_X107Y90        LUT1 (Prop_lut1_I0_O)        0.045     0.077 f  u_soc/u_cpu/u_regfile/cache_valid[0]_i_2/O
+                         net (fo=2633, routed)        0.586     0.663    u_soc/u_cpu/reset_sync_r_reg[1]
+    SLICE_X105Y103       FDCE                                         f  u_soc/u_cpu/if_id_pc_r_reg[8]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.965    -0.775    u_soc/u_cpu/cpu_clk
+    SLICE_X105Y103       FDCE                                         r  u_soc/u_cpu/if_id_pc_r_reg[8]/C
+                         clock pessimism              0.504    -0.271    
+    SLICE_X105Y103       FDCE (Remov_fdce_C_CLR)     -0.092    -0.363    u_soc/u_cpu/if_id_pc_r_reg[8]
+  -------------------------------------------------------------------
+                         required time                          0.363    
+                         arrival time                           0.663    
+  -------------------------------------------------------------------
+                         slack                                  1.026    
+
+Slack (MET) :             1.028ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[2]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/gen_dcache.u_dcache/miss_addr_r_reg[13]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.972ns  (logic 0.254ns (26.134%)  route 0.718ns (73.866%))
+  Logic Levels:           2  (LUT1=1 LUT6=1)
+  Clock Path Skew:        0.036ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.836ns
+    Source Clock Delay      (SCD):    -0.597ns
+    Clock Pessimism Removal (CPR):    -0.274ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.634    -0.597    cpu_clk
+    SLICE_X112Y88        FDCE                                         r  reset_sync_r_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y88        FDCE (Prop_fdce_C_Q)         0.164    -0.433 r  reset_sync_r_reg[2]/Q
+                         net (fo=2, routed)           0.065    -0.369    u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1_0[2]
+    SLICE_X113Y88        LUT6 (Prop_lut6_I4_O)        0.045    -0.324 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, routed)           0.325     0.001    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+    SLICE_X107Y90        LUT1 (Prop_lut1_I0_O)        0.045     0.046 f  u_soc/u_cpu/u_regfile/cache_valid[0]_i_2/O
+                         net (fo=2633, routed)        0.329     0.375    u_soc/u_cpu/gen_dcache.u_dcache/miss_valid_r_reg_1
+    SLICE_X109Y92        FDCE                                         f  u_soc/u_cpu/gen_dcache.u_dcache/miss_addr_r_reg[13]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.904    -0.836    u_soc/u_cpu/gen_dcache.u_dcache/cpu_clk
+    SLICE_X109Y92        FDCE                                         r  u_soc/u_cpu/gen_dcache.u_dcache/miss_addr_r_reg[13]/C
+                         clock pessimism              0.274    -0.561    
+    SLICE_X109Y92        FDCE (Remov_fdce_C_CLR)     -0.092    -0.653    u_soc/u_cpu/gen_dcache.u_dcache/miss_addr_r_reg[13]
+  -------------------------------------------------------------------
+                         required time                          0.653    
+                         arrival time                           0.375    
+  -------------------------------------------------------------------
+                         slack                                  1.028    
+
+Slack (MET) :             1.028ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[2]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/gen_dcache.u_dcache/miss_addr_r_reg[14]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.972ns  (logic 0.254ns (26.134%)  route 0.718ns (73.866%))
+  Logic Levels:           2  (LUT1=1 LUT6=1)
+  Clock Path Skew:        0.036ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.836ns
+    Source Clock Delay      (SCD):    -0.597ns
+    Clock Pessimism Removal (CPR):    -0.274ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.634    -0.597    cpu_clk
+    SLICE_X112Y88        FDCE                                         r  reset_sync_r_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y88        FDCE (Prop_fdce_C_Q)         0.164    -0.433 r  reset_sync_r_reg[2]/Q
+                         net (fo=2, routed)           0.065    -0.369    u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1_0[2]
+    SLICE_X113Y88        LUT6 (Prop_lut6_I4_O)        0.045    -0.324 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, routed)           0.325     0.001    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+    SLICE_X107Y90        LUT1 (Prop_lut1_I0_O)        0.045     0.046 f  u_soc/u_cpu/u_regfile/cache_valid[0]_i_2/O
+                         net (fo=2633, routed)        0.329     0.375    u_soc/u_cpu/gen_dcache.u_dcache/miss_valid_r_reg_1
+    SLICE_X109Y92        FDCE                                         f  u_soc/u_cpu/gen_dcache.u_dcache/miss_addr_r_reg[14]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.904    -0.836    u_soc/u_cpu/gen_dcache.u_dcache/cpu_clk
+    SLICE_X109Y92        FDCE                                         r  u_soc/u_cpu/gen_dcache.u_dcache/miss_addr_r_reg[14]/C
+                         clock pessimism              0.274    -0.561    
+    SLICE_X109Y92        FDCE (Remov_fdce_C_CLR)     -0.092    -0.653    u_soc/u_cpu/gen_dcache.u_dcache/miss_addr_r_reg[14]
+  -------------------------------------------------------------------
+                         required time                          0.653    
+                         arrival time                           0.375    
+  -------------------------------------------------------------------
+                         slack                                  1.028    
+
+Slack (MET) :             1.028ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[2]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/gen_dcache.u_dcache/miss_addr_r_reg[16]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.972ns  (logic 0.254ns (26.134%)  route 0.718ns (73.866%))
+  Logic Levels:           2  (LUT1=1 LUT6=1)
+  Clock Path Skew:        0.036ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.836ns
+    Source Clock Delay      (SCD):    -0.597ns
+    Clock Pessimism Removal (CPR):    -0.274ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.634    -0.597    cpu_clk
+    SLICE_X112Y88        FDCE                                         r  reset_sync_r_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y88        FDCE (Prop_fdce_C_Q)         0.164    -0.433 r  reset_sync_r_reg[2]/Q
+                         net (fo=2, routed)           0.065    -0.369    u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1_0[2]
+    SLICE_X113Y88        LUT6 (Prop_lut6_I4_O)        0.045    -0.324 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, routed)           0.325     0.001    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+    SLICE_X107Y90        LUT1 (Prop_lut1_I0_O)        0.045     0.046 f  u_soc/u_cpu/u_regfile/cache_valid[0]_i_2/O
+                         net (fo=2633, routed)        0.329     0.375    u_soc/u_cpu/gen_dcache.u_dcache/miss_valid_r_reg_1
+    SLICE_X109Y92        FDCE                                         f  u_soc/u_cpu/gen_dcache.u_dcache/miss_addr_r_reg[16]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.904    -0.836    u_soc/u_cpu/gen_dcache.u_dcache/cpu_clk
+    SLICE_X109Y92        FDCE                                         r  u_soc/u_cpu/gen_dcache.u_dcache/miss_addr_r_reg[16]/C
+                         clock pessimism              0.274    -0.561    
+    SLICE_X109Y92        FDCE (Remov_fdce_C_CLR)     -0.092    -0.653    u_soc/u_cpu/gen_dcache.u_dcache/miss_addr_r_reg[16]
+  -------------------------------------------------------------------
+                         required time                          0.653    
+                         arrival time                           0.375    
+  -------------------------------------------------------------------
+                         slack                                  1.028    
+
+Slack (MET) :             1.028ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[2]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/gen_dcache.u_dcache/miss_addr_r_reg[20]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        0.972ns  (logic 0.254ns (26.134%)  route 0.718ns (73.866%))
+  Logic Levels:           2  (LUT1=1 LUT6=1)
+  Clock Path Skew:        0.036ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.836ns
+    Source Clock Delay      (SCD):    -0.597ns
+    Clock Pessimism Removal (CPR):    -0.274ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.634    -0.597    cpu_clk
+    SLICE_X112Y88        FDCE                                         r  reset_sync_r_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y88        FDCE (Prop_fdce_C_Q)         0.164    -0.433 r  reset_sync_r_reg[2]/Q
+                         net (fo=2, routed)           0.065    -0.369    u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1_0[2]
+    SLICE_X113Y88        LUT6 (Prop_lut6_I4_O)        0.045    -0.324 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, routed)           0.325     0.001    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+    SLICE_X107Y90        LUT1 (Prop_lut1_I0_O)        0.045     0.046 f  u_soc/u_cpu/u_regfile/cache_valid[0]_i_2/O
+                         net (fo=2633, routed)        0.329     0.375    u_soc/u_cpu/gen_dcache.u_dcache/miss_valid_r_reg_1
+    SLICE_X109Y92        FDCE                                         f  u_soc/u_cpu/gen_dcache.u_dcache/miss_addr_r_reg[20]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.904    -0.836    u_soc/u_cpu/gen_dcache.u_dcache/cpu_clk
+    SLICE_X109Y92        FDCE                                         r  u_soc/u_cpu/gen_dcache.u_dcache/miss_addr_r_reg[20]/C
+                         clock pessimism              0.274    -0.561    
+    SLICE_X109Y92        FDCE (Remov_fdce_C_CLR)     -0.092    -0.653    u_soc/u_cpu/gen_dcache.u_dcache/miss_addr_r_reg[20]
+  -------------------------------------------------------------------
+                         required time                          0.653    
+                         arrival time                           0.375    
+  -------------------------------------------------------------------
+                         slack                                  1.028    
+
+Slack (MET) :             1.040ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[2]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/fetch_pc_r_reg[1]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        1.272ns  (logic 0.254ns (19.968%)  route 1.018ns (80.032%))
+  Logic Levels:           2  (LUT1=1 LUT6=1)
+  Clock Path Skew:        0.324ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.777ns
+    Source Clock Delay      (SCD):    -0.597ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.634    -0.597    cpu_clk
+    SLICE_X112Y88        FDCE                                         r  reset_sync_r_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y88        FDCE (Prop_fdce_C_Q)         0.164    -0.433 r  reset_sync_r_reg[2]/Q
+                         net (fo=2, routed)           0.065    -0.369    u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1_0[2]
+    SLICE_X113Y88        LUT6 (Prop_lut6_I4_O)        0.045    -0.324 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, routed)           0.325     0.001    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+    SLICE_X107Y90        LUT1 (Prop_lut1_I0_O)        0.045     0.046 f  u_soc/u_cpu/u_regfile/cache_valid[0]_i_2/O
+                         net (fo=2633, routed)        0.629     0.675    u_soc/u_cpu/reset_sync_r_reg[1]
+    SLICE_X97Y104        FDCE                                         f  u_soc/u_cpu/fetch_pc_r_reg[1]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.963    -0.777    u_soc/u_cpu/cpu_clk
+    SLICE_X97Y104        FDCE                                         r  u_soc/u_cpu/fetch_pc_r_reg[1]/C
+                         clock pessimism              0.504    -0.273    
+    SLICE_X97Y104        FDCE (Remov_fdce_C_CLR)     -0.092    -0.365    u_soc/u_cpu/fetch_pc_r_reg[1]
+  -------------------------------------------------------------------
+                         required time                          0.365    
+                         arrival time                           0.675    
+  -------------------------------------------------------------------
+                         slack                                  1.040    
+
+Slack (MET) :             1.040ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[2]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/fetch_pc_r_reg[20]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        1.272ns  (logic 0.254ns (19.968%)  route 1.018ns (80.032%))
+  Logic Levels:           2  (LUT1=1 LUT6=1)
+  Clock Path Skew:        0.324ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.777ns
+    Source Clock Delay      (SCD):    -0.597ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.634    -0.597    cpu_clk
+    SLICE_X112Y88        FDCE                                         r  reset_sync_r_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y88        FDCE (Prop_fdce_C_Q)         0.164    -0.433 r  reset_sync_r_reg[2]/Q
+                         net (fo=2, routed)           0.065    -0.369    u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1_0[2]
+    SLICE_X113Y88        LUT6 (Prop_lut6_I4_O)        0.045    -0.324 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, routed)           0.325     0.001    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+    SLICE_X107Y90        LUT1 (Prop_lut1_I0_O)        0.045     0.046 f  u_soc/u_cpu/u_regfile/cache_valid[0]_i_2/O
+                         net (fo=2633, routed)        0.629     0.675    u_soc/u_cpu/reset_sync_r_reg[1]
+    SLICE_X97Y104        FDCE                                         f  u_soc/u_cpu/fetch_pc_r_reg[20]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.963    -0.777    u_soc/u_cpu/cpu_clk
+    SLICE_X97Y104        FDCE                                         r  u_soc/u_cpu/fetch_pc_r_reg[20]/C
+                         clock pessimism              0.504    -0.273    
+    SLICE_X97Y104        FDCE (Remov_fdce_C_CLR)     -0.092    -0.365    u_soc/u_cpu/fetch_pc_r_reg[20]
+  -------------------------------------------------------------------
+                         required time                          0.365    
+                         arrival time                           0.675    
+  -------------------------------------------------------------------
+                         slack                                  1.040    
+
+Slack (MET) :             1.040ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[2]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/fetch_pc_r_reg[25]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        1.272ns  (logic 0.254ns (19.968%)  route 1.018ns (80.032%))
+  Logic Levels:           2  (LUT1=1 LUT6=1)
+  Clock Path Skew:        0.324ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.777ns
+    Source Clock Delay      (SCD):    -0.597ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.634    -0.597    cpu_clk
+    SLICE_X112Y88        FDCE                                         r  reset_sync_r_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y88        FDCE (Prop_fdce_C_Q)         0.164    -0.433 r  reset_sync_r_reg[2]/Q
+                         net (fo=2, routed)           0.065    -0.369    u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1_0[2]
+    SLICE_X113Y88        LUT6 (Prop_lut6_I4_O)        0.045    -0.324 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, routed)           0.325     0.001    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+    SLICE_X107Y90        LUT1 (Prop_lut1_I0_O)        0.045     0.046 f  u_soc/u_cpu/u_regfile/cache_valid[0]_i_2/O
+                         net (fo=2633, routed)        0.629     0.675    u_soc/u_cpu/reset_sync_r_reg[1]
+    SLICE_X97Y104        FDCE                                         f  u_soc/u_cpu/fetch_pc_r_reg[25]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.963    -0.777    u_soc/u_cpu/cpu_clk
+    SLICE_X97Y104        FDCE                                         r  u_soc/u_cpu/fetch_pc_r_reg[25]/C
+                         clock pessimism              0.504    -0.273    
+    SLICE_X97Y104        FDCE (Remov_fdce_C_CLR)     -0.092    -0.365    u_soc/u_cpu/fetch_pc_r_reg[25]
+  -------------------------------------------------------------------
+                         required time                          0.365    
+                         arrival time                           0.675    
+  -------------------------------------------------------------------
+                         slack                                  1.040    
+
+Slack (MET) :             1.049ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[2]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/u_regfile/regs_reg[27][6]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        1.321ns  (logic 0.254ns (19.229%)  route 1.067ns (80.771%))
+  Logic Levels:           2  (LUT1=1 LUT6=1)
+  Clock Path Skew:        0.339ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.762ns
+    Source Clock Delay      (SCD):    -0.597ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.634    -0.597    cpu_clk
+    SLICE_X112Y88        FDCE                                         r  reset_sync_r_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y88        FDCE (Prop_fdce_C_Q)         0.164    -0.433 r  reset_sync_r_reg[2]/Q
+                         net (fo=2, routed)           0.065    -0.369    u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1_0[2]
+    SLICE_X113Y88        LUT6 (Prop_lut6_I4_O)        0.045    -0.324 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, routed)           0.325     0.001    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+    SLICE_X107Y90        LUT1 (Prop_lut1_I0_O)        0.045     0.046 f  u_soc/u_cpu/u_regfile/cache_valid[0]_i_2/O
+                         net (fo=2633, routed)        0.678     0.723    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]
+    SLICE_X108Y122       FDCE                                         f  u_soc/u_cpu/u_regfile/regs_reg[27][6]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.978    -0.762    u_soc/u_cpu/u_regfile/cpu_clk
+    SLICE_X108Y122       FDCE                                         r  u_soc/u_cpu/u_regfile/regs_reg[27][6]/C
+                         clock pessimism              0.504    -0.258    
+    SLICE_X108Y122       FDCE (Remov_fdce_C_CLR)     -0.067    -0.325    u_soc/u_cpu/u_regfile/regs_reg[27][6]
+  -------------------------------------------------------------------
+                         required time                          0.325    
+                         arrival time                           0.723    
+  -------------------------------------------------------------------
+                         slack                                  1.049    
+
+Slack (MET) :             1.052ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[2]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/fetch_pc_r_reg[18]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        1.285ns  (logic 0.254ns (19.766%)  route 1.031ns (80.234%))
+  Logic Levels:           2  (LUT1=1 LUT6=1)
+  Clock Path Skew:        0.325ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.776ns
+    Source Clock Delay      (SCD):    -0.597ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.634    -0.597    cpu_clk
+    SLICE_X112Y88        FDCE                                         r  reset_sync_r_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y88        FDCE (Prop_fdce_C_Q)         0.164    -0.433 r  reset_sync_r_reg[2]/Q
+                         net (fo=2, routed)           0.065    -0.369    u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1_0[2]
+    SLICE_X113Y88        LUT6 (Prop_lut6_I4_O)        0.045    -0.324 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, routed)           0.325     0.001    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+    SLICE_X107Y90        LUT1 (Prop_lut1_I0_O)        0.045     0.046 f  u_soc/u_cpu/u_regfile/cache_valid[0]_i_2/O
+                         net (fo=2633, routed)        0.642     0.688    u_soc/u_cpu/reset_sync_r_reg[1]
+    SLICE_X103Y104       FDCE                                         f  u_soc/u_cpu/fetch_pc_r_reg[18]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.964    -0.776    u_soc/u_cpu/cpu_clk
+    SLICE_X103Y104       FDCE                                         r  u_soc/u_cpu/fetch_pc_r_reg[18]/C
+                         clock pessimism              0.504    -0.272    
+    SLICE_X103Y104       FDCE (Remov_fdce_C_CLR)     -0.092    -0.364    u_soc/u_cpu/fetch_pc_r_reg[18]
+  -------------------------------------------------------------------
+                         required time                          0.364    
+                         arrival time                           0.688    
+  -------------------------------------------------------------------
+                         slack                                  1.052    
+
+Slack (MET) :             1.052ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[2]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/fetch_pc_r_reg[27]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        1.285ns  (logic 0.254ns (19.766%)  route 1.031ns (80.234%))
+  Logic Levels:           2  (LUT1=1 LUT6=1)
+  Clock Path Skew:        0.325ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.776ns
+    Source Clock Delay      (SCD):    -0.597ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.634    -0.597    cpu_clk
+    SLICE_X112Y88        FDCE                                         r  reset_sync_r_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y88        FDCE (Prop_fdce_C_Q)         0.164    -0.433 r  reset_sync_r_reg[2]/Q
+                         net (fo=2, routed)           0.065    -0.369    u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1_0[2]
+    SLICE_X113Y88        LUT6 (Prop_lut6_I4_O)        0.045    -0.324 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, routed)           0.325     0.001    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+    SLICE_X107Y90        LUT1 (Prop_lut1_I0_O)        0.045     0.046 f  u_soc/u_cpu/u_regfile/cache_valid[0]_i_2/O
+                         net (fo=2633, routed)        0.642     0.688    u_soc/u_cpu/reset_sync_r_reg[1]
+    SLICE_X103Y104       FDCE                                         f  u_soc/u_cpu/fetch_pc_r_reg[27]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.964    -0.776    u_soc/u_cpu/cpu_clk
+    SLICE_X103Y104       FDCE                                         r  u_soc/u_cpu/fetch_pc_r_reg[27]/C
+                         clock pessimism              0.504    -0.272    
+    SLICE_X103Y104       FDCE (Remov_fdce_C_CLR)     -0.092    -0.364    u_soc/u_cpu/fetch_pc_r_reg[27]
+  -------------------------------------------------------------------
+                         required time                          0.364    
+                         arrival time                           0.688    
+  -------------------------------------------------------------------
+                         slack                                  1.052    
+
+Slack (MET) :             1.052ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[2]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/fetch_pc_r_reg[29]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        1.285ns  (logic 0.254ns (19.766%)  route 1.031ns (80.234%))
+  Logic Levels:           2  (LUT1=1 LUT6=1)
+  Clock Path Skew:        0.325ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.776ns
+    Source Clock Delay      (SCD):    -0.597ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.634    -0.597    cpu_clk
+    SLICE_X112Y88        FDCE                                         r  reset_sync_r_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y88        FDCE (Prop_fdce_C_Q)         0.164    -0.433 r  reset_sync_r_reg[2]/Q
+                         net (fo=2, routed)           0.065    -0.369    u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1_0[2]
+    SLICE_X113Y88        LUT6 (Prop_lut6_I4_O)        0.045    -0.324 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, routed)           0.325     0.001    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+    SLICE_X107Y90        LUT1 (Prop_lut1_I0_O)        0.045     0.046 f  u_soc/u_cpu/u_regfile/cache_valid[0]_i_2/O
+                         net (fo=2633, routed)        0.642     0.688    u_soc/u_cpu/reset_sync_r_reg[1]
+    SLICE_X103Y104       FDCE                                         f  u_soc/u_cpu/fetch_pc_r_reg[29]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.964    -0.776    u_soc/u_cpu/cpu_clk
+    SLICE_X103Y104       FDCE                                         r  u_soc/u_cpu/fetch_pc_r_reg[29]/C
+                         clock pessimism              0.504    -0.272    
+    SLICE_X103Y104       FDCE (Remov_fdce_C_CLR)     -0.092    -0.364    u_soc/u_cpu/fetch_pc_r_reg[29]
+  -------------------------------------------------------------------
+                         required time                          0.364    
+                         arrival time                           0.688    
+  -------------------------------------------------------------------
+                         slack                                  1.052    
+
+Slack (MET) :             1.052ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[2]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/fetch_pc_r_reg[4]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        1.285ns  (logic 0.254ns (19.766%)  route 1.031ns (80.234%))
+  Logic Levels:           2  (LUT1=1 LUT6=1)
+  Clock Path Skew:        0.325ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.776ns
+    Source Clock Delay      (SCD):    -0.597ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.634    -0.597    cpu_clk
+    SLICE_X112Y88        FDCE                                         r  reset_sync_r_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y88        FDCE (Prop_fdce_C_Q)         0.164    -0.433 r  reset_sync_r_reg[2]/Q
+                         net (fo=2, routed)           0.065    -0.369    u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1_0[2]
+    SLICE_X113Y88        LUT6 (Prop_lut6_I4_O)        0.045    -0.324 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, routed)           0.325     0.001    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+    SLICE_X107Y90        LUT1 (Prop_lut1_I0_O)        0.045     0.046 f  u_soc/u_cpu/u_regfile/cache_valid[0]_i_2/O
+                         net (fo=2633, routed)        0.642     0.688    u_soc/u_cpu/reset_sync_r_reg[1]
+    SLICE_X103Y104       FDCE                                         f  u_soc/u_cpu/fetch_pc_r_reg[4]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.964    -0.776    u_soc/u_cpu/cpu_clk
+    SLICE_X103Y104       FDCE                                         r  u_soc/u_cpu/fetch_pc_r_reg[4]/C
+                         clock pessimism              0.504    -0.272    
+    SLICE_X103Y104       FDCE (Remov_fdce_C_CLR)     -0.092    -0.364    u_soc/u_cpu/fetch_pc_r_reg[4]
+  -------------------------------------------------------------------
+                         required time                          0.364    
+                         arrival time                           0.688    
+  -------------------------------------------------------------------
+                         slack                                  1.052    
+
+Slack (MET) :             1.053ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[0]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/fetch_pc_r_reg[0]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        1.287ns  (logic 0.254ns (19.743%)  route 1.033ns (80.257%))
+  Logic Levels:           2  (LUT1=1 LUT6=1)
+  Clock Path Skew:        0.325ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.776ns
+    Source Clock Delay      (SCD):    -0.597ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.634    -0.597    cpu_clk
+    SLICE_X112Y88        FDCE                                         r  reset_sync_r_reg[0]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y88        FDCE (Prop_fdce_C_Q)         0.164    -0.433 r  reset_sync_r_reg[0]/Q
+                         net (fo=2, routed)           0.096    -0.338    u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1_0[0]
+    SLICE_X113Y88        LUT6 (Prop_lut6_I2_O)        0.045    -0.293 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, routed)           0.325     0.032    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+    SLICE_X107Y90        LUT1 (Prop_lut1_I0_O)        0.045     0.077 f  u_soc/u_cpu/u_regfile/cache_valid[0]_i_2/O
+                         net (fo=2633, routed)        0.612     0.689    u_soc/u_cpu/reset_sync_r_reg[1]
+    SLICE_X101Y105       FDCE                                         f  u_soc/u_cpu/fetch_pc_r_reg[0]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.964    -0.776    u_soc/u_cpu/cpu_clk
+    SLICE_X101Y105       FDCE                                         r  u_soc/u_cpu/fetch_pc_r_reg[0]/C
+                         clock pessimism              0.504    -0.272    
+    SLICE_X101Y105       FDCE (Remov_fdce_C_CLR)     -0.092    -0.364    u_soc/u_cpu/fetch_pc_r_reg[0]
+  -------------------------------------------------------------------
+                         required time                          0.364    
+                         arrival time                           0.689    
+  -------------------------------------------------------------------
+                         slack                                  1.053    
+
+Slack (MET) :             1.053ns  (arrival time - required time)
+  Source:                 reset_sync_r_reg[0]/C
+                            (rising edge-triggered cell FDCE clocked by gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/u_cpu/fetch_pc_r_reg[16]/CLR
+                            (removal check against rising-edge clock gen_pynq_clk_50m.clkout0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             **async_default**
+  Path Type:              Removal (Min at Fast Process Corner)
+  Requirement:            0.000ns  (gen_pynq_clk_50m.clkout0 rise@0.000ns - gen_pynq_clk_50m.clkout0 rise@0.000ns)
+  Data Path Delay:        1.287ns  (logic 0.254ns (19.743%)  route 1.033ns (80.257%))
+  Logic Levels:           2  (LUT1=1 LUT6=1)
+  Clock Path Skew:        0.325ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    -0.776ns
+    Source Clock Delay      (SCD):    -0.597ns
+    Clock Pessimism Removal (CPR):    -0.504ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.219     0.219 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.440     0.659    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -2.613    -1.954 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.696    -1.257    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026    -1.231 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.634    -0.597    cpu_clk
+    SLICE_X112Y88        FDCE                                         r  reset_sync_r_reg[0]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X112Y88        FDCE (Prop_fdce_C_Q)         0.164    -0.433 r  reset_sync_r_reg[0]/Q
+                         net (fo=2, routed)           0.096    -0.338    u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1_0[0]
+    SLICE_X113Y88        LUT6 (Prop_lut6_I2_O)        0.045    -0.293 r  u_soc/u_cpu/u_regfile/led_OBUF[0]_inst_i_1/O
+                         net (fo=4, routed)           0.325     0.032    u_soc/u_cpu/u_regfile/reset_sync_r_reg[1]_0
+    SLICE_X107Y90        LUT1 (Prop_lut1_I0_O)        0.045     0.077 f  u_soc/u_cpu/u_regfile/cache_valid[0]_i_2/O
+                         net (fo=2633, routed)        0.612     0.689    u_soc/u_cpu/reset_sync_r_reg[1]
+    SLICE_X101Y105       FDCE                                         f  u_soc/u_cpu/fetch_pc_r_reg[16]/CLR
+  -------------------------------------------------------------------    -------------------
+
+                         (clock gen_pynq_clk_50m.clkout0 rise edge)
+                                                      0.000     0.000 r  
+    H16                                               0.000     0.000 r  CLK100MHZ (IN)
+                         net (fo=0)                   0.000     0.000    CLK100MHZ
+    H16                  IBUF (Prop_ibuf_I_O)         0.406     0.406 r  CLK100MHZ_IBUF_inst/O
+                         net (fo=1, routed)           0.480     0.886    CLK100MHZ_IBUF
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -3.407    -2.521 r  gen_pynq_clk_50m.u_clk_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.752    -1.769    gen_pynq_clk_50m.clkout0
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029    -1.740 r  gen_pynq_clk_50m.u_cpu_clk_bufg/O
+                         net (fo=3592, routed)        0.964    -0.776    u_soc/u_cpu/cpu_clk
+    SLICE_X101Y105       FDCE                                         r  u_soc/u_cpu/fetch_pc_r_reg[16]/C
+                         clock pessimism              0.504    -0.272    
+    SLICE_X101Y105       FDCE (Remov_fdce_C_CLR)     -0.092    -0.364    u_soc/u_cpu/fetch_pc_r_reg[16]
+  -------------------------------------------------------------------
+                         required time                          0.364    
+                         arrival time                           0.689    
+  -------------------------------------------------------------------
+                         slack                                  1.053    
+
+
+
+

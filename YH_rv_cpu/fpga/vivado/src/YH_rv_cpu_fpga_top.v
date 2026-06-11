@@ -3,6 +3,9 @@ module YH_rv_cpu_fpga_top #(
     parameter integer CLK_FREQ_HZ = 100_000_000,
     parameter integer UART_BAUD = 115200,
     parameter integer USE_CLK_MMCM_25M = 0,
+    parameter integer USE_CLK_MMCM_28M = 0,
+    parameter integer USE_CLK_MMCM_30M = 0,
+    parameter integer USE_CLK_MMCM_33M = 0,
     parameter integer USE_CLK_MMCM_62M5 = 0,
     parameter integer USE_CLK_MMCM_50M = 0,
     parameter integer ENABLE_M_EXTENSION = 1,
@@ -30,7 +33,14 @@ module YH_rv_cpu_fpga_top #(
     parameter integer ENABLE_ID_ALU_DEP_FOLD = 0,
     parameter integer ENABLE_REDIRECT_TARGET_CACHE = 1,
     parameter integer ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP = 1,
+    parameter integer ENABLE_REDIRECT_CACHE_REGULAR_SIMPLE_LOOKUP = 0,
+    parameter integer ENABLE_REDIRECT_CACHE_EX_SIMPLE_BLOCK = 0,
     parameter integer ENABLE_FETCH_REDIRECT_REUSE = 0,
+    parameter integer ENABLE_FETCH_LIVE_BYPASS = 1,
+    parameter integer ENABLE_FETCH_REDIRECT_SAME_CYCLE_REQ = 1,
+    parameter integer ENABLE_REDIRECT_CACHE_HIT_EXTRA_IMEM_REQ = 0,
+    parameter integer ENABLE_REDIRECT_CACHE_PC_SKIP = 1,
+    parameter integer ENABLE_IF_ID_PAYLOAD_SIMPLE_CE = 0,
     parameter integer REDIRECT_CACHE_ENTRIES = 1024,
     parameter integer REDIRECT_CACHE_XOR_INDEX = 0,
     parameter integer ENABLE_DYNAMIC_BRANCH_PREDICT = 0,
@@ -50,6 +60,7 @@ module YH_rv_cpu_fpga_top #(
     parameter integer ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC = 1,
     parameter integer ENABLE_FOLD_DCACHE_LOAD_USE_SPEC = 1,
     parameter integer ENABLE_FOLD_EXMEM_LOAD_USE_SPEC = 1,
+    parameter integer ENABLE_EXMEM_LOAD_MUL_FORWARD = 1,
     parameter integer ENABLE_DCACHE_NEXT_PREFETCH = 0,
     parameter integer ENABLE_DCACHE_WORD_ONLY = 0,
     parameter integer ICACHE_EN = 0,
@@ -99,7 +110,7 @@ if (USE_CLK_MMCM_25M != 0) begin : gen_pynq_clk_25m
     MMCME2_BASE #(
         .BANDWIDTH("OPTIMIZED"),
         .CLKIN1_PERIOD(8.000),
-        .CLKFBOUT_MULT_F(8.000),
+        .CLKFBOUT_MULT_F(7.500),
         .CLKFBOUT_PHASE(0.000),
         .DIVCLK_DIVIDE(1),
         .CLKOUT0_DIVIDE_F(40.000),
@@ -147,6 +158,138 @@ end else if (USE_CLK_MMCM_50M != 0) begin : gen_pynq_clk_50m
         .CLKFBOUT_PHASE(0.000),
         .DIVCLK_DIVIDE(1),
         .CLKOUT0_DIVIDE_F(20.000),
+        .CLKOUT0_DUTY_CYCLE(0.500),
+        .CLKOUT0_PHASE(0.000),
+        .REF_JITTER1(0.010),
+        .STARTUP_WAIT("FALSE")
+    ) u_clk_mmcm (
+        .CLKIN1(CLK100MHZ),
+        .CLKFBIN(clkfb_buf),
+        .CLKFBOUT(clkfb),
+        .CLKOUT0(clkout0),
+        .CLKOUT1(),
+        .CLKOUT2(),
+        .CLKOUT3(),
+        .CLKOUT4(),
+        .CLKOUT5(),
+        .CLKOUT6(),
+        .LOCKED(mmcm_locked),
+        .PWRDWN(1'b0),
+        .RST(!cpu_resetn)
+    );
+
+    BUFG u_clkfb_bufg (
+        .I(clkfb),
+        .O(clkfb_buf)
+    );
+
+    BUFG u_cpu_clk_bufg (
+        .I(clkout0),
+        .O(cpu_clk)
+    );
+
+    assign clk_locked = mmcm_locked;
+end else if (USE_CLK_MMCM_28M != 0) begin : gen_pynq_clk_28m
+    wire clkfb;
+    wire clkfb_buf;
+    wire clkout0;
+    wire mmcm_locked;
+
+    MMCME2_BASE #(
+        .BANDWIDTH("OPTIMIZED"),
+        .CLKIN1_PERIOD(8.000),
+        .CLKFBOUT_MULT_F(9.000),
+        .CLKFBOUT_PHASE(0.000),
+        .DIVCLK_DIVIDE(1),
+        .CLKOUT0_DIVIDE_F(40.000),
+        .CLKOUT0_DUTY_CYCLE(0.500),
+        .CLKOUT0_PHASE(0.000),
+        .REF_JITTER1(0.010),
+        .STARTUP_WAIT("FALSE")
+    ) u_clk_mmcm (
+        .CLKIN1(CLK100MHZ),
+        .CLKFBIN(clkfb_buf),
+        .CLKFBOUT(clkfb),
+        .CLKOUT0(clkout0),
+        .CLKOUT1(),
+        .CLKOUT2(),
+        .CLKOUT3(),
+        .CLKOUT4(),
+        .CLKOUT5(),
+        .CLKOUT6(),
+        .LOCKED(mmcm_locked),
+        .PWRDWN(1'b0),
+        .RST(!cpu_resetn)
+    );
+
+    BUFG u_clkfb_bufg (
+        .I(clkfb),
+        .O(clkfb_buf)
+    );
+
+    BUFG u_cpu_clk_bufg (
+        .I(clkout0),
+        .O(cpu_clk)
+    );
+
+    assign clk_locked = mmcm_locked;
+end else if (USE_CLK_MMCM_30M != 0) begin : gen_pynq_clk_30m
+    wire clkfb;
+    wire clkfb_buf;
+    wire clkout0;
+    wire mmcm_locked;
+
+    MMCME2_BASE #(
+        .BANDWIDTH("OPTIMIZED"),
+        .CLKIN1_PERIOD(8.000),
+        .CLKFBOUT_MULT_F(8.000),
+        .CLKFBOUT_PHASE(0.000),
+        .DIVCLK_DIVIDE(1),
+        .CLKOUT0_DIVIDE_F(31.250),
+        .CLKOUT0_DUTY_CYCLE(0.500),
+        .CLKOUT0_PHASE(0.000),
+        .REF_JITTER1(0.010),
+        .STARTUP_WAIT("FALSE")
+    ) u_clk_mmcm (
+        .CLKIN1(CLK100MHZ),
+        .CLKFBIN(clkfb_buf),
+        .CLKFBOUT(clkfb),
+        .CLKOUT0(clkout0),
+        .CLKOUT1(),
+        .CLKOUT2(),
+        .CLKOUT3(),
+        .CLKOUT4(),
+        .CLKOUT5(),
+        .CLKOUT6(),
+        .LOCKED(mmcm_locked),
+        .PWRDWN(1'b0),
+        .RST(!cpu_resetn)
+    );
+
+    BUFG u_clkfb_bufg (
+        .I(clkfb),
+        .O(clkfb_buf)
+    );
+
+    BUFG u_cpu_clk_bufg (
+        .I(clkout0),
+        .O(cpu_clk)
+    );
+
+    assign clk_locked = mmcm_locked;
+end else if (USE_CLK_MMCM_33M != 0) begin : gen_pynq_clk_33m
+    wire clkfb;
+    wire clkfb_buf;
+    wire clkout0;
+    wire mmcm_locked;
+
+    MMCME2_BASE #(
+        .BANDWIDTH("OPTIMIZED"),
+        .CLKIN1_PERIOD(8.000),
+        .CLKFBOUT_MULT_F(8.000),
+        .CLKFBOUT_PHASE(0.000),
+        .DIVCLK_DIVIDE(1),
+        .CLKOUT0_DIVIDE_F(30.000),
         .CLKOUT0_DUTY_CYCLE(0.500),
         .CLKOUT0_PHASE(0.000),
         .REF_JITTER1(0.010),
@@ -255,6 +398,7 @@ YH_rv_cpu_soc #(
     .ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC(ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC),
     .ENABLE_FOLD_DCACHE_LOAD_USE_SPEC(ENABLE_FOLD_DCACHE_LOAD_USE_SPEC),
     .ENABLE_FOLD_EXMEM_LOAD_USE_SPEC(ENABLE_FOLD_EXMEM_LOAD_USE_SPEC),
+    .ENABLE_EXMEM_LOAD_MUL_FORWARD(ENABLE_EXMEM_LOAD_MUL_FORWARD),
     .ENABLE_DCACHE_NEXT_PREFETCH(ENABLE_DCACHE_NEXT_PREFETCH),
     .ENABLE_DCACHE_WORD_ONLY(ENABLE_DCACHE_WORD_ONLY),
     .ICACHE_EN        (ICACHE_EN),
@@ -287,7 +431,14 @@ YH_rv_cpu_soc #(
     .ENABLE_ID_ALU_DEP_FOLD(ENABLE_ID_ALU_DEP_FOLD),
     .ENABLE_REDIRECT_TARGET_CACHE(ENABLE_REDIRECT_TARGET_CACHE),
     .ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP(ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP),
+    .ENABLE_REDIRECT_CACHE_REGULAR_SIMPLE_LOOKUP(ENABLE_REDIRECT_CACHE_REGULAR_SIMPLE_LOOKUP),
+    .ENABLE_REDIRECT_CACHE_EX_SIMPLE_BLOCK(ENABLE_REDIRECT_CACHE_EX_SIMPLE_BLOCK),
     .ENABLE_FETCH_REDIRECT_REUSE(ENABLE_FETCH_REDIRECT_REUSE),
+    .ENABLE_FETCH_LIVE_BYPASS(ENABLE_FETCH_LIVE_BYPASS),
+    .ENABLE_FETCH_REDIRECT_SAME_CYCLE_REQ(ENABLE_FETCH_REDIRECT_SAME_CYCLE_REQ),
+    .ENABLE_REDIRECT_CACHE_HIT_EXTRA_IMEM_REQ(ENABLE_REDIRECT_CACHE_HIT_EXTRA_IMEM_REQ),
+    .ENABLE_REDIRECT_CACHE_PC_SKIP(ENABLE_REDIRECT_CACHE_PC_SKIP),
+    .ENABLE_IF_ID_PAYLOAD_SIMPLE_CE(ENABLE_IF_ID_PAYLOAD_SIMPLE_CE),
     .REDIRECT_CACHE_ENTRIES(REDIRECT_CACHE_ENTRIES),
     .REDIRECT_CACHE_XOR_INDEX(REDIRECT_CACHE_XOR_INDEX),
     .ENABLE_DYNAMIC_BRANCH_PREDICT(ENABLE_DYNAMIC_BRANCH_PREDICT),

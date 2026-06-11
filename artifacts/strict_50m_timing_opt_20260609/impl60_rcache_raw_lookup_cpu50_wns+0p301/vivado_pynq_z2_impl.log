@@ -1,0 +1,1961 @@
+#-----------------------------------------------------------
+# Vivado v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Thu Jun 11 09:52:05 2026
+# Process ID         : 33164
+# Current directory  : V:/project
+# Command line       : vivado.exe -mode batch -notrace -log V:\_tmp\tool_logs\vivado\vivado_pynq_z2_impl.log -journal V:\_tmp\tool_logs\vivado\vivado_pynq_z2_impl.jou -source V:\YH_rv_cpu\scripts\..\fpga\vivado\scripts\build_pynq_z2_project.tcl -tclargs impl
+# Log file           : V:/_tmp/tool_logs/vivado/vivado_pynq_z2_impl.log
+# Journal file       : V:\_tmp\tool_logs\vivado\vivado_pynq_z2_impl.jou
+# Running On         : Toylog_desktop
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26200
+# Processor Detail   : AMD Ryzen 7 7435H
+# CPU Frequency      : 3094 MHz
+# CPU Physical cores : 8
+# CPU Logical cores  : 16
+# Host memory        : 34082 MB
+# Swap memory        : 2147 MB
+# Total Virtual      : 36230 MB
+# Available Virtual  : 12890 MB
+#-----------------------------------------------------------
+source {V:\YH_rv_cpu\scripts\..\fpga\vivado\scripts\build_pynq_z2_project.tcl} -notrace
+INFO: Board = PYNQ-Z2
+INFO: Flow mode = impl
+INFO: Input clock period = 8.000 ns
+INFO: SYNTH_RETIMING = 1
+INFO: SYNTH_NO_TIMING_DRIVEN = 0
+INFO: QUICK_UTIL_ONLY = 0
+INFO: SKIP_PHYS_OPT = 0
+INFO: IMPL_WRITE_BITSTREAM = 0
+INFO: OPT_DIRECTIVE = Explore
+INFO: PLACE_DIRECTIVE = ExtraNetDelay_high
+INFO: PHYS_OPT_PRE_DIRECTIVE = Explore
+INFO: ROUTE_DIRECTIVE = Explore
+INFO: PHYS_OPT_POST_DIRECTIVE = Explore
+INFO: CPU clock frequency generic = 50000000 Hz
+INFO: USE_CLK_MMCM_25M = 0
+INFO: USE_CLK_MMCM_28M = 0
+INFO: USE_CLK_MMCM_30M = 0
+INFO: USE_CLK_MMCM_33M = 0
+INFO: USE_CLK_MMCM_62M5 = 0
+INFO: USE_CLK_MMCM_50M = 1
+INFO: ENABLE_M_EXTENSION = 0
+INFO: ENABLE_ZMMUL_EXTENSION = 1
+INFO: ENABLE_BITMANIP_EXTENSION = 1
+INFO: ENABLE_ZBC_EXTENSION = 1
+INFO: ENABLE_ZICOND_EXTENSION = 1
+INFO: ENABLE_ZBKB_EXTENSION = 0
+INFO: ENABLE_XTHEAD_EXTENSION = 1
+INFO: ENABLE_XTHEAD_CRC_EXTENSION = 0
+INFO: ENABLE_XTHEAD_MUL_EXTENSION = 1
+INFO: ENABLE_XTHEAD_COND_MOVE = 1
+INFO: ENABLE_XTHEAD_ADDSL_EXTENSION = 0
+INFO: ENABLE_XTHEAD_MEMPAIR_EXTENSION = 0
+INFO: ENABLE_XTHEAD_BASE_UPDATE_EXTENSION = 0
+INFO: ENABLE_ID_BRANCH_EX_FORWARD = 0
+INFO: ENABLE_ID_BRANCH_EXMEM_LOAD_FORWARD = 1
+INFO: ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD = 1
+INFO: ENABLE_ID_BRANCH_FOLD = 0
+INFO: ENABLE_ID_BRANCH_FOLD_NEXT_CACHE = 0
+INFO: ENABLE_EX_REDIRECT_FOLD = 1
+INFO: ENABLE_ID_BRANCH_NT_NEXT_CACHE = 1
+INFO: ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD = 1
+INFO: ENABLE_ID_ALU_PAIR_FOLD = 0
+INFO: ENABLE_ID_ALU_DEP_FOLD = 0
+INFO: ENABLE_REDIRECT_TARGET_CACHE = 1
+INFO: ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP = 1
+INFO: ENABLE_REDIRECT_CACHE_REGULAR_SIMPLE_LOOKUP = 1
+INFO: ENABLE_REDIRECT_CACHE_EX_SIMPLE_BLOCK = 1
+INFO: ENABLE_FETCH_REDIRECT_REUSE = 0
+INFO: ENABLE_FETCH_LIVE_BYPASS = 1
+INFO: ENABLE_FETCH_REDIRECT_SAME_CYCLE_REQ = 1
+INFO: ENABLE_REDIRECT_CACHE_HIT_EXTRA_IMEM_REQ = 0
+INFO: ENABLE_REDIRECT_CACHE_PC_SKIP = 1
+INFO: ENABLE_IF_ID_PAYLOAD_SIMPLE_CE = 1
+INFO: REDIRECT_CACHE_ENTRIES = 128
+INFO: REDIRECT_CACHE_XOR_INDEX = 0
+INFO: IMEM_OUTPUT_REG = 0
+INFO: DMEM_OUTPUT_REG = 0
+INFO: ENABLE_DYNAMIC_BRANCH_PREDICT = 0
+INFO: BRANCH_BHT_ENTRIES = 2
+INFO: BRANCH_STATIC_PREDICT_MODE = 0
+INFO: DMEM_NEGEDGE_READ = 0
+INFO: DMEM_READ_PREISSUE = 0
+INFO: DCACHE_EN = 1
+INFO: DCACHE_SIZE_BYTES = 512
+INFO: ENABLE_DCACHE_LOAD_USE_SPEC = 0
+INFO: ENABLE_CONTROL_REDIRECT_DCACHE_LOAD_USE_SPEC = 1
+INFO: ENABLE_BRANCH_REDIRECT_DCACHE_LOAD_USE_SPEC = 1
+INFO: ENABLE_JALR_REDIRECT_DCACHE_LOAD_USE_SPEC = 0
+INFO: ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC = 0
+INFO: ENABLE_FOLD_DCACHE_LOAD_USE_SPEC = 0
+INFO: ENABLE_FOLD_EXMEM_LOAD_USE_SPEC = 0
+INFO: ENABLE_EXMEM_LOAD_MUL_FORWARD = 0
+INFO: ENABLE_DCACHE_NEXT_PREFETCH = 0
+INFO: ENABLE_DCACHE_WORD_ONLY = 0
+INFO: ICACHE_EN = 0
+STEP: read_rtl BEGIN
+read_verilog: Time (s): cpu = 00:00:14 ; elapsed = 00:00:11 . Memory (MB): peak = 579.102 ; gain = 218.410
+STEP: read_rtl DONE
+STEP: read_fpga_sources BEGIN
+STEP: read_fpga_sources DONE
+STEP: read_constraints BEGIN
+STEP: read_constraints DONE
+STEP: read_clock_constraints BEGIN
+STEP: read_clock_constraints DONE
+INFO: ROM_INIT_HEX override = V:/YH_rv_cpu/build/sw/YH_rv_cpu_demo.hex
+INFO: ROM_INIT_MEM32_HEX override = V:/YH_rv_cpu/build/sw/YH_rv_cpu_demo.mem32.hex
+INFO: ROM_BYTES override = 8192
+INFO: RAM_BYTES override = 8192
+STEP: synth_design BEGIN
+WARNING: [Common 17-576] 'retiming' is deprecated. Please use -global_retiming option
+Command: synth_design -top YH_rv_cpu_fpga_top -part xc7z020clg400-1 -flatten_hierarchy rebuilt -fanout_limit 32 -retiming -generic CLK_FREQ_HZ=50000000 -generic USE_CLK_MMCM_25M=0 -generic USE_CLK_MMCM_28M=0 -generic USE_CLK_MMCM_30M=0 -generic USE_CLK_MMCM_33M=0 -generic USE_CLK_MMCM_62M5=0 -generic USE_CLK_MMCM_50M=1 -generic ENABLE_M_EXTENSION=0 -generic ENABLE_ZMMUL_EXTENSION=1 -generic ENABLE_BITMANIP_EXTENSION=1 -generic ENABLE_ZBC_EXTENSION=1 -generic ENABLE_ZICOND_EXTENSION=1 -generic ENABLE_ZBKB_EXTENSION=0 -generic ENABLE_XTHEAD_EXTENSION=1 -generic ENABLE_XTHEAD_CRC_EXTENSION=0 -generic ENABLE_XTHEAD_MUL_EXTENSION=1 -generic ENABLE_XTHEAD_COND_MOVE=1 -generic ENABLE_XTHEAD_ADDSL_EXTENSION=0 -generic ENABLE_XTHEAD_MEMPAIR_EXTENSION=0 -generic ENABLE_XTHEAD_BASE_UPDATE_EXTENSION=0 -generic ENABLE_ID_BRANCH_EX_FORWARD=0 -generic ENABLE_ID_BRANCH_EXMEM_LOAD_FORWARD=1 -generic ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD=1 -generic ENABLE_ID_BRANCH_FOLD=0 -generic ENABLE_ID_BRANCH_FOLD_NEXT_CACHE=0 -generic ENABLE_EX_REDIRECT_FOLD=1 -generic ENABLE_ID_BRANCH_NT_NEXT_CACHE=1 -generic ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD=1 -generic ENABLE_ID_ALU_PAIR_FOLD=0 -generic ENABLE_ID_ALU_DEP_FOLD=0 -generic ENABLE_REDIRECT_TARGET_CACHE=1 -generic ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP=1 -generic ENABLE_REDIRECT_CACHE_REGULAR_SIMPLE_LOOKUP=1 -generic ENABLE_REDIRECT_CACHE_EX_SIMPLE_BLOCK=1 -generic ENABLE_FETCH_REDIRECT_REUSE=0 -generic ENABLE_FETCH_LIVE_BYPASS=1 -generic ENABLE_FETCH_REDIRECT_SAME_CYCLE_REQ=1 -generic ENABLE_REDIRECT_CACHE_HIT_EXTRA_IMEM_REQ=0 -generic ENABLE_REDIRECT_CACHE_PC_SKIP=1 -generic ENABLE_IF_ID_PAYLOAD_SIMPLE_CE=1 -generic REDIRECT_CACHE_ENTRIES=128 -generic REDIRECT_CACHE_XOR_INDEX=0 -generic IMEM_OUTPUT_REG=0 -generic DMEM_OUTPUT_REG=0 -generic ENABLE_DYNAMIC_BRANCH_PREDICT=0 -generic BRANCH_BHT_ENTRIES=2 -generic BRANCH_STATIC_PREDICT_MODE=0 -generic DMEM_NEGEDGE_READ=0 -generic DMEM_READ_PREISSUE=0 -generic DCACHE_EN=1 -generic DCACHE_SIZE_BYTES=512 -generic ENABLE_DCACHE_LOAD_USE_SPEC=0 -generic ENABLE_CONTROL_REDIRECT_DCACHE_LOAD_USE_SPEC=1 -generic ENABLE_BRANCH_REDIRECT_DCACHE_LOAD_USE_SPEC=1 -generic ENABLE_JALR_REDIRECT_DCACHE_LOAD_USE_SPEC=0 -generic ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC=0 -generic ENABLE_FOLD_DCACHE_LOAD_USE_SPEC=0 -generic ENABLE_FOLD_EXMEM_LOAD_USE_SPEC=0 -generic ENABLE_EXMEM_LOAD_MUL_FORWARD=0 -generic ENABLE_DCACHE_NEXT_PREFETCH=0 -generic ENABLE_DCACHE_WORD_ONLY=0 -generic ICACHE_EN=0 -generic ROM_INIT_HEX=V:/YH_rv_cpu/build/sw/YH_rv_cpu_demo.hex -generic ROM_INIT_MEM32_HEX=V:/YH_rv_cpu/build/sw/YH_rv_cpu_demo.mem32.hex -generic ROM_BYTES=8192 -generic RAM_BYTES=8192
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7z020'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7z020'
+INFO: [Device 21-403] Loading part xc7z020clg400-1
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 2 processes.
+INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
+INFO: [Synth 8-7075] Helper process launched with PID 34592
+---------------------------------------------------------------------------------
+Starting RTL Elaboration : Time (s): cpu = 00:00:10 ; elapsed = 00:00:11 . Memory (MB): peak = 1350.797 ; gain = 538.793
+---------------------------------------------------------------------------------
+INFO: [Synth 8-6157] synthesizing module 'YH_rv_cpu_fpga_top' [V:/YH_rv_cpu/fpga/vivado/src/YH_rv_cpu_fpga_top.v:1]
+	Parameter CLK_FREQ_HZ bound to: 50000000 - type: integer 
+	Parameter USE_CLK_MMCM_25M bound to: 0 - type: integer 
+	Parameter USE_CLK_MMCM_28M bound to: 0 - type: integer 
+	Parameter USE_CLK_MMCM_30M bound to: 0 - type: integer 
+	Parameter USE_CLK_MMCM_33M bound to: 0 - type: integer 
+	Parameter USE_CLK_MMCM_62M5 bound to: 0 - type: integer 
+	Parameter USE_CLK_MMCM_50M bound to: 1 - type: integer 
+	Parameter ENABLE_M_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_ZMMUL_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_BITMANIP_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZBC_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZICOND_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZBKB_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_XTHEAD_CRC_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_MUL_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_XTHEAD_COND_MOVE bound to: 1 - type: integer 
+	Parameter ENABLE_XTHEAD_ADDSL_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_MEMPAIR_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_BASE_UPDATE_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_ID_BRANCH_EX_FORWARD bound to: 0 - type: integer 
+	Parameter ENABLE_ID_BRANCH_EXMEM_LOAD_FORWARD bound to: 1 - type: integer 
+	Parameter ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD bound to: 1 - type: integer 
+	Parameter ENABLE_ID_BRANCH_FOLD bound to: 0 - type: integer 
+	Parameter ENABLE_ID_BRANCH_FOLD_NEXT_CACHE bound to: 0 - type: integer 
+	Parameter ENABLE_EX_REDIRECT_FOLD bound to: 1 - type: integer 
+	Parameter ENABLE_ID_BRANCH_NT_NEXT_CACHE bound to: 1 - type: integer 
+	Parameter ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD bound to: 1 - type: integer 
+	Parameter ENABLE_ID_ALU_PAIR_FOLD bound to: 0 - type: integer 
+	Parameter ENABLE_ID_ALU_DEP_FOLD bound to: 0 - type: integer 
+	Parameter ENABLE_REDIRECT_TARGET_CACHE bound to: 1 - type: integer 
+	Parameter ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP bound to: 1 - type: integer 
+	Parameter ENABLE_REDIRECT_CACHE_REGULAR_SIMPLE_LOOKUP bound to: 1 - type: integer 
+	Parameter ENABLE_REDIRECT_CACHE_EX_SIMPLE_BLOCK bound to: 1 - type: integer 
+	Parameter ENABLE_FETCH_REDIRECT_REUSE bound to: 0 - type: integer 
+	Parameter ENABLE_FETCH_LIVE_BYPASS bound to: 1 - type: integer 
+	Parameter ENABLE_FETCH_REDIRECT_SAME_CYCLE_REQ bound to: 1 - type: integer 
+	Parameter ENABLE_REDIRECT_CACHE_HIT_EXTRA_IMEM_REQ bound to: 0 - type: integer 
+	Parameter ENABLE_REDIRECT_CACHE_PC_SKIP bound to: 1 - type: integer 
+	Parameter ENABLE_IF_ID_PAYLOAD_SIMPLE_CE bound to: 1 - type: integer 
+	Parameter REDIRECT_CACHE_ENTRIES bound to: 128 - type: integer 
+	Parameter REDIRECT_CACHE_XOR_INDEX bound to: 0 - type: integer 
+	Parameter ENABLE_DYNAMIC_BRANCH_PREDICT bound to: 0 - type: integer 
+	Parameter BRANCH_BHT_ENTRIES bound to: 2 - type: integer 
+	Parameter BRANCH_STATIC_PREDICT_MODE bound to: 0 - type: integer 
+	Parameter IMEM_OUTPUT_REG bound to: 0 - type: integer 
+	Parameter DMEM_OUTPUT_REG bound to: 0 - type: integer 
+	Parameter DMEM_NEGEDGE_READ bound to: 0 - type: integer 
+	Parameter DMEM_READ_PREISSUE bound to: 0 - type: integer 
+	Parameter DCACHE_EN bound to: 1 - type: integer 
+	Parameter DCACHE_SIZE_BYTES bound to: 512 - type: integer 
+	Parameter ENABLE_DCACHE_LOAD_USE_SPEC bound to: 0 - type: integer 
+	Parameter ENABLE_CONTROL_REDIRECT_DCACHE_LOAD_USE_SPEC bound to: 1 - type: integer 
+	Parameter ENABLE_BRANCH_REDIRECT_DCACHE_LOAD_USE_SPEC bound to: 1 - type: integer 
+	Parameter ENABLE_JALR_REDIRECT_DCACHE_LOAD_USE_SPEC bound to: 0 - type: integer 
+	Parameter ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC bound to: 0 - type: integer 
+	Parameter ENABLE_FOLD_DCACHE_LOAD_USE_SPEC bound to: 0 - type: integer 
+	Parameter ENABLE_FOLD_EXMEM_LOAD_USE_SPEC bound to: 0 - type: integer 
+	Parameter ENABLE_EXMEM_LOAD_MUL_FORWARD bound to: 0 - type: integer 
+	Parameter ENABLE_DCACHE_NEXT_PREFETCH bound to: 0 - type: integer 
+	Parameter ENABLE_DCACHE_WORD_ONLY bound to: 0 - type: integer 
+	Parameter ICACHE_EN bound to: 0 - type: integer 
+	Parameter ROM_BYTES bound to: 8192 - type: integer 
+	Parameter RAM_BYTES bound to: 8192 - type: integer 
+	Parameter ROM_INIT_HEX bound to: V:/YH_rv_cpu/build/sw/YH_rv_cpu_demo.hex - type: string 
+	Parameter ROM_INIT_MEM32_HEX bound to: V:/YH_rv_cpu/build/sw/YH_rv_cpu_demo.mem32.hex - type: string 
+INFO: [Synth 8-6157] synthesizing module 'MMCME2_BASE' [D:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:95964]
+	Parameter BANDWIDTH bound to: OPTIMIZED - type: string 
+	Parameter CLKFBOUT_MULT_F bound to: 8.000000e+00 - type: double 
+	Parameter CLKFBOUT_PHASE bound to: 0.000000e+00 - type: double 
+	Parameter CLKIN1_PERIOD bound to: 8.000000e+00 - type: double 
+	Parameter CLKOUT0_DIVIDE_F bound to: 2.000000e+01 - type: double 
+	Parameter CLKOUT0_DUTY_CYCLE bound to: 5.000000e-01 - type: double 
+	Parameter CLKOUT0_PHASE bound to: 0.000000e+00 - type: double 
+	Parameter DIVCLK_DIVIDE bound to: 1 - type: integer 
+	Parameter REF_JITTER1 bound to: 1.000000e-02 - type: double 
+	Parameter STARTUP_WAIT bound to: FALSE - type: string 
+INFO: [Synth 8-6155] done synthesizing module 'MMCME2_BASE' (0#1) [D:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:95964]
+WARNING: [Synth 8-7071] port 'CLKFBOUTB' of module 'MMCME2_BASE' is unconnected for instance 'u_clk_mmcm' [V:/YH_rv_cpu/fpga/vivado/src/YH_rv_cpu_fpga_top.v:165]
+WARNING: [Synth 8-7071] port 'CLKOUT0B' of module 'MMCME2_BASE' is unconnected for instance 'u_clk_mmcm' [V:/YH_rv_cpu/fpga/vivado/src/YH_rv_cpu_fpga_top.v:165]
+WARNING: [Synth 8-7071] port 'CLKOUT1B' of module 'MMCME2_BASE' is unconnected for instance 'u_clk_mmcm' [V:/YH_rv_cpu/fpga/vivado/src/YH_rv_cpu_fpga_top.v:165]
+WARNING: [Synth 8-7071] port 'CLKOUT2B' of module 'MMCME2_BASE' is unconnected for instance 'u_clk_mmcm' [V:/YH_rv_cpu/fpga/vivado/src/YH_rv_cpu_fpga_top.v:165]
+WARNING: [Synth 8-7071] port 'CLKOUT3B' of module 'MMCME2_BASE' is unconnected for instance 'u_clk_mmcm' [V:/YH_rv_cpu/fpga/vivado/src/YH_rv_cpu_fpga_top.v:165]
+WARNING: [Synth 8-7023] instance 'u_clk_mmcm' of module 'MMCME2_BASE' has 18 connections declared, but only 13 given [V:/YH_rv_cpu/fpga/vivado/src/YH_rv_cpu_fpga_top.v:165]
+INFO: [Synth 8-6157] synthesizing module 'BUFG' [D:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:2678]
+INFO: [Synth 8-6155] done synthesizing module 'BUFG' (0#1) [D:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:2678]
+INFO: [Synth 8-6157] synthesizing module 'YH_rv_cpu_soc' [V:/YH_rv_cpu/rtl/YH_rv_cpu_soc.v:16]
+	Parameter XLEN bound to: 32 - type: integer 
+	Parameter SYNC_IMEM bound to: 1 - type: integer 
+	Parameter IMEM_OUTPUT_REG bound to: 0 - type: integer 
+	Parameter SYNC_DMEM bound to: 1 - type: integer 
+	Parameter DMEM_OUTPUT_REG bound to: 0 - type: integer 
+	Parameter DMEM_NEGEDGE_READ bound to: 0 - type: integer 
+	Parameter DMEM_READ_PREISSUE bound to: 0 - type: integer 
+	Parameter DCACHE_SIZE_BYTES bound to: 512 - type: integer 
+	Parameter ENABLE_DCACHE_LOAD_USE_SPEC bound to: 0 - type: integer 
+	Parameter ENABLE_CONTROL_REDIRECT_DCACHE_LOAD_USE_SPEC bound to: 1 - type: integer 
+	Parameter ENABLE_BRANCH_REDIRECT_DCACHE_LOAD_USE_SPEC bound to: 1 - type: integer 
+	Parameter ENABLE_JALR_REDIRECT_DCACHE_LOAD_USE_SPEC bound to: 0 - type: integer 
+	Parameter ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC bound to: 0 - type: integer 
+	Parameter ENABLE_FOLD_DCACHE_LOAD_USE_SPEC bound to: 0 - type: integer 
+	Parameter ENABLE_FOLD_EXMEM_LOAD_USE_SPEC bound to: 0 - type: integer 
+	Parameter ENABLE_EXMEM_LOAD_MUL_FORWARD bound to: 0 - type: integer 
+	Parameter ENABLE_DCACHE_NEXT_PREFETCH bound to: 0 - type: integer 
+	Parameter ENABLE_DCACHE_WORD_ONLY bound to: 0 - type: integer 
+	Parameter DCACHE_EN bound to: 1 - type: integer 
+	Parameter ICACHE_EN bound to: 0 - type: integer 
+	Parameter ENABLE_M_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_ZMMUL_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_BITMANIP_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZBC_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZICOND_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZBKB_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_XTHEAD_CRC_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_MUL_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_XTHEAD_COND_MOVE bound to: 1 - type: integer 
+	Parameter ENABLE_XTHEAD_ADDSL_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_MEMPAIR_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_BASE_UPDATE_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_ID_BRANCH_EX_FORWARD bound to: 0 - type: integer 
+	Parameter ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP bound to: 1 - type: integer 
+	Parameter ENABLE_REDIRECT_CACHE_REGULAR_SIMPLE_LOOKUP bound to: 1 - type: integer 
+	Parameter ENABLE_REDIRECT_CACHE_EX_SIMPLE_BLOCK bound to: 1 - type: integer 
+	Parameter ENABLE_ID_BRANCH_EXMEM_LOAD_FORWARD bound to: 1 - type: integer 
+	Parameter ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD bound to: 1 - type: integer 
+	Parameter ENABLE_ID_BRANCH_FOLD bound to: 0 - type: integer 
+	Parameter ENABLE_ID_BRANCH_FOLD_NEXT_CACHE bound to: 0 - type: integer 
+	Parameter ENABLE_EX_REDIRECT_FOLD bound to: 1 - type: integer 
+	Parameter ENABLE_ID_BRANCH_NT_NEXT_CACHE bound to: 1 - type: integer 
+	Parameter ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD bound to: 1 - type: integer 
+	Parameter ENABLE_ID_ALU_PAIR_FOLD bound to: 0 - type: integer 
+	Parameter ENABLE_ID_ALU_DEP_FOLD bound to: 0 - type: integer 
+	Parameter ENABLE_REDIRECT_TARGET_CACHE bound to: 1 - type: integer 
+	Parameter ENABLE_FETCH_REDIRECT_REUSE bound to: 0 - type: integer 
+	Parameter ENABLE_FETCH_LIVE_BYPASS bound to: 1 - type: integer 
+	Parameter ENABLE_FETCH_REDIRECT_SAME_CYCLE_REQ bound to: 1 - type: integer 
+	Parameter ENABLE_REDIRECT_CACHE_HIT_EXTRA_IMEM_REQ bound to: 0 - type: integer 
+	Parameter ENABLE_REDIRECT_CACHE_PC_SKIP bound to: 1 - type: integer 
+	Parameter ENABLE_IF_ID_PAYLOAD_SIMPLE_CE bound to: 1 - type: integer 
+	Parameter REDIRECT_CACHE_ENTRIES bound to: 128 - type: integer 
+	Parameter REDIRECT_CACHE_XOR_INDEX bound to: 0 - type: integer 
+	Parameter ENABLE_DYNAMIC_BRANCH_PREDICT bound to: 0 - type: integer 
+	Parameter BRANCH_BHT_ENTRIES bound to: 2 - type: integer 
+	Parameter BRANCH_STATIC_PREDICT_MODE bound to: 0 - type: integer 
+	Parameter BRANCH_BHT_STRONG_ONLY bound to: 0 - type: integer 
+	Parameter RESET_VECTOR bound to: 32'b00000000000000000000000000000000 
+	Parameter RAM_BASE bound to: 16384 - type: integer 
+	Parameter ROM_BYTES bound to: 8192 - type: integer 
+	Parameter RAM_BYTES bound to: 8192 - type: integer 
+	Parameter ROM_INIT_HEX bound to: V:/YH_rv_cpu/build/sw/YH_rv_cpu_demo.hex - type: string 
+	Parameter ROM_INIT_MEM32_HEX bound to: V:/YH_rv_cpu/build/sw/YH_rv_cpu_demo.mem32.hex - type: string 
+INFO: [Synth 8-6157] synthesizing module 'YH_rv_sync_rom32' [V:/YH_rv_cpu/rtl/YH_rv_sync_rom32.v:1]
+	Parameter ROM_WORDS bound to: 2048 - type: integer 
+	Parameter ROM_INIT_HEX bound to: V:/YH_rv_cpu/build/sw/YH_rv_cpu_demo.mem32.hex - type: string 
+	Parameter IMEM_OUTPUT_REG bound to: 0 - type: integer 
+	Parameter DATA_READ_NEGEDGE bound to: 0 - type: integer 
+INFO: [Synth 8-3876] $readmem data file 'V:/YH_rv_cpu/build/sw/YH_rv_cpu_demo.mem32.hex' is read successfully [V:/YH_rv_cpu/rtl/YH_rv_sync_rom32.v:45]
+INFO: [Synth 8-6155] done synthesizing module 'YH_rv_sync_rom32' (0#1) [V:/YH_rv_cpu/rtl/YH_rv_sync_rom32.v:1]
+WARNING: [Synth 8-693] zero replication count - replication ignored [V:/YH_rv_cpu/rtl/YH_rv_cpu_soc.v:338]
+INFO: [Synth 8-6157] synthesizing module 'YH_rv_dmem_ram' [V:/YH_rv_cpu/rtl/YH_rv_dmem_ram.v:1]
+	Parameter XLEN bound to: 32 - type: integer 
+	Parameter RAM_BYTES bound to: 8192 - type: integer 
+	Parameter SYNC_READ bound to: 1 - type: integer 
+	Parameter OUTPUT_REG bound to: 0 - type: integer 
+	Parameter READ_NEGEDGE bound to: 0 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'YH_rv_dmem_ram' (0#1) [V:/YH_rv_cpu/rtl/YH_rv_dmem_ram.v:1]
+INFO: [Synth 8-6157] synthesizing module 'YH_rv_cpu' [V:/YH_rv_cpu/rtl/YH_rv_cpu.v:21]
+	Parameter XLEN bound to: 32 - type: integer 
+	Parameter IMEM_SYNC bound to: 1 - type: integer 
+	Parameter IMEM_OUTPUT_REG bound to: 0 - type: integer 
+	Parameter DMEM_SYNC bound to: 1 - type: integer 
+	Parameter LOAD_USE_FAST_FORWARD bound to: 0 - type: integer 
+	Parameter DMEM_READ_PREISSUE bound to: 0 - type: integer 
+	Parameter DCACHEABLE_BASE bound to: 16384 - type: integer 
+	Parameter DCACHEABLE_LIMIT bound to: 32'b00000000000000000110000000000000 
+	Parameter DCACHE_SIZE_BYTES bound to: 512 - type: integer 
+	Parameter ENABLE_DCACHE_LOAD_USE_SPEC bound to: 0 - type: integer 
+	Parameter ENABLE_CONTROL_REDIRECT_DCACHE_LOAD_USE_SPEC bound to: 1 - type: integer 
+	Parameter ENABLE_BRANCH_REDIRECT_DCACHE_LOAD_USE_SPEC bound to: 1 - type: integer 
+	Parameter ENABLE_JALR_REDIRECT_DCACHE_LOAD_USE_SPEC bound to: 0 - type: integer 
+	Parameter ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC bound to: 0 - type: integer 
+	Parameter ENABLE_FOLD_DCACHE_LOAD_USE_SPEC bound to: 0 - type: integer 
+	Parameter ENABLE_FOLD_EXMEM_LOAD_USE_SPEC bound to: 0 - type: integer 
+	Parameter ENABLE_EXMEM_LOAD_MUL_FORWARD bound to: 0 - type: integer 
+	Parameter ENABLE_DCACHE_NEXT_PREFETCH bound to: 0 - type: integer 
+	Parameter ENABLE_DCACHE_WORD_ONLY bound to: 0 - type: integer 
+	Parameter DCACHE_EN bound to: 1 - type: integer 
+	Parameter ICACHE_EN bound to: 0 - type: integer 
+	Parameter ENABLE_M_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_ZMMUL_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_BITMANIP_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZBC_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZICOND_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZBKB_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_XTHEAD_CRC_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_MUL_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_XTHEAD_ADDSL_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_MEMPAIR_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_BASE_UPDATE_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_COND_MOVE bound to: 1 - type: integer 
+	Parameter ENABLE_ID_BRANCH_EX_FORWARD bound to: 0 - type: integer 
+	Parameter ENABLE_ID_BRANCH_EXMEM_LOAD_FORWARD bound to: 1 - type: integer 
+	Parameter ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD bound to: 1 - type: integer 
+	Parameter ENABLE_REDIRECT_TARGET_CACHE bound to: 1 - type: integer 
+	Parameter ENABLE_ID_BRANCH_FOLD bound to: 0 - type: integer 
+	Parameter ENABLE_ID_BRANCH_FOLD_NEXT_CACHE bound to: 0 - type: integer 
+	Parameter ENABLE_EX_REDIRECT_FOLD bound to: 1 - type: integer 
+	Parameter ENABLE_ID_BRANCH_NT_NEXT_CACHE bound to: 1 - type: integer 
+	Parameter ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD bound to: 1 - type: integer 
+	Parameter ENABLE_ID_ALU_PAIR_FOLD bound to: 0 - type: integer 
+	Parameter ENABLE_ID_ALU_DEP_FOLD bound to: 0 - type: integer 
+	Parameter ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP bound to: 1 - type: integer 
+	Parameter ENABLE_REDIRECT_CACHE_REGULAR_SIMPLE_LOOKUP bound to: 1 - type: integer 
+	Parameter ENABLE_REDIRECT_CACHE_EX_SIMPLE_BLOCK bound to: 1 - type: integer 
+	Parameter ENABLE_FETCH_REDIRECT_REUSE bound to: 0 - type: integer 
+	Parameter ENABLE_FETCH_LIVE_BYPASS bound to: 1 - type: integer 
+	Parameter ENABLE_FETCH_REDIRECT_SAME_CYCLE_REQ bound to: 1 - type: integer 
+	Parameter ENABLE_REDIRECT_CACHE_HIT_EXTRA_IMEM_REQ bound to: 0 - type: integer 
+	Parameter ENABLE_REDIRECT_CACHE_PC_SKIP bound to: 1 - type: integer 
+	Parameter ENABLE_IF_ID_PAYLOAD_SIMPLE_CE bound to: 1 - type: integer 
+	Parameter REDIRECT_CACHE_ENTRIES bound to: 128 - type: integer 
+	Parameter REDIRECT_CACHE_XOR_INDEX bound to: 0 - type: integer 
+	Parameter ENABLE_DYNAMIC_BRANCH_PREDICT bound to: 0 - type: integer 
+	Parameter BRANCH_BHT_ENTRIES bound to: 2 - type: integer 
+	Parameter BRANCH_STATIC_PREDICT_MODE bound to: 0 - type: integer 
+	Parameter BRANCH_BHT_STRONG_ONLY bound to: 0 - type: integer 
+	Parameter RESET_VECTOR bound to: 32'b00000000000000000000000000000000 
+INFO: [Synth 8-6157] synthesizing module 'YH_rv_cpu_mem_stage' [V:/YH_rv_cpu/rtl/YH_rv_cpu_mem_stage.v:14]
+	Parameter XLEN bound to: 32 - type: integer 
+WARNING: [Synth 8-693] zero replication count - replication ignored [V:/YH_rv_cpu/rtl/YH_rv_cpu_mem_stage.v:119]
+WARNING: [Synth 8-693] zero replication count - replication ignored [V:/YH_rv_cpu/rtl/YH_rv_cpu_mem_stage.v:119]
+INFO: [Synth 8-6155] done synthesizing module 'YH_rv_cpu_mem_stage' (0#1) [V:/YH_rv_cpu/rtl/YH_rv_cpu_mem_stage.v:14]
+INFO: [Synth 8-6157] synthesizing module 'YH_rv_cpu_dcache' [V:/YH_rv_cpu/rtl/YH_rv_cpu_dcache.v:3]
+	Parameter XLEN bound to: 32 - type: integer 
+	Parameter CACHE_ADDR_BITS bound to: 13 - type: integer 
+	Parameter CACHE_SIZE bound to: 512 - type: integer 
+	Parameter BLOCK_SIZE bound to: 32 - type: integer 
+	Parameter ASSOC bound to: 1 - type: integer 
+	Parameter WRITE_POLICY bound to: 0 - type: integer 
+	Parameter ENABLE_NEXT_PREFETCH bound to: 0 - type: integer 
+	Parameter WORD_ONLY bound to: 0 - type: integer 
+WARNING: [Synth 8-693] zero replication count - replication ignored [V:/YH_rv_cpu/rtl/YH_rv_cpu_dcache.v:161]
+WARNING: [Synth 8-693] zero replication count - replication ignored [V:/YH_rv_cpu/rtl/YH_rv_cpu_dcache.v:162]
+INFO: [Synth 8-6155] done synthesizing module 'YH_rv_cpu_dcache' (0#1) [V:/YH_rv_cpu/rtl/YH_rv_cpu_dcache.v:3]
+WARNING: [Synth 8-693] zero replication count - replication ignored [V:/YH_rv_cpu/rtl/YH_rv_cpu.v:1078]
+WARNING: [Synth 8-693] zero replication count - replication ignored [V:/YH_rv_cpu/rtl/YH_rv_cpu.v:1084]
+WARNING: [Synth 8-693] zero replication count - replication ignored [V:/YH_rv_cpu/rtl/YH_rv_cpu.v:1085]
+WARNING: [Synth 8-693] zero replication count - replication ignored [V:/YH_rv_cpu/rtl/YH_rv_cpu.v:1086]
+WARNING: [Synth 8-693] zero replication count - replication ignored [V:/YH_rv_cpu/rtl/YH_rv_cpu.v:1087]
+WARNING: [Synth 8-693] zero replication count - replication ignored [V:/YH_rv_cpu/rtl/YH_rv_cpu.v:1088]
+WARNING: [Synth 8-693] zero replication count - replication ignored [V:/YH_rv_cpu/rtl/YH_rv_cpu.v:1089]
+WARNING: [Synth 8-693] zero replication count - replication ignored [V:/YH_rv_cpu/rtl/YH_rv_cpu.v:1090]
+INFO: [Synth 8-6157] synthesizing module 'YH_rv_cpu_if_stage' [V:/YH_rv_cpu/rtl/YH_rv_cpu_if_stage.v:11]
+	Parameter XLEN bound to: 32 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'YH_rv_cpu_if_stage' (0#1) [V:/YH_rv_cpu/rtl/YH_rv_cpu_if_stage.v:11]
+INFO: [Synth 8-6157] synthesizing module 'YH_rv_cpu_regfile' [V:/YH_rv_cpu/rtl/YH_rv_cpu_regfile.v:6]
+	Parameter XLEN bound to: 32 - type: integer 
+	Parameter ENABLE_RS3_READ_PORT bound to: 1 - type: integer 
+	Parameter ENABLE_FOLD_READ_PORTS bound to: 1 - type: integer 
+	Parameter ENABLE_FOLD_RS2_READ_PORT bound to: 0 - type: integer 
+	Parameter ENABLE_FOLD_RS3_READ_PORT bound to: 0 - type: integer 
+	Parameter ENABLE_SECOND_WRITE_PORT bound to: 0 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'YH_rv_cpu_regfile' (0#1) [V:/YH_rv_cpu/rtl/YH_rv_cpu_regfile.v:6]
+INFO: [Synth 8-6157] synthesizing module 'YH_rv_cpu_id_stage' [V:/YH_rv_cpu/rtl/YH_rv_cpu_id_stage.v:12]
+	Parameter XLEN bound to: 32 - type: integer 
+	Parameter ENABLE_M_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_ZMMUL_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_BITMANIP_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZBC_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZICOND_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZBKB_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_XTHEAD_CRC_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_MUL_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_XTHEAD_COND_MOVE bound to: 1 - type: integer 
+	Parameter ENABLE_XTHEAD_ADDSL_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_MEMPAIR_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_BASE_UPDATE_EXTENSION bound to: 0 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'YH_rv_cpu_decoder' [V:/YH_rv_cpu/rtl/YH_rv_cpu_decoder.v:13]
+	Parameter XLEN bound to: 32 - type: integer 
+	Parameter ENABLE_M_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_ZMMUL_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_BITMANIP_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZBC_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZICOND_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZBKB_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_XTHEAD_CRC_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_MUL_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_XTHEAD_COND_MOVE bound to: 1 - type: integer 
+	Parameter ENABLE_XTHEAD_ADDSL_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_MEMPAIR_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_BASE_UPDATE_EXTENSION bound to: 0 - type: integer 
+WARNING: [Synth 8-693] zero replication count - replication ignored [V:/YH_rv_cpu/rtl/YH_rv_cpu_decoder.v:146]
+INFO: [Synth 8-226] default block is never used [V:/YH_rv_cpu/rtl/YH_rv_cpu_decoder.v:355]
+INFO: [Synth 8-226] default block is never used [V:/YH_rv_cpu/rtl/YH_rv_cpu_decoder.v:418]
+INFO: [Synth 8-226] default block is never used [V:/YH_rv_cpu/rtl/YH_rv_cpu_decoder.v:454]
+INFO: [Synth 8-6155] done synthesizing module 'YH_rv_cpu_decoder' (0#1) [V:/YH_rv_cpu/rtl/YH_rv_cpu_decoder.v:13]
+INFO: [Synth 8-6155] done synthesizing module 'YH_rv_cpu_id_stage' (0#1) [V:/YH_rv_cpu/rtl/YH_rv_cpu_id_stage.v:12]
+INFO: [Synth 8-6157] synthesizing module 'YH_rv_cpu_hazard_unit' [V:/YH_rv_cpu/rtl/YH_rv_cpu_hazard_unit.v:11]
+	Parameter LOAD_USE_FAST_FORWARD bound to: 0 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'YH_rv_cpu_hazard_unit' (0#1) [V:/YH_rv_cpu/rtl/YH_rv_cpu_hazard_unit.v:11]
+INFO: [Synth 8-6157] synthesizing module 'YH_rv_cpu_ex_stage' [V:/YH_rv_cpu/rtl/YH_rv_cpu_ex_stage.v:14]
+	Parameter XLEN bound to: 32 - type: integer 
+	Parameter ENABLE_M_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_ZMMUL_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_BITMANIP_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZBC_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZICOND_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZBKB_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_XTHEAD_CRC_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_MUL_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_XTHEAD_COND_MOVE bound to: 1 - type: integer 
+	Parameter ENABLE_XTHEAD_ADDSL_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_BASE_UPDATE_EXTENSION bound to: 0 - type: integer 
+WARNING: [Synth 8-693] zero replication count - replication ignored [V:/YH_rv_cpu/rtl/YH_rv_cpu_ex_stage.v:138]
+INFO: [Synth 8-6157] synthesizing module 'YH_rv_cpu_alu' [V:/YH_rv_cpu/rtl/YH_rv_cpu_alu.v:17]
+	Parameter XLEN bound to: 32 - type: integer 
+	Parameter ENABLE_M_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_ZMMUL_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_BITMANIP_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZBC_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZICOND_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_ZBKB_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_XTHEAD_CRC_EXTENSION bound to: 0 - type: integer 
+	Parameter ENABLE_XTHEAD_MUL_EXTENSION bound to: 1 - type: integer 
+	Parameter ENABLE_XTHEAD_COND_MOVE bound to: 1 - type: integer 
+	Parameter ENABLE_XTHEAD_ADDSL_EXTENSION bound to: 0 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'YH_rv_cpu_alu' (0#1) [V:/YH_rv_cpu/rtl/YH_rv_cpu_alu.v:17]
+WARNING: [Synth 8-693] zero replication count - replication ignored [V:/YH_rv_cpu/rtl/YH_rv_cpu_ex_stage.v:196]
+WARNING: [Synth 8-693] zero replication count - replication ignored [V:/YH_rv_cpu/rtl/YH_rv_cpu_ex_stage.v:197]
+WARNING: [Synth 8-693] zero replication count - replication ignored [V:/YH_rv_cpu/rtl/YH_rv_cpu_ex_stage.v:257]
+WARNING: [Synth 8-693] zero replication count - replication ignored [V:/YH_rv_cpu/rtl/YH_rv_cpu_ex_stage.v:258]
+INFO: [Synth 8-6155] done synthesizing module 'YH_rv_cpu_ex_stage' (0#1) [V:/YH_rv_cpu/rtl/YH_rv_cpu_ex_stage.v:14]
+INFO: [Synth 8-6157] synthesizing module 'YH_rv_cpu_wb_stage' [V:/YH_rv_cpu/rtl/YH_rv_cpu_wb_stage.v:15]
+	Parameter XLEN bound to: 32 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'YH_rv_cpu_wb_stage' (0#1) [V:/YH_rv_cpu/rtl/YH_rv_cpu_wb_stage.v:15]
+INFO: [Synth 8-6155] done synthesizing module 'YH_rv_cpu' (0#1) [V:/YH_rv_cpu/rtl/YH_rv_cpu.v:21]
+INFO: [Synth 8-6155] done synthesizing module 'YH_rv_cpu_soc' (0#1) [V:/YH_rv_cpu/rtl/YH_rv_cpu_soc.v:16]
+INFO: [Synth 8-6157] synthesizing module 'YH_rv_uart_tx' [V:/YH_rv_cpu/fpga/vivado/src/YH_rv_uart_tx.v:1]
+	Parameter CLK_FREQ_HZ bound to: 50000000 - type: integer 
+	Parameter BAUD_RATE bound to: 115200 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'YH_rv_uart_tx' (0#1) [V:/YH_rv_cpu/fpga/vivado/src/YH_rv_uart_tx.v:1]
+INFO: [Synth 8-6155] done synthesizing module 'YH_rv_cpu_fpga_top' (0#1) [V:/YH_rv_cpu/fpga/vivado/src/YH_rv_cpu_fpga_top.v:1]
+WARNING: [Synth 8-6014] Unused sequential element prefetch_addr_r_reg was removed.  [V:/YH_rv_cpu/rtl/YH_rv_cpu_dcache.v:186]
+WARNING: [Synth 8-4767] Trying to implement RAM 'cache_tag_reg' in registers. Block RAM or DRAM implementation is not possible; see log for reasons. [V:/YH_rv_cpu/rtl/YH_rv_cpu_dcache.v:266]
+Reason is one or more of the following :
+	1: RAM has multiple writes via different ports in same process. If RAM inferencing intended, write to one port per process. 
+	2: Invalid write to RAM. 
+	3: Invalid write to RAM. 
+	4: No valid clock found for write to RAM. 
+WARNING: [Synth 8-6014] Unused sequential element fetch_pc_d1_r_reg was removed.  [V:/YH_rv_cpu/rtl/YH_rv_cpu.v:2860]
+WARNING: [Synth 8-6014] Unused sequential element fetch_valid_d1_r_reg was removed.  [V:/YH_rv_cpu/rtl/YH_rv_cpu.v:2862]
+WARNING: [Synth 8-6014] Unused sequential element fetch_req_epoch_d1_r_reg was removed.  [V:/YH_rv_cpu/rtl/YH_rv_cpu.v:2865]
+WARNING: [Synth 8-6014] Unused sequential element ex_mem_load_preissued_r_reg was removed.  [V:/YH_rv_cpu/rtl/YH_rv_cpu.v:2921]
+WARNING: [Synth 8-6014] Unused sequential element ex_mem_load_waited_r_reg was removed.  [V:/YH_rv_cpu/rtl/YH_rv_cpu.v:2922]
+WARNING: [Synth 8-6014] Unused sequential element branch_bht_valid_r_reg[0] was removed.  [V:/YH_rv_cpu/rtl/YH_rv_cpu.v:3364]
+WARNING: [Synth 8-6014] Unused sequential element branch_bht_valid_r_reg[1] was removed.  [V:/YH_rv_cpu/rtl/YH_rv_cpu.v:3364]
+WARNING: [Synth 8-6014] Unused sequential element branch_bht_pc_r_reg was removed. 
+WARNING: [Synth 8-6014] Unused sequential element branch_bht_counter_r_reg was removed. 
+WARNING: [Synth 8-6014] Unused sequential element g_dmem_posedge_tracking.dmem_read_src_d1_r_reg was removed.  [V:/YH_rv_cpu/rtl/YH_rv_cpu_soc.v:626]
+WARNING: [Synth 8-6014] Unused sequential element g_dmem_posedge_tracking.dmem_nonram_rdata_d1_r_reg was removed.  [V:/YH_rv_cpu/rtl/YH_rv_cpu_soc.v:628]
+WARNING: [Synth 8-6014] Unused sequential element g_dmem_posedge_tracking.dmem_rvalid_sync_d1_r_reg was removed.  [V:/YH_rv_cpu/rtl/YH_rv_cpu_soc.v:630]
+WARNING: [Synth 8-3936] Found unconnected internal register 'mmio_read_data_ext_reg' and it is trimmed from '64' to '32' bits. [V:/YH_rv_cpu/rtl/YH_rv_cpu_soc.v:439]
+WARNING: [Synth 8-7129] Port acc[31] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[30] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[29] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[28] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[27] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[26] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[25] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[24] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[23] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[22] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[21] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[20] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[19] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[18] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[17] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[16] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[15] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[14] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[13] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[12] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[11] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[10] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[9] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[8] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[7] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[6] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[5] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[4] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[3] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[2] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[1] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port acc[0] in module YH_rv_cpu_alu is either unconnected or has no load
+WARNING: [Synth 8-7129] Port mem_base_update in module YH_rv_cpu_ex_stage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port mem_base_update_before in module YH_rv_cpu_ex_stage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port word_op in module YH_rv_cpu_ex_stage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port mem_wb_load in module YH_rv_cpu_hazard_unit is either unconnected or has no load
+WARNING: [Synth 8-7129] Port fold_rs2_addr[4] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port fold_rs2_addr[3] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port fold_rs2_addr[2] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port fold_rs2_addr[1] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port fold_rs2_addr[0] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port fold_rs3_addr[4] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port fold_rs3_addr[3] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port fold_rs3_addr[2] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port fold_rs3_addr[1] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port fold_rs3_addr[0] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wen in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_addr[4] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_addr[3] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_addr[2] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_addr[1] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_addr[0] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[31] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[30] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[29] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[28] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[27] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[26] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[25] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[24] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[23] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[22] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[21] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[20] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[19] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[18] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[17] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[16] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[15] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[14] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[13] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[12] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[11] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[10] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[9] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[8] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[7] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[6] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[5] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[4] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[3] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[2] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[1] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rd2_wdata[0] in module YH_rv_cpu_regfile is either unconnected or has no load
+WARNING: [Synth 8-7129] Port probe_addr[31] in module YH_rv_cpu_dcache is either unconnected or has no load
+WARNING: [Synth 8-7129] Port probe_addr[30] in module YH_rv_cpu_dcache is either unconnected or has no load
+WARNING: [Synth 8-7129] Port probe_addr[29] in module YH_rv_cpu_dcache is either unconnected or has no load
+WARNING: [Synth 8-7129] Port probe_addr[28] in module YH_rv_cpu_dcache is either unconnected or has no load
+WARNING: [Synth 8-7129] Port probe_addr[27] in module YH_rv_cpu_dcache is either unconnected or has no load
+WARNING: [Synth 8-7129] Port probe_addr[26] in module YH_rv_cpu_dcache is either unconnected or has no load
+WARNING: [Synth 8-7129] Port probe_addr[25] in module YH_rv_cpu_dcache is either unconnected or has no load
+WARNING: [Synth 8-7129] Port probe_addr[24] in module YH_rv_cpu_dcache is either unconnected or has no load
+WARNING: [Synth 8-7129] Port probe_addr[23] in module YH_rv_cpu_dcache is either unconnected or has no load
+WARNING: [Synth 8-7129] Port probe_addr[22] in module YH_rv_cpu_dcache is either unconnected or has no load
+WARNING: [Synth 8-7129] Port probe_addr[21] in module YH_rv_cpu_dcache is either unconnected or has no load
+WARNING: [Synth 8-7129] Port probe_addr[20] in module YH_rv_cpu_dcache is either unconnected or has no load
+WARNING: [Synth 8-7129] Port probe_addr[19] in module YH_rv_cpu_dcache is either unconnected or has no load
+WARNING: [Synth 8-7129] Port probe_addr[18] in module YH_rv_cpu_dcache is either unconnected or has no load
+WARNING: [Synth 8-7129] Port probe_addr[17] in module YH_rv_cpu_dcache is either unconnected or has no load
+WARNING: [Synth 8-7129] Port probe_addr[16] in module YH_rv_cpu_dcache is either unconnected or has no load
+INFO: [Common 17-14] Message 'Synth 8-7129' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+---------------------------------------------------------------------------------
+Finished RTL Elaboration : Time (s): cpu = 00:00:17 ; elapsed = 00:00:19 . Memory (MB): peak = 1565.547 ; gain = 753.543
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:17 ; elapsed = 00:00:20 . Memory (MB): peak = 1565.547 ; gain = 753.543
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:17 ; elapsed = 00:00:20 . Memory (MB): peak = 1565.547 ; gain = 753.543
+---------------------------------------------------------------------------------
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.362 . Memory (MB): peak = 1565.547 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 1 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-570] Preparing netlist for logic optimization
+
+Processing XDC Constraints
+Initializing timing engine
+Parsing XDC File [V:/YH_rv_cpu/fpga/vivado/constraints/pynq_z2_template.xdc]
+Finished Parsing XDC File [V:/YH_rv_cpu/fpga/vivado/constraints/pynq_z2_template.xdc]
+INFO: [Project 1-236] Implementation specific constraints were found while reading constraint file [V:/YH_rv_cpu/fpga/vivado/constraints/pynq_z2_template.xdc]. These constraints will be ignored for synthesis but will be used in implementation. Impacted constraints are listed in the file [.Xil/YH_rv_cpu_fpga_top_propImpl.xdc].
+Resolution: To avoid this warning, move constraints listed in [.Xil/YH_rv_cpu_fpga_top_propImpl.xdc] to another XDC file and exclude this new file from synthesis with the used_in_synthesis property (File Properties dialog in GUI) and re-run elaboration/synthesis.
+Parsing XDC File [V:/project/pynq_z2_clock_8p000.xdc]
+Finished Parsing XDC File [V:/project/pynq_z2_clock_8p000.xdc]
+INFO: [Timing 38-2] Deriving generated clocks
+Completed Processing XDC Constraints
+
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.012 . Memory (MB): peak = 1625.988 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 1 instances were transformed.
+  MMCME2_BASE => MMCME2_ADV: 1 instance 
+
+Constraint Validation Runtime : Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.157 . Memory (MB): peak = 1625.988 ; gain = 0.000
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:00:37 ; elapsed = 00:00:42 . Memory (MB): peak = 1625.988 ; gain = 813.984
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xc7z020clg400-1
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:37 ; elapsed = 00:00:42 . Memory (MB): peak = 1625.988 ; gain = 813.984
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying 'set_property' XDC Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:37 ; elapsed = 00:00:42 . Memory (MB): peak = 1625.988 ; gain = 813.984
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:47 ; elapsed = 00:00:55 . Memory (MB): peak = 1625.988 ; gain = 813.984
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input   64 Bit       Adders := 2     
+	   2 Input   32 Bit       Adders := 12    
+	   3 Input   32 Bit       Adders := 1     
+	   2 Input    9 Bit       Adders := 1     
+	   2 Input    4 Bit       Adders := 1     
+	   2 Input    2 Bit       Adders := 1     
++---XORs : 
+	   2 Input     64 Bit         XORs := 31    
+	   2 Input     32 Bit         XORs := 1     
++---Registers : 
+	               64 Bit    Registers := 2     
+	               32 Bit    Registers := 72    
+	               10 Bit    Registers := 1     
+	                9 Bit    Registers := 1     
+	                8 Bit    Registers := 2     
+	                6 Bit    Registers := 1     
+	                5 Bit    Registers := 8     
+	                4 Bit    Registers := 132   
+	                3 Bit    Registers := 2     
+	                2 Bit    Registers := 11    
+	                1 Bit    Registers := 313   
++---Multipliers : 
+	              32x32  Multipliers := 1     
++---RAMs : 
+	              64K Bit	(2048 X 32 bit)          RAMs := 1     
++---ROMs : 
+	                    ROMs := 2     
++---Muxes : 
+	   2 Input  512 Bit        Muxes := 1     
+	   2 Input   64 Bit        Muxes := 36    
+	   2 Input   32 Bit        Muxes := 132   
+	   4 Input   32 Bit        Muxes := 4     
+	   3 Input   32 Bit        Muxes := 2     
+	   5 Input   32 Bit        Muxes := 1     
+	   6 Input   32 Bit        Muxes := 1     
+	   2 Input   10 Bit        Muxes := 1     
+	   2 Input    9 Bit        Muxes := 2     
+	   2 Input    8 Bit        Muxes := 9     
+	   3 Input    8 Bit        Muxes := 1     
+	   2 Input    7 Bit        Muxes := 2     
+	   2 Input    6 Bit        Muxes := 2     
+	   5 Input    6 Bit        Muxes := 1     
+	   2 Input    5 Bit        Muxes := 25    
+	   3 Input    5 Bit        Muxes := 6     
+	   4 Input    5 Bit        Muxes := 6     
+	   2 Input    4 Bit        Muxes := 7     
+	   8 Input    4 Bit        Muxes := 2     
+	   4 Input    4 Bit        Muxes := 1     
+	   8 Input    2 Bit        Muxes := 4     
+	   2 Input    2 Bit        Muxes := 7     
+	   4 Input    2 Bit        Muxes := 2     
+	  12 Input    2 Bit        Muxes := 2     
+	   7 Input    2 Bit        Muxes := 2     
+	   3 Input    2 Bit        Muxes := 2     
+	   2 Input    1 Bit        Muxes := 340   
+	   8 Input    1 Bit        Muxes := 10    
+	  12 Input    1 Bit        Muxes := 4     
+	   7 Input    1 Bit        Muxes := 8     
+	   4 Input    1 Bit        Muxes := 4     
+	   3 Input    1 Bit        Muxes := 8     
+	  42 Input    1 Bit        Muxes := 1     
+	   5 Input    1 Bit        Muxes := 1     
+	   6 Input    1 Bit        Muxes := 2     
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 220 (col length:60)
+BRAMs: 280 (col length: RAMB18 60 RAMB36 30)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+DSP Report: Generating DSP gen_mul_extension.mul_product, operation Mode is: A*B.
+DSP Report: operator gen_mul_extension.mul_product is absorbed into DSP gen_mul_extension.mul_product.
+DSP Report: operator gen_mul_extension.mul_product is absorbed into DSP gen_mul_extension.mul_product.
+DSP Report: Generating DSP gen_mul_extension.mul_product, operation Mode is: (PCIN>>17)+A*B.
+DSP Report: operator gen_mul_extension.mul_product is absorbed into DSP gen_mul_extension.mul_product.
+DSP Report: operator gen_mul_extension.mul_product is absorbed into DSP gen_mul_extension.mul_product.
+DSP Report: Generating DSP gen_mul_extension.mul_product, operation Mode is: A*B.
+DSP Report: operator gen_mul_extension.mul_product is absorbed into DSP gen_mul_extension.mul_product.
+DSP Report: operator gen_mul_extension.mul_product is absorbed into DSP gen_mul_extension.mul_product.
+DSP Report: Generating DSP gen_mul_extension.mul_product, operation Mode is: (PCIN>>17)+A*B.
+DSP Report: operator gen_mul_extension.mul_product is absorbed into DSP gen_mul_extension.mul_product.
+DSP Report: operator gen_mul_extension.mul_product is absorbed into DSP gen_mul_extension.mul_product.
+DSP Report: Generating DSP x_result_th_mula1, operation Mode is: A*B.
+DSP Report: operator x_result_th_mula1 is absorbed into DSP x_result_th_mula1.
+DSP Report: operator x_result_th_mula1 is absorbed into DSP x_result_th_mula1.
+DSP Report: Generating DSP x_result_th_mula1, operation Mode is: (PCIN>>17)+A*B.
+DSP Report: operator x_result_th_mula1 is absorbed into DSP x_result_th_mula1.
+DSP Report: operator x_result_th_mula1 is absorbed into DSP x_result_th_mula1.
+DSP Report: Generating DSP x_result_th_mula1, operation Mode is: A*B.
+DSP Report: operator x_result_th_mula1 is absorbed into DSP x_result_th_mula1.
+DSP Report: operator x_result_th_mula1 is absorbed into DSP x_result_th_mula1.
+DSP Report: Generating DSP x_result_th_mula1, operation Mode is: (PCIN>>17)+A*B.
+DSP Report: operator x_result_th_mula1 is absorbed into DSP x_result_th_mula1.
+DSP Report: operator x_result_th_mula1 is absorbed into DSP x_result_th_mula1.
+DSP Report: Generating DSP gen_xthead_mul_extension.gen_th_mulah_rv32.th_mulah_sum32, operation Mode is: C+A*B.
+DSP Report: operator gen_xthead_mul_extension.gen_th_mulah_rv32.th_mulah_sum32 is absorbed into DSP gen_xthead_mul_extension.gen_th_mulah_rv32.th_mulah_sum32.
+DSP Report: operator gen_xthead_mul_extension.gen_th_mulah_rv32.th_mulah_sum320 is absorbed into DSP gen_xthead_mul_extension.gen_th_mulah_rv32.th_mulah_sum32.
+INFO: [Synth 8-3971] The signal "YH_rv_cpu_fpga_top/u_soc/u_dmem_ram/g_sync_ram.g_posedge_read.ram_mem_reg" was recognized as a true dual port RAM template.
+WARNING: [Synth 8-3332] Sequential element (i_65) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_67) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_69) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_71) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_73) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_75) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_77) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_79) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_81) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_83) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_85) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_87) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_89) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_91) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_93) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_95) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_97) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_99) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_101) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_103) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_105) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_107) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_109) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_111) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_113) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_115) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_117) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_119) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_121) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_123) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_125) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_127) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (i_129) is unused and will be removed from module YH_rv_cpu_fpga_top.
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:07:17 ; elapsed = 00:08:05 . Memory (MB): peak = 1923.312 ; gain = 1111.309
+---------------------------------------------------------------------------------
+ Sort Area is  x_result_th_mula1_2 : 0 0 : 3101 5879 : Used 1 time 0
+ Sort Area is  x_result_th_mula1_2 : 0 1 : 2778 5879 : Used 1 time 0
+ Sort Area is  x_result_th_mula1_5 : 0 0 : 2759 5418 : Used 1 time 0
+ Sort Area is  x_result_th_mula1_5 : 0 1 : 2659 5418 : Used 1 time 0
+ Sort Area is  gen_mul_extension.mul_product_8 : 0 0 : 3101 5408 : Used 1 time 0
+ Sort Area is  gen_mul_extension.mul_product_8 : 0 1 : 2307 5408 : Used 1 time 0
+ Sort Area is  gen_mul_extension.mul_product_a : 0 0 : 2759 4785 : Used 1 time 0
+ Sort Area is  gen_mul_extension.mul_product_a : 0 1 : 2026 4785 : Used 1 time 0
+ Sort Area is  gen_xthead_mul_extension.gen_th_mulah_rv32.th_mulah_sum32_0 : 0 0 : 2032 2032 : Used 1 time 0
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+
+Block RAM: Preliminary Mapping Report (see note below)
++-------------------+--------------------------------------------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|Module Name        | RTL Object                                             | PORT A (Depth x Width) | W | R | PORT B (Depth x Width) | W | R | Ports driving FF | RAMB18 | RAMB36 | 
++-------------------+--------------------------------------------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|YH_rv_cpu_fpga_top | u_soc/u_dmem_ram/g_sync_ram.g_posedge_read.ram_mem_reg | 2 K x 32(READ_FIRST)   | W | R | 2 K x 32(READ_FIRST)   | W | R | Port A and B     | 0      | 2      | 
++-------------------+--------------------------------------------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+
+Note: The table above is a preliminary report that shows the Block RAMs at the current stage of the synthesis flow. Some Block RAMs may be reimplemented as non Block RAM primitives later in the synthesis flow. Multiple instantiated Block RAMs are reported only once. 
+
+Distributed RAM: Preliminary Mapping Report (see note below)
++------------------------------------+----------------------------------+----------------+----------------------+--------------+
+|Module Name                         | RTL Object                       | Inference      | Size (Depth x Width) | Primitives   | 
++------------------------------------+----------------------------------+----------------+----------------------+--------------+
+|\u_soc/u_cpu /\gen_dcache.u_dcache  | cache_data_reg                   | User Attribute | 128 x 32             | RAM64M x 22  | 
+|\u_soc/u_cpu                        | redirect_cache_pc_r_reg          | User Attribute | 128 x 23             | RAM64M x 32  | 
+|\u_soc/u_cpu                        | redirect_cache_instruction_r_reg | User Attribute | 128 x 32             | RAM64M x 44  | 
++------------------------------------+----------------------------------+----------------+----------------------+--------------+
+
+Note: The table above is a preliminary report that shows the Distributed RAMs at the current stage of the synthesis flow. Some Distributed RAMs may be reimplemented as non Distributed RAM primitives later in the synthesis flow. Multiple instantiated RAMs are reported only once.
+
+DSP: Preliminary Mapping Report (see note below. The ' indicates corresponding REG is set)
++--------------+----------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|Module Name   | DSP Mapping    | A Size | B Size | C Size | D Size | P Size | AREG | BREG | CREG | DREG | ADREG | MREG | PREG | 
++--------------+----------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|YH_rv_cpu_alu | A*B            | 18     | 16     | -      | -      | 48     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|YH_rv_cpu_alu | (PCIN>>17)+A*B | 16     | 16     | -      | -      | 30     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|YH_rv_cpu_alu | A*B            | 18     | 18     | -      | -      | 48     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|YH_rv_cpu_alu | (PCIN>>17)+A*B | 18     | 16     | -      | -      | 47     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|YH_rv_cpu_alu | A*B            | 18     | 16     | -      | -      | 48     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|YH_rv_cpu_alu | (PCIN>>17)+A*B | 16     | 16     | -      | -      | 48     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|YH_rv_cpu_alu | A*B            | 18     | 18     | -      | -      | 48     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|YH_rv_cpu_alu | (PCIN>>17)+A*B | 18     | 16     | -      | -      | 48     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|YH_rv_cpu_alu | C+A*B          | 16     | 16     | 32     | -      | 32     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
++--------------+----------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+
+Note: The table above is a preliminary report that shows the DSPs inferred at the current stage of the synthesis flow. Some DSP may be reimplemented as non DSP primitives later in the synthesis flow. Multiple instantiated DSPs are reported only once.
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying XDC Timing Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:07:33 ; elapsed = 00:08:23 . Memory (MB): peak = 1923.312 ; gain = 1111.309
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Timing Optimization
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Timing Optimization : Time (s): cpu = 00:08:38 ; elapsed = 00:09:33 . Memory (MB): peak = 2005.297 ; gain = 1193.293
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+
+Block RAM: Final Mapping Report
++-------------------+--------------------------------------------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|Module Name        | RTL Object                                             | PORT A (Depth x Width) | W | R | PORT B (Depth x Width) | W | R | Ports driving FF | RAMB18 | RAMB36 | 
++-------------------+--------------------------------------------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|YH_rv_cpu_fpga_top | u_soc/u_dmem_ram/g_sync_ram.g_posedge_read.ram_mem_reg | 2 K x 32(READ_FIRST)   | W | R | 2 K x 32(READ_FIRST)   | W | R | Port A and B     | 0      | 2      | 
++-------------------+--------------------------------------------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+
+
+Distributed RAM: Final Mapping Report
++------------------------------------+----------------------------------+----------------+----------------------+--------------+
+|Module Name                         | RTL Object                       | Inference      | Size (Depth x Width) | Primitives   | 
++------------------------------------+----------------------------------+----------------+----------------------+--------------+
+|\u_soc/u_cpu /\gen_dcache.u_dcache  | cache_data_reg                   | User Attribute | 128 x 32             | RAM64M x 22  | 
+|\u_soc/u_cpu                        | redirect_cache_pc_r_reg          | User Attribute | 128 x 23             | RAM64M x 32  | 
+|\u_soc/u_cpu                        | redirect_cache_instruction_r_reg | User Attribute | 128 x 32             | RAM64M x 44  | 
++------------------------------------+----------------------------------+----------------+----------------------+--------------+
+
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Technology Mapping
+---------------------------------------------------------------------------------
+INFO: [Synth 8-5816] Retiming module `YH_rv_cpu_fpga_top`
+	Numbers of forward move = 0, and backward move = 17
+
+	Retimed registers names:
+		u_soc/g_shared_sync_rom.u_sync_rom/imem_rvalid_r_reg_bret
+		u_soc/g_shared_sync_rom.u_sync_rom/imem_rvalid_r_reg_bret__0
+		u_soc/g_shared_sync_rom.u_sync_rom/imem_rvalid_r_reg_bret__1
+		u_soc/g_shared_sync_rom.u_sync_rom/imem_rvalid_r_reg_bret__2
+		u_soc/g_shared_sync_rom.u_sync_rom/imem_rvalid_r_reg_bret__3
+		u_soc/g_shared_sync_rom.u_sync_rom/imem_rvalid_r_reg_bret__4
+		u_soc/u_cpu/pc_r_reg[17]_bret
+		u_soc/u_cpu/pc_r_reg[17]_bret__0
+		u_soc/u_cpu/pc_r_reg[17]_bret__1
+		u_soc/u_cpu/pc_r_reg[17]_bret__2
+		u_soc/u_cpu/pc_r_reg[17]_bret__3
+		u_soc/u_cpu/pc_r_reg[18]_bret
+		u_soc/u_cpu/pc_r_reg[18]_bret__0
+		u_soc/u_cpu/pc_r_reg[18]_bret__1
+		u_soc/u_cpu/pc_r_reg[18]_bret__2
+		u_soc/u_cpu/pc_r_reg[18]_bret__3
+		u_soc/u_cpu/pc_r_reg[19]_bret
+		u_soc/u_cpu/pc_r_reg[19]_bret__0
+		u_soc/u_cpu/pc_r_reg[19]_bret__1
+		u_soc/u_cpu/pc_r_reg[19]_bret__2
+		u_soc/u_cpu/pc_r_reg[19]_bret__3
+		u_soc/u_cpu/pc_r_reg[20]_bret
+		u_soc/u_cpu/pc_r_reg[20]_bret__0
+		u_soc/u_cpu/pc_r_reg[20]_bret__1
+		u_soc/u_cpu/pc_r_reg[20]_bret__2
+		u_soc/u_cpu/pc_r_reg[20]_bret__3
+		u_soc/u_cpu/pc_r_reg[21]_bret
+		u_soc/u_cpu/pc_r_reg[21]_bret__0
+		u_soc/u_cpu/pc_r_reg[21]_bret__1
+		u_soc/u_cpu/pc_r_reg[21]_bret__2
+		u_soc/u_cpu/pc_r_reg[21]_bret__3
+		u_soc/u_cpu/pc_r_reg[22]_bret
+		u_soc/u_cpu/pc_r_reg[22]_bret__0
+		u_soc/u_cpu/pc_r_reg[22]_bret__1
+		u_soc/u_cpu/pc_r_reg[22]_bret__2
+		u_soc/u_cpu/pc_r_reg[22]_bret__3
+		u_soc/u_cpu/pc_r_reg[23]_bret
+		u_soc/u_cpu/pc_r_reg[23]_bret__0
+		u_soc/u_cpu/pc_r_reg[23]_bret__1
+		u_soc/u_cpu/pc_r_reg[23]_bret__2
+		u_soc/u_cpu/pc_r_reg[23]_bret__3
+		u_soc/u_cpu/pc_r_reg[24]_bret
+		u_soc/u_cpu/pc_r_reg[24]_bret__0
+		u_soc/u_cpu/pc_r_reg[24]_bret__1
+		u_soc/u_cpu/pc_r_reg[24]_bret__2
+		u_soc/u_cpu/pc_r_reg[24]_bret__3
+		u_soc/u_cpu/pc_r_reg[25]_bret
+		u_soc/u_cpu/pc_r_reg[25]_bret__0
+		u_soc/u_cpu/pc_r_reg[25]_bret__1
+		u_soc/u_cpu/pc_r_reg[25]_bret__2
+		u_soc/u_cpu/pc_r_reg[25]_bret__3
+		u_soc/u_cpu/pc_r_reg[26]_bret
+		u_soc/u_cpu/pc_r_reg[26]_bret__0
+		u_soc/u_cpu/pc_r_reg[26]_bret__1
+		u_soc/u_cpu/pc_r_reg[26]_bret__2
+		u_soc/u_cpu/pc_r_reg[26]_bret__3
+		u_soc/u_cpu/pc_r_reg[27]_bret
+		u_soc/u_cpu/pc_r_reg[27]_bret__0
+		u_soc/u_cpu/pc_r_reg[27]_bret__1
+		u_soc/u_cpu/pc_r_reg[27]_bret__2
+		u_soc/u_cpu/pc_r_reg[27]_bret__3
+		u_soc/u_cpu/pc_r_reg[28]_bret
+		u_soc/u_cpu/pc_r_reg[28]_bret__0
+		u_soc/u_cpu/pc_r_reg[28]_bret__1
+		u_soc/u_cpu/pc_r_reg[28]_bret__2
+		u_soc/u_cpu/pc_r_reg[28]_bret__3
+		u_soc/u_cpu/pc_r_reg[29]_bret
+		u_soc/u_cpu/pc_r_reg[29]_bret__0
+		u_soc/u_cpu/pc_r_reg[29]_bret__1
+		u_soc/u_cpu/pc_r_reg[29]_bret__2
+		u_soc/u_cpu/pc_r_reg[29]_bret__3
+		u_soc/u_cpu/pc_r_reg[30]_bret
+		u_soc/u_cpu/pc_r_reg[30]_bret__0
+		u_soc/u_cpu/pc_r_reg[30]_bret__1
+		u_soc/u_cpu/pc_r_reg[30]_bret__2
+		u_soc/u_cpu/pc_r_reg[30]_bret__3
+		u_soc/u_cpu/pc_r_reg[31]_bret
+		u_soc/u_cpu/pc_r_reg[31]_bret__0
+		u_soc/u_cpu/pc_r_reg[31]_bret__1
+		u_soc/u_cpu/pc_r_reg[31]_bret__2
+		u_soc/u_cpu/pc_r_reg[31]_bret__3
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__0
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__1
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__10
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__100
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__101
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__102
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__103
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__104
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__105
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__106
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__107
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__108
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__11
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__12
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__13
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__14
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__15
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__16
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__17
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__18
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__19
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__2
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__20
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__21
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__22
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__23
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__24
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__25
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__26
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__27
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__28
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__29
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__3
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__30
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__31
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__32
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__33
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__34
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__35
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__36
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__37
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__38
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__39
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__4
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__40
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__41
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__42
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__43
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__44
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__45
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__46
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__47
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__48
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__49
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__5
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__50
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__51
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__52
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__53
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__54
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__55
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__56
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__57
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__58
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__59
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__6
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__60
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__61
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__62
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__63
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__64
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__65
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__66
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__67
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__68
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__69
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__7
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__70
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__71
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__72
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__73
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__74
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__75
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__76
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__77
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__78
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__79
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__8
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__80
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__81
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__82
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__83
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__84
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__85
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__86
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__87
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__88
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__89
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__9
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__90
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__91
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__92
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__93
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__94
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__95
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__96
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__97
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__98
+		u_soc/u_cpu/pc_r_reg[31]_bret_bret__99
+ 
+
+INFO: [Synth 8-5816] Retiming module `YH_rv_cpu_fpga_top' done
+
+
+WARNING: [Synth 8-3332] Sequential element (u_soc/u_cpu/pc_r_reg[31]_bret__4) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (u_soc/u_cpu/pc_r_reg[30]_bret__4) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (u_soc/u_cpu/pc_r_reg[29]_bret__4) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (u_soc/u_cpu/pc_r_reg[28]_bret__4) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (u_soc/u_cpu/pc_r_reg[27]_bret__4) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (u_soc/u_cpu/pc_r_reg[26]_bret__4) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (u_soc/u_cpu/pc_r_reg[25]_bret__4) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (u_soc/u_cpu/pc_r_reg[20]_bret__4) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (u_soc/u_cpu/pc_r_reg[19]_bret__4) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (u_soc/u_cpu/pc_r_reg[18]_bret__4) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (u_soc/u_cpu/pc_r_reg[17]_bret__4) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (u_soc/u_cpu/pc_r_reg[24]_bret__4) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (u_soc/u_cpu/pc_r_reg[23]_bret__4) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (u_soc/u_cpu/pc_r_reg[22]_bret__4) is unused and will be removed from module YH_rv_cpu_fpga_top.
+WARNING: [Synth 8-3332] Sequential element (u_soc/u_cpu/pc_r_reg[21]_bret__4) is unused and will be removed from module YH_rv_cpu_fpga_top.
+INFO: [Synth 8-7052] The timing for the instance u_soc/g_shared_sync_rom.u_sync_rom/imem_rdata_r_reg_0 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_soc/g_shared_sync_rom.u_sync_rom/imem_rdata_r_reg_0 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_soc/g_shared_sync_rom.u_sync_rom/imem_rdata_r_reg_1 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_soc/g_shared_sync_rom.u_sync_rom/imem_rdata_r_reg_1 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_soc/u_dmem_ram/g_sync_ram.g_posedge_read.ram_mem_reg_0 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_soc/u_dmem_ram/g_sync_ram.g_posedge_read.ram_mem_reg_1 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+---------------------------------------------------------------------------------
+Finished Technology Mapping : Time (s): cpu = 00:10:45 ; elapsed = 00:11:54 . Memory (MB): peak = 3677.672 ; gain = 2865.668
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Final Netlist Cleanup
+---------------------------------------------------------------------------------
+WARNING: synth_design option "-fanout_limit" is deprecated.
+---------------------------------------------------------------------------------
+Finished Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished IO Insertion : Time (s): cpu = 00:10:53 ; elapsed = 00:12:02 . Memory (MB): peak = 3677.672 ; gain = 2865.668
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Instances
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Instances : Time (s): cpu = 00:10:53 ; elapsed = 00:12:02 . Memory (MB): peak = 3677.672 ; gain = 2865.668
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Rebuilding User Hierarchy
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:10:55 ; elapsed = 00:12:04 . Memory (MB): peak = 3677.672 ; gain = 2865.668
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Ports
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Ports : Time (s): cpu = 00:10:55 ; elapsed = 00:12:04 . Memory (MB): peak = 3677.672 ; gain = 2865.668
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:10:55 ; elapsed = 00:12:05 . Memory (MB): peak = 3677.672 ; gain = 2865.668
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Nets
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Nets : Time (s): cpu = 00:10:55 ; elapsed = 00:12:05 . Memory (MB): peak = 3677.672 ; gain = 2865.668
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+
+Retiming Report:
++--------------------+-----+
+|Retiming summary:   |     | 
++--------------------+-----+
+|Forward Retiming    | 0   | 
+|Backward Retiming   | 17  | 
+|New registers added | 191 | 
+|Registers deleted   | 32  | 
++--------------------+-----+
+
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Writing Synthesis Report
+---------------------------------------------------------------------------------
+
+DSP Final Report (the ' indicates corresponding REG is set)
++--------------+--------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|Module Name   | DSP Mapping  | A Size | B Size | C Size | D Size | P Size | AREG | BREG | CREG | DREG | ADREG | MREG | PREG | 
++--------------+--------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|YH_rv_cpu_alu | A*B          | 17     | 18     | -      | -      | 48     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|YH_rv_cpu_alu | PCIN>>17+A*B | 30     | 18     | -      | -      | 30     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|YH_rv_cpu_alu | A*B          | 17     | 17     | -      | -      | 48     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|YH_rv_cpu_alu | PCIN>>17+A*B | 0      | 18     | -      | -      | 47     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|YH_rv_cpu_alu | A*B          | 17     | 15     | -      | -      | 48     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|YH_rv_cpu_alu | A*B          | 17     | 17     | -      | -      | 48     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|YH_rv_cpu_alu | PCIN>>17+A*B | 17     | 15     | -      | -      | 48     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|YH_rv_cpu_alu | C+A*B        | 30     | 18     | 48     | -      | 32     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
++--------------+--------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+
+
+Report BlackBoxes: 
++-+--------------+----------+
+| |BlackBox name |Instances |
++-+--------------+----------+
++-+--------------+----------+
+
+Report Cell Usage: 
++------+------------+------+
+|      |Cell        |Count |
++------+------------+------+
+|1     |BUFG        |     2|
+|2     |CARRY4      |   153|
+|3     |DSP48E1     |     8|
+|5     |LUT1        |     8|
+|6     |LUT2        |   601|
+|7     |LUT3        |   530|
+|8     |LUT4        |   968|
+|9     |LUT5        |  1203|
+|10    |LUT6        |  3374|
+|11    |MMCME2_BASE |     1|
+|12    |MUXF7       |   572|
+|13    |MUXF8       |   194|
+|14    |RAM64M      |    98|
+|15    |RAMB36E1    |     4|
+|18    |FDCE        |  2560|
+|19    |FDPE        |    80|
+|20    |FDRE        |   551|
+|21    |IBUF        |     2|
+|22    |OBUF        |     5|
++------+------------+------+
+---------------------------------------------------------------------------------
+Finished Writing Synthesis Report : Time (s): cpu = 00:10:55 ; elapsed = 00:12:05 . Memory (MB): peak = 3677.672 ; gain = 2865.668
+---------------------------------------------------------------------------------
+Synthesis finished with 0 errors, 0 critical warnings and 186 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:10:30 ; elapsed = 00:11:56 . Memory (MB): peak = 3677.672 ; gain = 2805.227
+Synthesis Optimization Complete : Time (s): cpu = 00:10:56 ; elapsed = 00:12:05 . Memory (MB): peak = 3677.672 ; gain = 2865.668
+INFO: [Project 1-571] Translating synthesized netlist
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.183 . Memory (MB): peak = 3677.672 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 1030 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 1 CPU seconds
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Parsing XDC File [V:/YH_rv_cpu/fpga/vivado/constraints/pynq_z2_template.xdc]
+Finished Parsing XDC File [V:/YH_rv_cpu/fpga/vivado/constraints/pynq_z2_template.xdc]
+Parsing XDC File [V:/project/pynq_z2_clock_8p000.xdc]
+Finished Parsing XDC File [V:/project/pynq_z2_clock_8p000.xdc]
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.011 . Memory (MB): peak = 3677.672 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 99 instances were transformed.
+  MMCME2_BASE => MMCME2_ADV: 1 instance 
+  RAM64M => RAM64M (RAMD64E(x4)): 98 instances
+
+Synth Design complete | Checksum: df5f1fa8
+INFO: [Common 17-83] Releasing license: Synthesis
+68 Infos, 189 Warnings, 0 Critical Warnings and 0 Errors encountered.
+synth_design completed successfully
+synth_design: Time (s): cpu = 00:11:08 ; elapsed = 00:12:22 . Memory (MB): peak = 3677.672 ; gain = 3098.570
+STEP: synth_design DONE
+STEP: report_utilization BEGIN
+STEP: report_utilization DONE
+STEP: report_utilization_hierarchical BEGIN
+STEP: report_utilization_hierarchical DONE
+STEP: write_checkpoint BEGIN
+INFO: [Timing 38-480] Writing timing data to binary archive.
+Wrote PlaceDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Wrote PulsedLatchDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Writing XDEF routing.
+Write ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.026 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Writing XDEF routing logical nets.
+Writing XDEF routing special nets.
+Wrote RouteStorage: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.045 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Wrote PlaceStorage: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.001 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Wrote Netlist Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Wrote Device Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.016 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Write Physdb Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.080 . Memory (MB): peak = 3677.672 ; gain = 0.000
+INFO: [Common 17-1381] The checkpoint 'V:/project/YH_rv_cpu_pynq_z2_sysclk_8p000ns_cpu50_synth.dcp' has been generated.
+STEP: write_checkpoint DONE
+STEP: report_timing_summary BEGIN
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+INFO: [Timing 38-2] Deriving generated clocks
+INFO: [Timing 38-91] UpdateTimingParams: Speed grade: -1, Delay Type: min_max.
+INFO: [Timing 38-191] Multithreading enabled for timing update using a maximum of 2 CPUs
+report_timing_summary: Time (s): cpu = 00:00:12 ; elapsed = 00:00:11 . Memory (MB): peak = 3677.672 ; gain = 0.000
+STEP: report_timing_summary DONE
+INFO: Input clock period = 8.000 ns
+STEP: opt_design BEGIN
+Command: opt_design -directive Explore
+INFO: [Vivado_Tcl 4-136] Directive used for opt_design is: Explore
+Attempting to get a license for feature 'Implementation' and/or device 'xc7z020'
+INFO: [Common 17-349] Got license for feature 'Implementation' and/or device 'xc7z020'
+Running DRC as a precondition to command opt_design
+
+Starting DRC Task
+INFO: [DRC 23-27] Running DRC with 2 threads
+INFO: [Project 1-461] DRC finished with 0 Errors
+INFO: [Project 1-462] Please refer to the DRC report (report_drc) for more information.
+
+Time (s): cpu = 00:00:02 ; elapsed = 00:00:02 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Starting Logic Optimization Task
+
+Phase 1 Initialization
+
+Phase 1.1 Core Generation And Design Setup
+Phase 1.1 Core Generation And Design Setup | Checksum: 1783649d8
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.018 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 1.2 Setup Constraints And Sort Netlist
+Phase 1.2 Setup Constraints And Sort Netlist | Checksum: 1783649d8
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.035 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Phase 1 Initialization | Checksum: 1783649d8
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.039 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 2 Timer Update And Timing Data Collection
+
+Phase 2.1 Detect if minReqCache needed
+Phase 2.1 Detect if minReqCache needed | Checksum: 1783649d8
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.071 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 2.2 Timer Update
+Phase 2.2 Timer Update | Checksum: 1783649d8
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.487 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 2.3 Timing Data Collection
+Phase 2.3 Timing Data Collection | Checksum: 1783649d8
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.509 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Phase 2 Timer Update And Timing Data Collection | Checksum: 1783649d8
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.514 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 3 Retarget
+INFO: [Opt 31-1851] Number of loadless carry chains removed were: 0
+INFO: [Opt 31-1834] Total Chains To Be Transformed Were: 0 AND Number of Transformed insts Created are: 0
+INFO: [Opt 31-1566] Pulled 2 inverters resulting in an inversion of 9 pins
+INFO: [Opt 31-138] Pushed 1 inverter(s) to 1 load pin(s).
+INFO: [Opt 31-49] Retargeted 0 cell(s).
+Phase 3 Retarget | Checksum: 1159e8aa4
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.861 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Retarget | Checksum: 1159e8aa4
+INFO: [Opt 31-389] Phase Retarget created 0 cells and removed 3 cells
+INFO: [Opt 31-1021] In phase Retarget, 1 netlist objects are constrained preventing optimization. Please run opt_design with -debug_log to get more detail. 
+
+Phase 4 Constant propagation
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Phase 4 Constant propagation | Checksum: 1361be309
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Constant propagation | Checksum: 1361be309
+INFO: [Opt 31-389] Phase Constant propagation created 0 cells and removed 0 cells
+
+Phase 5 Sweep
+INFO: [Constraints 18-11670] Building netlist checker database with flags, 0x8
+Done building netlist checker database: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.005 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Phase 5 Sweep | Checksum: 1176b6d6d
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Sweep | Checksum: 1176b6d6d
+INFO: [Opt 31-389] Phase Sweep created 1 cells and removed 0 cells
+
+Phase 6 BUFG optimization
+Phase 6 BUFG optimization | Checksum: 1176b6d6d
+
+Time (s): cpu = 00:00:02 ; elapsed = 00:00:01 . Memory (MB): peak = 3677.672 ; gain = 0.000
+BUFG optimization | Checksum: 1176b6d6d
+INFO: [Opt 31-662] Phase BUFG optimization created 0 cells of which 0 are BUFGs and removed 0 cells.
+
+Phase 7 Shift Register Optimization
+INFO: [Opt 31-1064] SRL Remap converted 0 SRLs to 0 registers and converted 0 registers of register chains to 0 SRLs
+Phase 7 Shift Register Optimization | Checksum: 1176b6d6d
+
+Time (s): cpu = 00:00:02 ; elapsed = 00:00:01 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Shift Register Optimization | Checksum: 1176b6d6d
+INFO: [Opt 31-389] Phase Shift Register Optimization created 0 cells and removed 0 cells
+INFO: [Opt 31-1555] control_set_opt supports Versal devices only, and device 7z020 is unsupported
+
+Phase 8 Post Processing Netlist
+Phase 8 Post Processing Netlist | Checksum: e6c2d118
+
+Time (s): cpu = 00:00:02 ; elapsed = 00:00:01 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Post Processing Netlist | Checksum: e6c2d118
+INFO: [Opt 31-389] Phase Post Processing Netlist created 0 cells and removed 0 cells
+
+Phase 9 Finalization
+
+Phase 9.1 Finalizing Design Cores and Updating Shapes
+Phase 9.1 Finalizing Design Cores and Updating Shapes | Checksum: 1df442175
+
+Time (s): cpu = 00:00:02 ; elapsed = 00:00:02 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 9.2 Verifying Netlist Connectivity
+
+Starting Connectivity Check Task
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.053 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Phase 9.2 Verifying Netlist Connectivity | Checksum: 1df442175
+
+Time (s): cpu = 00:00:02 ; elapsed = 00:00:02 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Phase 9 Finalization | Checksum: 1df442175
+
+Time (s): cpu = 00:00:02 ; elapsed = 00:00:02 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Opt_design Change Summary
+=========================
+
+
+-------------------------------------------------------------------------------------------------------------------------
+|  Phase                        |  #Cells created  |  #Cells Removed  |  #Constrained objects preventing optimizations  |
+-------------------------------------------------------------------------------------------------------------------------
+|  Retarget                     |               0  |               3  |                                              1  |
+|  Constant propagation         |               0  |               0  |                                              0  |
+|  Sweep                        |               1  |               0  |                                              0  |
+|  BUFG optimization            |               0  |               0  |                                              0  |
+|  Shift Register Optimization  |               0  |               0  |                                              0  |
+|  Post Processing Netlist      |               0  |               0  |                                              0  |
+-------------------------------------------------------------------------------------------------------------------------
+
+
+Ending Logic Optimization Task | Checksum: 1df442175
+
+Time (s): cpu = 00:00:02 ; elapsed = 00:00:02 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.009 . Memory (MB): peak = 3677.672 ; gain = 0.000
+INFO: [Common 17-83] Releasing license: Implementation
+96 Infos, 189 Warnings, 0 Critical Warnings and 0 Errors encountered.
+opt_design completed successfully
+opt_design: Time (s): cpu = 00:00:10 ; elapsed = 00:00:10 . Memory (MB): peak = 3677.672 ; gain = 0.000
+STEP: opt_design DONE
+STEP: place_design BEGIN
+Command: place_design -directive ExtraNetDelay_high
+Attempting to get a license for feature 'Implementation' and/or device 'xc7z020'
+INFO: [Common 17-349] Got license for feature 'Implementation' and/or device 'xc7z020'
+INFO: [Common 17-83] Releasing license: Implementation
+INFO: [DRC 23-27] Running DRC with 2 threads
+INFO: [Vivado_Tcl 4-198] DRC finished with 0 Errors
+INFO: [Vivado_Tcl 4-199] Please refer to the DRC report (report_drc) for more information.
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+INFO: [Vivado_Tcl 4-2302] The placer was invoked with the 'ExtraNetDelay_high' directive.
+Running DRC as a precondition to command place_design
+INFO: [DRC 23-27] Running DRC with 2 threads
+INFO: [Vivado_Tcl 4-198] DRC finished with 0 Errors, 21 Warnings
+INFO: [Vivado_Tcl 4-199] Please refer to the DRC report (report_drc) for more information.
+INFO: [Place 30-611] Multithreading enabled for place_design using a maximum of 2 CPUs
+
+Starting Placer Task
+
+Phase 1 Placer Initialization
+
+Phase 1.1 Placer Initialization Netlist Sorting
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.011 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Phase 1.1 Placer Initialization Netlist Sorting | Checksum: 1023186fb
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.016 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.010 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 1.2 IO Placement/ Clock Placement/ Build Placer Device
+Phase 1.2 IO Placement/ Clock Placement/ Build Placer Device | Checksum: c26495d8
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 1.3 Build Placer Netlist Model
+Phase 1.3 Build Placer Netlist Model | Checksum: 1af876fbd
+
+Time (s): cpu = 00:00:06 ; elapsed = 00:00:05 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 1.4 Constrain Clocks/Macros
+Phase 1.4 Constrain Clocks/Macros | Checksum: 1af876fbd
+
+Time (s): cpu = 00:00:06 ; elapsed = 00:00:05 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Phase 1 Placer Initialization | Checksum: 1af876fbd
+
+Time (s): cpu = 00:00:06 ; elapsed = 00:00:05 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 2 Global Placement
+
+Phase 2.1 Floorplanning
+Phase 2.1 Floorplanning | Checksum: 198f596de
+
+Time (s): cpu = 00:00:09 ; elapsed = 00:00:07 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 2.2 Update Timing before SLR Path Opt
+Phase 2.2 Update Timing before SLR Path Opt | Checksum: 16055bd93
+
+Time (s): cpu = 00:00:12 ; elapsed = 00:00:09 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 2.3 Post-Processing in Floorplanning
+Phase 2.3 Post-Processing in Floorplanning | Checksum: 16055bd93
+
+Time (s): cpu = 00:00:12 ; elapsed = 00:00:09 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 2.4 Global Place Phase1
+Phase 2.4 Global Place Phase1 | Checksum: 1fab07169
+
+Time (s): cpu = 00:00:33 ; elapsed = 00:00:22 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 2.5 Global Place Phase2
+
+Phase 2.5.1 UpdateTiming Before Physical Synthesis
+Phase 2.5.1 UpdateTiming Before Physical Synthesis | Checksum: 1a50ea009
+
+Time (s): cpu = 00:00:35 ; elapsed = 00:00:24 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 2.5.2 Physical Synthesis In Placer
+INFO: [Physopt 32-1035] Found 60 LUTNM shape to break, 318 LUT instances to create LUTNM shape
+INFO: [Physopt 32-1044] Break lutnm for timing: one critical 30, two critical 30, total 60, new lutff created 2
+INFO: [Physopt 32-1138] End 1 Pass. Optimized 167 nets or LUTs. Breaked 60 LUTs, combined 107 existing LUTs and moved 0 existing LUT
+INFO: [Physopt 32-65] No nets found for high-fanout optimization.
+INFO: [Physopt 32-232] Optimized 0 net. Created 0 new instance.
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-456] No candidate cells for DSP register optimization found in the design.
+INFO: [Physopt 32-775] End 2 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-1123] No candidate cells found for Shift Register to Pipeline optimization
+INFO: [Physopt 32-775] End 2 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-1401] No candidate cells found for Shift Register optimization.
+INFO: [Physopt 32-677] No candidate cells for Shift Register optimization found in the design
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-526] No candidate cells for BRAM register optimization found in the design
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-846] No candidate cells for URAM register optimization found in the design
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-846] No candidate cells for URAM register optimization found in the design
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-949] No candidate nets found for dynamic/static region interface net replication
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.010 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Summary of Physical Synthesis Optimizations
+============================================
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+|  Optimization                                     |  Added Cells  |  Removed Cells  |  Optimized Cells/Nets  |  Dont Touch  |  Iterations  |  Elapsed   |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+|  LUT Combining                                    |           60  |            107  |                   167  |           0  |           1  |  00:00:01  |
+|  Retime                                           |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  Very High Fanout                                 |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  DSP Register                                     |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  Shift Register to Pipeline                       |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  Shift Register                                   |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  BRAM Register                                    |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  URAM Register                                    |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  Dynamic/Static Region Interface Net Replication  |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  Total                                            |           60  |            107  |                   167  |           0  |           9  |  00:00:01  |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Phase 2.5.2 Physical Synthesis In Placer | Checksum: 177b45c0c
+
+Time (s): cpu = 00:00:38 ; elapsed = 00:00:26 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Phase 2.5 Global Place Phase2 | Checksum: 1c62cd37f
+
+Time (s): cpu = 00:00:39 ; elapsed = 00:00:27 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Phase 2 Global Placement | Checksum: 1c62cd37f
+
+Time (s): cpu = 00:00:39 ; elapsed = 00:00:27 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 3 Detail Placement
+
+Phase 3.1 Commit Multi Column Macros
+Phase 3.1 Commit Multi Column Macros | Checksum: 13ee4b9b0
+
+Time (s): cpu = 00:00:42 ; elapsed = 00:00:29 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 3.2 Commit Most Macros & LUTRAMs
+Phase 3.2 Commit Most Macros & LUTRAMs | Checksum: 25b5bdad4
+
+Time (s): cpu = 00:00:46 ; elapsed = 00:00:32 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 3.3 Area Swap Optimization
+Phase 3.3 Area Swap Optimization | Checksum: 20f1cce18
+
+Time (s): cpu = 00:00:47 ; elapsed = 00:00:32 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 3.4 Pipeline Register Optimization
+Phase 3.4 Pipeline Register Optimization | Checksum: 1e2ee2e15
+
+Time (s): cpu = 00:00:47 ; elapsed = 00:00:32 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 3.5 Fast Optimization
+Phase 3.5 Fast Optimization | Checksum: 1d071af66
+
+Time (s): cpu = 00:00:51 ; elapsed = 00:00:35 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 3.6 Small Shape Detail Placement
+Phase 3.6 Small Shape Detail Placement | Checksum: 15454be02
+
+Time (s): cpu = 00:00:57 ; elapsed = 00:00:42 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 3.7 Re-assign LUT pins
+Phase 3.7 Re-assign LUT pins | Checksum: 17948b712
+
+Time (s): cpu = 00:00:59 ; elapsed = 00:00:44 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 3.8 Pipeline Register Optimization
+Phase 3.8 Pipeline Register Optimization | Checksum: 206fa3bb5
+
+Time (s): cpu = 00:00:59 ; elapsed = 00:00:44 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Phase 3 Detail Placement | Checksum: 206fa3bb5
+
+Time (s): cpu = 00:00:59 ; elapsed = 00:00:44 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 4 Post Placement Optimization and Clean-Up
+
+Phase 4.1 Post Commit Optimization
+INFO: [Place 46-20] Placer is running with the ExtraNetDelay_high directive. Post Placement Optimization may take longer to complete with ExtraNetDelay_high compared to other directives.
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+
+Phase 4.1.1 Post Placement Optimization
+Post Placement Optimization Initialization | Checksum: 14f457d0a
+
+Phase 4.1.1.1 BUFG Insertion
+
+Starting Physical Synthesis Task
+
+Phase 1 Physical Synthesis Initialization
+INFO: [Physopt 32-721] Multithreading enabled for phys_opt_design using a maximum of 2 CPUs
+INFO: [Physopt 32-619] Estimated Timing Summary | WNS=-0.070 | TNS=-0.115 |
+Phase 1 Physical Synthesis Initialization | Checksum: 19ee266c3
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.323 . Memory (MB): peak = 3677.672 ; gain = 0.000
+INFO: [Place 46-33] Processed net u_soc/u_cpu/u_regfile/reset_sync_r_reg[1], BUFG insertion was skipped due to placement/routing conflicts.
+INFO: [Place 46-56] BUFG insertion identified 1 candidate nets. Inserted BUFG: 0, Replicated BUFG Driver: 0, Skipped due to Placement/Routing Conflicts: 1, Skipped due to Timing Degradation: 0, Skipped due to netlist editing failed: 0.
+Ending Physical Synthesis Task | Checksum: 20621ba97
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.849 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Phase 4.1.1.1 BUFG Insertion | Checksum: 14f457d0a
+
+Time (s): cpu = 00:01:06 ; elapsed = 00:00:49 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 4.1.1.2 Post Placement Timing Optimization
+INFO: [Place 30-746] Post Placement Timing Summary WNS=0.553. For the most accurate timing information please run report_timing.
+Phase 4.1.1.2 Post Placement Timing Optimization | Checksum: 17d2c2251
+
+Time (s): cpu = 00:01:20 ; elapsed = 00:01:05 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Time (s): cpu = 00:01:20 ; elapsed = 00:01:05 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Phase 4.1 Post Commit Optimization | Checksum: 17d2c2251
+
+Time (s): cpu = 00:01:20 ; elapsed = 00:01:05 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 4.2 Post Placement Cleanup
+Phase 4.2 Post Placement Cleanup | Checksum: 17d2c2251
+
+Time (s): cpu = 00:01:21 ; elapsed = 00:01:05 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 4.3 Placer Reporting
+
+Phase 4.3.1 Print Estimated Congestion
+INFO: [Place 30-612] Post-Placement Estimated Congestion 
+ ____________________________________________________
+|           | Global Congestion | Short Congestion  |
+| Direction | Region Size       | Region Size       |
+|___________|___________________|___________________|
+|      North|                1x1|                8x8|
+|___________|___________________|___________________|
+|      South|                1x1|                4x4|
+|___________|___________________|___________________|
+|       East|                1x1|                1x1|
+|___________|___________________|___________________|
+|       West|                1x1|                2x2|
+|___________|___________________|___________________|
+
+Phase 4.3.1 Print Estimated Congestion | Checksum: 17d2c2251
+
+Time (s): cpu = 00:01:21 ; elapsed = 00:01:05 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Phase 4.3 Placer Reporting | Checksum: 17d2c2251
+
+Time (s): cpu = 00:01:21 ; elapsed = 00:01:05 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 4.4 Final Placement Cleanup
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.020 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Time (s): cpu = 00:01:21 ; elapsed = 00:01:05 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Phase 4 Post Placement Optimization and Clean-Up | Checksum: 1b2515aba
+
+Time (s): cpu = 00:01:21 ; elapsed = 00:01:05 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Ending Placer Task | Checksum: 1286be6c7
+
+Time (s): cpu = 00:01:21 ; elapsed = 00:01:05 . Memory (MB): peak = 3677.672 ; gain = 0.000
+136 Infos, 189 Warnings, 0 Critical Warnings and 0 Errors encountered.
+place_design completed successfully
+place_design: Time (s): cpu = 00:01:26 ; elapsed = 00:01:09 . Memory (MB): peak = 3677.672 ; gain = 0.000
+STEP: place_design DONE
+STEP: phys_opt_design_pre_route BEGIN
+Command: phys_opt_design -directive Explore
+Attempting to get a license for feature 'Implementation' and/or device 'xc7z020'
+INFO: [Common 17-349] Got license for feature 'Implementation' and/or device 'xc7z020'
+INFO: [Vivado_Tcl 4-137] Directive used for phys_opt_design is: Explore
+
+Starting Initial Update Timing Task
+
+Time (s): cpu = 00:00:04 ; elapsed = 00:00:03 . Memory (MB): peak = 3677.672 ; gain = 0.000
+INFO: [Vivado_Tcl 4-2279] Estimated Timing Summary | WNS= 0.553 | TNS= 0.000 | 
+INFO: [Vivado_Tcl 4-383] Design worst setup slack (WNS) is greater than or equal to 0.000 ns. All physical synthesis setup optimizations will be skipped.
+INFO: [Vivado_Tcl 4-232] No setup violation found. The netlist was not modified.
+INFO: [Common 17-83] Releasing license: Implementation
+142 Infos, 189 Warnings, 0 Critical Warnings and 0 Errors encountered.
+phys_opt_design completed successfully
+STEP: phys_opt_design_pre_route DONE
+STEP: route_design BEGIN
+Command: route_design -directive Explore
+Attempting to get a license for feature 'Implementation' and/or device 'xc7z020'
+INFO: [Common 17-349] Got license for feature 'Implementation' and/or device 'xc7z020'
+
+
+Starting Routing Task
+INFO: [Route 35-270] Using Router directive 'Explore'.
+INFO: [Route 35-254] Multithreading enabled for route_design using a maximum of 2 CPUs
+
+Phase 1 Build RT Design
+Checksum: PlaceDB: 41b3cc12 ConstDB: 0 ShapeSum: d0bea7c5 RouteDB: 15f972f0
+Post Restoration Checksum: NetGraph: 87947df0 | NumContArr: 58d081d0 | Constraints: c2a8fa9d | Timing: c2a8fa9d
+Phase 1 Build RT Design | Checksum: 265b6f4fa
+
+Time (s): cpu = 00:00:42 ; elapsed = 00:00:37 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 2 Router Initialization
+
+Phase 2.1 Fix Topology Constraints
+Phase 2.1 Fix Topology Constraints | Checksum: 265b6f4fa
+
+Time (s): cpu = 00:00:42 ; elapsed = 00:00:37 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 2.2 Pre Route Cleanup
+Phase 2.2 Pre Route Cleanup | Checksum: 265b6f4fa
+
+Time (s): cpu = 00:00:42 ; elapsed = 00:00:37 . Memory (MB): peak = 3677.672 ; gain = 0.000
+ Number of Nodes with overlaps = 0
+
+Phase 2.3 Update Timing
+Phase 2.3 Update Timing | Checksum: 226f60805
+
+Time (s): cpu = 00:00:49 ; elapsed = 00:00:41 . Memory (MB): peak = 3677.672 ; gain = 0.000
+INFO: [Route 35-416] Intermediate Timing Summary | WNS=0.672  | TNS=0.000  | WHS=-0.123 | THS=-16.449|
+
+
+Phase 2.4 Soft Constraint Pins - Fast Budgeting
+Phase 2.4 Soft Constraint Pins - Fast Budgeting | Checksum: 2612caf9f
+
+Time (s): cpu = 00:00:51 ; elapsed = 00:00:43 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Router Utilization Summary
+  Global Vertical Routing Utilization    = 0 %
+  Global Horizontal Routing Utilization  = 0 %
+  Routable Net Status*
+  *Does not include unroutable nets such as driverless and loadless.
+  Run report_route_status for detailed report.
+  Number of Failed Nets               = 8907
+    (Failed Nets is the sum of unrouted and partially routed nets)
+  Number of Unrouted Nets             = 8907
+  Number of Partially Routed Nets     = 0
+  Number of Node Overlaps             = 0
+
+Phase 2 Router Initialization | Checksum: 29c32f557
+
+Time (s): cpu = 00:00:52 ; elapsed = 00:00:43 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 3 Global Routing
+Phase 3 Global Routing | Checksum: 29c32f557
+
+Time (s): cpu = 00:00:52 ; elapsed = 00:00:43 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 4 Initial Routing
+
+Phase 4.1 Initial Net Routing Pass
+Phase 4.1 Initial Net Routing Pass | Checksum: 1f6dde93f
+
+Time (s): cpu = 00:00:58 ; elapsed = 00:00:47 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Phase 4 Initial Routing | Checksum: 1f6dde93f
+
+Time (s): cpu = 00:00:58 ; elapsed = 00:00:47 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 5 Rip-up And Reroute
+
+Phase 5.1 Global Iteration 0
+ Number of Nodes with overlaps = 3913
+ Number of Nodes with overlaps = 1346
+ Number of Nodes with overlaps = 602
+ Number of Nodes with overlaps = 261
+ Number of Nodes with overlaps = 151
+ Number of Nodes with overlaps = 48
+ Number of Nodes with overlaps = 40
+ Number of Nodes with overlaps = 28
+ Number of Nodes with overlaps = 10
+ Number of Nodes with overlaps = 3
+ Number of Nodes with overlaps = 0
+INFO: [Route 35-416] Intermediate Timing Summary | WNS=-0.789 | TNS=-13.564| WHS=N/A    | THS=N/A    |
+
+Phase 5.1 Global Iteration 0 | Checksum: 3349a08b5
+
+Time (s): cpu = 00:01:54 ; elapsed = 00:01:29 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 5.2 Global Iteration 1
+ Number of Nodes with overlaps = 920
+ Number of Nodes with overlaps = 421
+ Number of Nodes with overlaps = 227
+ Number of Nodes with overlaps = 168
+ Number of Nodes with overlaps = 45
+ Number of Nodes with overlaps = 40
+ Number of Nodes with overlaps = 13
+ Number of Nodes with overlaps = 17
+ Number of Nodes with overlaps = 9
+ Number of Nodes with overlaps = 4
+ Number of Nodes with overlaps = 2
+ Number of Nodes with overlaps = 1
+ Number of Nodes with overlaps = 1
+ Number of Nodes with overlaps = 0
+INFO: [Route 35-416] Intermediate Timing Summary | WNS=0.279  | TNS=0.000  | WHS=N/A    | THS=N/A    |
+
+Phase 5.2 Global Iteration 1 | Checksum: 2128dbd90
+
+Time (s): cpu = 00:02:28 ; elapsed = 00:01:54 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Phase 5 Rip-up And Reroute | Checksum: 2128dbd90
+
+Time (s): cpu = 00:02:28 ; elapsed = 00:01:54 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 6 Delay and Skew Optimization
+
+Phase 6.1 Delay CleanUp
+Phase 6.1 Delay CleanUp | Checksum: 2128dbd90
+
+Time (s): cpu = 00:02:28 ; elapsed = 00:01:54 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 6.2 Clock Skew Optimization
+Phase 6.2 Clock Skew Optimization | Checksum: 2128dbd90
+
+Time (s): cpu = 00:02:28 ; elapsed = 00:01:54 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Phase 6 Delay and Skew Optimization | Checksum: 2128dbd90
+
+Time (s): cpu = 00:02:28 ; elapsed = 00:01:54 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 7 Post Hold Fix
+
+Phase 7.1 Hold Fix Iter
+INFO: [Route 35-416] Intermediate Timing Summary | WNS=0.293  | TNS=0.000  | WHS=0.104  | THS=0.000  |
+
+Phase 7.1 Hold Fix Iter | Checksum: 2533c2c9c
+
+Time (s): cpu = 00:02:29 ; elapsed = 00:01:55 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Phase 7 Post Hold Fix | Checksum: 2533c2c9c
+
+Time (s): cpu = 00:02:29 ; elapsed = 00:01:55 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 8 Route finalize
+
+Router Utilization Summary
+  Global Vertical Routing Utilization    = 3.98359 %
+  Global Horizontal Routing Utilization  = 4.50152 %
+  Routable Net Status*
+  *Does not include unroutable nets such as driverless and loadless.
+  Run report_route_status for detailed report.
+  Number of Failed Nets               = 0
+    (Failed Nets is the sum of unrouted and partially routed nets)
+  Number of Unrouted Nets             = 0
+  Number of Partially Routed Nets     = 0
+  Number of Node Overlaps             = 0
+
+Phase 8 Route finalize | Checksum: 2533c2c9c
+
+Time (s): cpu = 00:02:29 ; elapsed = 00:01:55 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 9 Verifying routed nets
+
+ Verification completed successfully
+Phase 9 Verifying routed nets | Checksum: 2533c2c9c
+
+Time (s): cpu = 00:02:29 ; elapsed = 00:01:55 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 10 Depositing Routes
+Phase 10 Depositing Routes | Checksum: 2c55c3e29
+
+Time (s): cpu = 00:02:32 ; elapsed = 00:01:57 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 11 Post Process Routing
+Phase 11 Post Process Routing | Checksum: 2c55c3e29
+
+Time (s): cpu = 00:02:32 ; elapsed = 00:01:57 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Phase 12 Post Router Timing
+INFO: [Route 35-20] Post Routing Timing Summary | WNS=0.301  | TNS=0.000  | WHS=0.104  | THS=0.000  |
+
+Phase 12 Post Router Timing | Checksum: 1e66db2e7
+
+Time (s): cpu = 00:02:39 ; elapsed = 00:02:02 . Memory (MB): peak = 3677.672 ; gain = 0.000
+INFO: [Route 35-61] The design met the timing requirement.
+Total Elapsed time in route_design: 121.612 secs
+
+Phase 13 Post-Route Event Processing
+Phase 13 Post-Route Event Processing | Checksum: 1792aff1c
+
+Time (s): cpu = 00:02:39 ; elapsed = 00:02:02 . Memory (MB): peak = 3677.672 ; gain = 0.000
+INFO: [Route 35-16] Router Completed Successfully
+Ending Routing Task | Checksum: 1792aff1c
+
+Time (s): cpu = 00:02:40 ; elapsed = 00:02:02 . Memory (MB): peak = 3677.672 ; gain = 0.000
+
+Routing Is Done.
+INFO: [Common 17-83] Releasing license: Implementation
+153 Infos, 189 Warnings, 0 Critical Warnings and 0 Errors encountered.
+route_design completed successfully
+route_design: Time (s): cpu = 00:02:40 ; elapsed = 00:02:02 . Memory (MB): peak = 3677.672 ; gain = 0.000
+STEP: route_design DONE
+STEP: phys_opt_design_post_route BEGIN
+Command: phys_opt_design -directive Explore
+Attempting to get a license for feature 'Implementation' and/or device 'xc7z020'
+INFO: [Common 17-349] Got license for feature 'Implementation' and/or device 'xc7z020'
+INFO: [Vivado_Tcl 4-241] Physical synthesis in post route mode 
+INFO: [Vivado_Tcl 4-137] Directive used for phys_opt_design is: Explore
+
+Starting Initial Update Timing Task
+
+Time (s): cpu = 00:00:06 ; elapsed = 00:00:03 . Memory (MB): peak = 3677.672 ; gain = 0.000
+INFO: [Vivado_Tcl 4-2279] Estimated Timing Summary | WNS= 0.301 | TNS= 0.000 | 
+INFO: [Vivado_Tcl 4-383] Design worst setup slack (WNS) is greater than or equal to 0.000 ns. All physical synthesis setup optimizations will be skipped.
+INFO: [Vivado_Tcl 4-232] No setup violation found. The netlist was not modified.
+INFO: [Common 17-83] Releasing license: Implementation
+160 Infos, 189 Warnings, 0 Critical Warnings and 0 Errors encountered.
+phys_opt_design completed successfully
+STEP: phys_opt_design_post_route DONE
+STEP: report_impl_utilization BEGIN
+STEP: report_impl_utilization DONE
+STEP: report_impl_timing_summary BEGIN
+INFO: [Timing 38-91] UpdateTimingParams: Speed grade: -1, Delay Type: min_max.
+INFO: [Timing 38-191] Multithreading enabled for timing update using a maximum of 2 CPUs
+STEP: report_impl_timing_summary DONE
+STEP: report_impl_timing_setup_top20 BEGIN
+INFO: [Timing 38-91] UpdateTimingParams: Speed grade: -1, Delay Type: max.
+INFO: [Timing 38-191] Multithreading enabled for timing update using a maximum of 2 CPUs
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 20 -nworst 5 -delay_type max -sort_by group.
+STEP: report_impl_timing_setup_top20 DONE
+STEP: report_impl_timing_hold_top20 BEGIN
+INFO: [Timing 38-91] UpdateTimingParams: Speed grade: -1, Delay Type: min.
+INFO: [Timing 38-191] Multithreading enabled for timing update using a maximum of 2 CPUs
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 20 -nworst 5 -delay_type min -sort_by group.
+STEP: report_impl_timing_hold_top20 DONE
+STEP: report_impl_methodology BEGIN
+Command: report_methodology -file V:/project/reports/pynq_z2_sysclk_8p000ns_cpu50/impl_methodology.rpt
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+INFO: [DRC 23-133] Running Methodology with 2 threads
+INFO: [Vivado_Tcl 2-1520] The results of Report Methodology are in file V:/project/reports/pynq_z2_sysclk_8p000ns_cpu50/impl_methodology.rpt.
+report_methodology completed successfully
+STEP: report_impl_methodology DONE
+STEP: report_impl_route_status BEGIN
+STEP: report_impl_route_status DONE
+STEP: write_impl_checkpoint BEGIN
+INFO: [Timing 38-480] Writing timing data to binary archive.
+Wrote PlaceDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Wrote PulsedLatchDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Writing XDEF routing.
+Write ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.038 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Writing XDEF routing logical nets.
+Writing XDEF routing special nets.
+Wrote RouteStorage: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.238 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Wrote PlaceStorage: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.659 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Wrote Netlist Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.020 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Wrote Device Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.014 . Memory (MB): peak = 3677.672 ; gain = 0.000
+Write Physdb Complete: Time (s): cpu = 00:00:02 ; elapsed = 00:00:00.959 . Memory (MB): peak = 3677.672 ; gain = 0.000
+INFO: [Common 17-1381] The checkpoint 'V:/project/YH_rv_cpu_pynq_z2_sysclk_8p000ns_cpu50_impl.dcp' has been generated.
+STEP: write_impl_checkpoint DONE
+INFO: IMPL_WRITE_BITSTREAM=0; skipping bitstream generation.
+INFO: PYNQ-Z2 implementation completed. Reports written to V:/project/reports/pynq_z2_sysclk_8p000ns_cpu50
+INFO: [Common 17-206] Exiting Vivado at Thu Jun 11 10:08:39 2026...

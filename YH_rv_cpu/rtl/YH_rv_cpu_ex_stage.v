@@ -47,6 +47,9 @@ module YH_rv_cpu_ex_stage #(
     input  wire [1:0]      mem_index_shift, // XThead index scale shift
     input  wire            store_data_from_rd, // XThead store uses rd as data source
     input  wire [XLEN-1:0] store_data_value, // optional rd-as-source store data
+    input  wire [XLEN-1:0] mul_rs1_value,
+    input  wire [XLEN-1:0] mul_rs2_value,
+    input  wire [XLEN-1:0] mul_acc_value,
     input  wire            mem_base_update, // XThead auto-inc/dec base update mode
     input  wire            mem_base_update_before,
     input  wire            word_op,         // 32 位字操作 (RV64)
@@ -85,6 +88,8 @@ wire [XLEN-1:0] rs1_plus_imm;     // rs1 + imm (内存地址计算)
 wire [XLEN-1:0] mem_index_offset; // XThead indexed address offset
 wire [XLEN-1:0] mem_update_offset;
 wire [XLEN-1:0] store_data_raw;   // selected store source before size formatting
+wire [XLEN-1:0] alu_mul_lhs;
+wire [XLEN-1:0] alu_mul_rhs;
 wire [XLEN-1:0] pc_plus_imm;      // pc + imm (分支目标)
 wire [XLEN-1:0] jalr_target;      // JALR 目标地址
 reg  [31:0]     word_result;       // 32 位字结果 (RV64)
@@ -116,6 +121,8 @@ assign rs1_plus_imm = ((ENABLE_XTHEAD_BASE_UPDATE_EXTENSION != 0) && mem_base_up
     (mem_base_update_before ? (rs1_value + mem_update_offset) : rs1_value) :
     (mem_indexed ? (rs1_value + mem_index_offset) : (rs1_value + imm));
 assign store_data_raw = store_data_from_rd ? store_data_value : rs2_value;
+assign alu_mul_lhs = is_lui ? {XLEN{1'b0}} : (alu_src1_pc ? pc : mul_rs1_value);
+assign alu_mul_rhs = alu_src2_imm ? imm : mul_rs2_value;
 assign pc_plus_imm = pc + imm;
 assign jalr_target = {rs1_plus_imm[XLEN-1:1], 1'b0};  // JALR 要求最低位为 0
 
@@ -152,6 +159,9 @@ YH_rv_cpu_alu #(
     .lhs    (alu_lhs),
     .rhs    (alu_rhs),
     .acc    (store_data_value),
+    .mul_lhs(alu_mul_lhs),
+    .mul_rhs(alu_mul_rhs),
+    .mul_acc(mul_acc_value),
     .result (alu_result),
     .eq     (alu_eq),
     .lt     (alu_lt),

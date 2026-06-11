@@ -1,12 +1,143 @@
 ﻿# CURRENT_STATUS
 
-> Updated: `2026-06-05`
+> Updated: `2026-06-11`
 > Branch: `codex/syncbram-h22-20260514`
-> Current optimization line: strict/public sync-BRAM hardware-only CoreMark/Dhrystone optimization
+> Authoritative rule: only timing-closed exact-ROM implementation results may be reported as a baseline. Short simulations, quick synthesis rows, demo/default-ROM timing closure, and timing-failed implementation rows are audit history only.
+
+## 2026-06-11 strict 50 MHz timing-closed candidate
+
+Current recommended strict 50 MHz candidate:
+
+| Role | LUT | CoreMark/MHz | DMIPS/MHz | Clock | Timing | Status |
+|---|---:|---:|---:|---:|---|---|
+| Strict 50 MHz CoreMark-ROM timing candidate | 6255 post-route | 4.151598 | 2.484735 | 50 MHz | WNS +0.301 ns / WHS +0.104 ns | accepted implementation+bitstream candidate; not board-proven |
+
+Evidence package:
+
+- `artifacts/strict_50m_timing_opt_20260609/impl60_rcache_raw_lookup_cpu50_wns+0p301/README.md`
+- `artifacts/strict_50m_timing_opt_20260609/sim59_rcache_raw_lookup_actual_exblock_iter10/coremark50_fast_gate_iter10.summary.txt`
+- `artifacts/strict_50m_timing_opt_20260609/impl60_rcache_raw_lookup_cpu50_wns+0p301/impl_timing_summary.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl60_rcache_raw_lookup_cpu50_wns+0p301/impl_utilization.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl60_rcache_raw_lookup_cpu50_wns+0p301/YH_rv_cpu_pynq_z2_sysclk_8p000ns_cpu50_impl.dcp`
+- `artifacts/strict_50m_timing_opt_20260609/impl60_rcache_raw_lookup_cpu50_wns+0p301/YH_rv_cpu_pynq_z2_sysclk_8p000ns_cpu50_impl60.bit`
+- `artifacts/strict_50m_timing_opt_20260609/impl60_rcache_raw_lookup_cpu50_wns+0p301/bitstream_from_dcp_timing_summary.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl60_rcache_raw_lookup_cpu50_wns+0p301/vivado_write_bitstream_from_impl60.log`
+- `artifacts/strict_50m_timing_opt_20260609/sim60_dhrystone_impl60_match/dhrystone_impl60_runs1000.summary.txt`
+
+Key correction and optimization:
+
+- The valid implementation must match the fast-gate CoreMark ISA generics: `ZMMUL=1`, `BITMANIP=1`, `ZBC=1`, `ZICOND=1`, `XTHEAD=1`, `XTHEAD_MUL=1`, `XTHEAD_COND_MOVE=1`, with `ZBKB=0`, `XTHEAD_CRC=0`, `XTHEAD_MEMPAIR=0`, and `XTHEAD_BASE_UPDATE=0`.
+- A temporary implementation run with missing extension generics produced a lower-looking `4879 LUT / 0 DSP` result; that run is invalid for the strict CoreMark candidate and must not be reported.
+- The timing improvement comes from `ENABLE_REDIRECT_CACHE_EX_SIMPLE_BLOCK=1`, which removes actual `ex_fetch_redirect_valid` dependence from the redirect-cache lookup request/PC cone while keeping final delivery mutually excluded by actual EX redirect.
+- Fast-gate result is unchanged from the previous candidate: `4.151598 CoreMark/MHz`, `crcfinal=0xfcaf`, `completion_cycles=2450912`.
+- Matching Dhrystone xsim evidence reports `2.484735 DMIPS/MHz`, 1000 runs, `completion_cycles=272149`.
+- Matching bitstream generation is complete from the same routed checkpoint. Board PROGRAM_OK, UART capture, and video evidence are still pending; this is not yet board-proven.
+
+Comparison to previous strict 50 MHz candidate:
+
+| Candidate | LUT | CoreMark/MHz | Clock | WNS | WHS | Decision |
+|---|---:|---:|---:|---:|---:|---|
+| `impl55_split_ex_fetchreq_placenet_cpu50_wns+0p006` | 6786 | 4.151598 | 50 MHz | +0.006 ns | +0.040 ns | superseded by `impl60` |
+| `impl60_rcache_raw_lookup_cpu50_wns+0p301` | 6255 | 4.151598 | 50 MHz | +0.301 ns | +0.104 ns | current recommended candidate |
+
+Next required gates before freezing as board-facing baseline:
+
+- Run PROGRAM_OK and UART capture on PYNQ-Z2.
+- Capture board video evidence.
+- Recheck Dhrystone/DMIPS on board only if the final report requires board UART evidence for DMIPS.
+
+## 2026-06-09 authoritative baseline cleanup
+
+Current accepted baseline for honest reporting:
+
+| Role | LUT | CoreMark/MHz | DMIPS/MHz | Clock | Timing | Status |
+|---|---:|---:|---:|---:|---|---|
+| Board-facing fallback baseline | 6791 post-route | 4.501191 | 1.205669 | 25 MHz | WNS +0.291 ns / WHS +0.065 ns | accepted timing-closed baseline |
+| Best recorded timing-closed successor candidate | 7473 post-route | 4.741458 | 1.205669 | 25 MHz | WNS +1.348 ns / WHS +0.041 ns | candidate; not board-proven |
+
+Current strict 50 MHz status:
+
+- No accepted strict 50 MHz timing-closed CoreMark-ROM baseline exists in the current evidence set.
+- The exact 50 MHz CoreMark-ROM audit reached `11182 LUT / 5.162186 CoreMark/MHz short-run`, but failed implementation timing at `WNS -5.800 ns`; it is rejected for freeze.
+- The historical `5918 LUT / 5.162186 CoreMark/MHz / WNS +0.358 ns` result was a demo/default-ROM timing result, not the exact CoreMark-ROM freeze build; it is not a baseline.
+- The `6872 LUT / 5.023480 CoreMark/MHz` row remains an engineering reference only. Its full implementation audit failed at `7063 post-route LUT / WNS -10.360 ns`, so it is not timing-closed and not board-facing.
+
+Allowed reporting names:
+
+- Use `CPU25 timing-closed baseline` for `6791 LUT / 4.501191 CoreMark/MHz / 1.205669 DMIPS/MHz / 25 MHz / WNS +0.291 ns`.
+- Use `CPU25 RC128 BFNext/no-ZBKB timing-closed candidate` for `7473 LUT / 4.741458 CoreMark/MHz / 1.205669 DMIPS/MHz / 25 MHz / WNS +1.348 ns`.
+- Do not call any 50 MHz result a baseline until exact-ROM post-route timing closes and the evidence package records the exact ROM image, clock, utilization, timing, and benchmark summary.
+
+Cleanup record:
+
+- Authoritative cleanup file: `artifacts/region_baseline_6872_20260602/BASELINE_CLEANUP_20260609.md`.
+- Historical results are retained as negative or exploratory evidence, but removed from the current-baseline claim path.
+
+## 2026-06-08 strict 50 MHz CoreMark-ROM freeze audit
+
+- Fresh audit result:
+  - `artifacts/strict_50m_coremark_freeze_audit_20260608/README.md`.
+  - CoreMark short-run remains `5.162186 CoreMark/MHz`, but the summary is not strict EEMBC 10-second compliant.
+  - Exact PYNQ-Z2 50 MHz CoreMark-ROM implementation failed timing: `11182 post-route LUT / 3439 FF / 20 BRAM / 8 DSP / WNS -5.800 ns / WHS +0.061 ns`.
+  - setup failures: `3967` endpoints, `TNS -18015.188 ns`.
+  - worst setup path: `u_soc/g_shared_sync_rom.u_sync_rom/imem_rdata_r_reg_5/CLKBWRCLK -> u_soc/u_cpu/if_id_instruction_r_reg[8]/D`, `25.589 ns` data path delay, `32` logic levels.
+- Decision:
+  - do not freeze this exact 50 MHz CoreMark-ROM build.
+  - do not use the earlier `5918 LUT / WNS +0.358 ns` demo-ROM implementation as strict CoreMark-ROM freeze evidence.
+  - keep the earlier `5918` result only as historical/demo-ROM timing information.
+- Current freeze status:
+  - no version is currently accepted as a strict 50 MHz timing-closed freeze baseline.
+  - next candidate must be tested with the exact benchmark/application ROM image that will be reported.
+  - implementation timing must be closed on that exact build before freezing.
+
+## 2026-06-08 historical 50 MHz reconfirmation, now demoted
+
+- Historical 50 MHz candidate was freshly reconfirmed on 2026-06-08:
+  - source worktree: `D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\coremark5-dmips3-20260506`.
+  - branch/tag: `opt/coremark5-dmips3-20260506`, `freeze/coremark5-dmips3-20260507`.
+  - commit: `9dc699a Reference freeze tag in artifact readme`.
+- Reconfirmed metrics:
+  - `5918 post-route LUT / 2382 FF / 4 BRAM / 15 DSP`.
+  - `5.162186 CoreMark/MHz`.
+  - `3.134092 DMIPS/MHz` from the frozen Dhrystone artifact.
+  - PYNQ-Z2 CPU clock: `50 MHz`.
+  - post-route timing: `WNS +0.358 ns`, `WHS +0.126 ns`; implementation reports zero setup/hold failing endpoints.
+  - bitstream generation completed successfully.
+- Fresh 2026-06-08 evidence package:
+  - `artifacts/coremark5_dmips3_50m_reconfirm_20260608/README.md`.
+  - `artifacts/coremark5_dmips3_50m_reconfirm_20260608/coremark5_recheck_resume_20260608.summary.txt`.
+  - `artifacts/coremark5_dmips3_50m_reconfirm_20260608/impl_timing_summary.rpt`.
+  - `artifacts/coremark5_dmips3_50m_reconfirm_20260608/impl_utilization.rpt`.
+  - `artifacts/coremark5_dmips3_50m_reconfirm_20260608/YH_rv_cpu_pynq_z2_sysclk_8p000ns_cpu50_reconfirm_20260608.bit`.
+- 50 MHz application demo evidence:
+  - demo source: `artifacts/coremark5_dmips3_50m_reconfirm_20260608/perf_demo_50m.c`.
+  - workloads: CRC32, 8x8 matrix multiply, memory copy/fill, branch-heavy control flow, load-use pointer chasing.
+  - xsim result: `PERF_DEMO PASS checksum=0xe727358b total_cycles=0x0002931c`.
+  - completion: `185191 cycles`, `565 UART bytes`.
+  - demo bitstream implementation: `WNS +0.143 ns`, `WHS +0.085 ns`.
+  - demo bitstream: `artifacts/coremark5_dmips3_50m_reconfirm_20260608/YH_rv_cpu_pynq_z2_sysclk_8p000ns_cpu50_perf_demo_20260608.bit`.
+- Claim boundary:
+  - CoreMark is a short reproducible full-workload run, not a strict 10-second EEMBC run.
+  - Dhrystone/DMIPS is retained from the frozen 2026-05-07 artifact until the fresh Dhrystone rebuild loop is root-caused.
+  - board PROGRAM_OK, UART capture, and video evidence are still pending; do not claim board-proven yet.
+  - the 50 MHz application demo is simulation- and implementation-proven, but not yet board-captured.
+- Correction after strict audit:
+  - this historical package is not the current freeze baseline.
+  - its `5918 LUT / WNS +0.358 ns` implementation evidence was for the earlier default/demo ROM build, not the exact 50 MHz CoreMark-ROM freeze audit.
+  - the exact 50 MHz CoreMark-ROM implementation audit failed at `11182 LUT / WNS -5.800 ns`.
+- Hard gates for later candidates:
+  - FPGA clock must be `50 MHz` or higher for the main region-contest line.
+  - `CoreMark/MHz >= 4.3`.
+  - post-route timing must close.
+  - no CoreMark core algorithm files may be modified.
+- Current priority:
+  - find and freeze a strict 50 MHz candidate that closes timing on the exact reported ROM image.
+  - use CPU25 only as a fallback/timing-debug reference.
+  - do not promote failing variants or demo-ROM-only timing results.
 
 ## 2026-06-05 frozen timing-closed CPU25 baseline
 
-- Current frozen board-facing baseline:
+- Fallback timing-closed CPU25 baseline:
   - `6791 post-route LUT / 4.501191 CoreMark/MHz / 1.205669 DMIPS/MHz`.
   - PYNQ-Z2 CPU clock: `25 MHz` via new `USE_CLK_MMCM_25M` top-level generic.
   - implementation timing: `WNS +0.291 ns`, `WHS +0.065 ns`; Vivado reports all user timing constraints met.
@@ -29,21 +160,42 @@
   - program this exact bitstream on PYNQ-Z2,
   - capture UART output and PROGRAM_OK evidence,
   - record a short video tying board output to the timing-closed bitstream.
+- Performance demo program:
+  - added automatic UART demo firmware `YH_rv_cpu/sw/src/perf_demo.c`.
+  - build/run command: `cmd /c YH_rv_cpu\scripts\run_perf_demo.bat`.
+  - xsim result: all five workloads pass and final line is `PERF_DEMO PASS checksum=0xe727358b total_cycles=0x00038add`.
+  - PYNQ-Z2 demo bitstream: `artifacts/freeze_timingclosed_cpu25_20260605/YH_rv_cpu_pynq_z2_sysclk_8p000ns_cpu25_perf_demo.bit`.
+  - demo bitstream implementation: `6791 post-route LUT / WNS +0.291 ns / WHS +0.065 ns`.
+  - evidence: `artifacts/freeze_timingclosed_cpu25_20260605/evidence/perf_demo_summary_20260605.txt` and `artifacts/freeze_timingclosed_cpu25_20260605/evidence/perf_demo_xsim_uart_20260605.log`.
+  - board evidence still requires PROGRAM_OK, UART capture, and video after programming.
 - Next execution batch:
-  - push commit/tag when ready,
-  - collect board PROGRAM_OK/UART/video evidence,
+  - collect board PROGRAM_OK/UART/video evidence for that demo bitstream,
   - add `BOARD_EVIDENCE.md` to the freeze package.
+- Region-contest documentation update:
+  - `artifacts/region_baseline_6872_20260602/REGION_SUBMISSION_STATUS_20260605.md` is superseded by the 2026-06-09 cleanup wording if present in the worktree.
+  - `artifacts/region_baseline_6872_20260602/REGION_REPORT_DRAFT_CLEAN_20260609.md` provides the cleaned Chinese report/defense wording.
+  - `artifacts/region_baseline_6872_20260602/BOARD_EVIDENCE_TEMPLATE.md` is ready for PROGRAM_OK/UART/video evidence.
+  - Region wording now treats CPU25 as the accepted timing-closed baseline and demotes 6872 to timing-failed engineering reference.
 - Long-term optimization focus:
-  - first finish board evidence for CPU25,
+  - RC128 CPU25 is now validated as a timing-closed optimization candidate: `7076 post-route LUT / 4.627215 CoreMark/MHz / 1.205669 DMIPS/MHz / WNS +0.514 ns / WHS +0.056 ns`.
+  - the earlier RC128 Dhrystone block was traced to a Dhrystone ISA-target mismatch: the failed image emitted `th.lwib` while the CPU25 timing-cut hardware disables XThead base-update. Rebuilding Dhrystone with the existing no-auto-inc target passes 1000 runs.
+  - RC128 simulation reproduction wrapper: `cmd /c YH_rv_cpu\scripts\run_cpu25_rc128_validated.bat`.
+  - wrapper rerun on 2026-06-05 reproduced `4.627215 CoreMark/MHz` and `1.205669 DMIPS/MHz`; fresh summaries are under `artifacts/freeze_timingclosed_cpu25_20260605/experiments/repro_cpu25_rc128`.
+  - RC128 PYNQ-Z2 implementation wrapper: `cmd /c YH_rv_cpu\scripts\build_pynq_z2_cpu25_rc128_coremark.bat impl`.
+  - implementation rerun on 2026-06-05 closed timing at `7124 post-route LUT / WNS +1.881 ns / WHS +0.100 ns`; bitstream is `artifacts/freeze_timingclosed_cpu25_20260605/YH_rv_cpu_pynq_z2_sysclk_8p000ns_cpu25_rc128_coremark_repro_20260605.bit`.
+  - current recommended timing-robust follow-up is CPU25 RC128 BFNext/no-ZBKB timing-driven: `7473 post-route LUT / 4.741458 CoreMark/MHz / 1.205669 DMIPS/MHz / WNS +1.348 ns / WHS +0.041 ns`.
+  - lower-LUT same-family alternative: `7374 post-route LUT / 4.741458 CoreMark/MHz / WNS +0.282 ns / WHS +0.062 ns`.
+  - BFNext/no-ZBKB timing-driven bitstream is `artifacts/freeze_timingclosed_cpu25_20260605/YH_rv_cpu_pynq_z2_sysclk_8p000ns_cpu25_rc128_bfnext_nozbkb_timingdriven_20260606.bit`; board evidence is still pending.
+  - first decide whether to replace the RC64 board-facing fallback with RC128 BFNext/no-ZBKB timing-driven,
   - then explore CPU30/CPU33 closure,
   - then structurally shorten regular redirect-cache/front-end/PC critical paths before trying to recover more CoreMark/MHz.
 
-## 2026-06-02 region-contest baseline selection
+## 2026-06-02 historical region-contest reference selection, now demoted
 
-- Selected region-contest engineering baseline:
+- Historical region-contest engineering reference:
   - `6872 LUT / 5.023480 CoreMark/MHz / 1.275942 DMIPS/MHz`
   - configuration: `DCache512 + RC64 + no branchfold next-cache + NT-load fold + no Zicond + no ID-branch EX-forward`.
-  - reason: this is the lowest recorded LUT point that keeps CoreMark above 5 under the strict sync-BRAM evidence. It is better aligned with the low-area/low-power narrative than the larger 7164/7853-LUT exploration points.
+  - reason at the time: lowest recorded LUT point that kept CoreMark above 5 under quick-synth strict sync-BRAM evidence.
 - Baseline package:
   - `artifacts/region_baseline_6872_20260602/`
   - use this directory as the handoff entry point for region-contest evidence, reproduction commands, and follow-up tasks.
@@ -56,8 +208,8 @@
   - generated bitstream,
   - board programming/UART evidence,
   - optional strict 10-second CoreMark run if a stricter benchmark-valid report is needed.
-- Follow-up rule:
-  all later optimization should branch conceptually from this 6872-LUT baseline and report deltas against it. The 7164/7853-LUT points remain exploration references, not the default region-contest baseline.
+- Cleanup rule:
+  do not use this 6872-LUT row as the current baseline after the 2026-06-09 cleanup. It may only be cited as a timing-failed low-resource engineering reference.
 
 ## 2026-06-02 6872 baseline implementation audit
 
@@ -78,40 +230,40 @@
   - `artifacts/region_baseline_6872_20260602/reports/impl_timing_6872baseline_7063lut_wns-10p360.rpt`
   - `artifacts/region_baseline_6872_20260602/TEST_STATUS.md`
   - `artifacts/region_baseline_6872_20260602/HANDOFF_20260602.md`
-- Do not describe this baseline as timing-closed or board-proven. Continue from the 6872 package and compare later variants against `6872 LUT / 5.023480 CoreMark/MHz / 1.275942 DMIPS/MHz`.
+- Do not describe this baseline as timing-closed or board-proven. After the 2026-06-09 cleanup, compare accepted-reporting work against the CPU25 timing-closed baseline, and cite the 6872 row only as timing-failed reference evidence.
 
-## 2026-06-01 under-8000 LUT 5+ update
+## 2026-06-01 historical under-8000 LUT 5+ exploration
 
-- Current recommended low-resource baseline:
+- Historical low-resource quick-synth candidate, not current baseline:
   - `7216 LUT / 5.042742 CoreMark/MHz / 1.287490 DMIPS/MHz`
   - tag target: `freeze-strict-dcache512-rc32-next-nozicond-noretiming-notiming-7216lut-coremark5p04-20260601`
-  - reason: lowest recorded LUT point that keeps CoreMark above 5 under the current strict sync-BRAM evidence. This is the same RTL/benchmark configuration as the previous 7377-LUT baseline, with retiming disabled and timing-driven synth disabled for the quick utilization run.
+  - reason at the time: lowest recorded LUT point that kept CoreMark above 5 in quick-synth exploration. This is not the current baseline because it lacks accepted exact-ROM timing-closed implementation evidence.
 - New under-8000 performance/area tradeoff:
   - `7316 LUT / 5.067602 CoreMark/MHz / 1.287490 DMIPS/MHz`
   - configuration: `DCache512 + RC64 + branchfold + no branchfold next-cache + NT-load fold + no Zicond + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
   - synthesis option: quick synth utilization with retiming disabled and timing-driven override disabled.
-  - decision: current best balanced low-resource point. Compared with the 7216-LUT minimum-area baseline, it costs `+100 LUT` and gains `+0.024860 CoreMark/MHz` while keeping the same DMIPS/MHz.
+  - decision at the time: balanced low-resource exploration point. Not current baseline.
 - New lowest-LUT 5+ candidate:
   - `6872 LUT / 5.023480 CoreMark/MHz / 1.275942 DMIPS/MHz`
   - configuration: `DCache512 + RC64 + no branchfold next-cache + NT-load fold + no Zicond + no ID-branch EX-forward`.
   - synthesis option: quick synth utilization with retiming disabled and timing-driven override disabled.
-  - decision: current lowest recorded LUT point that still keeps CoreMark above 5 under the strict sync-BRAM evidence. It saves `344 LUT` versus the 7216-LUT line and `444 LUT` versus the 7316-LUT balanced line, with a small CoreMark/DMIPS reduction. Full implementation timing still needs a later board-facing check.
-- New recommended under-8000 performance/area candidate:
+  - decision at the time: lowest quick-synth LUT point above 5 CoreMark/MHz. It is now demoted to engineering reference because full implementation timing failed.
+- Historical under-8000 performance/area candidate:
   - `7164 LUT / 5.208729 CoreMark/MHz / 1.275942 DMIPS/MHz`
   - configuration: `DCache512 + RC128 + no branchfold next-cache + NT-load fold + no Zicond + no ID-branch EX-forward`.
   - synthesis option: quick synth utilization with retiming disabled and timing-driven override disabled.
-  - decision: current best under-8000 strict sync-BRAM performance/area point. It improves CoreMark by `+0.102569` versus the previous 7676-LUT higher-CoreMark candidate while saving `512 LUT`; it also improves CoreMark by `+0.185249` versus the 6872-LUT minimum-area 5+ candidate at a `+292 LUT` cost. Full implementation timing still needs a later board-facing check.
+  - decision at the time: under-8000 strict sync-BRAM performance/area exploration point. Not current baseline; full implementation timing failed.
   - full implementation check: timing-driven implementation reports `7677 LUT / WNS -11.408 ns`; recorded as timing-fail evidence only. The worst path moved from sync instruction ROM to the execute/memory address and ID/EX control network, so the next board-facing work should reduce decode/control fan-in rather than only resizing caches.
 - New under-8000 high-CoreMark candidate:
   - `7853 LUT / 5.281995 CoreMark/MHz / 1.275942 DMIPS/MHz`
   - configuration: `DCache512 + RC256 + no branchfold next-cache + NT-load fold + no Zicond + no ID-branch EX-forward`.
   - synthesis option: quick synth utilization with retiming disabled and timing-driven override disabled.
-  - decision: highest recorded CoreMark below 8000 LUT in the current no-EX-forward family. Compared with the 7164-LUT recommended point, it costs `+689 LUT` for `+0.073266 CoreMark/MHz`; use when performance is prioritized over minimum LUT. Full implementation timing still needs a later board-facing check.
+  - decision at the time: high-CoreMark quick-synth exploration point below 8000 LUT. Not current baseline.
 - Higher-CoreMark under-8000 performance/area tradeoff:
   - `7676 LUT / 5.106160 CoreMark/MHz / 1.261816 DMIPS/MHz`
   - configuration: `DCache256 + RC128 + branchfold next-cache + NT-load fold + no Zicond + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
   - synthesis option: quick synth utilization with retiming disabled and timing-driven override disabled.
-  - decision: current higher-CoreMark candidate below 8000 LUT. Compared with the 7216-LUT baseline, it costs `+460 LUT` and gains `+0.063418 CoreMark/MHz`; DMIPS is slightly lower. Implementation timing still needs a later full place/route check before board-facing promotion.
+  - decision at the time: higher-CoreMark quick-synth exploration point below 8000 LUT. Not current baseline.
 - Full implementation timing check for the balanced 7316-LUT line:
   - configuration: `DCache512 + RC64 + no branchfold next-cache + NT-load fold + no Zicond`, with timing-driven synthesis and retiming enabled.
   - post-route utilization: `7674 LUT / 3494 FF / 20 BRAM / 8 DSP`.
@@ -194,16 +346,16 @@
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_d512_rc32_next_nozicond_static1_recheck_iter10_20260528.summary.txt`
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache256_rc64_ntfold_nobht_nozbkb_rctagtrim_nolspec_d256_rc128_next_nozicond_nolspec_recheck_iter10_20260528.summary.txt`
 
-## 2026-05-31 Selected main frozen baseline
+## 2026-05-31 historical selected quick-synth baseline, now demoted
 
-- Selected main frozen baseline for handoff and later document updates:
+- Historical selected quick-synth baseline for handoff at that time:
   - tag target: `freeze-strict-dcache512-rc32-next-nozicond-noretiming-notiming-7216lut-coremark5p04-20260601`
   - commit: `tag target`
   - LUT: `7216`
   - CoreMark/MHz: `5.042742`
   - DMIPS/MHz: `1.287490`
   - configuration: `DCache512 + RC32 + branchfold next-cache + NT-load fold + fold-rs2/rs3 read ports gated off + inactive regfile second write port disabled + no dynamic BHT + no ZBKB + no Zicond + DCache tag trim + redirect-cache tag-width trim`
-  - decision: this is the current recommended frozen version because it keeps CoreMark above 5 while cutting area to 7216 LUT. Use this row as the default baseline unless the user explicitly asks for the larger high-score reference.
+  - decision at the time: selected because it kept CoreMark above 5 while cutting area to 7216 LUT. Do not use this row as the default baseline after the 2026-06-09 cleanup.
   - note: this replaces the previous 7377-LUT low-area 5+ point as the preferred main freeze. It saves 161 LUT with no measured CoreMark or DMIPS loss on the retained strict sync-BRAM evidence; only the quick synth options changed.
 - Evidence:
   - `artifacts/fpga_valid_20260518/coremark_fpga_dcache512_rc64_ntfold_nobht_nozbkb_rctagtrim_rc32_next_nozicond_recheck_iter10_20260528.summary.txt`
@@ -224,19 +376,19 @@
   - CoreMark/MHz: `5.042742`
   - DMIPS/MHz: `1.287490`
   - note: superseded by the 7216-LUT no-Zicond/no-retiming/no-timing-driven point because performance is unchanged and area is lower.
-- Current best under-10000-LUT reference:
+- Historical best under-10000-LUT reference:
   - tag target: `freeze-strict-dcache1024-rc128-current-8983lut-coremark5p60-20260529`
   - LUT: `8983`
   - CoreMark/MHz: `5.608440`
   - DMIPS/MHz: `1.287490`
   - configuration: `DCache1024 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim + regfile/fold-port area trims`
-  - note: this is the current high-score reference below 10000 LUT, not the low-area recommendation.
-- Current medium-area tradeoff:
+  - note: historical high-score reference below 10000 LUT; not current baseline.
+- Historical medium-area tradeoff:
   - LUT: `7676`
   - CoreMark/MHz: `5.106160`
   - DMIPS/MHz: `1.261816`
   - configuration: `DCache256 + RC128 + branchfold next-cache + NT-load fold + no dynamic BHT + no ZBKB + DCache tag trim + redirect-cache tag-width trim`
-  - note: this improves CoreMark over the current 7216-LUT low-area line by `0.063418 CoreMark/MHz`, but costs `460 LUT` and has slightly lower DMIPS. The latest quick synth disables retiming and timing-driven override for the recorded `7676 LUT` implementation.
+  - note: historical quick-synth tradeoff; not current baseline.
 - New rejected boundaries:
   - `DCache512 + RC16 + next-cache`: `4.950213 CoreMark/MHz`, CRC-clean but below 5.
   - `DCache512 + RC32 + next-cache + DCache word-only`: `4.427367 CoreMark/MHz`, CRC-clean but too slow because byte/halfword traffic loses DCache locality.
@@ -250,13 +402,13 @@
   `artifacts/fpga_valid_20260518/SYNCBRAM_OPT_HANDOFF_20260526.md`
 - Main experiment ledger:
   `artifacts/fpga_valid_20260518/STRICT_SYNCBRAM_OPT_20260521.md`
-- Current validated best strict under-10000 LUT candidate:
+- Historical validated strict under-10000 LUT candidate, not current baseline:
   - commit: `this-commit`
   - tag: `freeze-strict-rctagtrim-9796lut-coremark5p66-20260528`
   - LUT: `9796`
   - CoreMark/MHz: `5.659572`
   - DMIPS/MHz: `1.287490`
-- Current lower-area 5+ candidate:
+- Historical lower-area 5+ candidate:
   - commit: `tag target`
   - tag: `freeze-strict-dcache512-rc64-nonext-foldrs23off-nord2-7596lut-coremark5p07-20260528`
   - LUT: `7596`
@@ -316,9 +468,9 @@
 
 > Updated: `2026-05-14 17:50`
 > Branch: `opt/coremark8-hw-20260512`
-> Current freeze: Method A sync BRAM PYNQ-Z2 CoreMark artifact
+> Historical freeze: Method A sync BRAM PYNQ-Z2 CoreMark artifact, not the current 2026-06-09 accepted baseline
 
-## 2026-05-14 Method A sync BRAM freeze
+## 2026-05-14 historical Method A sync BRAM freeze
 
 - Main handoff: `YH_rv_cpu/doc/METHOD_A_SYNCBRAM_HANDOFF_20260514.md`
 - Artifact: `artifacts/coremark_method_a_20260514_172753`
@@ -336,9 +488,10 @@
   `5963 LUT / 2645 FF / 32 BRAM / 15 DSP`,
   `WNS +0.120 ns / WHS +0.050 ns`
 
-Boundary: this is the board-facing Method A synchronous Block RAM path. Earlier
+Boundary: this is a historical board-facing Method A synchronous Block RAM path. Earlier
 async/profile higher-score artifacts remain exploration evidence and must not be
-merged into this Method A score without a matching sync BRAM run.
+merged into this Method A score without a matching sync BRAM run. Do not use this
+section as the current baseline after the 2026-06-09 cleanup.
 
 > Updated: `2026-04-28 10:55`
 > Branch: `fix/dcache-icache-integration`
@@ -549,23 +702,23 @@ merged into this Method A score without a matching sync BRAM run.
 
 ## 2026-06-01 strict sync-BRAM low-area status
 
-Current optimization direction is low LUT / low switching activity first, while
-keeping CoreMark/MHz above the initial submission result `4.137461`. All numbers
-below use the current strict sync-BRAM, PYNQ-Z2-compatible RTL flow and do not
-modify CoreMark core algorithm files.
+Historical optimization direction was low LUT / low switching activity first,
+while keeping CoreMark/MHz above the initial submission result `4.137461`. All
+numbers below are retained as historical strict sync-BRAM exploration records and
+must not be used as the current baseline after the 2026-06-09 cleanup.
 
 | Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Status |
 |---|---:|---:|---:|---|
-| DCache64 + RC64 + next | 6832 | 4.336028 | 1.166238 | Current best low-area/performance tradeoff; +138 LUT over floor candidate |
+| DCache64 + RC64 + next | 6832 | 4.336028 | 1.166238 | Historical low-area/performance tradeoff; +138 LUT over floor candidate |
 | DCache64 + RC32 + next, no Zicond, no NT-load fold | 6523 | 4.181209 | 1.166238 | New lowest verified LUT point above initial submission; trims Zicond and not-taken load fold while retaining next-cache branch fold |
 | DCache64 + RC32 + next, no Zicond | 6619 | 4.181261 | 1.166238 | Previous lowest verified LUT point; disables unused Zicond hardware under the RC32/next-cache profile |
 | DCache64 + RC64 + next, read-mux share RTL cleanup | 6955 | 4.336028 | TBD | Rejected; behavior unchanged but Vivado LUT increased |
 | DCache64 + RC64 + next, no load-use spec | 6955 | 4.289242 | 1.149744 | Rejected; LUT increased and score decreased |
 | DCache64 + RC64 + next, no Zicond | 6860 | 4.336028 | TBD | Rejected; performance unchanged and LUT increased |
 | DCache64 + RC64 + next, no Zbc | TBD | timeout | TBD | Rejected; CoreMark did not complete within the simulation budget |
-| DCache128 + RC32 + next | 6955 | 4.329743 | 1.208287 | Balanced low-area/performance candidate; +261 LUT over current low-area freeze |
+| DCache128 + RC32 + next | 6955 | 4.329743 | 1.208287 | Historical balanced low-area/performance candidate |
 | DCache128 + RC64 + next | synth pending | 4.495875 | 1.208287 | Performance-valid but not frozen; synth did not close in the time budget |
-| DCache64 + RC32 + next | 6694 | 4.181261 | 1.166238 | Current low-area freeze candidate; above initial submission |
+| DCache64 + RC32 + next | 6694 | 4.181261 | 1.166238 | Historical low-area freeze candidate; above initial submission |
 | DCache64 + RC32 + next, no regular lookup | TBD | 4.041588 | TBD | Rejected; below initial submission |
 | DCache64 + RC32 + next, no XThead condmov | TBD | timeout | TBD | Rejected; CoreMark did not complete within the simulation budget |
 | DCache64 + RC32 + next, no XThead MUL/MAC | TBD | timeout | TBD | Rejected; CoreMark did not complete within the simulation budget |
@@ -574,7 +727,7 @@ modify CoreMark core algorithm files.
 | DCache64 + RC16 + next | TBD | 4.117348 | TBD | Rejected; RC16 loses too much redirect locality |
 | DCache32 + RC32 + next | TBD | 4.074163 | TBD | Rejected; below initial submission |
 
-Evidence for the current lowest-LUT candidate:
+Evidence for the historical lowest-LUT candidate:
 
 - CoreMark summary:
   `artifacts/fpga_valid_20260518/coremark_fpga_dcache64_rc64_ntfold_nobht_nozbkb_rctagtrim_nontload_d64_rc32_next_nozicond_nontload_recheck_iter10_20260528.summary.txt`
@@ -608,7 +761,7 @@ Evidence for the previous low-area candidate:
   `artifacts/fpga_valid_20260518/coremark_fpga_dcache128_rc64_ntfold_nobht_nozbkb_rctagtrim_d128_rc32_next_recheck_iter10_20260528.summary.txt`,
   `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache128_rc64_ntfold_nobht_nozbkb_rctagtrim_d128_rc32_next_runs1000_20260528.summary.txt`,
   `artifacts/fpga_valid_20260518/synth_util_dcache128_rc32_next_loadspec_6955lut_20260601.rpt`
-- Current tradeoff candidate evidence:
+- Historical tradeoff candidate evidence:
   `artifacts/fpga_valid_20260518/coremark_fpga_dcache64_rc64_ntfold_nobht_nozbkb_rctagtrim_d64_rc64_next_recheck_iter10_20260528.summary.txt`,
   `artifacts/fpga_valid_20260518/dhrystone_fpga_dcache64_rc64_ntfold_nobht_nozbkb_rctagtrim_d64_rc64_next_runs1000_20260528.summary.txt`,
   `artifacts/fpga_valid_20260518/synth_util_dcache64_rc64_next_loadspec_6832lut_20260601.rpt`

@@ -35,6 +35,9 @@ module YH_rv_cpu_alu #(
     input  wire [XLEN-1:0] lhs,      // 左手操作数 (left-hand side)
     input  wire [XLEN-1:0] rhs,       // 右手操作数 (right-hand side)
     input  wire [XLEN-1:0] acc,       // rd-as-source accumulator for custom MAC ops
+    input  wire [XLEN-1:0] mul_lhs,   // timing-isolated MUL/MAC left operand
+    input  wire [XLEN-1:0] mul_rhs,   // timing-isolated MUL/MAC right operand
+    input  wire [XLEN-1:0] mul_acc,   // timing-isolated MUL/MAC accumulator
     // 结果输出
     output reg  [XLEN-1:0] result,    // 运算结果
     // 比较结果输出 (组合逻辑，不经过寄存器)
@@ -80,6 +83,29 @@ wire [XLEN-1:0] b_result_clmulh;
 wire [XLEN-1:0] x_result_ext_range;
 wire [XLEN-1:0] x_result_crc16;
 wire [XLEN-1:0] x_result_crc32;
+wire            m_mul_op_active;
+wire            x_th_mula_op_active;
+wire            x_th_mulah_op_active;
+wire            x_th_mul_op_active;
+wire [XLEN-1:0] m_mul_lhs;
+wire [XLEN-1:0] m_mul_rhs;
+wire [XLEN-1:0] x_th_mul_lhs;
+wire [XLEN-1:0] x_th_mul_rhs;
+wire [XLEN-1:0] x_th_mul_acc;
+
+assign m_mul_op_active =
+    (alu_op == `YH_rv_cpu_ALU_MUL) ||
+    (alu_op == `YH_rv_cpu_ALU_MULH) ||
+    (alu_op == `YH_rv_cpu_ALU_MULHSU) ||
+    (alu_op == `YH_rv_cpu_ALU_MULHU);
+assign x_th_mula_op_active = (alu_op == `YH_rv_cpu_ALU_TH_MULA);
+assign x_th_mulah_op_active = (alu_op == `YH_rv_cpu_ALU_TH_MULAH);
+assign x_th_mul_op_active = x_th_mula_op_active || x_th_mulah_op_active;
+assign m_mul_lhs = m_mul_op_active ? mul_lhs : {XLEN{1'b0}};
+assign m_mul_rhs = m_mul_op_active ? mul_rhs : {XLEN{1'b0}};
+assign x_th_mul_lhs = x_th_mul_op_active ? mul_lhs : {XLEN{1'b0}};
+assign x_th_mul_rhs = x_th_mul_op_active ? mul_rhs : {XLEN{1'b0}};
+assign x_th_mul_acc = x_th_mul_op_active ? mul_acc : {XLEN{1'b0}};
 
 function [XLEN-1:0] yh_xthead_ext_hot_range;
     input [XLEN-1:0] value;
@@ -174,7 +200,7 @@ endgenerate
 
 generate
 if ((ENABLE_XTHEAD_EXTENSION != 0) && (ENABLE_XTHEAD_MUL_EXTENSION != 0)) begin : gen_xthead_mul_extension
-    assign x_result_th_mula = acc + (lhs * rhs);
+    assign x_result_th_mula = x_th_mula_op_active ? (x_th_mul_acc + (x_th_mul_lhs * x_th_mul_rhs)) : {XLEN{1'b0}};
 
     if (XLEN == 32) begin : gen_th_mulah_rv32
         wire signed [31:0] th_mulah_lhs16;
@@ -182,22 +208,22 @@ if ((ENABLE_XTHEAD_EXTENSION != 0) && (ENABLE_XTHEAD_MUL_EXTENSION != 0)) begin 
         wire signed [31:0] th_mulah_acc32;
         wire signed [31:0] th_mulah_sum32;
 
-        assign th_mulah_lhs16 = {{16{lhs[15]}}, lhs[15:0]};
-        assign th_mulah_rhs16 = {{16{rhs[15]}}, rhs[15:0]};
-        assign th_mulah_acc32 = acc[31:0];
+        assign th_mulah_lhs16 = {{16{x_th_mul_lhs[15]}}, x_th_mul_lhs[15:0]};
+        assign th_mulah_rhs16 = {{16{x_th_mul_rhs[15]}}, x_th_mul_rhs[15:0]};
+        assign th_mulah_acc32 = x_th_mul_acc[31:0];
         assign th_mulah_sum32 = th_mulah_acc32 + (th_mulah_lhs16 * th_mulah_rhs16);
-        assign x_result_th_mulah = th_mulah_sum32;
+        assign x_result_th_mulah = x_th_mulah_op_active ? th_mulah_sum32 : {XLEN{1'b0}};
     end else begin : gen_th_mulah_rv64
         wire signed [31:0] th_mulah_lhs16;
         wire signed [31:0] th_mulah_rhs16;
         wire signed [31:0] th_mulah_acc32;
         wire signed [31:0] th_mulah_sum32;
 
-        assign th_mulah_lhs16 = {{16{lhs[15]}}, lhs[15:0]};
-        assign th_mulah_rhs16 = {{16{rhs[15]}}, rhs[15:0]};
-        assign th_mulah_acc32 = acc[31:0];
+        assign th_mulah_lhs16 = {{16{x_th_mul_lhs[15]}}, x_th_mul_lhs[15:0]};
+        assign th_mulah_rhs16 = {{16{x_th_mul_rhs[15]}}, x_th_mul_rhs[15:0]};
+        assign th_mulah_acc32 = x_th_mul_acc[31:0];
         assign th_mulah_sum32 = th_mulah_acc32 + (th_mulah_lhs16 * th_mulah_rhs16);
-        assign x_result_th_mulah = {{(XLEN-32){th_mulah_sum32[31]}}, th_mulah_sum32};
+        assign x_result_th_mulah = x_th_mulah_op_active ? {{(XLEN-32){th_mulah_sum32[31]}}, th_mulah_sum32} : {XLEN{1'b0}};
     end
 end else begin : gen_no_xthead_mul_extension
     assign x_result_th_mula = {XLEN{1'b0}};
@@ -216,8 +242,8 @@ if ((ENABLE_M_EXTENSION != 0) || (ENABLE_ZMMUL_EXTENSION != 0)) begin : gen_mul_
     // Share one 33x33 multiplier across MUL/MULH/MULHSU/MULHU.
     assign mul_lhs_signed = (alu_op == `YH_rv_cpu_ALU_MULH) || (alu_op == `YH_rv_cpu_ALU_MULHSU);
     assign mul_rhs_signed = (alu_op == `YH_rv_cpu_ALU_MULH);
-    assign mul_lhs_ext = {mul_lhs_signed & lhs[31], lhs[31:0]};
-    assign mul_rhs_ext = {mul_rhs_signed & rhs[31], rhs[31:0]};
+    assign mul_lhs_ext = {mul_lhs_signed & m_mul_lhs[31], m_mul_lhs[31:0]};
+    assign mul_rhs_ext = {mul_rhs_signed & m_mul_rhs[31], m_mul_rhs[31:0]};
     assign mul_product = $signed(mul_lhs_ext) * $signed(mul_rhs_ext);
 
     assign m_result_mul = mul_product[XLEN-1:0];

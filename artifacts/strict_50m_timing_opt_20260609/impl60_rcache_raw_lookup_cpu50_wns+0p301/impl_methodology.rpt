@@ -1,0 +1,91 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Thu Jun 11 10:08:37 2026
+| Host         : Toylog_desktop running 64-bit major release  (build 9200)
+| Command      : report_methodology -file V:/project/reports/pynq_z2_sysclk_8p000ns_cpu50/impl_methodology.rpt
+| Design       : YH_rv_cpu_fpga_top
+| Device       : xc7z020clg400-1
+| Speed File   : -1
+| Design State : Fully Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Report Methodology
+
+Table of Contents
+-----------------
+1. REPORT SUMMARY
+2. REPORT DETAILS
+
+1. REPORT SUMMARY
+-----------------
+            Netlist: YH_rv_cpu_fpga_top
+          Floorplan: design_1
+      Design limits: <entire design considered>
+             Max checks: <unlimited>
+             Checks found: 11
++----------+----------+--------------------------------------------+--------+
+| Rule     | Severity | Description                                | Checks |
++----------+----------+--------------------------------------------+--------+
+| SYNTH-6  | Warning  | Timing of a RAM block might be sub-optimal | 4      |
+| SYNTH-10 | Warning  | Wide multiplier                            | 7      |
++----------+----------+--------------------------------------------+--------+
+
+2. REPORT DETAILS
+-----------------
+SYNTH-6#1 Warning
+Timing of a RAM block might be sub-optimal  
+The timing for the instance u_soc/g_shared_sync_rom.u_sync_rom/imem_rdata_r_reg_0, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+Related violations: <none>
+
+SYNTH-6#2 Warning
+Timing of a RAM block might be sub-optimal  
+The timing for the instance u_soc/g_shared_sync_rom.u_sync_rom/imem_rdata_r_reg_1, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+Related violations: <none>
+
+SYNTH-6#3 Warning
+Timing of a RAM block might be sub-optimal  
+The timing for the instance u_soc/u_dmem_ram/g_sync_ram.g_posedge_read.ram_mem_reg_0, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+Related violations: <none>
+
+SYNTH-6#4 Warning
+Timing of a RAM block might be sub-optimal  
+The timing for the instance u_soc/u_dmem_ram/g_sync_ram.g_posedge_read.ram_mem_reg_1, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+Related violations: <none>
+
+SYNTH-10#1 Warning
+Wide multiplier  
+Detected multiplier at u_soc/u_cpu/u_ex_stage/u_alu/gen_mul_extension.mul_product of size 16x18, it is decomposed from a wide multipler into 4 DSP blocks.
+Related violations: <none>
+
+SYNTH-10#2 Warning
+Wide multiplier  
+Detected multiplier at u_soc/u_cpu/u_ex_stage/u_alu/gen_mul_extension.mul_product__0 of size 16x16, it is decomposed from a wide multipler into 4 DSP blocks.
+Related violations: <none>
+
+SYNTH-10#3 Warning
+Wide multiplier  
+Detected multiplier at u_soc/u_cpu/u_ex_stage/u_alu/gen_mul_extension.mul_product__1 of size 18x18, it is decomposed from a wide multipler into 4 DSP blocks.
+Related violations: <none>
+
+SYNTH-10#4 Warning
+Wide multiplier  
+Detected multiplier at u_soc/u_cpu/u_ex_stage/u_alu/gen_mul_extension.mul_product__2 of size 18x16, it is decomposed from a wide multipler into 4 DSP blocks.
+Related violations: <none>
+
+SYNTH-10#5 Warning
+Wide multiplier  
+Detected multiplier at u_soc/u_cpu/u_ex_stage/u_alu/x_result_th_mula1 of size 16x18, it is decomposed from a wide multipler into 4 DSP blocks.
+Related violations: <none>
+
+SYNTH-10#6 Warning
+Wide multiplier  
+Detected multiplier at u_soc/u_cpu/u_ex_stage/u_alu/x_result_th_mula1__0 of size 18x18, it is decomposed from a wide multipler into 4 DSP blocks.
+Related violations: <none>
+
+SYNTH-10#7 Warning
+Wide multiplier  
+Detected multiplier at u_soc/u_cpu/u_ex_stage/u_alu/x_result_th_mula1__1 of size 18x16, it is decomposed from a wide multipler into 4 DSP blocks.
+Related violations: <none>
+
+
