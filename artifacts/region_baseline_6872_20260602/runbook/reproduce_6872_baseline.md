@@ -1,4 +1,9 @@
-# Reproduce 6872 LUT Baseline
+# Reproduce Demoted 6872 LUT Reference
+
+Cleanup note: this reproduces a historical quick-synth engineering reference,
+not the current accepted baseline. The 2026-06-02 full implementation audit for
+this configuration failed timing at `7063 post-route LUT / WNS -10.360 ns`.
+After the 2026-06-09 cleanup, use CPU25 as the accepted timing-closed baseline.
 
 Run from:
 
@@ -45,9 +50,13 @@ Expected utilization:
 
 `6872 LUT / 3153 FF / 20 BRAM / 8 DSP`
 
-## Full Implementation To Add
+## Full Implementation Audit
 
-Full implementation evidence is not yet available for this exact baseline.
-When it is run, copy the resulting reports into `reports/` and update
-`TEST_STATUS.md`.
+Full implementation evidence is already available and timing failed:
 
+`7063 post-route LUT / WNS -10.360 ns / WHS +0.028 ns`
+
+Reports:
+
+- `../reports/impl_utilization_6872baseline_7063lut_wns-10p360.rpt`
+- `../reports/impl_timing_6872baseline_7063lut_wns-10p360.rpt`

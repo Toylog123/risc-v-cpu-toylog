@@ -1,0 +1,13 @@
+log_path=D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\coremark7-dmips5-20260508\artifacts\freeze_timingclosed_cpu25_20260605\experiments\dhrystone_cpu25_rc128_noautoinc_runs100_20260605.log
+clock_hz=100000000
+runs=100
+microseconds_per_run=4
+dhrystones_per_second=211581
+dmips=120.421742
+dmips_per_mhz=1.204217
+total_seconds=0.000473
+estimated_total_ticks=47263
+completion_cycles=91279
+benchmark=Dhrystone 2.2
+measurement_mode=host-parsed-from-uart-log
+competition_report_line=DMIPS/MHz (host-parsed): 1.204217 / Dhrystones/s 211581 / runs 100

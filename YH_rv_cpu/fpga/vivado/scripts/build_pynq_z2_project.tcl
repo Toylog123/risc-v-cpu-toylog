@@ -50,6 +50,8 @@ set enable_id_branch_ex_forward 0
 set enable_id_branch_exmem_load_forward 1
 set enable_ex_redirect_exmem_load_forward 1
 set enable_id_branch_fold 0
+set enable_id_branch_fold_light_decode 0
+set enable_id_branch_not_taken_fold 1
 set enable_id_branch_fold_next_cache 1
 set enable_ex_redirect_fold 1
 set enable_id_branch_nt_next_cache 1
@@ -60,6 +62,7 @@ set enable_redirect_target_cache 1
 set enable_redirect_cache_regular_lookup 1
 set enable_redirect_cache_regular_simple_lookup 1
 set enable_redirect_cache_ex_simple_block 0
+set enable_redirect_cache_update_on_redirect 0
 set enable_fetch_redirect_reuse 0
 set enable_fetch_live_bypass 1
 set enable_fetch_redirect_same_cycle_req 1
@@ -73,6 +76,8 @@ set dmem_output_reg 0
 set enable_dynamic_branch_predict 0
 set branch_bht_entries 64
 set branch_static_predict_mode 0
+set branch_bht_strong_only 0
+set branch_bht_direct_update 0
 set dmem_negedge_read 0
 set dmem_read_preissue 0
 set dcache_en 0
@@ -213,6 +218,12 @@ if {[info exists ::env(PYNQ_ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD_OVERRIDE)] && 
 if {[info exists ::env(PYNQ_ENABLE_ID_BRANCH_FOLD_OVERRIDE)] && $::env(PYNQ_ENABLE_ID_BRANCH_FOLD_OVERRIDE) ne ""} {
     set enable_id_branch_fold $::env(PYNQ_ENABLE_ID_BRANCH_FOLD_OVERRIDE)
 }
+if {[info exists ::env(PYNQ_ENABLE_ID_BRANCH_FOLD_LIGHT_DECODE_OVERRIDE)] && $::env(PYNQ_ENABLE_ID_BRANCH_FOLD_LIGHT_DECODE_OVERRIDE) ne ""} {
+    set enable_id_branch_fold_light_decode $::env(PYNQ_ENABLE_ID_BRANCH_FOLD_LIGHT_DECODE_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_ENABLE_ID_BRANCH_NOT_TAKEN_FOLD_OVERRIDE)] && $::env(PYNQ_ENABLE_ID_BRANCH_NOT_TAKEN_FOLD_OVERRIDE) ne ""} {
+    set enable_id_branch_not_taken_fold $::env(PYNQ_ENABLE_ID_BRANCH_NOT_TAKEN_FOLD_OVERRIDE)
+}
 if {[info exists ::env(PYNQ_ENABLE_ID_BRANCH_FOLD_NEXT_CACHE_OVERRIDE)] && $::env(PYNQ_ENABLE_ID_BRANCH_FOLD_NEXT_CACHE_OVERRIDE) ne ""} {
     set enable_id_branch_fold_next_cache $::env(PYNQ_ENABLE_ID_BRANCH_FOLD_NEXT_CACHE_OVERRIDE)
 }
@@ -242,6 +253,9 @@ if {[info exists ::env(PYNQ_ENABLE_REDIRECT_CACHE_REGULAR_SIMPLE_LOOKUP_OVERRIDE
 }
 if {[info exists ::env(PYNQ_ENABLE_REDIRECT_CACHE_EX_SIMPLE_BLOCK_OVERRIDE)] && $::env(PYNQ_ENABLE_REDIRECT_CACHE_EX_SIMPLE_BLOCK_OVERRIDE) ne ""} {
     set enable_redirect_cache_ex_simple_block $::env(PYNQ_ENABLE_REDIRECT_CACHE_EX_SIMPLE_BLOCK_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_ENABLE_REDIRECT_CACHE_UPDATE_ON_REDIRECT_OVERRIDE)] && $::env(PYNQ_ENABLE_REDIRECT_CACHE_UPDATE_ON_REDIRECT_OVERRIDE) ne ""} {
+    set enable_redirect_cache_update_on_redirect $::env(PYNQ_ENABLE_REDIRECT_CACHE_UPDATE_ON_REDIRECT_OVERRIDE)
 }
 if {[info exists ::env(PYNQ_ENABLE_FETCH_REDIRECT_REUSE_OVERRIDE)] && $::env(PYNQ_ENABLE_FETCH_REDIRECT_REUSE_OVERRIDE) ne ""} {
     set enable_fetch_redirect_reuse $::env(PYNQ_ENABLE_FETCH_REDIRECT_REUSE_OVERRIDE)
@@ -281,6 +295,12 @@ if {[info exists ::env(PYNQ_BRANCH_BHT_ENTRIES_OVERRIDE)] && $::env(PYNQ_BRANCH_
 }
 if {[info exists ::env(PYNQ_BRANCH_STATIC_PREDICT_MODE_OVERRIDE)] && $::env(PYNQ_BRANCH_STATIC_PREDICT_MODE_OVERRIDE) ne ""} {
     set branch_static_predict_mode $::env(PYNQ_BRANCH_STATIC_PREDICT_MODE_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_BRANCH_BHT_STRONG_ONLY_OVERRIDE)] && $::env(PYNQ_BRANCH_BHT_STRONG_ONLY_OVERRIDE) ne ""} {
+    set branch_bht_strong_only $::env(PYNQ_BRANCH_BHT_STRONG_ONLY_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_BRANCH_BHT_DIRECT_UPDATE_OVERRIDE)] && $::env(PYNQ_BRANCH_BHT_DIRECT_UPDATE_OVERRIDE) ne ""} {
+    set branch_bht_direct_update $::env(PYNQ_BRANCH_BHT_DIRECT_UPDATE_OVERRIDE)
 }
 if {[info exists ::env(PYNQ_DMEM_NEGEDGE_READ_OVERRIDE)] && $::env(PYNQ_DMEM_NEGEDGE_READ_OVERRIDE) ne ""} {
     set dmem_negedge_read $::env(PYNQ_DMEM_NEGEDGE_READ_OVERRIDE)
@@ -405,6 +425,8 @@ puts "INFO: ENABLE_ID_BRANCH_EX_FORWARD = ${enable_id_branch_ex_forward}"
 puts "INFO: ENABLE_ID_BRANCH_EXMEM_LOAD_FORWARD = ${enable_id_branch_exmem_load_forward}"
 puts "INFO: ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD = ${enable_ex_redirect_exmem_load_forward}"
 puts "INFO: ENABLE_ID_BRANCH_FOLD = ${enable_id_branch_fold}"
+puts "INFO: ENABLE_ID_BRANCH_FOLD_LIGHT_DECODE = ${enable_id_branch_fold_light_decode}"
+puts "INFO: ENABLE_ID_BRANCH_NOT_TAKEN_FOLD = ${enable_id_branch_not_taken_fold}"
 puts "INFO: ENABLE_ID_BRANCH_FOLD_NEXT_CACHE = ${enable_id_branch_fold_next_cache}"
 puts "INFO: ENABLE_EX_REDIRECT_FOLD = ${enable_ex_redirect_fold}"
 puts "INFO: ENABLE_ID_BRANCH_NT_NEXT_CACHE = ${enable_id_branch_nt_next_cache}"
@@ -415,6 +437,7 @@ puts "INFO: ENABLE_REDIRECT_TARGET_CACHE = ${enable_redirect_target_cache}"
 puts "INFO: ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP = ${enable_redirect_cache_regular_lookup}"
 puts "INFO: ENABLE_REDIRECT_CACHE_REGULAR_SIMPLE_LOOKUP = ${enable_redirect_cache_regular_simple_lookup}"
 puts "INFO: ENABLE_REDIRECT_CACHE_EX_SIMPLE_BLOCK = ${enable_redirect_cache_ex_simple_block}"
+puts "INFO: ENABLE_REDIRECT_CACHE_UPDATE_ON_REDIRECT = ${enable_redirect_cache_update_on_redirect}"
 puts "INFO: ENABLE_FETCH_REDIRECT_REUSE = ${enable_fetch_redirect_reuse}"
 puts "INFO: ENABLE_FETCH_LIVE_BYPASS = ${enable_fetch_live_bypass}"
 puts "INFO: ENABLE_FETCH_REDIRECT_SAME_CYCLE_REQ = ${enable_fetch_redirect_same_cycle_req}"
@@ -428,6 +451,8 @@ puts "INFO: DMEM_OUTPUT_REG = ${dmem_output_reg}"
 puts "INFO: ENABLE_DYNAMIC_BRANCH_PREDICT = ${enable_dynamic_branch_predict}"
 puts "INFO: BRANCH_BHT_ENTRIES = ${branch_bht_entries}"
 puts "INFO: BRANCH_STATIC_PREDICT_MODE = ${branch_static_predict_mode}"
+puts "INFO: BRANCH_BHT_STRONG_ONLY = ${branch_bht_strong_only}"
+puts "INFO: BRANCH_BHT_DIRECT_UPDATE = ${branch_bht_direct_update}"
 puts "INFO: DMEM_NEGEDGE_READ = ${dmem_negedge_read}"
 puts "INFO: DMEM_READ_PREISSUE = ${dmem_read_preissue}"
 puts "INFO: DCACHE_EN = ${dcache_en}"
@@ -529,6 +554,8 @@ lappend synth_cmd -generic "ENABLE_ID_BRANCH_EX_FORWARD=$enable_id_branch_ex_for
 lappend synth_cmd -generic "ENABLE_ID_BRANCH_EXMEM_LOAD_FORWARD=$enable_id_branch_exmem_load_forward"
 lappend synth_cmd -generic "ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD=$enable_ex_redirect_exmem_load_forward"
 lappend synth_cmd -generic "ENABLE_ID_BRANCH_FOLD=$enable_id_branch_fold"
+lappend synth_cmd -generic "ENABLE_ID_BRANCH_FOLD_LIGHT_DECODE=$enable_id_branch_fold_light_decode"
+lappend synth_cmd -generic "ENABLE_ID_BRANCH_NOT_TAKEN_FOLD=$enable_id_branch_not_taken_fold"
 lappend synth_cmd -generic "ENABLE_ID_BRANCH_FOLD_NEXT_CACHE=$enable_id_branch_fold_next_cache"
 lappend synth_cmd -generic "ENABLE_EX_REDIRECT_FOLD=$enable_ex_redirect_fold"
 lappend synth_cmd -generic "ENABLE_ID_BRANCH_NT_NEXT_CACHE=$enable_id_branch_nt_next_cache"
@@ -539,6 +566,7 @@ lappend synth_cmd -generic "ENABLE_REDIRECT_TARGET_CACHE=$enable_redirect_target
 lappend synth_cmd -generic "ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP=$enable_redirect_cache_regular_lookup"
 lappend synth_cmd -generic "ENABLE_REDIRECT_CACHE_REGULAR_SIMPLE_LOOKUP=$enable_redirect_cache_regular_simple_lookup"
 lappend synth_cmd -generic "ENABLE_REDIRECT_CACHE_EX_SIMPLE_BLOCK=$enable_redirect_cache_ex_simple_block"
+lappend synth_cmd -generic "ENABLE_REDIRECT_CACHE_UPDATE_ON_REDIRECT=$enable_redirect_cache_update_on_redirect"
 lappend synth_cmd -generic "ENABLE_FETCH_REDIRECT_REUSE=$enable_fetch_redirect_reuse"
 lappend synth_cmd -generic "ENABLE_FETCH_LIVE_BYPASS=$enable_fetch_live_bypass"
 lappend synth_cmd -generic "ENABLE_FETCH_REDIRECT_SAME_CYCLE_REQ=$enable_fetch_redirect_same_cycle_req"
@@ -552,6 +580,8 @@ lappend synth_cmd -generic "DMEM_OUTPUT_REG=$dmem_output_reg"
 lappend synth_cmd -generic "ENABLE_DYNAMIC_BRANCH_PREDICT=$enable_dynamic_branch_predict"
 lappend synth_cmd -generic "BRANCH_BHT_ENTRIES=$branch_bht_entries"
 lappend synth_cmd -generic "BRANCH_STATIC_PREDICT_MODE=$branch_static_predict_mode"
+lappend synth_cmd -generic "BRANCH_BHT_STRONG_ONLY=$branch_bht_strong_only"
+lappend synth_cmd -generic "BRANCH_BHT_DIRECT_UPDATE=$branch_bht_direct_update"
 lappend synth_cmd -generic "DMEM_NEGEDGE_READ=$dmem_negedge_read"
 lappend synth_cmd -generic "DMEM_READ_PREISSUE=$dmem_read_preissue"
 lappend synth_cmd -generic "DCACHE_EN=$dcache_en"

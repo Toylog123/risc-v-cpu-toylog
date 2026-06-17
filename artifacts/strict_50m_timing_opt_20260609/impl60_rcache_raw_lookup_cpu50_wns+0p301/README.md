@@ -1,6 +1,14 @@
 # impl60_rcache_raw_lookup_cpu50_wns+0p301
 
-Strict 50MHz CoreMark-ROM/RAM timing candidate.
+Historical timing experiment. Do not report this as the strict exact-CoreMark-ROM
+50MHz candidate.
+
+Demotion note, 2026-06-12: the Vivado implementation log in this directory binds
+`YH_rv_cpu_demo.hex` / `YH_rv_cpu_demo.mem32.hex`, with `ROM_BYTES=8192` and
+`RAM_BYTES=8192`. The timing result is useful as a hardware timing experiment,
+but it is not exact CoreMark ROM evidence. The current strict exact-ROM
+candidate is
+`../impl74_exblock_nodcache_luspec_exactrom_cpu50_wns+0p341`.
 
 ## Result
 

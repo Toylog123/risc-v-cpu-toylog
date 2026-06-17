@@ -44,21 +44,32 @@ Baseline for all work in this plan:
 | L11 | Split fold-target decoder from PC critical path | pending | P1 | Worst path no longer enters `u_fold_target_id_stage/u_decoder` before `pc_r` | Cache or predecode only the control bits needed for fold safety |
 | L12 | Register selected frontend hazard classes | pending | P1 | Load-use/frontend hazards do not fan into `fetch_control_redirect_valid` and `pc_r` in one cycle | Add one-cycle conservative stalls for only path-sensitive cases |
 | L13 | Re-evaluate EX operand frontend guard | pending | P1 | Determine if the guard is still needed after structural path cuts | Compare CoreMark, DMIPS, LUT, WNS with and without guard |
-| L14 | Try 128-entry redirect cache under CPU25/30 | pending | P2 | Improves CoreMark/MHz or DMIPS without exceeding 8000 LUT and timing | Run RC128 only after board evidence is done |
+| L14 | Try 128-entry redirect cache under CPU25/30 | done | P2 | Improves CoreMark/MHz or DMIPS without exceeding 8000 LUT and timing | CPU25 RC128 validated at `7076 LUT / 4.627215 CoreMark/MHz / 1.205669 DMIPS/MHz / WNS +0.514`; promote only after board evidence is regenerated |
 | L15 | Try selective NT-load fold recovery | pending | P2 | Recover performance without reintroducing DCache-to-PC critical path | Enable fold only for path-safe dependency classes |
-| L16 | Add timing-report parser script | pending | P2 | One command extracts LUT, FF, BRAM, DSP, WNS, WHS, worst path endpoints | Implement parser for Vivado report directories |
-| L17 | Add experiment ledger table | pending | P2 | All future runs recorded in a single CSV/Markdown table with evidence paths | Start from CPU25 freeze and rejected no-regular/no-NT-next runs |
+| L16 | Add timing-report parser script | done | P2 | One command extracts LUT, FF, BRAM, DSP, WNS, WHS, worst path endpoints | Parser is `YH_rv_cpu/scripts/parse_vivado_reports.py` |
+| L17 | Add experiment ledger table | done | P2 | All future runs recorded in a single CSV/Markdown table with evidence paths | Ledger is `OPTIMIZATION_LEDGER_20260605.md` |
 | L18 | Power estimate for CPU25 baseline | pending | P2 | Vivado power or board observation recorded with clock and activity assumption | Run after board evidence or stable SAIF/VCD is available |
 | L19 | Clean stale local artifacts policy | pending | P2 | Clearly identify ignored historical artifacts and current freeze artifacts | Document what should not be staged or pushed |
 | L20 | Final technical narrative | pending | P1 | Chinese report text accurately distinguishes timing-closed CPU25 from 50 MHz timing-fail baselines | Draft after board evidence and long-run evidence are complete |
+| L21 | Keep RC128 validation wrapper current | done | P1 | One command reruns the validated CPU25 RC128 CoreMark and Dhrystone simulation pair with matching hardware generics | Wrapper is `YH_rv_cpu/scripts/run_cpu25_rc128_validated.bat`; use before promoting RC128 to board-facing baseline |
+| L22 | Restore BFNext and trim unused ZBKB hardware | done | P1 | Best CPU25 successor keeps CoreMark/MHz above 4.7, closes timing, and stays below 8000 LUT | Low-LUT candidate: `7374 LUT / 4.741458 CoreMark/MHz / WNS +0.282 / WHS +0.062`; wrapper is `YH_rv_cpu/scripts/build_pynq_z2_cpu25_rc128_bfnext_nozbkb_coremark.bat` |
+| L23 | Rebuild BFNext/no-ZBKB with timing-driven synthesis | done | P1 | Improve setup margin without losing CoreMark or exceeding 8000 LUT | Current recommended timing-robust candidate: `7473 LUT / 4.741458 CoreMark/MHz / WNS +1.348 / WHS +0.041`; wrapper is `YH_rv_cpu/scripts/build_pynq_z2_cpu25_rc128_bfnext_nozbkb_timingdriven_coremark.bat` |
 
 ## Suggested Experiment Order
 
-1. Finish board evidence for CPU25 before replacing the baseline.
-2. Run CPU30 and CPU33 implementation on the current frozen RTL, because this is the fastest way to find the available clock ceiling.
-3. If CPU30/33 fails, prioritize structural cuts around regular redirect-cache lookup and PC skip.
-4. If CPU30/33 passes, rerun CoreMark/Dhrystone evidence and decide whether to freeze a higher-clock successor.
-5. Only after a higher-clock candidate closes timing, revisit CoreMark/MHz recovery options such as selective fold recovery or RC128.
+1. Keep `cpu25_rc128_bfnext_nozbkb_timingdriven_20260606` as the selected optimization family unless a later experiment beats it on all gates.
+2. Run CPU30 and CPU33 implementation on this selected family, because this is the fastest way to find the available clock ceiling without changing software.
+3. If CPU30/33 fails, prioritize structural cuts around regular redirect-cache lookup and PC skip, then rerun CoreMark/Dhrystone before full implementation.
+4. If CPU30/33 passes, rerun CoreMark/Dhrystone evidence at the selected clock and decide whether to freeze a higher-clock successor.
+5. Regenerate board evidence only after the clock/resource/performance choice is stable: bitstream checksum, PROGRAM_OK, UART log, and video.
+
+## Tooling Added
+
+- Report parser: `YH_rv_cpu/scripts/parse_vivado_reports.py`.
+- RC128 validation wrapper: `YH_rv_cpu/scripts/run_cpu25_rc128_validated.bat`.
+- Current recommended BFNext/no-ZBKB timing-driven implementation wrapper: `YH_rv_cpu/scripts/build_pynq_z2_cpu25_rc128_bfnext_nozbkb_timingdriven_coremark.bat`.
+- Experiment ledger: `artifacts/freeze_timingclosed_cpu25_20260605/OPTIMIZATION_LEDGER_20260605.md`.
+- Use the parser output as the canonical row format for future optimization reports.
 
 ## Promotion Gates
 

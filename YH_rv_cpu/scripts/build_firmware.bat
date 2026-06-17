@@ -6,6 +6,10 @@ set BUILD_DIR=%PROJECT_DIR%\build\sw
 set TARGET=%~1
 set OUTPUT_NAME=YH_rv_cpu_demo
 set SOURCES="%PROJECT_DIR%\sw\src\crt0.S" "%PROJECT_DIR%\sw\src\main.c"
+set LINKER_SCRIPT=%PROJECT_DIR%\sw\linker\YH_rv_cpu.ld
+set MARCH=rv32i_zicsr
+set MABI=ilp32
+set OPT_FLAGS=-Os
 set WORD_HEX_PY=%PROJECT_DIR%\scripts\make_word_hex.py
 set GCC=
 set OBJDUMP=
@@ -22,6 +26,14 @@ if /I "%TARGET%"=="trap_smoke" (
 if /I "%TARGET%"=="timer_irq_smoke" (
     set OUTPUT_NAME=YH_rv_cpu_timer_irq_smoke
     set SOURCES="%PROJECT_DIR%\sw\src\crt0.S" "%PROJECT_DIR%\sw\src\timer_irq_entry.S" "%PROJECT_DIR%\sw\src\timer_irq_smoke.c"
+)
+
+if /I "%TARGET%"=="perf_demo" (
+    set OUTPUT_NAME=YH_rv_cpu_perf_demo
+    set SOURCES="%PROJECT_DIR%\sw\src\crt0.S" "%PROJECT_DIR%\sw\src\perf_demo.c"
+    set LINKER_SCRIPT=%PROJECT_DIR%\sw\linker\YH_rv_cpu_coremark.ld
+    set MARCH=rv32i_zmmul_zicsr
+    set OPT_FLAGS=-O2 -fno-builtin
 )
 
 for %%T in (riscv-none-elf-gcc riscv32-unknown-elf-gcc riscv64-unknown-elf-gcc) do (
@@ -101,8 +113,8 @@ if not defined PYTHON_CMD (
 
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
-%GCC% -march=rv32i_zicsr -mabi=ilp32 -nostdlib -ffreestanding -Os ^
-    -T "%PROJECT_DIR%\sw\linker\YH_rv_cpu.ld" ^
+%GCC% -march=%MARCH% -mabi=%MABI% -nostdlib -ffreestanding %OPT_FLAGS% ^
+    -T "%LINKER_SCRIPT%" ^
     -o "%BUILD_DIR%\%OUTPUT_NAME%.elf" ^
     %SOURCES%
 if errorlevel 1 exit /b 1

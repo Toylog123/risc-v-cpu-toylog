@@ -1,0 +1,33 @@
+
+****** xsim v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Fri Jun  5 08:17:39 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/YH_rv_cpu_perf_demo_tb_snapshot/xsim_script.tcl
+# xsim {YH_rv_cpu_perf_demo_tb_snapshot} -testplusarg max_cycles=20000000 -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+INFO: max_cycles=20000000
+YH_rv_cpu Performance Demo Suite
+baseline=freeze-timingclosed-cpu25-20260605 cpu_clk=25MHz
+CRC32 begin
+CRC32 cycles=0x0000aaa1 units=0x00000200 checksum=0x3287d9af PASS
+MATMUL8 begin
+MATMUL8 cycles=0x00001a19 units=0x00000400 checksum=0x44da4cfb PASS
+MEMCPYFILL begin
+MEMCPYFILL cycles=0x0000df32 units=0x00001000 checksum=0x04053d00 PASS
+BRANCH begin
+BRANCH cycles=0x000120be units=0x00001000 checksum=0x8bad48bc PASS
+LOADUSE begin
+LOADUSE cycles=0x0000c633 units=0x00000800 checksum=0x76962aa8 PASS
+PERF_DEMO PASS checksum=0xe727358b total_cycles=0x00038add
+
+PASS: perf demo completed at PC=00000000 in 254944 cycles, UART bytes=560
+$finish called at time : 2549465 ns : File "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/YH_rv_cpu/tb/YH_rv_cpu_perf_demo_tb.v" Line 122
+run: Time (s): cpu = 00:00:00 ; elapsed = 00:00:07 . Memory (MB): peak = 223.645 ; gain = 0.000
+exit
+INFO: [Common 17-206] Exiting xsim at Fri Jun  5 08:17:50 2026...

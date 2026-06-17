@@ -1,0 +1,37 @@
+CPU25 performance demo simulation summary
+
+Date: 2026-06-05
+Command: cmd /c YH_rv_cpu\scripts\run_perf_demo.bat
+RTL config: CPU25-equivalent functional parameters in YH_rv_cpu_perf_demo_tb
+Firmware: YH_rv_cpu_perf_demo
+Linker RAM base: 0x00010000
+ROM binary size: 2345 bytes
+
+UART workload results:
+- CRC32: cycles=0x0000aaa1 units=0x00000200 checksum=0x3287d9af PASS
+- MATMUL8: cycles=0x00001a19 units=0x00000400 checksum=0x44da4cfb PASS
+- MEMCPYFILL: cycles=0x0000df32 units=0x00001000 checksum=0x04053d00 PASS
+- BRANCH: cycles=0x000120be units=0x00001000 checksum=0x8bad48bc PASS
+- LOADUSE: cycles=0x0000c633 units=0x00000800 checksum=0x76962aa8 PASS
+
+Final line:
+PERF_DEMO PASS checksum=0xe727358b total_cycles=0x00038add
+
+Testbench result:
+PASS: perf demo completed at PC=00000000 in 254944 cycles, UART bytes=560
+
+Raw UART/xsim log:
+artifacts/freeze_timingclosed_cpu25_20260605/evidence/perf_demo_xsim_uart_20260605.log
+
+Board note:
+The CPU25 PYNQ-Z2 bitstream was regenerated with this ROM image and timing remains closed.
+
+Implementation result:
+- Bitstream: artifacts/freeze_timingclosed_cpu25_20260605/YH_rv_cpu_pynq_z2_sysclk_8p000ns_cpu25_perf_demo.bit
+- Utilization: 6791 post-route LUT
+- Timing: WNS +0.291 ns / WHS +0.065 ns
+- Timing report: artifacts/freeze_timingclosed_cpu25_20260605/reports/impl_timing_summary_cpu25_perf_demo_wns+0p291.rpt
+- Utilization report: artifacts/freeze_timingclosed_cpu25_20260605/reports/impl_utilization_cpu25_perf_demo_6791lut.rpt
+
+Remaining board evidence:
+PROGRAM_OK, UART capture, and video on PYNQ-Z2.

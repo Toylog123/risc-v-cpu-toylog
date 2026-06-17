@@ -58,6 +58,8 @@ module YH_rv_cpu #(
     parameter integer ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD = 1,
     parameter integer ENABLE_REDIRECT_TARGET_CACHE = 1,
     parameter integer ENABLE_ID_BRANCH_FOLD = 0,
+    parameter integer ENABLE_ID_BRANCH_FOLD_LIGHT_DECODE = 0,
+    parameter integer ENABLE_ID_BRANCH_NOT_TAKEN_FOLD = 1,
     parameter integer ENABLE_ID_BRANCH_FOLD_NEXT_CACHE = 1,
     parameter integer ENABLE_EX_REDIRECT_FOLD = 1,
     parameter integer ENABLE_ID_BRANCH_NT_NEXT_CACHE = 1,
@@ -67,6 +69,7 @@ module YH_rv_cpu #(
     parameter integer ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP = 1,
     parameter integer ENABLE_REDIRECT_CACHE_REGULAR_SIMPLE_LOOKUP = 0,
     parameter integer ENABLE_REDIRECT_CACHE_EX_SIMPLE_BLOCK = 0,
+    parameter integer ENABLE_REDIRECT_CACHE_UPDATE_ON_REDIRECT = 0,
     parameter integer ENABLE_FETCH_REDIRECT_REUSE = 0,
     parameter integer ENABLE_FETCH_LIVE_BYPASS = 1,
     parameter integer ENABLE_FETCH_REDIRECT_SAME_CYCLE_REQ = 1,
@@ -79,6 +82,9 @@ module YH_rv_cpu #(
     parameter integer BRANCH_BHT_ENTRIES = 64,
     parameter integer BRANCH_STATIC_PREDICT_MODE = 0,
     parameter integer BRANCH_BHT_STRONG_ONLY = 0,
+    parameter integer BRANCH_BHT_DIRECT_UPDATE = 0,
+    parameter [XLEN-1:0] ROM_BASE = {XLEN{1'b0}},
+    parameter integer ROM_BYTES = 16384,
     parameter [XLEN-1:0] RESET_VECTOR = {XLEN{1'b0}}  // 复位向量地址
 ) (
     // ------------------------------------------------------------
@@ -126,8 +132,12 @@ module YH_rv_cpu #(
 localparam integer SHAMT_W = $clog2(XLEN);
 localparam integer REDIRECT_CACHE_INDEX_BITS = $clog2(REDIRECT_CACHE_ENTRIES);
 localparam integer REDIRECT_CACHE_INDEX_MSB = REDIRECT_CACHE_INDEX_BITS + 1;
-localparam integer REDIRECT_CACHE_TAG_W = XLEN - REDIRECT_CACHE_INDEX_MSB - 1;
 localparam integer REDIRECT_CACHE_TAG_LSB = REDIRECT_CACHE_INDEX_MSB + 1;
+localparam integer REDIRECT_CACHE_ROM_ADDR_BITS =
+    (ROM_BYTES <= 4) ? (REDIRECT_CACHE_TAG_LSB + 1) :
+    (($clog2(ROM_BYTES) <= REDIRECT_CACHE_TAG_LSB) ? (REDIRECT_CACHE_TAG_LSB + 1) : $clog2(ROM_BYTES));
+localparam integer REDIRECT_CACHE_TAG_MSB = REDIRECT_CACHE_ROM_ADDR_BITS - 1;
+localparam integer REDIRECT_CACHE_TAG_W = REDIRECT_CACHE_TAG_MSB - REDIRECT_CACHE_TAG_LSB + 1;
 localparam integer BRANCH_BHT_INDEX_BITS = $clog2(BRANCH_BHT_ENTRIES);
 localparam integer DCACHEABLE_BYTES =
     (DCACHEABLE_LIMIT > DCACHEABLE_BASE) ? (DCACHEABLE_LIMIT - DCACHEABLE_BASE) : 1;
@@ -386,6 +396,8 @@ wire [XLEN-1:0] id_branch_not_taken_next_pc;
 wire [REDIRECT_CACHE_INDEX_BITS-1:0] not_taken_next_cache_lookup_index_direct;
 wire [REDIRECT_CACHE_INDEX_BITS-1:0] not_taken_next_cache_lookup_index_xor;
 wire [REDIRECT_CACHE_INDEX_BITS-1:0] not_taken_next_cache_lookup_index;
+wire            not_taken_next_cache_pc_in_rom;
+wire [REDIRECT_CACHE_TAG_W-1:0] not_taken_next_cache_tag;
 wire            not_taken_next_cache_control;
 wire            not_taken_next_cache_hit;
 wire            not_taken_next_cache_match;
@@ -494,6 +506,20 @@ wire [XLEN-1:0] fold_id_rs1_value;
 wire [XLEN-1:0] fold_id_rs2_value;
 wire            fold_id_hazard;
 wire            fold_id_control_or_trap;
+wire [6:0]      fold_light_opcode;
+wire [2:0]      fold_light_funct3;
+wire [6:0]      fold_light_funct7;
+wire [XLEN-1:0] fold_light_imm_i;
+wire [XLEN-1:0] fold_light_imm_u;
+reg             fold_light_rs1_en;
+reg             fold_light_rs2_en;
+reg             fold_light_rd_en;
+reg             fold_light_illegal;
+reg [XLEN-1:0]  fold_light_imm;
+reg [5:0]       fold_light_alu_op;
+reg             fold_light_alu_src1_pc;
+reg             fold_light_alu_src2_imm;
+reg             fold_light_is_lui;
 wire            id_mul_op;
 wire            id_ex_mul_op;
 wire            id_load_to_mul_hazard;
@@ -511,6 +537,162 @@ assign fold_id_rs3_en = fold_id_store_data_from_rd ||
     ((ENABLE_XTHEAD_MUL_EXTENSION != 0) && (
         (fold_id_alu_op == `YH_rv_cpu_ALU_TH_MULA) ||
         (fold_id_alu_op == `YH_rv_cpu_ALU_TH_MULAH)));
+assign fold_light_opcode = fold_decode_instruction[6:0];
+assign fold_light_funct3 = fold_decode_instruction[14:12];
+assign fold_light_funct7 = fold_decode_instruction[31:25];
+assign fold_light_imm_i = {{(XLEN-12){fold_decode_instruction[31]}}, fold_decode_instruction[31:20]};
+assign fold_light_imm_u = {{(XLEN-32){fold_decode_instruction[31]}}, fold_decode_instruction[31:12], 12'b0};
+
+always @* begin
+    fold_light_rs1_en       = 1'b0;
+    fold_light_rs2_en       = 1'b0;
+    fold_light_rd_en        = 1'b0;
+    fold_light_illegal      = 1'b1;
+    fold_light_imm          = {XLEN{1'b0}};
+    fold_light_alu_op       = `YH_rv_cpu_ALU_ADD;
+    fold_light_alu_src1_pc  = 1'b0;
+    fold_light_alu_src2_imm = 1'b0;
+    fold_light_is_lui       = 1'b0;
+
+    case (fold_light_opcode)
+        `YH_rv_cpu_OPCODE_LUI: begin
+            fold_light_rd_en   = 1'b1;
+            fold_light_illegal = 1'b0;
+            fold_light_imm     = fold_light_imm_u;
+            fold_light_is_lui  = 1'b1;
+        end
+
+        `YH_rv_cpu_OPCODE_AUIPC: begin
+            fold_light_rd_en        = 1'b1;
+            fold_light_illegal      = 1'b0;
+            fold_light_imm          = fold_light_imm_u;
+            fold_light_alu_src1_pc  = 1'b1;
+            fold_light_alu_src2_imm = 1'b1;
+        end
+
+        `YH_rv_cpu_OPCODE_OP_IMM: begin
+            fold_light_rs1_en       = 1'b1;
+            fold_light_rd_en        = 1'b1;
+            fold_light_illegal      = 1'b0;
+            fold_light_imm          = fold_light_imm_i;
+            fold_light_alu_src2_imm = 1'b1;
+
+            case (fold_light_funct3)
+                3'b000: fold_light_alu_op = `YH_rv_cpu_ALU_ADD;
+                3'b010: fold_light_alu_op = `YH_rv_cpu_ALU_SLT;
+                3'b011: fold_light_alu_op = `YH_rv_cpu_ALU_SLTU;
+                3'b100: fold_light_alu_op = `YH_rv_cpu_ALU_XOR;
+                3'b110: fold_light_alu_op = `YH_rv_cpu_ALU_OR;
+                3'b111: fold_light_alu_op = `YH_rv_cpu_ALU_AND;
+                3'b001: begin
+                    fold_light_alu_op = `YH_rv_cpu_ALU_SLL;
+                    if (XLEN == 64) begin
+                        if (fold_decode_instruction[31:26] != 6'b000000) begin
+                            fold_light_illegal = 1'b1;
+                        end
+                    end else if (fold_light_funct7 != 7'b0000000) begin
+                        fold_light_illegal = 1'b1;
+                    end
+                end
+                3'b101: begin
+                    if (XLEN == 64) begin
+                        if (fold_decode_instruction[31:26] == 6'b000000) begin
+                            fold_light_alu_op = `YH_rv_cpu_ALU_SRL;
+                        end else if (fold_decode_instruction[31:26] == 6'b010000) begin
+                            fold_light_alu_op = `YH_rv_cpu_ALU_SRA;
+                        end else begin
+                            fold_light_illegal = 1'b1;
+                        end
+                    end else begin
+                        if (fold_light_funct7 == 7'b0000000) begin
+                            fold_light_alu_op = `YH_rv_cpu_ALU_SRL;
+                        end else if (fold_light_funct7 == 7'b0100000) begin
+                            fold_light_alu_op = `YH_rv_cpu_ALU_SRA;
+                        end else begin
+                            fold_light_illegal = 1'b1;
+                        end
+                    end
+                end
+                default: fold_light_illegal = 1'b1;
+            endcase
+        end
+
+        `YH_rv_cpu_OPCODE_OP: begin
+            fold_light_rs1_en  = 1'b1;
+            fold_light_rs2_en  = 1'b1;
+            fold_light_rd_en   = 1'b1;
+            fold_light_illegal = 1'b0;
+
+            case (fold_light_funct3)
+                3'b000: begin
+                    if (fold_light_funct7 == 7'b0000000) begin
+                        fold_light_alu_op = `YH_rv_cpu_ALU_ADD;
+                    end else if (fold_light_funct7 == 7'b0100000) begin
+                        fold_light_alu_op = `YH_rv_cpu_ALU_SUB;
+                    end else begin
+                        fold_light_illegal = 1'b1;
+                    end
+                end
+                3'b001: begin
+                    if (fold_light_funct7 == 7'b0000000) begin
+                        fold_light_alu_op = `YH_rv_cpu_ALU_SLL;
+                    end else begin
+                        fold_light_illegal = 1'b1;
+                    end
+                end
+                3'b010: begin
+                    if (fold_light_funct7 == 7'b0000000) begin
+                        fold_light_alu_op = `YH_rv_cpu_ALU_SLT;
+                    end else begin
+                        fold_light_illegal = 1'b1;
+                    end
+                end
+                3'b011: begin
+                    if (fold_light_funct7 == 7'b0000000) begin
+                        fold_light_alu_op = `YH_rv_cpu_ALU_SLTU;
+                    end else begin
+                        fold_light_illegal = 1'b1;
+                    end
+                end
+                3'b100: begin
+                    if (fold_light_funct7 == 7'b0000000) begin
+                        fold_light_alu_op = `YH_rv_cpu_ALU_XOR;
+                    end else begin
+                        fold_light_illegal = 1'b1;
+                    end
+                end
+                3'b101: begin
+                    if (fold_light_funct7 == 7'b0000000) begin
+                        fold_light_alu_op = `YH_rv_cpu_ALU_SRL;
+                    end else if (fold_light_funct7 == 7'b0100000) begin
+                        fold_light_alu_op = `YH_rv_cpu_ALU_SRA;
+                    end else begin
+                        fold_light_illegal = 1'b1;
+                    end
+                end
+                3'b110: begin
+                    if (fold_light_funct7 == 7'b0000000) begin
+                        fold_light_alu_op = `YH_rv_cpu_ALU_OR;
+                    end else begin
+                        fold_light_illegal = 1'b1;
+                    end
+                end
+                3'b111: begin
+                    if (fold_light_funct7 == 7'b0000000) begin
+                        fold_light_alu_op = `YH_rv_cpu_ALU_AND;
+                    end else begin
+                        fold_light_illegal = 1'b1;
+                    end
+                end
+                default: fold_light_illegal = 1'b1;
+            endcase
+        end
+
+        default: begin
+            fold_light_illegal = 1'b1;
+        end
+    endcase
+end
 assign id_mul_op =
     (((ENABLE_M_EXTENSION != 0) || (ENABLE_ZMMUL_EXTENSION != 0)) && (
         (id_alu_op == `YH_rv_cpu_ALU_MUL) ||
@@ -755,6 +937,10 @@ wire [REDIRECT_CACHE_INDEX_BITS-1:0] redirect_cache_lookup_index;
 wire [REDIRECT_CACHE_INDEX_BITS-1:0] redirect_cache_update_index_direct;
 wire [REDIRECT_CACHE_INDEX_BITS-1:0] redirect_cache_update_index_xor;
 wire [REDIRECT_CACHE_INDEX_BITS-1:0] redirect_cache_update_index;
+wire            redirect_cache_lookup_pc_in_rom;
+wire            redirect_cache_update_pc_in_rom;
+wire [REDIRECT_CACHE_TAG_W-1:0] redirect_cache_lookup_tag;
+wire [REDIRECT_CACHE_TAG_W-1:0] redirect_cache_update_tag;
 wire            redirect_cache_lookup_valid;
 wire            redirect_cache_hit;
 wire            redirect_cache_deliver;
@@ -764,6 +950,8 @@ wire [XLEN-1:0] fold_next_cache_pc;
 wire [REDIRECT_CACHE_INDEX_BITS-1:0] fold_next_cache_lookup_index_direct;
 wire [REDIRECT_CACHE_INDEX_BITS-1:0] fold_next_cache_lookup_index_xor;
 wire [REDIRECT_CACHE_INDEX_BITS-1:0] fold_next_cache_lookup_index;
+wire            fold_next_cache_pc_in_rom;
+wire [REDIRECT_CACHE_TAG_W-1:0] fold_next_cache_tag;
 wire            fold_next_cache_hit;
 wire            fold_next_cache_deliver;
 wire [31:0]     fold_next_cache_instruction;
@@ -771,6 +959,8 @@ wire [REDIRECT_CACHE_INDEX_BITS-1:0] regular_cache_lookup_index_direct;
 wire [REDIRECT_CACHE_INDEX_BITS-1:0] regular_cache_lookup_index_xor;
 wire [REDIRECT_CACHE_INDEX_BITS-1:0] regular_cache_lookup_index;
 wire [XLEN-1:0] regular_cache_lookup_pc;
+wire            regular_cache_lookup_pc_in_rom;
+wire [REDIRECT_CACHE_TAG_W-1:0] regular_cache_lookup_tag;
 wire            regular_cache_pipe_busy;
 wire            regular_cache_lookup_ready;
 wire            regular_cache_lookup_valid;
@@ -1428,6 +1618,7 @@ assign id_branch_not_taken_fold_instruction = regular_cache_instruction;
 assign id_branch_not_taken_next_pc = if_id_pc_r + {{(XLEN-4){1'b0}}, 4'd8};
 assign id_branch_not_taken_fold_candidate =
     (ENABLE_ID_BRANCH_FOLD != 0) &&
+    (ENABLE_ID_BRANCH_NOT_TAKEN_FOLD != 0) &&
     pipeline_run &&
     !ex_fetch_redirect_valid &&
     !stall_decode &&
@@ -1950,19 +2141,28 @@ assign redirect_cache_update_index_xor =
     fetch_queue_pc[(2*REDIRECT_CACHE_INDEX_MSB-1):(REDIRECT_CACHE_INDEX_MSB+1)];
 assign redirect_cache_update_index =
     (REDIRECT_CACHE_XOR_INDEX != 0) ? redirect_cache_update_index_xor : redirect_cache_update_index_direct;
+assign redirect_cache_lookup_pc_in_rom =
+    (redirect_cache_lookup_pc[XLEN-1:REDIRECT_CACHE_ROM_ADDR_BITS] ==
+     ROM_BASE[XLEN-1:REDIRECT_CACHE_ROM_ADDR_BITS]);
+assign redirect_cache_update_pc_in_rom =
+    (fetch_queue_pc[XLEN-1:REDIRECT_CACHE_ROM_ADDR_BITS] ==
+     ROM_BASE[XLEN-1:REDIRECT_CACHE_ROM_ADDR_BITS]);
+assign redirect_cache_lookup_tag = redirect_cache_lookup_pc[REDIRECT_CACHE_TAG_MSB:REDIRECT_CACHE_TAG_LSB];
+assign redirect_cache_update_tag = fetch_queue_pc[REDIRECT_CACHE_TAG_MSB:REDIRECT_CACHE_TAG_LSB];
 assign redirect_cache_lookup_valid =
     (IMEM_SYNC != 0) &&
     (ICACHE_EN == 0) &&
     (IMEM_OUTPUT_REG == 0) &&
     (ENABLE_REDIRECT_TARGET_CACHE != 0) &&
     redirect_cache_lookup_redirect_valid &&
+    redirect_cache_lookup_pc_in_rom &&
     !redirect_cache_ex_block &&
     !ex_trap_valid &&
     !ex_mret_valid;
 assign redirect_cache_hit =
     redirect_cache_lookup_valid &&
     redirect_cache_valid_r[redirect_cache_lookup_index] &&
-    (redirect_cache_pc_r[redirect_cache_lookup_index] == redirect_cache_lookup_pc[XLEN-1:REDIRECT_CACHE_TAG_LSB]);
+    (redirect_cache_pc_r[redirect_cache_lookup_index] == redirect_cache_lookup_tag);
 assign redirect_cache_deliver = redirect_cache_hit;
 assign redirect_cache_instruction = redirect_cache_instruction_r[redirect_cache_lookup_index];
 generate
@@ -1975,10 +2175,15 @@ if (ENABLE_ID_BRANCH_FOLD_NEXT_CACHE != 0) begin : gen_branch_fold_next_cache
         fold_next_cache_pc[(2*REDIRECT_CACHE_INDEX_MSB-1):(REDIRECT_CACHE_INDEX_MSB+1)];
     assign fold_next_cache_lookup_index =
         (REDIRECT_CACHE_XOR_INDEX != 0) ? fold_next_cache_lookup_index_xor : fold_next_cache_lookup_index_direct;
+    assign fold_next_cache_pc_in_rom =
+        (fold_next_cache_pc[XLEN-1:REDIRECT_CACHE_ROM_ADDR_BITS] ==
+         ROM_BASE[XLEN-1:REDIRECT_CACHE_ROM_ADDR_BITS]);
+    assign fold_next_cache_tag = fold_next_cache_pc[REDIRECT_CACHE_TAG_MSB:REDIRECT_CACHE_TAG_LSB];
     assign fold_next_cache_hit =
         id_branch_fold_valid &&
+        fold_next_cache_pc_in_rom &&
         redirect_cache_valid_r[fold_next_cache_lookup_index] &&
-        (redirect_cache_pc_r[fold_next_cache_lookup_index] == fold_next_cache_pc[XLEN-1:REDIRECT_CACHE_TAG_LSB]);
+        (redirect_cache_pc_r[fold_next_cache_lookup_index] == fold_next_cache_tag);
     assign fold_next_cache_deliver = fold_next_cache_hit;
     assign fold_next_cache_instruction = redirect_cache_instruction_r[fold_next_cache_lookup_index];
 end else begin : gen_no_branch_fold_next_cache
@@ -1986,6 +2191,8 @@ end else begin : gen_no_branch_fold_next_cache
     assign fold_next_cache_lookup_index_direct = {REDIRECT_CACHE_INDEX_BITS{1'b0}};
     assign fold_next_cache_lookup_index_xor = {REDIRECT_CACHE_INDEX_BITS{1'b0}};
     assign fold_next_cache_lookup_index = {REDIRECT_CACHE_INDEX_BITS{1'b0}};
+    assign fold_next_cache_pc_in_rom = 1'b0;
+    assign fold_next_cache_tag = {REDIRECT_CACHE_TAG_W{1'b0}};
     assign fold_next_cache_hit = 1'b0;
     assign fold_next_cache_deliver = 1'b0;
     assign fold_next_cache_instruction = 32'h0000_0013;
@@ -1998,10 +2205,15 @@ assign not_taken_next_cache_lookup_index_xor =
     id_branch_not_taken_next_pc[(2*REDIRECT_CACHE_INDEX_MSB-1):(REDIRECT_CACHE_INDEX_MSB+1)];
 assign not_taken_next_cache_lookup_index =
     (REDIRECT_CACHE_XOR_INDEX != 0) ? not_taken_next_cache_lookup_index_xor : not_taken_next_cache_lookup_index_direct;
+assign not_taken_next_cache_pc_in_rom =
+    (id_branch_not_taken_next_pc[XLEN-1:REDIRECT_CACHE_ROM_ADDR_BITS] ==
+     ROM_BASE[XLEN-1:REDIRECT_CACHE_ROM_ADDR_BITS]);
+assign not_taken_next_cache_tag = id_branch_not_taken_next_pc[REDIRECT_CACHE_TAG_MSB:REDIRECT_CACHE_TAG_LSB];
 assign not_taken_next_cache_match =
     (ENABLE_ID_BRANCH_NT_NEXT_CACHE != 0) &&
+    not_taken_next_cache_pc_in_rom &&
     redirect_cache_valid_r[not_taken_next_cache_lookup_index] &&
-    (redirect_cache_pc_r[not_taken_next_cache_lookup_index] == id_branch_not_taken_next_pc[XLEN-1:REDIRECT_CACHE_TAG_LSB]);
+    (redirect_cache_pc_r[not_taken_next_cache_lookup_index] == not_taken_next_cache_tag);
 assign not_taken_next_cache_hit =
     (id_branch_not_taken_fold_valid || id_early_alu_pair_valid || id_alu_dep_fold_valid) &&
     not_taken_next_cache_match;
@@ -2033,18 +2245,23 @@ assign regular_cache_lookup_index_xor =
     regular_cache_lookup_pc[(2*REDIRECT_CACHE_INDEX_MSB-1):(REDIRECT_CACHE_INDEX_MSB+1)];
 assign regular_cache_lookup_index =
     (REDIRECT_CACHE_XOR_INDEX != 0) ? regular_cache_lookup_index_xor : regular_cache_lookup_index_direct;
+assign regular_cache_lookup_pc_in_rom =
+    (regular_cache_lookup_pc[XLEN-1:REDIRECT_CACHE_ROM_ADDR_BITS] ==
+     ROM_BASE[XLEN-1:REDIRECT_CACHE_ROM_ADDR_BITS]);
+assign regular_cache_lookup_tag = regular_cache_lookup_pc[REDIRECT_CACHE_TAG_MSB:REDIRECT_CACHE_TAG_LSB];
 assign regular_cache_lookup_valid =
     (IMEM_SYNC != 0) &&
     (ICACHE_EN == 0) &&
     (IMEM_OUTPUT_REG == 0) &&
     (ENABLE_REDIRECT_TARGET_CACHE != 0) &&
     (ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP != 0) &&
+    regular_cache_lookup_pc_in_rom &&
     !trap_r &&
     regular_cache_lookup_ready;
 assign regular_cache_hit =
     regular_cache_lookup_valid &&
     redirect_cache_valid_r[regular_cache_lookup_index] &&
-    (redirect_cache_pc_r[regular_cache_lookup_index] == regular_cache_lookup_pc[XLEN-1:REDIRECT_CACHE_TAG_LSB]);
+    (redirect_cache_pc_r[regular_cache_lookup_index] == regular_cache_lookup_tag);
 assign regular_cache_deliver = regular_cache_hit;
 assign regular_cache_instruction = redirect_cache_instruction_r[regular_cache_lookup_index];
 
@@ -2091,8 +2308,9 @@ assign redirect_cache_update_valid =
     (IMEM_OUTPUT_REG == 0) &&
     (ENABLE_REDIRECT_TARGET_CACHE != 0) &&
     fetch_queue_valid &&
+    redirect_cache_update_pc_in_rom &&
     pipeline_run &&
-    !fetch_control_redirect_valid &&
+    ((ENABLE_REDIRECT_CACHE_UPDATE_ON_REDIRECT != 0) || !fetch_control_redirect_valid) &&
     !redirect_cache_deliver;
 
 assign id_ex_flush_valid_local = decode_flush_valid;
@@ -2390,67 +2608,112 @@ YH_rv_cpu_id_stage #(
 );
 
     // 冒险检测单元
-YH_rv_cpu_id_stage #(
-    .XLEN(XLEN),
-    .ENABLE_M_EXTENSION(ENABLE_M_EXTENSION),
-    .ENABLE_ZMMUL_EXTENSION(ENABLE_ZMMUL_EXTENSION),
-    .ENABLE_BITMANIP_EXTENSION(ENABLE_BITMANIP_EXTENSION),
-    .ENABLE_ZBC_EXTENSION(ENABLE_ZBC_EXTENSION),
-    .ENABLE_ZICOND_EXTENSION(ENABLE_ZICOND_EXTENSION),
-    .ENABLE_ZBKB_EXTENSION(ENABLE_ZBKB_EXTENSION),
-    .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION),
-    .ENABLE_XTHEAD_CRC_EXTENSION(ENABLE_XTHEAD_CRC_EXTENSION),
-    .ENABLE_XTHEAD_MUL_EXTENSION(ENABLE_XTHEAD_MUL_EXTENSION),
-    .ENABLE_XTHEAD_COND_MOVE(ENABLE_XTHEAD_COND_MOVE),
-    .ENABLE_XTHEAD_ADDSL_EXTENSION(ENABLE_XTHEAD_ADDSL_EXTENSION),
-    .ENABLE_XTHEAD_MEMPAIR_EXTENSION(ENABLE_XTHEAD_MEMPAIR_EXTENSION),
-    .ENABLE_XTHEAD_BASE_UPDATE_EXTENSION(ENABLE_XTHEAD_BASE_UPDATE_EXTENSION)
-) u_fold_target_id_stage (
-    .pc            (fold_decode_pc),
-    .instruction   (fold_decode_instruction),
-    .rs1_rdata     (fold_rs1_rdata),
-    .rs2_rdata     (fold_rs2_rdata),
-    .pc4           (fold_id_pc4),
-    .rs1_addr      (fold_id_rs1_addr),
-    .rs2_addr      (fold_id_rs2_addr),
-    .rd_addr       (fold_id_rd_addr),
-    .rs1_en        (fold_id_rs1_en),
-    .rs2_en        (fold_id_rs2_en),
-    .rd_en         (fold_id_rd_en),
-    .illegal       (fold_id_illegal),
-    .imm           (fold_id_imm),
-    .alu_op        (fold_id_alu_op),
-    .alu_src1_pc   (fold_id_alu_src1_pc),
-    .alu_src2_imm  (fold_id_alu_src2_imm),
-    .branch        (fold_id_branch),
-    .branch_funct3 (fold_id_branch_funct3),
-    .jump          (fold_id_jump),
-    .jalr          (fold_id_jalr),
-    .load          (fold_id_load),
-    .store         (fold_id_store),
-    .wb_sel        (fold_id_wb_sel),
-    .mem_size      (fold_id_mem_size),
-    .mem_unsigned  (fold_id_mem_unsigned),
-    .mem_indexed   (fold_id_mem_indexed),
-    .mem_index_shift(fold_id_mem_index_shift),
-    .mem_pair      (fold_id_mem_pair),
-    .mem_base_update(fold_id_mem_base_update),
-    .mem_base_update_before(fold_id_mem_base_update_before),
-    .store_data_from_rd(fold_id_store_data_from_rd),
-    .word_op       (fold_id_word_op),
-    .is_lui        (fold_id_is_lui),
-    .csr_valid     (fold_id_csr_valid),
-    .csr_cmd       (fold_id_csr_cmd),
-    .csr_use_imm   (fold_id_csr_use_imm),
-    .csr_sel       (fold_id_csr_sel),
-    .csr_read_valid(fold_id_csr_read_valid),
-    .csr_write_allowed(fold_id_csr_write_allowed),
-    .ecall         (fold_id_ecall),
-    .ebreak        (fold_id_ebreak),
-    .mret          (fold_id_mret),
-    .rs1_value     (fold_id_rs1_value),
-    .rs2_value     (fold_id_rs2_value)
-);
+generate
+if (ENABLE_ID_BRANCH_FOLD_LIGHT_DECODE != 0) begin : gen_fold_light_decode
+    assign fold_id_pc4 = fold_decode_pc + {{(XLEN-3){1'b0}}, 3'd4};
+    assign fold_id_rs1_addr = fold_decode_instruction[19:15];
+    assign fold_id_rs2_addr = fold_decode_instruction[24:20];
+    assign fold_id_rd_addr = fold_decode_instruction[11:7];
+    assign fold_id_rs1_en = fold_light_rs1_en;
+    assign fold_id_rs2_en = fold_light_rs2_en;
+    assign fold_id_rd_en = fold_light_rd_en;
+    assign fold_id_illegal = fold_light_illegal;
+    assign fold_id_imm = fold_light_imm;
+    assign fold_id_alu_op = fold_light_alu_op;
+    assign fold_id_alu_src1_pc = fold_light_alu_src1_pc;
+    assign fold_id_alu_src2_imm = fold_light_alu_src2_imm;
+    assign fold_id_branch = 1'b0;
+    assign fold_id_branch_funct3 = 3'b000;
+    assign fold_id_jump = 1'b0;
+    assign fold_id_jalr = 1'b0;
+    assign fold_id_load = 1'b0;
+    assign fold_id_store = 1'b0;
+    assign fold_id_wb_sel = `YH_rv_cpu_WB_ALU;
+    assign fold_id_mem_size = `YH_rv_cpu_MEM_W;
+    assign fold_id_mem_unsigned = 1'b0;
+    assign fold_id_mem_indexed = 1'b0;
+    assign fold_id_mem_index_shift = 2'b00;
+    assign fold_id_mem_pair = 1'b0;
+    assign fold_id_mem_base_update = 1'b0;
+    assign fold_id_mem_base_update_before = 1'b0;
+    assign fold_id_store_data_from_rd = 1'b0;
+    assign fold_id_word_op = 1'b0;
+    assign fold_id_is_lui = fold_light_is_lui;
+    assign fold_id_csr_valid = 1'b0;
+    assign fold_id_csr_cmd = `YH_rv_cpu_CSR_RW;
+    assign fold_id_csr_use_imm = 1'b0;
+    assign fold_id_csr_sel = `YH_rv_cpu_CSR_SEL_NONE;
+    assign fold_id_csr_read_valid = 1'b0;
+    assign fold_id_csr_write_allowed = 1'b0;
+    assign fold_id_ecall = 1'b0;
+    assign fold_id_ebreak = 1'b0;
+    assign fold_id_mret = 1'b0;
+    assign fold_id_rs1_value = fold_rs1_rdata;
+    assign fold_id_rs2_value = fold_rs2_rdata;
+end else begin : gen_fold_full_decode
+    YH_rv_cpu_id_stage #(
+        .XLEN(XLEN),
+        .ENABLE_M_EXTENSION(ENABLE_M_EXTENSION),
+        .ENABLE_ZMMUL_EXTENSION(ENABLE_ZMMUL_EXTENSION),
+        .ENABLE_BITMANIP_EXTENSION(ENABLE_BITMANIP_EXTENSION),
+        .ENABLE_ZBC_EXTENSION(ENABLE_ZBC_EXTENSION),
+        .ENABLE_ZICOND_EXTENSION(ENABLE_ZICOND_EXTENSION),
+        .ENABLE_ZBKB_EXTENSION(ENABLE_ZBKB_EXTENSION),
+        .ENABLE_XTHEAD_EXTENSION(ENABLE_XTHEAD_EXTENSION),
+        .ENABLE_XTHEAD_CRC_EXTENSION(ENABLE_XTHEAD_CRC_EXTENSION),
+        .ENABLE_XTHEAD_MUL_EXTENSION(ENABLE_XTHEAD_MUL_EXTENSION),
+        .ENABLE_XTHEAD_COND_MOVE(ENABLE_XTHEAD_COND_MOVE),
+        .ENABLE_XTHEAD_ADDSL_EXTENSION(ENABLE_XTHEAD_ADDSL_EXTENSION),
+        .ENABLE_XTHEAD_MEMPAIR_EXTENSION(ENABLE_XTHEAD_MEMPAIR_EXTENSION),
+        .ENABLE_XTHEAD_BASE_UPDATE_EXTENSION(ENABLE_XTHEAD_BASE_UPDATE_EXTENSION)
+    ) u_fold_target_id_stage (
+        .pc            (fold_decode_pc),
+        .instruction   (fold_decode_instruction),
+        .rs1_rdata     (fold_rs1_rdata),
+        .rs2_rdata     (fold_rs2_rdata),
+        .pc4           (fold_id_pc4),
+        .rs1_addr      (fold_id_rs1_addr),
+        .rs2_addr      (fold_id_rs2_addr),
+        .rd_addr       (fold_id_rd_addr),
+        .rs1_en        (fold_id_rs1_en),
+        .rs2_en        (fold_id_rs2_en),
+        .rd_en         (fold_id_rd_en),
+        .illegal       (fold_id_illegal),
+        .imm           (fold_id_imm),
+        .alu_op        (fold_id_alu_op),
+        .alu_src1_pc   (fold_id_alu_src1_pc),
+        .alu_src2_imm  (fold_id_alu_src2_imm),
+        .branch        (fold_id_branch),
+        .branch_funct3 (fold_id_branch_funct3),
+        .jump          (fold_id_jump),
+        .jalr          (fold_id_jalr),
+        .load          (fold_id_load),
+        .store         (fold_id_store),
+        .wb_sel        (fold_id_wb_sel),
+        .mem_size      (fold_id_mem_size),
+        .mem_unsigned  (fold_id_mem_unsigned),
+        .mem_indexed   (fold_id_mem_indexed),
+        .mem_index_shift(fold_id_mem_index_shift),
+        .mem_pair      (fold_id_mem_pair),
+        .mem_base_update(fold_id_mem_base_update),
+        .mem_base_update_before(fold_id_mem_base_update_before),
+        .store_data_from_rd(fold_id_store_data_from_rd),
+        .word_op       (fold_id_word_op),
+        .is_lui        (fold_id_is_lui),
+        .csr_valid     (fold_id_csr_valid),
+        .csr_cmd       (fold_id_csr_cmd),
+        .csr_use_imm   (fold_id_csr_use_imm),
+        .csr_sel       (fold_id_csr_sel),
+        .csr_read_valid(fold_id_csr_read_valid),
+        .csr_write_allowed(fold_id_csr_write_allowed),
+        .ecall         (fold_id_ecall),
+        .ebreak        (fold_id_ebreak),
+        .mret          (fold_id_mret),
+        .rs1_value     (fold_id_rs1_value),
+        .rs2_value     (fold_id_rs2_value)
+    );
+end
+endgenerate
 
 YH_rv_cpu_hazard_unit #(
     .LOAD_USE_FAST_FORWARD(LOAD_USE_FAST_FORWARD)
@@ -3352,7 +3615,7 @@ end
 
 always @(posedge clk) begin
     if (rst_n && !trap_r && redirect_cache_update_valid) begin
-        redirect_cache_pc_r[redirect_cache_update_index] <= fetch_queue_pc[XLEN-1:REDIRECT_CACHE_TAG_LSB];
+        redirect_cache_pc_r[redirect_cache_update_index] <= redirect_cache_update_tag;
         redirect_cache_instruction_r[redirect_cache_update_index] <= fetch_queue_instruction;
     end
 end
@@ -3367,7 +3630,9 @@ always @(posedge clk or negedge rst_n) begin
         if (branch_bht_update_valid) begin
             branch_bht_valid_r[branch_bht_update_index] <= 1'b1;
             branch_bht_pc_r[branch_bht_update_index] <= branch_bht_update_pc;
-            if (!branch_bht_valid_r[branch_bht_update_index] ||
+            if (BRANCH_BHT_DIRECT_UPDATE != 0) begin
+                branch_bht_counter_r[branch_bht_update_index] <= branch_bht_update_taken ? 2'b11 : 2'b00;
+            end else if (!branch_bht_valid_r[branch_bht_update_index] ||
                 (branch_bht_pc_r[branch_bht_update_index] != branch_bht_update_pc)) begin
                 branch_bht_counter_r[branch_bht_update_index] <= branch_bht_update_taken ? 2'b11 : 2'b00;
             end else if (branch_bht_update_taken) begin

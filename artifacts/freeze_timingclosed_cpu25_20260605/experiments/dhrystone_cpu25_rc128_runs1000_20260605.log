@@ -1,0 +1,57 @@
+
+****** xsim v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Fri Jun  5 18:57:53 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/YH_rv_cpu_dhrystone_tb_snapshot/xsim_script.tcl
+# xsim {YH_rv_cpu_dhrystone_tb_snapshot} -testplusarg max_cycles=250000000 -testplusarg dhrystone_runs=1000 -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+Starting Dhrystone simulation (MAX_CYCLES=250000000)...
+DHRYSTONE_RUNS=1000
+EVENT cycle=41086 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000000 mtvec=00000000
+EVENT cycle=82173 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=123260 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=164347 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=205434 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=246521 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=287608 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=328695 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=369782 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=410869 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=451956 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=493043 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=534130 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=575217 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=616304 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=657391 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=698478 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=739565 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=780652 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=821739 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=862826 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=903913 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=945000 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=986087 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+CYCLE=1000000 PC=00000050 a0=00010d91 a1=0001280c sp=00014000 ra=00000308 mem_wait=0 dcache_wait=0 ex_mem_valid=1 ex_mem_store=0 ex_wstrb=f dmem_ready=1
+EVENT cycle=1027174 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=1068261 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=1109348 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=1150435 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=1191522 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=1232609 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=1273696 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+EVENT cycle=1314783 pc=00000e5c irq=0 mret=0 sync_trap=1 trap=0 mepc=00000e54 mtvec=00000000
+CYCLE=2000000 PC=00000050 a0=00011b27 a1=0001280c sp=00014000 ra=00000308 mem_wait=0 dcache_wait=0 ex_mem_valid=1 ex_mem_store=0 ex_wstrb=f dmem_ready=1
+CYCLE=3000000 PC=00000054 a0=0001009e a1=0001280c sp=00014000 ra=00000308 mem_wait=0 dcache_wait=0 ex_mem_valid=1 ex_mem_store=0 ex_wstrb=c dmem_ready=1
+CYCLE=4000000 PC=00000054 a0=00010e34 a1=0001280c sp=00014000 ra=00000308 mem_wait=0 dcache_wait=0 ex_mem_valid=1 ex_mem_store=0 ex_wstrb=f dmem_ready=1
+CYCLE=5000000 PC=00000054 a0=00011bca a1=0001280c sp=00014000 ra=00000308 mem_wait=0 dcache_wait=0 ex_mem_valid=1 ex_mem_store=0 ex_wstrb=c dmem_ready=1
+CYCLE=6000000 PC=00000058 a0=00010140 a1=0001280c sp=00014000 ra=00000308 mem_wait=0 dcache_wait=0 ex_mem_valid=1 ex_mem_store=1 ex_wstrb=1 dmem_ready=1
+CYCLE=7000000 PC=00000058 a0=00010ed6 a1=0001280c sp=00014000 ra=00000308 mem_wait=0 dcache_wait=0 ex_mem_valid=1 ex_mem_store=1 ex_wstrb=4 dmem_ready=1
+CYCLE=8000000 PC=00000058 a0=00011c6c a1=0001280c sp=00014000 ra=00000308 mem_wait=0 dcache_wait=0 ex_mem_valid=1 ex_mem_store=1 ex_wstrb=1 dmem_ready=1
+CYCLE=9000000 PC=0000004c a0=000101e2 a1=0001280c sp=00014000 ra=00000308 mem_wait=0 dcache_wait=0 ex_mem_valid=1 ex_mem_store=0 ex_wstrb=8 dmem_ready=1
+CYCLE=10000000 PC=0000004c a0=00010f78 a1=0001280c sp=00014000 ra=00000308 mem_wait=0 dcache_wait=0 ex_mem_valid=1 ex_mem_store=0 ex_wstrb=e dmem_ready=1
