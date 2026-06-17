@@ -1,50 +1,249 @@
 ﻿# CURRENT_STATUS
 
-> Updated: `2026-06-11`
+> Updated: `2026-06-17`
 > Branch: `codex/syncbram-h22-20260514`
 > Authoritative rule: only timing-closed exact-ROM implementation results may be reported as a baseline. Short simulations, quick synthesis rows, demo/default-ROM timing closure, and timing-failed implementation rows are audit history only.
 
-## 2026-06-11 strict 50 MHz timing-closed candidate
+## 2026-06-17 optimization and handoff update
 
-Current recommended strict 50 MHz candidate:
+Current reportable baseline is unchanged: `impl136` remains the CoreMark-best
+strict exact-ROM 50 MHz routed candidate under 10000 LUT. This update adds one
+rejected optimization batch and a handoff document:
+
+- `artifacts/strict_50m_timing_opt_20260609/HANDOFF_20260617.md`
+- `artifacts/strict_50m_timing_opt_20260609/fast137_lightfold_rc512_tagtrim_xor1_iter10/coremark50_fast_gate_iter10.summary.txt`
+- `artifacts/strict_50m_timing_opt_20260609/fast140_lightfold_rc256_tagtrim_ntfold_fexmem0_iter10/coremark50_fast_gate_iter10.summary.txt`
+- `artifacts/strict_50m_timing_opt_20260609/synth140_lightfold_rc256_ntfold_fexmem0_reject_wns-4p466/README.md`
+- `artifacts/strict_50m_timing_opt_20260609/synth140_lightfold_rc256_ntfold_fexmem0_reject_wns-4p466/SHA256SUMS.txt`
+
+Latest strict exploration results:
+
+| Experiment | CoreMark/MHz | LUT | Clock | Timing | Decision |
+|---|---:|---:|---:|---|---|
+| `fast137_lightfold_rc512_tagtrim_xor1_iter10` | 4.285487 | n/a | xsim | n/a | rejected; lower than `impl136`, no synth run |
+| `fast140_lightfold_rc256_tagtrim_ntfold_fexmem0_iter10` | 4.315138 | n/a | xsim | n/a | promoted to synth audit |
+| `synth140_lightfold_rc256_ntfold_fexmem0_reject_wns-4p466` | 4.315138 matched fast gate | 9035 synth Slice LUTs / 8115 LUT as Logic | 50 MHz | synth WNS -4.466 ns / WHS +0.132 ns | rejected; no implementation run |
+
+Conclusion: not-taken fold remains the only nearby higher-CoreMark direction,
+but the current same-cycle structure is still timing-prohibitive. Disabling
+`ENABLE_FOLD_EXMEM_LOAD_USE_SPEC` did not rescue timing. Any future not-taken
+fold work should retime or decouple the fold request/next-cache lookup so
+DCache/MEM state cannot feed IF/ID instruction or PC selection in the same
+cycle.
+
+## 2026-06-14 strict 50 MHz exact-ROM route-directive update
+
+Current strict 50 MHz candidates under the 10000 LUT limit:
 
 | Role | LUT | CoreMark/MHz | DMIPS/MHz | Clock | Timing | Status |
 |---|---:|---:|---:|---:|---|---|
-| Strict 50 MHz CoreMark-ROM timing candidate | 6255 post-route | 4.151598 | 2.484735 | 50 MHz | WNS +0.301 ns / WHS +0.104 ns | accepted implementation+bitstream candidate; not board-proven |
+| Current CoreMark-best strict exact-ROM routed candidate | 9895 post-route Slice LUTs / 8559 LUT as Logic | 4.287448 | 1.178213 matched xsim | 50 MHz | WNS +0.017 ns / WHS +0.155 ns | `impl136`; accepted routed DCP candidate; bitstream pending |
+| Lower-LUT light-fold strict exact-ROM candidate | 8809 post-route Slice LUTs / 7857 LUT as Logic | 4.257776 | pending matched xsim | 50 MHz | WNS +0.022 ns / WHS +0.055 ns | `impl130`; valid routed DCP candidate; bitstream pending |
+| Current bitstream-backed strict exact-ROM candidate | 9694 post-route Slice LUTs / 8454 LUT as Logic | 4.216239 | 2.506614 matched xsim | 50 MHz | WNS +0.022 ns / WHS +0.041 ns | `impl104`; accepted implementation+bitstream candidate; not board-proven |
+| Area/timing strict exact-ROM candidate | 9105 post-route Slice LUTs / 7865 LUT as Logic | 4.207986 | 2.506614 matched xsim | 50 MHz | WNS +0.152 ns / WHS +0.106 ns | `impl115`; valid implementation candidate; bitstream pending |
+| Strict 50 MHz exact-CoreMark-ROM timing-margin fallback | 6451 post-route Slice LUTs / 6059 LUT as Logic | 4.151598 | 2.484735 matched xsim | 50 MHz | WNS +0.341 ns / WHS +0.075 ns | valid lower-score fallback; not board-proven |
 
-Evidence package:
+New evidence added in this update:
 
-- `artifacts/strict_50m_timing_opt_20260609/impl60_rcache_raw_lookup_cpu50_wns+0p301/README.md`
-- `artifacts/strict_50m_timing_opt_20260609/sim59_rcache_raw_lookup_actual_exblock_iter10/coremark50_fast_gate_iter10.summary.txt`
-- `artifacts/strict_50m_timing_opt_20260609/impl60_rcache_raw_lookup_cpu50_wns+0p301/impl_timing_summary.rpt`
-- `artifacts/strict_50m_timing_opt_20260609/impl60_rcache_raw_lookup_cpu50_wns+0p301/impl_utilization.rpt`
-- `artifacts/strict_50m_timing_opt_20260609/impl60_rcache_raw_lookup_cpu50_wns+0p301/YH_rv_cpu_pynq_z2_sysclk_8p000ns_cpu50_impl.dcp`
-- `artifacts/strict_50m_timing_opt_20260609/impl60_rcache_raw_lookup_cpu50_wns+0p301/YH_rv_cpu_pynq_z2_sysclk_8p000ns_cpu50_impl60.bit`
-- `artifacts/strict_50m_timing_opt_20260609/impl60_rcache_raw_lookup_cpu50_wns+0p301/bitstream_from_dcp_timing_summary.rpt`
-- `artifacts/strict_50m_timing_opt_20260609/impl60_rcache_raw_lookup_cpu50_wns+0p301/vivado_write_bitstream_from_impl60.log`
-- `artifacts/strict_50m_timing_opt_20260609/sim60_dhrystone_impl60_match/dhrystone_impl60_runs1000.summary.txt`
+- `artifacts/strict_50m_timing_opt_20260609/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017/README.md`
+- `artifacts/strict_50m_timing_opt_20260609/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017/SHA256SUMS.txt`
+- `artifacts/strict_50m_timing_opt_20260609/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017/fast134/coremark50_fast_gate_iter10.summary.txt`
+- `artifacts/strict_50m_timing_opt_20260609/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017/logs/vivado_impl_from_synth.log`
+- `artifacts/strict_50m_timing_opt_20260609/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017/reports/cpu50/impl_timing_summary.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017/reports/cpu50/impl_timing_setup_top20.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017/reports/cpu50/impl_timing_hold_top20.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017/reports/cpu50/impl_utilization.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017/reports/cpu50/impl_route_status.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017/dcp/cpu50_impl.dcp`
+- `artifacts/strict_50m_timing_opt_20260609/sim136_dhrystone_impl136_lightfold_rc512_tagtrim_match/README.md`
+- `artifacts/strict_50m_timing_opt_20260609/sim136_dhrystone_impl136_lightfold_rc512_tagtrim_match/SHA256SUMS.txt`
+- `artifacts/strict_50m_timing_opt_20260609/sim136_dhrystone_impl136_lightfold_rc512_tagtrim_match/dhrystone_impl136_lightfold_rc512_tagtrim_runs1000.summary.txt`
+- `artifacts/strict_50m_timing_opt_20260609/sim136_dhrystone_impl136_lightfold_rc512_tagtrim_match/dhrystone_impl136_lightfold_rc512_tagtrim_runs1000.log`
+- `artifacts/strict_50m_timing_opt_20260609/sim136_dhrystone_impl136_lightfold_rc512_tagtrim_match/dhrystone_impl136_lightfold_rc512_tagtrim.dump`
+- `artifacts/strict_50m_timing_opt_20260609/impl135_lightfold_rc512_tagtrim_placeExtraNet_routeNoRelax_cpu50_reject_wns-0p123/README.md`
+- `artifacts/strict_50m_timing_opt_20260609/impl135_lightfold_rc512_tagtrim_placeExtraNet_routeNoRelax_cpu50_reject_wns-0p123/SHA256SUMS.txt`
+- `artifacts/strict_50m_timing_opt_20260609/impl130_lightfold_cpu50_wns+0p022/README.md`
+- `artifacts/strict_50m_timing_opt_20260609/impl130_lightfold_cpu50_wns+0p022/SHA256SUMS.txt`
+- `artifacts/strict_50m_timing_opt_20260609/impl130_lightfold_cpu50_wns+0p022/fast130_exact/coremark50_fast_gate_iter10.summary.txt`
+- `artifacts/strict_50m_timing_opt_20260609/impl130_lightfold_cpu50_wns+0p022/fast130_exact/coremark50_fast_gate_iter10.log`
+- `artifacts/strict_50m_timing_opt_20260609/impl130_lightfold_cpu50_wns+0p022/logs/vivado_pynq_z2_synth.log`
+- `artifacts/strict_50m_timing_opt_20260609/impl130_lightfold_cpu50_wns+0p022/logs/vivado_impl_from_synth.log`
+- `artifacts/strict_50m_timing_opt_20260609/impl130_lightfold_cpu50_wns+0p022/reports/cpu50/impl_timing_summary.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl130_lightfold_cpu50_wns+0p022/reports/cpu50/impl_timing_setup_top20.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl130_lightfold_cpu50_wns+0p022/reports/cpu50/impl_timing_hold_top20.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl130_lightfold_cpu50_wns+0p022/reports/cpu50/impl_utilization.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl130_lightfold_cpu50_wns+0p022/dcp/cpu50_impl.dcp`
+- `artifacts/strict_50m_timing_opt_20260609/synth132_lightfold_rc512_ntfold_cpu50_reject_lut11226_wns-5p071/README.md`
+- `artifacts/strict_50m_timing_opt_20260609/synth132_lightfold_rc512_ntfold_cpu50_reject_lut11226_wns-5p071/SHA256SUMS.txt`
+- `artifacts/strict_50m_timing_opt_20260609/synth131_lightfold_rc512_cpu50_reject_lut10432/README.md`
+- `artifacts/strict_50m_timing_opt_20260609/synth131_lightfold_rc512_cpu50_reject_lut10432/SHA256SUMS.txt`
+- `artifacts/strict_50m_timing_opt_20260609/synth133_lightfold_rc256_ntfold_cpu50_reject_wns-3p084/README.md`
+- `artifacts/strict_50m_timing_opt_20260609/synth133_lightfold_rc256_ntfold_cpu50_reject_wns-3p084/SHA256SUMS.txt`
+- `artifacts/strict_50m_timing_opt_20260609/impl115_bhtdirect_cpu50_wns+0p152/README.md`
+- `artifacts/strict_50m_timing_opt_20260609/impl115_bhtdirect_cpu50_wns+0p152/SHA256SUMS.txt`
+- `artifacts/strict_50m_timing_opt_20260609/impl115_bhtdirect_cpu50_wns+0p152/fast120_exact/coremark50_fast_gate_iter10.summary.txt`
+- `artifacts/strict_50m_timing_opt_20260609/impl115_bhtdirect_cpu50_wns+0p152/fast120_exact/coremark50_fast_gate_iter10.log`
+- `artifacts/strict_50m_timing_opt_20260609/impl115_bhtdirect_cpu50_wns+0p152/logs/vivado_pynq_z2_impl.log`
+- `artifacts/strict_50m_timing_opt_20260609/impl115_bhtdirect_cpu50_wns+0p152/reports/cpu50/impl_timing_summary.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl115_bhtdirect_cpu50_wns+0p152/reports/cpu50/impl_timing_setup_top20.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl115_bhtdirect_cpu50_wns+0p152/reports/cpu50/impl_timing_hold_top20.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl115_bhtdirect_cpu50_wns+0p152/reports/cpu50/impl_utilization.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl115_bhtdirect_cpu50_wns+0p152/dcp/cpu50_impl.dcp`
+- `artifacts/strict_50m_timing_opt_20260609/sim115_dhrystone_impl115_bhtdirect_match/README.md`
+- `artifacts/strict_50m_timing_opt_20260609/sim115_dhrystone_impl115_bhtdirect_match/dhrystone_impl115_bhtdirect_runs1000.summary.txt`
+- `artifacts/strict_50m_timing_opt_20260609/sim115_dhrystone_impl115_bhtdirect_match/dhrystone_impl115_bhtdirect_runs1000.log`
+- `artifacts/strict_50m_timing_opt_20260609/sim115_dhrystone_impl115_bhtdirect_match/dhrystone_impl115_bhtdirect.dump`
+- `artifacts/strict_50m_timing_opt_20260609/impl122_highfold_direct_cpu50_abort/README.md`
 
-Key correction and optimization:
+Strict evidence checks:
 
+- Vivado synthesis log for `impl136` is inherited from the same strict exact-ROM `impl134` synthesis DCP and binds `ROM_INIT_HEX=.../coremark50_fast_gate_iter10.hex`.
+- Vivado synthesis log for `impl136` is inherited from the same strict exact-ROM `impl134` synthesis DCP and binds `ROM_INIT_MEM32_HEX=.../coremark50_fast_gate_iter10.mem32.hex`.
+- Vivado synthesis log for `impl136` records `ROM_BYTES=65536` and `RAM_BYTES=65536`.
+- Vivado synthesis log for `impl136` confirms `$readmem ... coremark50_fast_gate_iter10.mem32.hex is read successfully`.
+- Vivado final `report_timing_summary` for `impl136` shows `All user specified timing constraints are met`, `WNS +0.017 ns`, and `WHS +0.155 ns`.
+- Matched fast-gate result for `impl136` reuses the same RTL/config evidence as `impl134`: `4.287448 CoreMark/MHz`, `crcfinal=0xfcaf`, `completion_cycles=2373958`, `acceptance_pass=yes`.
+- Matched Dhrystone xsim result for `impl136`: `1.178213 DMIPS/MHz`, `207012 Dhrystones/s`, `completion_cycles=527080`, 1000 runs.
+- `impl136` bitstream, PROGRAM_OK, UART capture, and board video evidence are still pending.
+- `impl135` is rejected: it completed route with 0 routing errors but final timing failed at `WNS -0.123 ns / WHS +0.086 ns`.
+- Vivado synthesis log for `impl130` binds `ROM_INIT_HEX=.../coremark50_fast_gate_iter10.hex`.
+- Vivado synthesis log for `impl130` binds `ROM_INIT_MEM32_HEX=.../coremark50_fast_gate_iter10.mem32.hex`.
+- Vivado synthesis log for `impl130` records `ROM_BYTES=65536` and `RAM_BYTES=65536`.
+- Vivado synthesis log for `impl130` confirms `$readmem ... coremark50_fast_gate_iter10.mem32.hex is read successfully`.
+- Vivado final `report_timing_summary` for `impl130` shows `All user specified timing constraints are met`, `WNS +0.022 ns`, and `WHS +0.055 ns`.
+- Matched fast-gate result for `impl130`: `4.257776 CoreMark/MHz`, `crcfinal=0xfcaf`, `completion_cycles=2390364`, `acceptance_pass=yes`.
+- `impl130` Dhrystone, bitstream, PROGRAM_OK, UART capture, and board video evidence are still pending.
+- Do not promote the raw `synth131_lightfold_rc512_cpu50_reject_lut10432` result despite its `4.287448 CoreMark/MHz` score; that build is rejected under the current area rule at `10432 Slice LUTs`. The accepted RC512 path is now `impl136`, which adds strict ROM-window redirect-cache tag trimming and closes route under 10000 LUT.
+- Do not promote `fast132_lightfold_rc512_ntfold_iter10` despite its `4.352646 CoreMark/MHz` score. The matching CPU50 synthesis is rejected at `11226 Slice LUTs` and `WNS -5.071 ns`.
+- Do not promote `fast133_lightfold_rc256_ntfold_iter10` despite its `4.315138 CoreMark/MHz` score. The matching CPU50 synthesis stays under 10000 LUT at `9591 Slice LUTs`, but fails synthesis timing at `WNS -3.084 ns`.
+- Do not promote `fast140_lightfold_rc256_tagtrim_ntfold_fexmem0_iter10` despite its `4.315138 CoreMark/MHz` score. The matching CPU50 synthesis stays under 10000 LUT at `9035 Slice LUTs`, but fails synthesis timing at `WNS -4.466 ns`.
+- Vivado implementation log for `impl115` binds `ROM_INIT_HEX=.../coremark50_fast_gate_iter10.hex`.
+- Vivado implementation log for `impl115` binds `ROM_INIT_MEM32_HEX=.../coremark50_fast_gate_iter10.mem32.hex`.
+- Vivado implementation log for `impl115` records `ROM_BYTES=65536` and `RAM_BYTES=65536`.
+- Vivado implementation log for `impl115` confirms `$readmem ... coremark50_fast_gate_iter10.mem32.hex is read successfully`.
+- Vivado final `report_timing_summary` for `impl115` shows `All user specified timing constraints are met`, `WNS +0.152 ns`, and `WHS +0.106 ns`.
+- Matched fast-gate result for `impl115`: `4.207986 CoreMark/MHz`, `crcfinal=0xfcaf`, `completion_cycles=2418360`, `acceptance_pass=yes`.
+- Matched Dhrystone xsim result for `impl115`: `2.506614 DMIPS/MHz`, `440412 Dhrystones/s`, `completion_cycles=270147`, 1000 runs.
+- No CoreMark algorithm source file was modified.
+- The CoreMark evidence is a short reproducible full-workload fast gate, not a strict EEMBC 10-second run.
+- DMIPS/MHz for `impl115` may be reported only as matched simulation evidence; do not describe it as board UART evidence.
+- Bitstream, PROGRAM_OK, UART capture, and board video evidence are still pending.
+- The earlier `fast115`/`fast121` high-fold direct-update fast-gate score
+  (`4.703802` to `4.716581 CoreMark/MHz`) must not be paired with `impl115`.
+  The high-fold implementation attempt was rejected: synth LUT is `11916`, synth
+  WNS is `-11.416 ns`, and route stayed far negative before the run was stopped.
+
+Key optimization:
+
+- `impl136` keeps the `impl134` redirect-cache ROM-window tag trim and changes only route implementation effort to `route_design -directive HigherDelayCost`.
+- Compared with `impl134`, post-route timing improves from `WNS +0.001 ns / WHS +0.119 ns` to `WNS +0.017 ns / WHS +0.155 ns`; LUT changes from `9892` to `9895`.
+- Redirect-cache tag trimming passes `ROM_BASE` and `ROM_BYTES` into the CPU so strict CoreMark `ROM_BYTES=65536` can compare only `PC[15:11]` for RC512 instead of storing the full `PC[31:11]` tag.
+- `impl130` adds `ENABLE_ID_BRANCH_FOLD_LIGHT_DECODE=1` and keeps taken branch fold enabled.
+- In light-fold mode, the fold target path bypasses the full `u_fold_target_id_stage` decoder and decodes only a safe LUI/AUIPC/base ALU subset. Unsupported fold targets execute through the normal decode path.
+- This removes the previous full-decoder fan-in from the branch-fold timing path. The remaining worst routed path is still MEM-address to front-end PC select through redirect-cache PC RAM, but it closes at 50 MHz.
+- `synth133` confirms that enabling not-taken fold reintroduces a DCache/MEM-to-front-end path through `id_branch_not_taken_fold_candidate`; do not enable this feature in the current strict timing baseline.
+- `synth140` confirms that disabling fold EX/MEM load-use forwarding is not sufficient to make not-taken fold timing-safe. The next viable version must structurally register or decouple not-taken fold from same-cycle IF/ID instruction and PC selection.
+- `impl115` keeps the strict exact-ROM `impl104` fold-off family and adds `BRANCH_BHT_DIRECT_UPDATE=1`.
+- With `BRANCH_BHT_STRONG_ONLY=1`, direct update writes `2'b11` for taken and `2'b00` for not-taken instead of saturating the old 2-bit counter value.
+- This removes BHT counter read/add/sub logic from the update path. In the fold-off strict implementation, the main benefit is area/timing margin rather than CoreMark speed.
+- Compared with `impl104`, post-route LUT drops from `9694` to `9105`; timing margin improves from `WNS +0.022 ns / WHS +0.041 ns` to `WNS +0.152 ns / WHS +0.106 ns`; matched CoreMark changes from `4.216239` to `4.207986`.
+
+Next required gates:
+
+- Treat `impl136` as the current CoreMark-best strict 50 MHz exact-ROM routed candidate under 10000 LUT.
+- Keep `impl104` as the current bitstream-backed strict candidate until an `impl136` bitstream is generated.
+- Generate an `impl136` bitstream only after final review of the current evidence; board UART/video evidence is still pending.
+- If continuing optimization, preserve the light-fold/tag-trim structure and target the remaining route-dominated DCache/load-data/redirect-cache/front-end PC path.
+
+## 2026-06-13 strict 50 MHz exact-ROM optimization update
+
+This section is superseded by the 2026-06-14 `impl136` route-directive result.
+
+## 2026-06-12 previous strict 50 MHz exact-ROM timing-closed candidate
+
+Previous strict 50 MHz candidate before the 2026-06-13 `impl115` direct-update result:
+
+| Role | LUT | CoreMark/MHz | DMIPS/MHz | Clock | Timing | Status |
+|---|---:|---:|---:|---:|---|---|
+| Current strict 50 MHz exact-CoreMark-ROM high-score candidate | 9694 post-route Slice LUTs / 8454 LUT as Logic | 4.216239 | 2.506614 matched xsim | 50 MHz | WNS +0.022 ns / WHS +0.041 ns | accepted implementation+bitstream candidate; not board-proven |
+| Previous strict 50 MHz exact-CoreMark-ROM high-score candidate | 9884 post-route Slice LUTs / 8644 LUT as Logic | 4.209252 | 2.506614 matched xsim | 50 MHz | WNS +0.032 ns / WHS +0.033 ns | superseded by `impl104`; still valid evidence |
+| Strict 50 MHz exact-CoreMark-ROM timing-margin fallback | 6451 post-route Slice LUTs / 6059 LUT as Logic | 4.151598 | 2.484735 matched xsim | 50 MHz | WNS +0.341 ns / WHS +0.075 ns | valid lower-score fallback; not board-proven |
+
+Current evidence package:
+
+- `artifacts/strict_50m_timing_opt_20260609/impl104_rc512_dynbht64_strong1_static1_exactrom_cpu50_wns+0p022/README.md`
+- `artifacts/strict_50m_timing_opt_20260609/impl104_rc512_dynbht64_strong1_static1_exactrom_cpu50_wns+0p022/coremark50_fast_gate_iter10.summary.txt`
+- `artifacts/strict_50m_timing_opt_20260609/impl104_rc512_dynbht64_strong1_static1_exactrom_cpu50_wns+0p022/coremark50_fast_gate_iter10.log`
+- `artifacts/strict_50m_timing_opt_20260609/impl104_rc512_dynbht64_strong1_static1_exactrom_cpu50_wns+0p022/vivado_pynq_z2_impl.log`
+- `artifacts/strict_50m_timing_opt_20260609/impl104_rc512_dynbht64_strong1_static1_exactrom_cpu50_wns+0p022/impl_timing_summary.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl104_rc512_dynbht64_strong1_static1_exactrom_cpu50_wns+0p022/impl_timing_setup_top20.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl104_rc512_dynbht64_strong1_static1_exactrom_cpu50_wns+0p022/impl_timing_hold_top20.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl104_rc512_dynbht64_strong1_static1_exactrom_cpu50_wns+0p022/impl_utilization.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl104_rc512_dynbht64_strong1_static1_exactrom_cpu50_wns+0p022/impl_route_status.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl104_rc512_dynbht64_strong1_static1_exactrom_cpu50_wns+0p022/impl_methodology.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl104_rc512_dynbht64_strong1_static1_exactrom_cpu50_wns+0p022/YH_rv_cpu_pynq_z2_sysclk_8p000ns_cpu50_impl.dcp`
+- `artifacts/strict_50m_timing_opt_20260609/impl104_rc512_dynbht64_strong1_static1_exactrom_cpu50_wns+0p022/impl104.bit`
+- `artifacts/strict_50m_timing_opt_20260609/impl104_rc512_dynbht64_strong1_static1_exactrom_cpu50_wns+0p022/bitstream_from_dcp_timing_summary.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl104_rc512_dynbht64_strong1_static1_exactrom_cpu50_wns+0p022/bitstream_from_dcp_utilization.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl104_rc512_dynbht64_strong1_static1_exactrom_cpu50_wns+0p022/bitstream_from_dcp_drc.rpt`
+- `artifacts/strict_50m_timing_opt_20260609/impl104_rc512_dynbht64_strong1_static1_exactrom_cpu50_wns+0p022/vivado_write_bitstream_impl104.log`
+- `artifacts/strict_50m_timing_opt_20260609/impl104_rc512_dynbht64_strong1_static1_exactrom_cpu50_wns+0p022/SHA256SUMS.txt`
+- `artifacts/strict_50m_timing_opt_20260609/sim104_dhrystone_impl104_rc512_dynbht64_strong1_static1_match/README.md`
+- `artifacts/strict_50m_timing_opt_20260609/sim104_dhrystone_impl104_rc512_dynbht64_strong1_static1_match/dhrystone_impl104_rc512_dynbht64_strong1_static1_runs1000.summary.txt`
+- `artifacts/strict_50m_timing_opt_20260609/sim104_dhrystone_impl104_rc512_dynbht64_strong1_static1_match/dhrystone_impl104_rc512_dynbht64_strong1_static1_runs1000.log`
+- `artifacts/strict_50m_timing_opt_20260609/sim104_dhrystone_impl104_rc512_dynbht64_strong1_static1_match/dhrystone_impl104_rc512_dynbht64_strong1_static1.dump`
+- `artifacts/strict_50m_timing_opt_20260609/sim104_dhrystone_impl104_rc512_dynbht64_strong1_static1_match/SHA256SUMS.txt`
+
+Strict evidence checks:
+
+- Vivado implementation log for `impl104` binds `ROM_INIT_HEX=.../coremark50_fast_gate_iter10.hex`.
+- Vivado implementation log for `impl104` binds `ROM_INIT_MEM32_HEX=.../coremark50_fast_gate_iter10.mem32.hex`.
+- Vivado implementation log for `impl104` records `ROM_BYTES=65536` and `RAM_BYTES=65536`.
+- Vivado implementation log for `impl104` confirms `$readmem ... coremark50_fast_gate_iter10.mem32.hex is read successfully`.
+- Vivado final `report_timing_summary` for `impl104` shows `WNS +0.022 ns / WHS +0.041 ns` with 0 setup/hold failing endpoints.
+- Bitstream generation from the archived `impl104` routed checkpoint completed with DRC 0 errors and `Bitgen Completed Successfully`.
+- Post-checkpoint timing for `impl104` remains `WNS +0.022 ns / WHS +0.041 ns`.
+- Fast-gate result for `impl104`: `4.216239 CoreMark/MHz`, `crcfinal=0xfcaf`, `completion_cycles=2413734`, `acceptance_pass=yes`.
+- Matched Dhrystone xsim result for `impl104`: `2.506614 DMIPS/MHz`, `440412 Dhrystones/s`, `completion_cycles=270147`, 1000 runs.
+- The CoreMark evidence is a short reproducible full-workload fast gate, not a strict EEMBC 10-second run.
+- DMIPS/MHz for `impl104` may be reported only as matched simulation evidence from `sim104_dhrystone_impl104_rc512_dynbht64_strong1_static1_match`; do not describe it as board UART evidence.
+- No CoreMark algorithm source file was modified.
+
+Key correction:
+
+- `impl92_impl74_rc256_exactrom_cpu50_wns+0p115` and `impl93_impl92_rc512_exactrom_cpu50_wns+0p001` are no longer accepted as strict exact-ROM evidence. Their Vivado implementation logs bind `V:/project/YH_rv_cpu/build/sw/coremark50_fast_gate_iter10.mem32.hex` and report `CRITICAL WARNING: [Synth 8-4445] could not open $readmem data file ...`; treat them as historical timing experiments only.
+- Fast-gate results such as `fast93_impl92_rc512_iter10` and `fast101_impl93_rc512_dynbht64_static1_iter10` are software/simulation exploration records and cannot repair an implementation log with a failed ROM read.
+- `impl60_rcache_raw_lookup_cpu50_wns+0p301` remains demoted from strict reporting. Its implementation log binds `YH_rv_cpu_demo.hex` / `YH_rv_cpu_demo.mem32.hex`, with `ROM_BYTES=8192` and `RAM_BYTES=8192`.
 - The valid implementation must match the fast-gate CoreMark ISA generics: `ZMMUL=1`, `BITMANIP=1`, `ZBC=1`, `ZICOND=1`, `XTHEAD=1`, `XTHEAD_MUL=1`, `XTHEAD_COND_MOVE=1`, with `ZBKB=0`, `XTHEAD_CRC=0`, `XTHEAD_MEMPAIR=0`, and `XTHEAD_BASE_UPDATE=0`.
-- A temporary implementation run with missing extension generics produced a lower-looking `4879 LUT / 0 DSP` result; that run is invalid for the strict CoreMark candidate and must not be reported.
-- The timing improvement comes from `ENABLE_REDIRECT_CACHE_EX_SIMPLE_BLOCK=1`, which removes actual `ex_fetch_redirect_valid` dependence from the redirect-cache lookup request/PC cone while keeping final delivery mutually excluded by actual EX redirect.
-- Fast-gate result is unchanged from the previous candidate: `4.151598 CoreMark/MHz`, `crcfinal=0xfcaf`, `completion_cycles=2450912`.
-- Matching Dhrystone xsim evidence reports `2.484735 DMIPS/MHz`, 1000 runs, `completion_cycles=272149`.
-- Matching bitstream generation is complete from the same routed checkpoint. Board PROGRAM_OK, UART capture, and video evidence are still pending; this is not yet board-proven.
 
-Comparison to previous strict 50 MHz candidate:
+Key optimization:
+
+- `impl104` keeps the valid `impl101` strict exact-ROM family and adds `BRANCH_BHT_STRONG_ONLY=1`.
+- This improves exact-ROM CoreMark/MHz from `4.209252` to `4.216239` and reduces post-route Slice LUTs from `9884` to `9694`.
+- Timing margin changes from `WNS +0.032 ns / WHS +0.033 ns` to `WNS +0.022 ns / WHS +0.041 ns`; the setup margin is smaller but still positive at 50 MHz.
+- `impl100` remains rejected: RC1024+BHT64 reached `4.212713 CoreMark/MHz` but failed exact-ROM implementation timing at `WNS -0.939 ns`.
+- `impl102` remains rejected: RC512+BHT32 with valid exact-ROM read reached `4.210018 CoreMark/MHz` but failed timing at `WNS -0.132 ns`.
+- `impl74` remains the strict readmem-success timing-margin fallback: `4.151598 CoreMark/MHz`, `WNS +0.341 ns`, generated bitstream.
+
+Comparison to previous strict 50 MHz candidates:
 
 | Candidate | LUT | CoreMark/MHz | Clock | WNS | WHS | Decision |
 |---|---:|---:|---:|---:|---:|---|
-| `impl55_split_ex_fetchreq_placenet_cpu50_wns+0p006` | 6786 | 4.151598 | 50 MHz | +0.006 ns | +0.040 ns | superseded by `impl60` |
-| `impl60_rcache_raw_lookup_cpu50_wns+0p301` | 6255 | 4.151598 | 50 MHz | +0.301 ns | +0.104 ns | current recommended candidate |
+| `impl60_rcache_raw_lookup_cpu50_wns+0p301` | 6255 | 4.151598 fast-gate only | 50 MHz | +0.301 ns | +0.104 ns | rejected for strict exact-ROM reporting; demo ROM / 8KiB ROM-RAM |
+| `impl74_exblock_nodcache_luspec_exactrom_cpu50_wns+0p341` | 6451 Slice LUTs | 4.151598 | 50 MHz | +0.341 ns | +0.075 ns | strict readmem-success timing-margin fallback; bitstream exists |
+| `impl92_impl74_rc256_exactrom_cpu50_wns+0p115` | 6802 Slice LUTs | 4.184162 fast-gate history | 50 MHz | +0.115 ns | +0.055 ns | rejected for strict reporting; implementation log has readmem open warning |
+| `impl93_impl92_rc512_exactrom_cpu50_wns+0p001` | 8400 Slice LUTs | 4.205819 fast-gate history | 50 MHz | +0.001 ns | +0.056 ns | rejected for strict reporting; implementation log has readmem open warning |
+| `impl100_rc1024_dynbht64_static1_exactrom_cpu50_wns-0p939` | 11933 Slice LUTs | 4.212713 | 50 MHz | -0.939 ns | +0.030 ns | rejected; exact-ROM timing failed |
+| `impl101_rc512_dynbht64_static1_exactrom_cpu50_wns+0p032` | 9884 Slice LUTs | 4.209252 | 50 MHz | +0.032 ns | +0.033 ns | valid strict candidate; superseded by `impl104` |
+| `impl102_rc512_dynbht32_static1_exactrom_cpu50_wns-0p132` | 9134 Slice LUTs | 4.210018 | 50 MHz | -0.132 ns | +0.119 ns | rejected; exact-ROM timing failed |
+| `impl104_rc512_dynbht64_strong1_static1_exactrom_cpu50_wns+0p022` | 9694 Slice LUTs | 4.216239 | 50 MHz | +0.022 ns | +0.041 ns | previous recommended strict candidate; bitstream generated |
 
-Next required gates before freezing as board-facing baseline:
+Next gates recorded before the 2026-06-13 `impl115` update:
 
-- Run PROGRAM_OK and UART capture on PYNQ-Z2.
+- Run PROGRAM_OK and UART capture on PYNQ-Z2 using `artifacts/strict_50m_timing_opt_20260609/impl104_rc512_dynbht64_strong1_static1_exactrom_cpu50_wns+0p022/impl104.bit`.
 - Capture board video evidence.
-- Recheck Dhrystone/DMIPS on board only if the final report requires board UART evidence for DMIPS.
+- Keep `impl74` ready as the strict readmem-success 50 MHz timing-margin fallback if the `impl104` +0.022 ns setup margin is considered too tight on board.
+- Optional: rerun Dhrystone on board UART if final reporting requires board-level DMIPS evidence.
 
 ## 2026-06-09 authoritative baseline cleanup
 
@@ -55,9 +254,9 @@ Current accepted baseline for honest reporting:
 | Board-facing fallback baseline | 6791 post-route | 4.501191 | 1.205669 | 25 MHz | WNS +0.291 ns / WHS +0.065 ns | accepted timing-closed baseline |
 | Best recorded timing-closed successor candidate | 7473 post-route | 4.741458 | 1.205669 | 25 MHz | WNS +1.348 ns / WHS +0.041 ns | candidate; not board-proven |
 
-Current strict 50 MHz status:
+Strict 50 MHz status at cleanup time, now superseded by the 2026-06-12 `impl104` result:
 
-- No accepted strict 50 MHz timing-closed CoreMark-ROM baseline exists in the current evidence set.
+- At that time no accepted strict 50 MHz timing-closed CoreMark-ROM baseline existed in the evidence set.
 - The exact 50 MHz CoreMark-ROM audit reached `11182 LUT / 5.162186 CoreMark/MHz short-run`, but failed implementation timing at `WNS -5.800 ns`; it is rejected for freeze.
 - The historical `5918 LUT / 5.162186 CoreMark/MHz / WNS +0.358 ns` result was a demo/default-ROM timing result, not the exact CoreMark-ROM freeze build; it is not a baseline.
 - The `6872 LUT / 5.023480 CoreMark/MHz` row remains an engineering reference only. Its full implementation audit failed at `7063 post-route LUT / WNS -10.360 ns`, so it is not timing-closed and not board-facing.
@@ -85,8 +284,8 @@ Cleanup record:
   - do not freeze this exact 50 MHz CoreMark-ROM build.
   - do not use the earlier `5918 LUT / WNS +0.358 ns` demo-ROM implementation as strict CoreMark-ROM freeze evidence.
   - keep the earlier `5918` result only as historical/demo-ROM timing information.
-- Current freeze status:
-  - no version is currently accepted as a strict 50 MHz timing-closed freeze baseline.
+- Historical freeze status at the 2026-06-08 audit date:
+  - no version was accepted then as a strict 50 MHz timing-closed freeze baseline.
   - next candidate must be tested with the exact benchmark/application ROM image that will be reported.
   - implementation timing must be closed on that exact build before freezing.
 
