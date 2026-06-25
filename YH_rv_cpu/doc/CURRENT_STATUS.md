@@ -1,8 +1,104 @@
 ﻿# CURRENT_STATUS
 
-> Updated: `2026-06-17`
+> Updated: `2026-06-25`
 > Branch: `codex/syncbram-h22-20260514`
 > Authoritative rule: only timing-closed exact-ROM implementation results may be reported as a baseline. Short simulations, quick synthesis rows, demo/default-ROM timing closure, and timing-failed implementation rows are audit history only.
+## 2026-06-25 frozen best strict 50 MHz candidate
+
+The current best strict 50 MHz exact-CoreMark-ROM routed candidate is frozen as:
+
+| Role | Candidate | LUT | FF | CoreMark/MHz | DMIPS/MHz | Clock | Timing | Status |
+|---|---|---:|---:|---:|---:|---:|---|---|
+| Frozen best strict routed CoreMark candidate | `impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017` | 9895 | 6230 | 4.287448 | 1.178213 matched xsim | 50 MHz | WNS +0.017 ns / WHS +0.155 ns | frozen best strict routed candidate; bitstream pending |
+
+Freeze manifest:
+`artifacts/strict_50m_timing_opt_20260609/FREEZE_BEST_STRICT50_IMPL136_20260625.md`.
+
+Fresh verification on 2026-06-25:
+
+- `impl136` timing summary reports `All user specified timing constraints are met`.
+- `impl136` timing summary reports WNS `+0.017 ns`, TNS `0.000 ns`, WHS `+0.155 ns`, THS `0.000 ns`.
+- `impl136` CoreMark summary reports `coremark_per_mhz=4.287448`, `crcfinal=0xfcaf`, `acceptance_pass=yes`.
+- `sim136` Dhrystone summary reports `dmips_per_mhz=1.178213`.
+
+Important: `impl173_current_impl161cfg_exact_foldblock_iter10_routeHigherDelayCost_cpu50_wns+0p004`
+remains a valid latest current-RTL pass, but it is not the best frozen candidate
+because it is lower at `4.207950 CoreMark/MHz` and tighter at `WNS +0.004 ns`.
+`impl179_impl173_routeNoTimingRelaxation_postExplore_cpu50` is incomplete and
+has no final timing summary, so it is not candidate evidence.
+
+## 2026-06-23 current-RTL strict 50 MHz routed pass
+
+The current dirty RTL chain was rerun with the exact timing-friendly `impl161`
+configuration after rejecting and rolling back the failed branch-fold restore
+gate experiment. The new archived result is:
+
+| Role | Candidate | LUT | FF | CoreMark/MHz | Clock | Timing | Status |
+|---|---|---:|---:|---:|---:|---|---|
+| Latest current-RTL routed PASS candidate | `impl173_current_impl161cfg_exact_foldblock_iter10_routeHigherDelayCost_cpu50_wns+0p004` | 10662 | 6245 | 4.207950 | 50 MHz | WNS +0.004 ns / WHS +0.088 ns | accepted current-RTL strict exact-ROM routed evidence; bitstream skipped |
+
+Evidence archive:
+`artifacts/strict_50m_timing_opt_20260609/impl173_current_impl161cfg_exact_foldblock_iter10_routeHigherDelayCost_cpu50_wns+0p004`.
+
+Important distinction: `impl173` satisfies the current hard gates
+(`50 MHz`, timing closed, `CoreMark/MHz >= 4.15`, `LUT < 15000`), but
+`impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017`
+remains the best historical strict routed CoreMark reference at
+`4.287448 CoreMark/MHz`.
+
+## 2026-06-23 current-RTL implementation-only follow-up
+
+After `impl173`, implementation-only checks were run to see whether the latest
+current-RTL pass could gain timing margin without RTL changes.
+
+| Candidate | Source | Technique | LUT | FF | Clock | Timing | Decision |
+|---|---|---|---:|---:|---:|---|---|
+| `impl174_impl173_postAggressiveExplore_cpu50` | `impl173` routed DCP | Reopen routed DCP and run post-route `phys_opt_design -directive AggressiveExplore` | 10662 | 6245 | 50 MHz | WNS +0.004 ns / WHS +0.088 ns | valid no-op; unchanged from `impl173`; not promoted |
+| `impl175_impl173_routeHigherDelayCost_postAggressive_cpu50` | `impl173` synth DCP | Rerun route `HigherDelayCost` plus post-route `AggressiveExplore` | 10662 | 6245 | 50 MHz | WNS +0.004 ns / WHS +0.088 ns | valid reproduction; unchanged from `impl173`; not promoted |
+| `impl176_aborted_forcefanout64_nomatch` | `impl173` synth DCP | Try `FORCE_MAX_FANOUT=64` on candidate high-fanout redirect-cache names | n/a | n/a | 50 MHz target | no routed result | aborted; zero target nets matched, no valid effect |
+| `impl177_aborted_force_repl_option_conflict` | `impl173` synth DCP | Try `phys_opt_design -directive Explore -force_replication_on_nets ...` | n/a | n/a | 50 MHz target | no routed result | aborted; Vivado rejects combining `-directive` with `-force_replication_on_nets` |
+| `impl178_impl173_force_repl_nodirective_cpu50` | `impl173` synth DCP | Force replication on five matched high-fanout nets without a directive | n/a | n/a | 50 MHz target | pre-route worsened to WNS -1.075 ns / TNS -73.506 ns; route intermediate WHS -0.081 ns | rejected and killed; broad manual replication is harmful here |
+
+Decision: `impl173` remains the latest current-RTL strict 50 MHz routed pass.
+`impl174` and `impl175` reproduce the same timing but do not improve it.
+`impl176` through `impl178` should not be repeated as candidate flows. In
+particular, manual forced replication created 29 extra instances in `impl178`
+and worsened both setup and hold behavior before route could complete.
+
+## 2026-06-22 impl136 route-only sweep update
+
+Six route/phys-opt-only sweeps were run from the archived `impl136` strict exact-ROM synth DCP to check whether implementation directives alone could improve the current best 50 MHz routed margin.
+
+| Candidate | Source DCP | Directives | LUT | FF | Clock | Timing | Decision |
+|---|---|---|---:|---:|---:|---|---|
+| `impl165_impl136_routeHigherDelayCost_postAggressive_cpu50` | `impl136/.../dcp/cpu50_synth.dcp` | `place Explore / phys_opt Explore / route HigherDelayCost / post_route_phys_opt AggressiveExplore` | 9895 | 6230 | 50 MHz | WNS +0.017 ns / WHS +0.155 ns | valid, but identical timing to `impl136`; not promoted |
+| `impl166_impl136_routeNoTimingRelaxation_postExplore_cpu50` | `impl136/.../dcp/cpu50_synth.dcp` | `place Explore / phys_opt Explore / route NoTimingRelaxation / post_route_phys_opt Explore` | 9888 | 6230 | 50 MHz | WNS +0.014 ns / WHS +0.125 ns | valid, but slightly worse than `impl136`; not promoted |
+| `impl167_impl136_routeAdvancedSkewModeling_postExplore_cpu50` | `impl136/.../dcp/cpu50_synth.dcp` | `place Explore / phys_opt Explore / route AdvancedSkewModeling / post_route_phys_opt Explore` | 9893 | 6230 | 50 MHz | WNS +0.013 ns / WHS +0.177 ns | valid, but setup margin is below `impl136`; not promoted |
+| `impl168_impl136_routeMoreGlobalIterations_postExplore_cpu50` | `impl136/.../dcp/cpu50_synth.dcp` | `place Explore / phys_opt Explore / route MoreGlobalIterations / post_route_phys_opt Explore` | 9895 | 6230 | 50 MHz | WNS +0.001 ns / WHS +0.119 ns | valid, but setup margin is below `impl136`; not promoted |
+| `impl169_impl136_routeAdvancedSkewModeling_postAggressive_cpu50` | `impl136/.../dcp/cpu50_synth.dcp` | `place Explore / phys_opt Explore / route AdvancedSkewModeling / post_route_phys_opt AggressiveExplore` | 9893 | 6230 | 50 MHz | WNS +0.013 ns / WHS +0.177 ns | valid, but setup margin is below `impl136`; not promoted |
+| `impl170_impl136_routeMoreGlobalIterations_postAggressive_cpu50` | `impl136/.../dcp/cpu50_synth.dcp` | `place Explore / phys_opt Explore / route MoreGlobalIterations / post_route_phys_opt AggressiveExplore` | 9895 | 6230 | 50 MHz | WNS +0.001 ns / WHS +0.119 ns | valid, but setup margin is below `impl136`; not promoted |
+
+Conclusion: `impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017` remains the best historical strict routed CoreMark candidate. All six route-only sweeps met timing with zero routing errors, but none improved the `impl136` setup margin. Meaningful margin improvement likely requires RTL path staging/decoupling of the remaining DCache/redirect-cache/front-end path.
+
+## 2026-06-19 strict 50 MHz evidence split
+
+Current strict evidence must be read in layers:
+
+| Role | Candidate | LUT | CoreMark/MHz | DMIPS/MHz | Clock | Timing | Status |
+|---|---|---:|---:|---:|---:|---|---|
+| Best historical strict routed CoreMark candidate | `impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017` | 9895 | 4.287448 | 1.178213 matched xsim | 50 MHz | WNS +0.017 ns / WHS +0.155 ns | valid archived exact-ROM routed evidence; bitstream still pending |
+| Latest current-RTL routed PASS candidate | `impl173_current_impl161cfg_exact_foldblock_iter10_routeHigherDelayCost_cpu50_wns+0p004` | 10662 | 4.207950 | DMIPS not rerun; use earlier current-chain matched evidence until refreshed | 50 MHz | WNS +0.004 ns / WHS +0.088 ns | valid archived exact-ROM routed evidence; very tight setup margin; bitstream skipped |
+| Latest current-RTL rejected route | `impl164_rejected_wns-0p291` | 10664 | 4.207196 | not rerun | 50 MHz | WNS -0.291 ns / WHS +0.028 ns | rejected; 101 setup failing endpoints |
+
+Important:
+
+- Do not replace the better historical `impl136` evidence with `impl161` when reporting "best known strict routed CoreMark". `impl136` remains the higher CoreMark/MHz timing-closed reference.
+- Use `impl173` only as the latest timing-closed point on the current dirty RTL experiment chain. Its evidence is `artifacts/strict_50m_timing_opt_20260609/impl173_current_impl161cfg_exact_foldblock_iter10_routeHigherDelayCost_cpu50_wns+0p004`.
+- Use `impl164_rejected_wns-0p291` only as rejected evidence. Its archive is `artifacts/strict_50m_timing_opt_20260609/impl164_rejected_wns-0p291`.
+- The live `project/reports` directory is a scratch area and may contain stale or overwritten reports. Cite archived artifact paths for any baseline claim.
+- The CoreMark summaries are short reproducible full-workload gates and record `strict_eembc_10s_compliant=no`. They are acceptable for engineering comparison, but not public EEMBC 10-second compliance evidence.
+
+Next optimization should use archived DCPs for quick implementation sweeps before making more RTL changes. For performance-oriented work, start from `impl136` because it is the higher-score timing-closed reference. For the current dirty RTL chain, start from `impl161` and do route/phys-opt-only sweeps; do not promote `impl164`.
 
 ## 2026-06-17 optimization and handoff update
 
