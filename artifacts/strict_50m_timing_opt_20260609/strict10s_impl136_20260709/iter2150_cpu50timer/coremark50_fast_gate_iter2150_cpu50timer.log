@@ -1,0 +1,87 @@
+
+****** xsim v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Thu Jul  9 09:59:08 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/YH_rv_cpu_coremark_fpga_tb_snapshot/xsim_script.tcl
+# xsim {YH_rv_cpu_coremark_fpga_tb_snapshot} -testplusarg max_cycles=600000000 -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+Starting FPGA-like CoreMark simulation (MAX_CYCLES=600000000)...
+CYCLE=10000000 PC=000005a8
+CYCLE=20000000 PC=00005290
+CYCLE=30000000 PC=00008e8c
+CYCLE=40000000 PC=00004bd8
+CYCLE=50000000 PC=00003fa0
+CYCLE=60000000 PC=00000470
+CYCLE=70000000 PC=00000514
+CYCLE=80000000 PC=00000500
+CYCLE=90000000 PC=000005b0
+CYCLE=100000000 PC=00004c40
+CYCLE=110000000 PC=00008490
+CYCLE=120000000 PC=00004c9c
+CYCLE=130000000 PC=00004bb8
+CYCLE=140000000 PC=00000470
+CYCLE=150000000 PC=00000480
+CYCLE=160000000 PC=000004b0
+CYCLE=170000000 PC=00000948
+CYCLE=180000000 PC=000048b0
+CYCLE=190000000 PC=000082dc
+CYCLE=200000000 PC=00004860
+CYCLE=210000000 PC=00005234
+CYCLE=220000000 PC=000004b8
+CYCLE=230000000 PC=00000970
+CYCLE=240000000 PC=000005a8
+CYCLE=250000000 PC=00000f80
+CYCLE=260000000 PC=000048d4
+CYCLE=270000000 PC=000082e4
+CYCLE=280000000 PC=0000437c
+CYCLE=290000000 PC=000048cc
+CYCLE=300000000 PC=00000474
+CYCLE=310000000 PC=000008cc
+CYCLE=320000000 PC=000005b4
+CYCLE=330000000 PC=000081cc
+CYCLE=340000000 PC=00008eb4
+CYCLE=350000000 PC=000083a4
+CYCLE=360000000 PC=00004c80
+CYCLE=370000000 PC=00003fe0
+CYCLE=380000000 PC=000004b8
+CYCLE=390000000 PC=000005ac
+CYCLE=400000000 PC=000005b0
+CYCLE=410000000 PC=000084d8
+CYCLE=420000000 PC=000083b8
+CYCLE=430000000 PC=00008400
+CYCLE=440000000 PC=00004c30
+CYCLE=450000000 PC=000004b0
+CYCLE=460000000 PC=00000498
+CYCLE=470000000 PC=000004b0
+CYCLE=480000000 PC=000004cc
+CYCLE=490000000 PC=000084c0
+CYCLE=500000000 PC=0000829c
+2K performance run parameters for coremark.
+CoreMark Size    : 666
+Total ticks      : 501482787
+Total time (secs): 10
+Iterations/Sec   : 215
+Iterations       : 2150
+Compiler version : GCC 15.2.0
+Compiler flags   : -O3 -funroll-loops -mbranch-cost=1 -fno-schedule-insns -fno-schedule-insns2 -funroll-all-loops --param max-unrolled-insns=800 --param max-average-unrolled-insns=320 -finline-functions --param max-inline-insns-single=1000 --param max-inline-insns-auto=1000 --param inline-unit-growth=500 -fno-crossjumping -O2 -fschedule-insns -fschedule-insns2 -fno-caller-saves -fno-auto-inc-dec -march=rv32i_zmmul_zba_zbb_zbs_zbc_zicond_zbkb_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_xtheadmac_zicsr -mabi=ilp32
+Memory location  : SoC ROM/RAM
+seedcrc          : 0xe9f5
+[0]crclist       : 0xe714
+[0]crcmatrix     : 0x1fd7
+[0]crcstate      : 0x8e3a
+[0]crcfinal      : 0xea58
+Correct operation validated. See README.md for run and reporting rules.
+PROFILE_EVENTS cycles=501526636 ifid_valid=496901820 idex_valid=405373139 stall_decode=95440332 mem_wait=6732227 decode_flush=2326105 ifid_load_bubble=4615732 redirects=51883770 ex_redirect=447382 id_redirect=38142828 branch_predict_redirect=10911573 jal_predict_redirect=503264 redirect_cache_deliver=47630399 regular_cache_deliver=460623222 fold_candidate=33208219 fold_valid=9483005 fold_next=9483002 fold_hazard=2506287 fold_control=358654960 nt_fold_candidate=0 nt_fold_valid=0 nt_fold_next=0 nt_fold_block_load=0 nt_fold_block_store=0 nt_fold_block_hazard=0 nt_fold_block_control=0 id_alu_pair_candidate=0 id_alu_pair_valid=0 id_alu_pair_fetch=25019222 id_alu_pair_cache=413345057 id_alu_dep_candidate=0 id_alu_dep_valid=0 id_alu_dep_fetch=25019222 id_alu_dep_cache=413345057 fetch_req=29668122 fetch_redirect_req=4253369 fetch_regular_req=25414753 fetch_data_issue=406085476 fetch_queue_enqueue=2501419 fetch_queue_consume=2501418 fetch_drop_response=0
+
+PASS: coremark completed at PC=00003d34 in 501526636 cycles
+$finish called at time : 5015266465 ns : File "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-10s-20260709/YH_rv_cpu/tb/YH_rv_cpu_coremark_fpga_tb.v" Line 641
+run: Time (s): cpu = 00:00:04 ; elapsed = 07:39:39 . Memory (MB): peak = 196.258 ; gain = 0.457
+exit
+INFO: xsimkernel Simulation Memory Usage: 13244 KB (Peak: 13244 KB), Simulation CPU Usage: 26961327 ms
+INFO: [Common 17-206] Exiting xsim at Thu Jul  9 17:38:46 2026...

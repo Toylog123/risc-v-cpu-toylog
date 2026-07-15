@@ -1,0 +1,56 @@
+#-----------------------------------------------------------
+# Vivado v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Mon Jul 13 08:03:47 2026
+# Process ID         : 25764
+# Current directory  : D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508
+# Command line       : vivado.exe -mode batch -notrace -source artifacts\strict_50m_timing_opt_20260609\impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017\program_impl136_if_single_xc7z020.tcl -log artifacts\strict_50m_timing_opt_20260609\impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017\vivado_program_impl136.log -journal artifacts\strict_50m_timing_opt_20260609\impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017\vivado_program_impl136.jou
+# Log file           : D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/artifacts/strict_50m_timing_opt_20260609/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017/vivado_program_impl136.log
+# Journal file       : D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508\artifacts\strict_50m_timing_opt_20260609\impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017\vivado_program_impl136.jou
+# Running On         : Toylog_desktop
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26200
+# Processor Detail   : AMD Ryzen 7 7435H
+# CPU Frequency      : 3094 MHz
+# CPU Physical cores : 8
+# CPU Logical cores  : 16
+# Host memory        : 34082 MB
+# Swap memory        : 2147 MB
+# Total Virtual      : 36230 MB
+# Available Virtual  : 18248 MB
+#-----------------------------------------------------------
+source {artifacts\strict_50m_timing_opt_20260609\impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017\program_impl136_if_single_xc7z020.tcl} -notrace
+PROGRAM_START impl136
+BITSTREAM=D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/artifacts/strict_50m_timing_opt_20260609/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50.bit
+open_hw_manager: Time (s): cpu = 00:00:12 ; elapsed = 00:00:08 . Memory (MB): peak = 580.191 ; gain = 220.277
+INFO: [Labtools 27-2285] Connecting to hw_server url TCP:localhost:3121
+INFO: [Labtools 27-2222] Launching hw_server...
+INFO: [Labtools 27-2221] Launch Output:
+
+****** Xilinx hw_server v2025.2
+  **** Build date : Oct 28 2025 at 10:03:13
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+
+
+INFO: [Labtools 27-3415] Connecting to cs_server url TCP:localhost:0
+INFO: [Labtools 27-3417] Launching cs_server...
+INFO: [Labtools 27-2221] Launch Output:
+
+
+******** Xilinx cs_server v2025.2.0
+  ****** Build date   : Nov 14 2025-07:16:52
+    **** Build number : 2025.2.1763075812
+      ** Copyright 2017-2022 Xilinx, Inc. All Rights Reserved.
+      ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+
+
+connect_hw_server: Time (s): cpu = 00:00:00 ; elapsed = 00:00:06 . Memory (MB): peak = 585.406 ; gain = 5.215
+ERROR: [Labtoolstcl 44-199] No matching targets found on connected servers: localhost
+Resolution: If needed connect the desired target to a server and use command refresh_hw_server. Then rerun the get_hw_targets command.
+PROGRAM_RESULT=get_hw_targets_failed
+ERROR=ERROR: [Common 17-39] 'get_hw_targets' failed due to earlier errors.
+
+INFO: [Common 17-206] Exiting Vivado at Mon Jul 13 08:04:07 2026...

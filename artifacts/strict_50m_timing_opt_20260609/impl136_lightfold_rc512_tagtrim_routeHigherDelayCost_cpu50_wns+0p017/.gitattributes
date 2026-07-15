@@ -1,0 +1,3 @@
+# Preserve byte-exact evidence across different core.autocrlf settings.
+* -text -whitespace
+**/* -text -whitespace

@@ -1,0 +1,95 @@
+#-----------------------------------------------------------
+# Vivado v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Mon Jul 13 07:46:04 2026
+# Process ID         : 32724
+# Current directory  : D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508
+# Command line       : vivado.exe -mode batch -notrace -source artifacts\strict_50m_timing_opt_20260609\impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017\write_bitstream_from_impl136.tcl -log artifacts\strict_50m_timing_opt_20260609\impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017\vivado_write_bitstream_impl136.log -journal artifacts\strict_50m_timing_opt_20260609\impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017\vivado_write_bitstream_impl136.jou
+# Log file           : D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/artifacts/strict_50m_timing_opt_20260609/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017/vivado_write_bitstream_impl136.log
+# Journal file       : D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508\artifacts\strict_50m_timing_opt_20260609\impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017\vivado_write_bitstream_impl136.jou
+# Running On         : Toylog_desktop
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26200
+# Processor Detail   : AMD Ryzen 7 7435H
+# CPU Frequency      : 3094 MHz
+# CPU Physical cores : 8
+# CPU Logical cores  : 16
+# Host memory        : 34082 MB
+# Swap memory        : 2147 MB
+# Total Virtual      : 36230 MB
+# Available Virtual  : 13400 MB
+#-----------------------------------------------------------
+source {artifacts\strict_50m_timing_opt_20260609\impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017\write_bitstream_from_impl136.tcl} -notrace
+Command: open_checkpoint D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/artifacts/strict_50m_timing_opt_20260609/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017/dcp/cpu50_impl.dcp
+
+Starting open_checkpoint Task
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.071 . Memory (MB): peak = 378.219 ; gain = 7.461
+INFO: [Device 21-403] Loading part xc7z020clg400-1
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.210 . Memory (MB): peak = 847.805 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 2310 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 1 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2025.2
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Read ShapeDB Complete: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.064 . Memory (MB): peak = 968.484 ; gain = 2.855
+INFO: [Timing 38-478] Restoring timing data from binary archive.
+INFO: [Timing 38-479] Binary timing data restore complete.
+INFO: [Project 1-856] Restoring constraints from binary archive.
+INFO: [Project 1-853] Binary constraint restore complete.
+INFO: [Designutils 20-5722] Start Reading Physical Databases.
+Reading placement.
+Read Netlist Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.036 . Memory (MB): peak = 1574.008 ; gain = 0.000
+Reading placer database...
+Read Device Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.021 . Memory (MB): peak = 1574.008 ; gain = 0.000
+Read PlaceDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 1574.008 ; gain = 0.000
+Read placeStorage: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.691 . Memory (MB): peak = 1574.008 ; gain = 0.000
+Read PulsedLatchDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 1574.008 ; gain = 0.000
+Reading routing.
+Read RouteStorage: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.379 . Memory (MB): peak = 1582.965 ; gain = 8.957
+Read Physdb Files: Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 1582.965 ; gain = 8.957
+Restored from archive | CPU: 1.000000 secs | Memory: 0.000000 MB |
+Finished XDEF File Restore: Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 1582.965 ; gain = 10.926
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.014 . Memory (MB): peak = 1596.070 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 334 instances were transformed.
+  RAM64M => RAM64M (RAMD64E(x4)): 334 instances
+
+INFO: [Project 1-604] Checkpoint was created with Vivado v2025.2 (64-bit) build 6299465
+open_checkpoint: Time (s): cpu = 00:00:29 ; elapsed = 00:00:31 . Memory (MB): peak = 1602.938 ; gain = 1239.910
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+INFO: [Timing 38-91] UpdateTimingParams: Speed grade: -1, Delay Type: min_max.
+INFO: [Timing 38-191] Multithreading enabled for timing update using a maximum of 2 CPUs
+report_timing_summary: Time (s): cpu = 00:00:16 ; elapsed = 00:00:09 . Memory (MB): peak = 1672.547 ; gain = 69.609
+Command: report_drc -file D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/artifacts/strict_50m_timing_opt_20260609/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017/bitstream_from_dcp_drc.rpt
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'D:/Vivado/2025.2/Vivado/data/ip'.
+INFO: [DRC 23-27] Running DRC with 2 threads
+INFO: [Vivado_Tcl 2-168] The results of DRC are in file D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/artifacts/strict_50m_timing_opt_20260609/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017/bitstream_from_dcp_drc.rpt.
+report_drc completed successfully
+report_drc: Time (s): cpu = 00:00:09 ; elapsed = 00:00:07 . Memory (MB): peak = 1769.410 ; gain = 96.863
+Command: write_bitstream -force D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/artifacts/strict_50m_timing_opt_20260609/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50.bit
+Attempting to get a license for feature 'Implementation' and/or device 'xc7z020'
+INFO: [Common 17-349] Got license for feature 'Implementation' and/or device 'xc7z020'
+Running DRC as a precondition to command write_bitstream
+INFO: [IP_Flow 19-1839] IP Catalog is up to date.
+INFO: [DRC 23-27] Running DRC with 2 threads
+INFO: [Vivado 12-3199] DRC finished with 0 Errors
+INFO: [Vivado 12-3200] Please refer to the DRC report (report_drc) for more information.
+Integrating Hard IP ELF/MEM with the PDI.
+INFO: [Designutils 20-2272] Running write_bitstream with 2 threads.
+Loading data files...
+Loading site data...
+Loading route data...
+Processing options...
+Creating bitmap...
+Creating bitstream...
+Writing bitstream D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/artifacts/strict_50m_timing_opt_20260609/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50.bit...
+INFO: [Vivado 12-1842] Bitgen Completed Successfully.
+INFO: [Common 17-83] Releasing license: Implementation
+28 Infos, 0 Warnings, 0 Critical Warnings and 0 Errors encountered.
+write_bitstream completed successfully
+write_bitstream: Time (s): cpu = 00:00:40 ; elapsed = 00:00:28 . Memory (MB): peak = 2245.488 ; gain = 476.078
+INFO: [Common 17-206] Exiting Vivado at Mon Jul 13 07:47:29 2026...

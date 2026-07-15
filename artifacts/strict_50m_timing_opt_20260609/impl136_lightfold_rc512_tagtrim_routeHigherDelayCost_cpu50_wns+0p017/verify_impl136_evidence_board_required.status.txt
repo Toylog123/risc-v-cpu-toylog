@@ -1,0 +1,25 @@
+VERIFY_IMPL136_EVIDENCE_START
+ARTIFACT_DIR=D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\coremark7-dmips5-20260508\artifacts\strict_50m_timing_opt_20260609\impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017
+REQUIRE_BOARD_EVIDENCE=True
+CHECK PASS sha256sums ok
+CHECK PASS bitstream_present length=4045694 sha256=ba83976a59f8596faf6f2bd9eb015188fbf96bed59c427effd4403f347d3c4d3
+CHECK PASS bitgen_log_markers required Vivado bitgen markers
+CHECK PASS bitstream_timing WNS=0.017 WHS=0.155 timing met
+CHECK PASS strict10s_summary_present D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\coremark7-dmips5-20260508\artifacts\strict_50m_timing_opt_20260609\strict10s_impl136_20260709\iter2150_cpu50timer\coremark50_fast_gate_iter2150_cpu50timer.summary.txt
+CHECK PASS strict10s_summary_values strict 10-second xsim values
+CHECK PASS board_runner_refresh_hook runner refreshes SHA256SUMS after final board result
+CHECK PASS sha_refresh_helper_contract refresh helper check-only mode and optional board artifacts are covered
+CHECK PASS program_helper_single_xc7z020_guard program helper keeps single-xc7z020 guard and expected bitstream
+CHECK PASS uart_capture_marker_contract UART capture script uses the verifier CoreMark markers and writes raw/status logs
+CHECK PASS documentation_boundary_contract README/template preserve board-evidence and xsim-only claim boundaries
+CHECK FAIL board_evidence PROGRAM_OK and UART markers required
+CHECK FAIL program_status_boundary no PROGRAM_OK evidence present
+CHECK FAIL uart_status UART_RESULT=markers_found required
+CHECK FAIL uart_raw_log path=D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\coremark7-dmips5-20260508\artifacts\strict_50m_timing_opt_20260609\impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017\uart_impl136_raw.log required markers
+CHECK FAIL board_video missing board_video_impl136.[mp4|mov|mkv|avi|webm]
+CHECK PASS program_status_sha256sum SHA256SUMS entry required for D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\coremark7-dmips5-20260508\artifacts\strict_50m_timing_opt_20260609\impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017\program_impl136.status.txt
+CHECK PASS board_runner_status_sha256sum SHA256SUMS entry required for D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\coremark7-dmips5-20260508\artifacts\strict_50m_timing_opt_20260609\impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017\board_evidence_run_impl136.status.txt
+CHECK FAIL uart_status_sha256sum SHA256SUMS entry required for D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\coremark7-dmips5-20260508\artifacts\strict_50m_timing_opt_20260609\impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017\uart_impl136.status.txt
+CHECK FAIL uart_raw_log_sha256sum SHA256SUMS entry required for D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\coremark7-dmips5-20260508\artifacts\strict_50m_timing_opt_20260609\impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017\uart_impl136_raw.log
+CHECK FAIL board_video_sha256sum SHA256SUMS entry required for D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\coremark7-dmips5-20260508\artifacts\strict_50m_timing_opt_20260609\impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017\board_video_impl136.mp4
+VERIFY_RESULT=fail

@@ -1,0 +1,5 @@
+PROGRAM_START impl136
+BITSTREAM=D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/coremark7-dmips5-20260508/artifacts/strict_50m_timing_opt_20260609/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017/impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50.bit
+PROGRAM_RESULT=get_hw_targets_failed
+ERROR=ERROR: [Common 17-39] 'get_hw_targets' failed due to earlier errors.
+

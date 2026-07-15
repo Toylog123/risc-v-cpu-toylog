@@ -1,0 +1,16 @@
+BOARD_EVIDENCE_RUN_START impl136
+SCRIPT_DIR=D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\coremark7-dmips5-20260508\artifacts\strict_50m_timing_opt_20260609\impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017
+PORT_NAME=
+UART_TIMEOUT_SECONDS=45
+SKIP_PROGRAM=True
+SKIP_UART=True
+SERIAL_PORTS=COM4,COM6,COM11,COM10,COM5,COM3
+STEP_START=probe_hw_targets
+STEP_RESULT=probe_hw_targets success
+PROBE_STATUS_PRESENT=True
+HW_PROBE_RESULT=connect_hw_server_failed
+PROGRAM_SKIPPED=explicit
+UART_SKIPPED=explicit
+BOARD_EVIDENCE_RESULT=incomplete
+SHA256SUMS_REFRESH_SCRIPT=D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\coremark7-dmips5-20260508\artifacts\strict_50m_timing_opt_20260609\impl136_lightfold_rc512_tagtrim_routeHigherDelayCost_cpu50_wns+0p017\refresh_impl136_sha256sums.ps1
+SHA256SUMS_REFRESH_ATTEMPT=before_exit
