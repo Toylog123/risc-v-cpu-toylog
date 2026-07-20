@@ -1,59 +1,54 @@
 {
   "overview_files": [
     "README.md",
+    "01-项目管理/README.md",
+    "YH_rv_cpu/doc/CURRENT_STATUS.md",
     "YH_rv_cpu/doc/技术文档.md",
-    "01-项目管理/01-赛题要求/七星微赛题要求.md",
-    "01-项目管理/01-赛题要求/七星微赛题答疑整理.md",
-    "01-项目管理/README.md"
+    "01-项目管理/01-赛题要求/赛题/七星微赛题详细要求.md",
+    "01-项目管理/01-赛题要求/分赛区决赛要求/第十届集创赛分赛区决赛比赛要求-整理版.md",
+    "01-项目管理/03-提交材料/00-提交检查与清单/README.md"
   ],
   "handoff_files": [
-    "artifacts/fpga_valid_20260518/SYNCBRAM_OPT_HANDOFF_20260526.md",
-    "docs/SYNCBRAM_COREMARK_HANDOFF_20260515.md",
+    "01-项目管理/03-提交材料/00-提交检查与清单/02-冻结快照/分赛区决赛交接记录-2026-07-20.md",
+    "YH_rv_cpu/doc/YH_rv_cpu_handoff.md",
     "YH_rv_cpu/doc/METHOD_A_SYNCBRAM_HANDOFF_20260514.md",
-    "artifacts/coremark_method_a_20260514_172753/METHOD_A_FREEZE_HANDOFF.md",
-    "01-项目管理/02-执行管理/05-工作交接/工作交接.md",
-    "YH_rv_cpu/doc/YH_rv_cpu_handoff.md"
+    "docs/SYNCBRAM_COREMARK_HANDOFF_20260515.md",
+    "artifacts/fpga_valid_20260518/SYNCBRAM_OPT_HANDOFF_20260526.md",
+    "artifacts/coremark_method_a_20260514_172753/METHOD_A_FREEZE_HANDOFF.md"
   ],
   "task_files": [
-    "01-项目管理/02-执行管理/03-任务清单.md",
+    "01-项目管理/03-提交材料/00-提交检查与清单/01-要求对照/分赛区决赛提交要求对照-2026-07-20.md",
     "YH_rv_cpu/doc/YH_rv_cpu_todo.md"
   ],
   "planning_files": [
-    "01-项目管理/02-执行管理/01-总体规划.md",
     "YH_rv_cpu/doc/技术文档.md",
     "docs/superpowers/plans/2026-04-09-root-directory-reorg.md"
   ],
   "log_files": [
-    "01-项目管理/02-执行管理/04-工作记录/工作记录.md",
+    "01-项目管理/03-提交材料/00-提交检查与清单/02-冻结快照/分赛区决赛交接记录-2026-07-20.md",
     "YH_rv_cpu/doc/YH_rv_cpu_change_log.md"
   ],
   "toolchain_files": [
-    "03-工具链/YH_rv_cpu_toolchain/README.md",
-    "03-工具链/YH_rv_cpu_toolchain/队伍安装清单.md"
+    "YH_rv_cpu/scripts/check_toolchain.bat",
+    "01-项目管理/03-提交材料/源代码/CICC1003618_初赛_源代码/运行环境说明.md"
   ],
   "read_order": [
-    "artifacts/fpga_valid_20260518/SYNCBRAM_OPT_HANDOFF_20260526.md",
-    "artifacts/fpga_valid_20260518/STRICT_SYNCBRAM_OPT_20260521.md",
-    "YH_rv_cpu/doc/CURRENT_STATUS.md",
-    "docs/SYNCBRAM_COREMARK_HANDOFF_20260515.md",
-    "YH_rv_cpu/doc/METHOD_A_SYNCBRAM_HANDOFF_20260514.md",
-    "artifacts/coremark_method_a_20260514_172753/METHOD_A_FREEZE_HANDOFF.md",
     "README.md",
-    "YH_rv_cpu/doc/技术文档.md",
     "01-项目管理/README.md",
-    "01-项目管理/02-执行管理/05-工作交接/工作交接.md",
-    "01-项目管理/02-执行管理/03-任务清单.md",
-    "01-项目管理/02-执行管理/01-总体规划.md",
-    "01-项目管理/01-赛题要求/七星微赛题要求.md",
-    "01-项目管理/01-赛题要求/七星微赛题答疑整理.md",
-    "03-工具链/YH_rv_cpu_toolchain/队伍安装清单.md",
+    "01-项目管理/03-提交材料/00-提交检查与清单/02-冻结快照/分赛区决赛交接记录-2026-07-20.md",
+    "01-项目管理/01-赛题要求/分赛区决赛要求/第十届集创赛分赛区决赛比赛要求-整理版.md",
+    "01-项目管理/03-提交材料/00-提交检查与清单/01-要求对照/分赛区决赛提交要求对照-2026-07-20.md",
+    "YH_rv_cpu/doc/CURRENT_STATUS.md",
+    "YH_rv_cpu/doc/技术文档.md",
+    "01-项目管理/01-赛题要求/赛题/七星微赛题详细要求.md",
     "YH_rv_cpu/doc/YH_rv_cpu_handoff.md",
-    "YH_rv_cpu/doc/YH_rv_cpu_todo.md"
+    "YH_rv_cpu/doc/YH_rv_cpu_todo.md",
+    "YH_rv_cpu/doc/YH_rv_cpu_change_log.md"
   ],
   "ignore_patterns": [
     "02-参考资料/RISC-V架构规范/riscv-isa-manual/**",
-    "04-验证测试/01-性能基准/coremark/**",
-    "04-验证测试/02-指令验证/riscv-tests/**",
+    "03-验证测试/01-性能基准/coremark/**",
+    "03-验证测试/02-指令验证/riscv-tests/**",
     "_tmp/**",
     ".Xil/**"
   ]
