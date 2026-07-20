@@ -1,0 +1,47 @@
+@echo off
+setlocal
+
+for %%I in ("%~dp0..") do set PROJECT_DIR=%%~fI
+for %%I in ("%PROJECT_DIR%\..") do set REPO_ROOT=%%~fI
+
+set FW_DIR=%REPO_ROOT%\artifacts\coremark_method_a_fixed75_20260514\firmware
+set ROM_INIT_HEX_OVERRIDE=%FW_DIR%\verify_coremark75_nozbc_zicond_cm10_corrected_20260510.hex
+set ROM_INIT_MEM32_HEX_OVERRIDE=%FW_DIR%\verify_coremark75_nozbc_zicond_cm10_corrected_20260510.mem32.hex
+
+if not exist "%ROM_INIT_HEX_OVERRIDE%" (
+    set ROM_INIT_HEX_OVERRIDE=%PROJECT_DIR%\build\sw\verify_coremark75_nozbc_zicond_cm10_corrected_20260510.hex
+)
+if not exist "%ROM_INIT_MEM32_HEX_OVERRIDE%" (
+    set ROM_INIT_MEM32_HEX_OVERRIDE=%PROJECT_DIR%\build\sw\verify_coremark75_nozbc_zicond_cm10_corrected_20260510.mem32.hex
+)
+if not exist "%ROM_INIT_HEX_OVERRIDE%" (
+    echo Missing fixed CoreMark byte hex: %ROM_INIT_HEX_OVERRIDE%
+    exit /b 1
+)
+if not exist "%ROM_INIT_MEM32_HEX_OVERRIDE%" (
+    echo Missing fixed CoreMark mem32 hex: %ROM_INIT_MEM32_HEX_OVERRIDE%
+    exit /b 1
+)
+
+set RAM_BASE_OVERRIDE=65536
+set ROM_BYTES_OVERRIDE=65536
+set RAM_BYTES_OVERRIDE=65536
+
+set PYNQ_ENABLE_ZMMUL_EXTENSION_OVERRIDE=1
+set PYNQ_ENABLE_BITMANIP_EXTENSION_OVERRIDE=1
+set PYNQ_ENABLE_ZBC_EXTENSION_OVERRIDE=0
+set PYNQ_ENABLE_ZICOND_EXTENSION_OVERRIDE=0
+set PYNQ_ENABLE_ZBKB_EXTENSION_OVERRIDE=0
+set PYNQ_ENABLE_XTHEAD_EXTENSION_OVERRIDE=1
+set PYNQ_ENABLE_XTHEAD_COND_MOVE_OVERRIDE=1
+set PYNQ_ENABLE_ID_BRANCH_EX_FORWARD_OVERRIDE=1
+set PYNQ_USE_CLK_MMCM_62M5_OVERRIDE=0
+set PYNQ_USE_CLK_MMCM_50M_OVERRIDE=1
+set PYNQ_CPU_CLK_FREQ_HZ_OVERRIDE=50000000
+
+echo METHOD_A_FIXED75_ROM_INIT_HEX=%ROM_INIT_HEX_OVERRIDE%
+echo METHOD_A_FIXED75_ROM_INIT_MEM32_HEX=%ROM_INIT_MEM32_HEX_OVERRIDE%
+echo METHOD_A_FIXED75_RAM_BASE=%RAM_BASE_OVERRIDE%
+
+call "%~dp0build_pynq_z2_project.bat" impl
+exit /b %ERRORLEVEL%
