@@ -1,0 +1,13 @@
+log_path=D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\strict50-impl136-opt-20260625\artifacts\strict_50m_timing_opt_20260609\sim220_dhrystone_impl220_strict50_match\dhrystone_impl220_strict50_noautoinc_timer50_runs1000.log
+clock_hz=50000000
+runs=1000
+microseconds_per_run=4
+dhrystones_per_second=219240
+dmips=124.780876
+dmips_per_mhz=2.495618
+total_seconds=0.004561
+estimated_total_ticks=228061
+completion_cycles=271091
+benchmark=Dhrystone 2.2
+measurement_mode=host-parsed-from-uart-log
+competition_report_line=DMIPS/MHz (host-parsed): 2.495618 / Dhrystones/s 219240 / runs 1000

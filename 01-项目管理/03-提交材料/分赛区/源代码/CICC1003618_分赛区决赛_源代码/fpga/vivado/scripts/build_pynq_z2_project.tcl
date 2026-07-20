@@ -4,13 +4,6 @@ set fpga_dir [file dirname $vivado_dir]
 set project_root [file dirname $fpga_dir]
 set repo_root [file dirname $project_root]
 
-proc normalize_repo_path {path repo_root} {
-    if {[file pathtype $path] eq "relative"} {
-        return [file normalize [file join $repo_root $path]]
-    }
-    return [file normalize $path]
-}
-
 set build_dir [file normalize [file join $repo_root project]]
 set report_dir [file join $build_dir reports]
 set project_name YH_rv_cpu_pynq_z2
@@ -58,9 +51,7 @@ set enable_id_branch_exmem_load_forward 1
 set enable_ex_redirect_exmem_load_forward 1
 set enable_id_branch_fold 0
 set enable_id_branch_fold_light_decode 0
-set enable_redirect_cache_fold_predecode 0
 set enable_id_branch_not_taken_fold 1
-set enable_id_branch_not_taken_fold_delayed 0
 set enable_id_branch_fold_next_cache 1
 set enable_ex_redirect_fold 1
 set enable_id_branch_nt_next_cache 1
@@ -87,6 +78,7 @@ set branch_bht_entries 64
 set branch_static_predict_mode 0
 set branch_bht_strong_only 0
 set branch_bht_direct_update 0
+set enable_branch_bht_id_update 1
 set dmem_negedge_read 0
 set dmem_read_preissue 0
 set dcache_en 0
@@ -108,10 +100,10 @@ if {[llength $argv] >= 1} {
 }
 
 if {[info exists ::env(ROM_INIT_HEX_OVERRIDE)] && $::env(ROM_INIT_HEX_OVERRIDE) ne ""} {
-    set rom_init_hex [normalize_repo_path $::env(ROM_INIT_HEX_OVERRIDE) $repo_root]
+    set rom_init_hex [file normalize $::env(ROM_INIT_HEX_OVERRIDE)]
 }
 if {[info exists ::env(ROM_INIT_MEM32_HEX_OVERRIDE)] && $::env(ROM_INIT_MEM32_HEX_OVERRIDE) ne ""} {
-    set rom_init_mem32_hex [normalize_repo_path $::env(ROM_INIT_MEM32_HEX_OVERRIDE) $repo_root]
+    set rom_init_mem32_hex [file normalize $::env(ROM_INIT_MEM32_HEX_OVERRIDE)]
 }
 if {[info exists ::env(RAM_BASE_OVERRIDE)] && $::env(RAM_BASE_OVERRIDE) ne ""} {
     set ram_base_override $::env(RAM_BASE_OVERRIDE)
@@ -230,14 +222,8 @@ if {[info exists ::env(PYNQ_ENABLE_ID_BRANCH_FOLD_OVERRIDE)] && $::env(PYNQ_ENAB
 if {[info exists ::env(PYNQ_ENABLE_ID_BRANCH_FOLD_LIGHT_DECODE_OVERRIDE)] && $::env(PYNQ_ENABLE_ID_BRANCH_FOLD_LIGHT_DECODE_OVERRIDE) ne ""} {
     set enable_id_branch_fold_light_decode $::env(PYNQ_ENABLE_ID_BRANCH_FOLD_LIGHT_DECODE_OVERRIDE)
 }
-if {[info exists ::env(PYNQ_ENABLE_REDIRECT_CACHE_FOLD_PREDECODE_OVERRIDE)] && $::env(PYNQ_ENABLE_REDIRECT_CACHE_FOLD_PREDECODE_OVERRIDE) ne ""} {
-    set enable_redirect_cache_fold_predecode $::env(PYNQ_ENABLE_REDIRECT_CACHE_FOLD_PREDECODE_OVERRIDE)
-}
 if {[info exists ::env(PYNQ_ENABLE_ID_BRANCH_NOT_TAKEN_FOLD_OVERRIDE)] && $::env(PYNQ_ENABLE_ID_BRANCH_NOT_TAKEN_FOLD_OVERRIDE) ne ""} {
     set enable_id_branch_not_taken_fold $::env(PYNQ_ENABLE_ID_BRANCH_NOT_TAKEN_FOLD_OVERRIDE)
-}
-if {[info exists ::env(PYNQ_ENABLE_ID_BRANCH_NOT_TAKEN_FOLD_DELAYED_OVERRIDE)] && $::env(PYNQ_ENABLE_ID_BRANCH_NOT_TAKEN_FOLD_DELAYED_OVERRIDE) ne ""} {
-    set enable_id_branch_not_taken_fold_delayed $::env(PYNQ_ENABLE_ID_BRANCH_NOT_TAKEN_FOLD_DELAYED_OVERRIDE)
 }
 if {[info exists ::env(PYNQ_ENABLE_ID_BRANCH_FOLD_NEXT_CACHE_OVERRIDE)] && $::env(PYNQ_ENABLE_ID_BRANCH_FOLD_NEXT_CACHE_OVERRIDE) ne ""} {
     set enable_id_branch_fold_next_cache $::env(PYNQ_ENABLE_ID_BRANCH_FOLD_NEXT_CACHE_OVERRIDE)
@@ -316,6 +302,9 @@ if {[info exists ::env(PYNQ_BRANCH_BHT_STRONG_ONLY_OVERRIDE)] && $::env(PYNQ_BRA
 }
 if {[info exists ::env(PYNQ_BRANCH_BHT_DIRECT_UPDATE_OVERRIDE)] && $::env(PYNQ_BRANCH_BHT_DIRECT_UPDATE_OVERRIDE) ne ""} {
     set branch_bht_direct_update $::env(PYNQ_BRANCH_BHT_DIRECT_UPDATE_OVERRIDE)
+}
+if {[info exists ::env(PYNQ_ENABLE_BRANCH_BHT_ID_UPDATE_OVERRIDE)] && $::env(PYNQ_ENABLE_BRANCH_BHT_ID_UPDATE_OVERRIDE) ne ""} {
+    set enable_branch_bht_id_update $::env(PYNQ_ENABLE_BRANCH_BHT_ID_UPDATE_OVERRIDE)
 }
 if {[info exists ::env(PYNQ_DMEM_NEGEDGE_READ_OVERRIDE)] && $::env(PYNQ_DMEM_NEGEDGE_READ_OVERRIDE) ne ""} {
     set dmem_negedge_read $::env(PYNQ_DMEM_NEGEDGE_READ_OVERRIDE)
@@ -441,9 +430,7 @@ puts "INFO: ENABLE_ID_BRANCH_EXMEM_LOAD_FORWARD = ${enable_id_branch_exmem_load_
 puts "INFO: ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD = ${enable_ex_redirect_exmem_load_forward}"
 puts "INFO: ENABLE_ID_BRANCH_FOLD = ${enable_id_branch_fold}"
 puts "INFO: ENABLE_ID_BRANCH_FOLD_LIGHT_DECODE = ${enable_id_branch_fold_light_decode}"
-puts "INFO: ENABLE_REDIRECT_CACHE_FOLD_PREDECODE = ${enable_redirect_cache_fold_predecode}"
 puts "INFO: ENABLE_ID_BRANCH_NOT_TAKEN_FOLD = ${enable_id_branch_not_taken_fold}"
-puts "INFO: ENABLE_ID_BRANCH_NOT_TAKEN_FOLD_DELAYED = ${enable_id_branch_not_taken_fold_delayed}"
 puts "INFO: ENABLE_ID_BRANCH_FOLD_NEXT_CACHE = ${enable_id_branch_fold_next_cache}"
 puts "INFO: ENABLE_EX_REDIRECT_FOLD = ${enable_ex_redirect_fold}"
 puts "INFO: ENABLE_ID_BRANCH_NT_NEXT_CACHE = ${enable_id_branch_nt_next_cache}"
@@ -470,6 +457,7 @@ puts "INFO: BRANCH_BHT_ENTRIES = ${branch_bht_entries}"
 puts "INFO: BRANCH_STATIC_PREDICT_MODE = ${branch_static_predict_mode}"
 puts "INFO: BRANCH_BHT_STRONG_ONLY = ${branch_bht_strong_only}"
 puts "INFO: BRANCH_BHT_DIRECT_UPDATE = ${branch_bht_direct_update}"
+puts "INFO: ENABLE_BRANCH_BHT_ID_UPDATE = ${enable_branch_bht_id_update}"
 puts "INFO: DMEM_NEGEDGE_READ = ${dmem_negedge_read}"
 puts "INFO: DMEM_READ_PREISSUE = ${dmem_read_preissue}"
 puts "INFO: DCACHE_EN = ${dcache_en}"
@@ -572,9 +560,7 @@ lappend synth_cmd -generic "ENABLE_ID_BRANCH_EXMEM_LOAD_FORWARD=$enable_id_branc
 lappend synth_cmd -generic "ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD=$enable_ex_redirect_exmem_load_forward"
 lappend synth_cmd -generic "ENABLE_ID_BRANCH_FOLD=$enable_id_branch_fold"
 lappend synth_cmd -generic "ENABLE_ID_BRANCH_FOLD_LIGHT_DECODE=$enable_id_branch_fold_light_decode"
-lappend synth_cmd -generic "ENABLE_REDIRECT_CACHE_FOLD_PREDECODE=$enable_redirect_cache_fold_predecode"
 lappend synth_cmd -generic "ENABLE_ID_BRANCH_NOT_TAKEN_FOLD=$enable_id_branch_not_taken_fold"
-lappend synth_cmd -generic "ENABLE_ID_BRANCH_NOT_TAKEN_FOLD_DELAYED=$enable_id_branch_not_taken_fold_delayed"
 lappend synth_cmd -generic "ENABLE_ID_BRANCH_FOLD_NEXT_CACHE=$enable_id_branch_fold_next_cache"
 lappend synth_cmd -generic "ENABLE_EX_REDIRECT_FOLD=$enable_ex_redirect_fold"
 lappend synth_cmd -generic "ENABLE_ID_BRANCH_NT_NEXT_CACHE=$enable_id_branch_nt_next_cache"
@@ -601,6 +587,7 @@ lappend synth_cmd -generic "BRANCH_BHT_ENTRIES=$branch_bht_entries"
 lappend synth_cmd -generic "BRANCH_STATIC_PREDICT_MODE=$branch_static_predict_mode"
 lappend synth_cmd -generic "BRANCH_BHT_STRONG_ONLY=$branch_bht_strong_only"
 lappend synth_cmd -generic "BRANCH_BHT_DIRECT_UPDATE=$branch_bht_direct_update"
+lappend synth_cmd -generic "ENABLE_BRANCH_BHT_ID_UPDATE=$enable_branch_bht_id_update"
 lappend synth_cmd -generic "DMEM_NEGEDGE_READ=$dmem_negedge_read"
 lappend synth_cmd -generic "DMEM_READ_PREISSUE=$dmem_read_preissue"
 lappend synth_cmd -generic "DCACHE_EN=$dcache_en"

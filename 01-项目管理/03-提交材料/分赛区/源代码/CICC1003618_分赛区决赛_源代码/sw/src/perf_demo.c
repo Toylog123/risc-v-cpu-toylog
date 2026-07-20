@@ -234,7 +234,7 @@ int main(void)
     init_data();
 
     uart_puts("YH_rv_cpu Performance Demo Suite\n");
-    uart_puts("baseline=freeze-timingclosed-cpu25-20260605 cpu_clk=25MHz\n");
+    uart_puts("baseline=strict50 impl220 cpu_clk=50MHz\n");
 
     crc_value = run_section("CRC32", 512u, 0x3287d9afu, workload_crc32, &total);
     mat_value = run_section("MATMUL8", 1024u, 0x44da4cfbu, workload_matrix, &total);

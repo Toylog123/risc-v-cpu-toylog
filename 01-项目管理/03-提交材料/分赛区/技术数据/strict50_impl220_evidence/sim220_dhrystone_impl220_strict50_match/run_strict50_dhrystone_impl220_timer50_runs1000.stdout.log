@@ -1,0 +1,119 @@
+strict50_dhrystone_candidate=impl220
+strict50_dhrystone_target=rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xthead_mac_noautoinc_idbr
+strict50_dhrystone_clock_hz=50000000L
+strict50_dhrystone_runs=1000
+strict50_dhrystone_summary=artifacts\strict_50m_timing_opt_20260609\sim220_dhrystone_impl220_strict50_match\dhrystone_impl220_strict50_noautoinc_timer50_runs1000.summary.txt
+Dhrystone FPGA target: rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xthead_mac_noautoinc_idbr
+Dhrystone FPGA hw: dcache=1 dcache_bytes=512 rc_entries=512 dmem_negedge=0 dmem_preissue=0
+Dhrystone target: rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xthead_mac_noautoinc_idbr
+Dhrystone march: rv32i_zmmul_zba_zbb_zbs_zbc_zicond_xtheadba_xtheadbb_xtheadbs_xtheadcondmov_xtheadmemidx_xtheadmac_zicsr
+Dhrystone opt level: -O3 -flto -fwhole-program
+Dhrystone timer Hz: 50000000L
+Dhrystone extra cflags:  -fno-auto-inc-dec
+Dhrystone source mode: generated without no-inline pragma
+Built:
+  D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\strict50-impl136-opt-20260625\YH_rv_cpu\build\sw\YH_rv_cpu_dhrystone_fpga.elf
+  D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\strict50-impl136-opt-20260625\YH_rv_cpu\build\sw\YH_rv_cpu_dhrystone_fpga.dump
+  D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\strict50-impl136-opt-20260625\YH_rv_cpu\build\sw\YH_rv_cpu_dhrystone_fpga.bin
+  D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\strict50-impl136-opt-20260625\YH_rv_cpu\build\sw\YH_rv_cpu_dhrystone_fpga.hex
+  D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\strict50-impl136-opt-20260625\YH_rv_cpu\build\sw\YH_rv_cpu_dhrystone_fpga.mem32.hex
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625/YH_rv_cpu/tb/YH_rv_cpu_dhrystone_tb.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_dhrystone_tb
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625/YH_rv_cpu/rtl/YH_rv_cpu_soc.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_soc
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625/YH_rv_cpu/rtl/YH_rv_sync_imem_rom.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_sync_imem_rom
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625/YH_rv_cpu/rtl/YH_rv_sync_rom32.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_sync_rom32
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625/YH_rv_cpu/rtl/YH_rv_dmem_ram.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_dmem_ram
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625/YH_rv_cpu/rtl/YH_rv_cpu_dcache.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_dcache
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625/YH_rv_cpu/rtl/YH_rv_cpu_icache.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_icache
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625/YH_rv_cpu/rtl/YH_rv_cpu.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625/YH_rv_cpu/rtl/YH_rv_cpu_if_stage.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_if_stage
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625/YH_rv_cpu/rtl/YH_rv_cpu_id_stage.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_id_stage
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625/YH_rv_cpu/rtl/YH_rv_cpu_ex_stage.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_ex_stage
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625/YH_rv_cpu/rtl/YH_rv_cpu_mem_stage.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_mem_stage
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625/YH_rv_cpu/rtl/YH_rv_cpu_wb_stage.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_wb_stage
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625/YH_rv_cpu/rtl/YH_rv_cpu_hazard_unit.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_hazard_unit
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625/YH_rv_cpu/rtl/YH_rv_cpu_decoder.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_decoder
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625/YH_rv_cpu/rtl/YH_rv_cpu_regfile.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_regfile
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625/YH_rv_cpu/rtl/YH_rv_cpu_alu.v" into library work
+INFO: [VRFC 10-311] analyzing module YH_rv_cpu_alu
+Vivado Simulator v2025.2
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+Running: D:/Vivado/2025.2/Vivado/bin/unwrapped/win64.o/xelab.exe YH_rv_cpu_dhrystone_tb -generic_top ENABLE_M_EXTENSION=0 -generic_top ENABLE_ZMMUL_EXTENSION=1 -generic_top ENABLE_BITMANIP_EXTENSION=1 -generic_top ENABLE_ZBC_EXTENSION=1 -generic_top ENABLE_ZICOND_EXTENSION=1 -generic_top ENABLE_ZBKB_EXTENSION=0 -generic_top ENABLE_XTHEAD_EXTENSION=1 -generic_top ENABLE_XTHEAD_CRC_EXTENSION=0 -generic_top ENABLE_XTHEAD_MUL_EXTENSION=1 -generic_top ENABLE_XTHEAD_COND_MOVE=1 -generic_top ENABLE_XTHEAD_ADDSL_EXTENSION=0 -generic_top ENABLE_XTHEAD_MEMPAIR_EXTENSION=0 -generic_top ENABLE_XTHEAD_BASE_UPDATE_EXTENSION=0 -generic_top ENABLE_ID_BRANCH_EX_FORWARD=0 -generic_top ENABLE_ID_BRANCH_EXMEM_LOAD_FORWARD=0 -generic_top ENABLE_EX_REDIRECT_EXMEM_LOAD_FORWARD=0 -generic_top ENABLE_ID_BRANCH_FOLD=1 -generic_top ENABLE_ID_BRANCH_FOLD_LIGHT_DECODE=1 -generic_top ENABLE_ID_BRANCH_NOT_TAKEN_FOLD=0 -generic_top ENABLE_ID_BRANCH_FOLD_NEXT_CACHE=1 -generic_top ENABLE_EX_REDIRECT_FOLD=1 -generic_top ENABLE_ID_BRANCH_NT_NEXT_CACHE=1 -generic_top ENABLE_ID_BRANCH_NOT_TAKEN_LOAD_FOLD=0 -generic_top ENABLE_ID_ALU_PAIR_FOLD=0 -generic_top ENABLE_ID_ALU_DEP_FOLD=0 -generic_top ENABLE_REDIRECT_TARGET_CACHE=1 -generic_top ENABLE_REDIRECT_CACHE_REGULAR_LOOKUP=1 -generic_top ENABLE_REDIRECT_CACHE_REGULAR_SIMPLE_LOOKUP=1 -generic_top ENABLE_REDIRECT_CACHE_EX_SIMPLE_BLOCK=1 -generic_top ENABLE_REDIRECT_CACHE_UPDATE_ON_REDIRECT=0 -generic_top ENABLE_FETCH_REDIRECT_REUSE=0 -generic_top ENABLE_FETCH_LIVE_BYPASS=1 -generic_top ENABLE_FETCH_REDIRECT_SAME_CYCLE_REQ=1 -generic_top ENABLE_REDIRECT_CACHE_HIT_EXTRA_IMEM_REQ=0 -generic_top ENABLE_REDIRECT_CACHE_PC_SKIP=1 -generic_top ENABLE_IF_ID_PAYLOAD_SIMPLE_CE=1 -generic_top REDIRECT_CACHE_ENTRIES=512 -generic_top REDIRECT_CACHE_XOR_INDEX=0 -generic_top ENABLE_DYNAMIC_BRANCH_PREDICT=1 -generic_top BRANCH_BHT_ENTRIES=64 -generic_top BRANCH_STATIC_PREDICT_MODE=1 -generic_top BRANCH_BHT_STRONG_ONLY=1 -generic_top BRANCH_BHT_DIRECT_UPDATE=1 -generic_top ENABLE_BRANCH_BHT_ID_UPDATE=0 -generic_top DMEM_NEGEDGE_READ=0 -generic_top DMEM_READ_PREISSUE=0 -generic_top DCACHE_EN=1 -generic_top DCACHE_SIZE_BYTES=512 -generic_top ENABLE_DCACHE_LOAD_USE_SPEC=0 -generic_top ENABLE_CONTROL_REDIRECT_DCACHE_LOAD_USE_SPEC=0 -generic_top ENABLE_BRANCH_REDIRECT_DCACHE_LOAD_USE_SPEC=0 -generic_top ENABLE_JALR_REDIRECT_DCACHE_LOAD_USE_SPEC=0 -generic_top ENABLE_FRONTEND_DCACHE_LOAD_USE_SPEC=0 -generic_top ENABLE_FOLD_DCACHE_LOAD_USE_SPEC=0 -generic_top ENABLE_FOLD_EXMEM_LOAD_USE_SPEC=0 -generic_top ENABLE_EXMEM_LOAD_MUL_FORWARD=0 -generic_top ENABLE_DCACHE_NEXT_PREFETCH=0 -generic_top ENABLE_DCACHE_WORD_ONLY=0 -generic_top ICACHE_EN=0 -generic_top ROM_BYTES=65536 -generic_top RAM_BYTES=65536 -s YH_rv_cpu_dhrystone_tb_snapshot
+Multi-threading is on. Using 14 slave threads.
+WARNING: [XSIM 43-3431] One or more environment variables have been detected which affect the operation of the C compiler. These are typically not set in standard installations and are not tested by AMD, however they may be appropriate for your system, so the flow will attempt to continue.  If errors occur, try running xelab with the "-mt off -v 1" switches to see more information from the C compiler. The following environment variables have been detected:
+    C_INCLUDE_PATH
+Starting static elaboration
+Pass Through NonSizing Optimizer
+Completed static elaboration
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling module work.YH_rv_dmem_ram(RAM_BYTES=65536,S...
+Compiling module work.YH_rv_cpu_if_stage_default
+Compiling module work.YH_rv_cpu_regfile(ENABLE_FOLD_RS...
+Compiling module work.YH_rv_cpu_decoder(ENABLE_M_EXTEN...
+Compiling module work.YH_rv_cpu_id_stage(ENABLE_M_EXTE...
+Compiling module work.YH_rv_cpu_hazard_unit
+Compiling module work.YH_rv_cpu_alu(ENABLE_M_EXTENSION...
+Compiling module work.YH_rv_cpu_ex_stage(ENABLE_M_EXTE...
+Compiling module work.YH_rv_cpu_mem_stage_default
+Compiling module work.YH_rv_cpu_dcache(CACHE_ADDR_BITS...
+Compiling module work.YH_rv_cpu_wb_stage
+Compiling module work.YH_rv_cpu(DMEM_SYNC=1,DCACHEABLE...
+Compiling module work.YH_rv_cpu_soc(SYNC_DMEM=1,DCACHE...
+Compiling module work.YH_rv_cpu_dhrystone_tb(ENABLE_M_...
+Built simulation snapshot YH_rv_cpu_dhrystone_tb_snapshot
+
+****** xsim v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Thu Jul  2 18:41:36 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/YH_rv_cpu_dhrystone_tb_snapshot/xsim_script.tcl
+# xsim {YH_rv_cpu_dhrystone_tb_snapshot} -testplusarg max_cycles=200000000 -testplusarg dhrystone_runs=1000 -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+Starting Dhrystone simulation (MAX_CYCLES=200000000)...
+DHRYSTONE_RUNS=1000
+Microseconds for one run through Dhrystone: 4
+Dhrystones per Second:                      219240
+
+PASS: dhrystone completed at PC=00000070 in 271091 cycles
+$finish called at time : 2711015 ns : File "D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625/YH_rv_cpu/tb/YH_rv_cpu_dhrystone_tb.v" Line 384
+run: Time (s): cpu = 00:00:00 ; elapsed = 00:00:08 . Memory (MB): peak = 204.570 ; gain = 0.066
+exit
+INFO: [Common 17-206] Exiting xsim at Thu Jul  2 18:41:45 2026...
+
+Dhrystone FPGA summary:
+log_path=D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\strict50-impl136-opt-20260625\artifacts\strict_50m_timing_opt_20260609\sim220_dhrystone_impl220_strict50_match\dhrystone_impl220_strict50_noautoinc_timer50_runs1000.log
+clock_hz=50000000
+runs=1000
+microseconds_per_run=4
+dhrystones_per_second=219240
+dmips=124.780876
+dmips_per_mhz=2.495618
+total_seconds=0.004561
+estimated_total_ticks=228061
+completion_cycles=271091
+benchmark=Dhrystone 2.2
+measurement_mode=host-parsed-from-uart-log
+competition_report_line=DMIPS/MHz (host-parsed): 2.495618 / Dhrystones/s 219240 / runs 1000

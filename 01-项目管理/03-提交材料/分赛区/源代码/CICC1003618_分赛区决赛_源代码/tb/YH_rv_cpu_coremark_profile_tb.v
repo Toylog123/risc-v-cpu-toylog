@@ -29,7 +29,8 @@ module YH_rv_cpu_coremark_profile_tb #(
     parameter integer ENABLE_DYNAMIC_BRANCH_PREDICT = 0,
     parameter integer BRANCH_BHT_ENTRIES = 64,
     parameter integer BRANCH_STATIC_PREDICT_MODE = 0,
-    parameter integer BRANCH_BHT_STRONG_ONLY = 0
+    parameter integer BRANCH_BHT_STRONG_ONLY = 0,
+    parameter integer ENABLE_BRANCH_BHT_ID_UPDATE = 1
 ) ();
 
 localparam integer VALID_MSG_LEN = 13;
@@ -323,7 +324,8 @@ YH_rv_cpu_soc #(
     .ENABLE_DYNAMIC_BRANCH_PREDICT(ENABLE_DYNAMIC_BRANCH_PREDICT),
     .BRANCH_BHT_ENTRIES(BRANCH_BHT_ENTRIES),
     .BRANCH_STATIC_PREDICT_MODE(BRANCH_STATIC_PREDICT_MODE),
-    .BRANCH_BHT_STRONG_ONLY(BRANCH_BHT_STRONG_ONLY)
+    .BRANCH_BHT_STRONG_ONLY(BRANCH_BHT_STRONG_ONLY),
+    .ENABLE_BRANCH_BHT_ID_UPDATE(ENABLE_BRANCH_BHT_ID_UPDATE)
 ) dut (
     .clk          (clk),
     .rst_n        (rst_n),

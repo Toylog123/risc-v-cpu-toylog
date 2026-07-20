@@ -1,0 +1,24 @@
+#-----------------------------------------------------------
+# Vivado v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Wed Jul  1 06:49:09 2026
+# Process ID         : 36164
+# Current directory  : D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625
+# Command line       : vivado.exe -mode batch -notrace -log D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\strict50-impl136-opt-20260625\artifacts\strict_50m_timing_opt_20260609\impl220_impl200_optExploreArea_routeAdvancedSkewModeling_postAggressive_cpu50\logs\vivado_pynq_z2_impl.log -journal D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\strict50-impl136-opt-20260625\artifacts\strict_50m_timing_opt_20260609\impl220_impl200_optExploreArea_routeAdvancedSkewModeling_postAggressive_cpu50\logs\vivado_pynq_z2_impl.jou -source YH_rv_cpu\fpga\vivado\scripts\impl_from_synth_checkpoint.tcl -tclargs D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\strict50-impl136-opt-20260625\artifacts\strict_50m_timing_opt_20260609\synth200_impl136_bhtidupd0_cpu50\dcp\cpu50_synth.dcp D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\strict50-impl136-opt-20260625\artifacts\strict_50m_timing_opt_20260609\impl220_impl200_optExploreArea_routeAdvancedSkewModeling_postAggressive_cpu50\reports_cpu50 D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\strict50-impl136-opt-20260625\artifacts\strict_50m_timing_opt_20260609\impl220_impl200_optExploreArea_routeAdvancedSkewModeling_postAggressive_cpu50\dcp\cpu50_impl.dcp
+# Log file           : D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625/artifacts/strict_50m_timing_opt_20260609/impl220_impl200_optExploreArea_routeAdvancedSkewModeling_postAggressive_cpu50/logs/vivado_pynq_z2_impl.log
+# Journal file       : D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\strict50-impl136-opt-20260625\artifacts\strict_50m_timing_opt_20260609\impl220_impl200_optExploreArea_routeAdvancedSkewModeling_postAggressive_cpu50\logs\vivado_pynq_z2_impl.jou
+# Running On         : Toylog_desktop
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26200
+# Processor Detail   : AMD Ryzen 7 7435H
+# CPU Frequency      : 3094 MHz
+# CPU Physical cores : 8
+# CPU Logical cores  : 16
+# Host memory        : 34082 MB
+# Swap memory        : 2147 MB
+# Total Virtual      : 36230 MB
+# Available Virtual  : 16686 MB
+#-----------------------------------------------------------
+source {YH_rv_cpu\fpga\vivado\scripts\impl_from_synth_checkpoint.tcl} -notrace

@@ -1,0 +1,24 @@
+#-----------------------------------------------------------
+# Vivado v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Thu Jul  2 19:37:49 2026
+# Process ID         : 8752
+# Current directory  : D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625
+# Command line       : vivado.exe -mode batch -notrace -log artifacts\strict_50m_timing_opt_20260609\board_impl220_bitstream_20260702\vivado_write_bitstream_from_impl220.log -journal artifacts\strict_50m_timing_opt_20260609\board_impl220_bitstream_20260702\vivado_write_bitstream_from_impl220.jou -source artifacts\strict_50m_timing_opt_20260609\board_impl220_bitstream_20260702\write_bitstream_from_impl220.tcl
+# Log file           : D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625/artifacts/strict_50m_timing_opt_20260609/board_impl220_bitstream_20260702/vivado_write_bitstream_from_impl220.log
+# Journal file       : D:/BaiduSyncdisk/02_icdc_workspace/.worktrees/strict50-impl136-opt-20260625\artifacts\strict_50m_timing_opt_20260609\board_impl220_bitstream_20260702\vivado_write_bitstream_from_impl220.jou
+# Running On         : Toylog_desktop
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26200
+# Processor Detail   : AMD Ryzen 7 7435H
+# CPU Frequency      : 3094 MHz
+# CPU Physical cores : 8
+# CPU Logical cores  : 16
+# Host memory        : 34082 MB
+# Swap memory        : 2147 MB
+# Total Virtual      : 36230 MB
+# Available Virtual  : 20182 MB
+#-----------------------------------------------------------
+source {artifacts\strict_50m_timing_opt_20260609\board_impl220_bitstream_20260702\write_bitstream_from_impl220.tcl} -notrace

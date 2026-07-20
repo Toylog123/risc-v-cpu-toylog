@@ -1,0 +1,9 @@
+$ErrorActionPreference='Stop'
+$env:PYNQ_OPT_DIRECTIVE_OVERRIDE='ExploreArea'
+$env:PYNQ_PLACE_DIRECTIVE_OVERRIDE='Explore'
+$env:PYNQ_PHYS_OPT_PRE_DIRECTIVE_OVERRIDE='Explore'
+$env:PYNQ_ROUTE_DIRECTIVE_OVERRIDE='AdvancedSkewModeling'
+$env:PYNQ_PHYS_OPT_POST_DIRECTIVE_OVERRIDE='AggressiveExplore'
+$env:PYNQ_IMPL_WRITE_BITSTREAM_OVERRIDE='0'
+& 'D:\Vivado\2025.2\Vivado\bin\vivado.bat' -mode batch -notrace -log 'D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\strict50-impl136-opt-20260625\artifacts\strict_50m_timing_opt_20260609\impl220_impl200_optExploreArea_routeAdvancedSkewModeling_postAggressive_cpu50\logs\vivado_pynq_z2_impl.log' -journal 'D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\strict50-impl136-opt-20260625\artifacts\strict_50m_timing_opt_20260609\impl220_impl200_optExploreArea_routeAdvancedSkewModeling_postAggressive_cpu50\logs\vivado_pynq_z2_impl.jou' -source 'YH_rv_cpu\fpga\vivado\scripts\impl_from_synth_checkpoint.tcl' -tclargs 'D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\strict50-impl136-opt-20260625\artifacts\strict_50m_timing_opt_20260609\synth200_impl136_bhtidupd0_cpu50\dcp\cpu50_synth.dcp' 'D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\strict50-impl136-opt-20260625\artifacts\strict_50m_timing_opt_20260609\impl220_impl200_optExploreArea_routeAdvancedSkewModeling_postAggressive_cpu50\reports_cpu50' 'D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\strict50-impl136-opt-20260625\artifacts\strict_50m_timing_opt_20260609\impl220_impl200_optExploreArea_routeAdvancedSkewModeling_postAggressive_cpu50\dcp\cpu50_impl.dcp' *>&1 | Tee-Object -FilePath 'D:\BaiduSyncdisk\02_icdc_workspace\.worktrees\strict50-impl136-opt-20260625\artifacts\strict_50m_timing_opt_20260609\impl220_impl200_optExploreArea_routeAdvancedSkewModeling_postAggressive_cpu50\logs\build_stdout.log'
+exit $LASTEXITCODE

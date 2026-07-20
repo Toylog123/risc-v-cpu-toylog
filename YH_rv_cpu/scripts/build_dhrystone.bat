@@ -6,9 +6,11 @@ set BUILD_DIR=%PROJECT_DIR%\build\sw
 set OUTPUT_NAME=%~1
 set DHRYSTONE_RUNS=%~2
 set TARGET=%~3
+set DHRYSTONE_TIMER_HZ=%~4
 if "%OUTPUT_NAME%"=="" set OUTPUT_NAME=YH_rv_cpu_dhrystone
 if "%DHRYSTONE_RUNS%"=="" set DHRYSTONE_RUNS=10
 if "%TARGET%"=="" set TARGET=rv32im_zicsr
+if "%DHRYSTONE_TIMER_HZ%"=="" set DHRYSTONE_TIMER_HZ=100000000L
 if "%DHRYSTONE_OPT_LEVEL%"=="" set DHRYSTONE_OPT_LEVEL=-O2
 if "%DHRYSTONE_EXTRA_CFLAGS%"=="" set DHRYSTONE_EXTRA_CFLAGS=
 
@@ -224,6 +226,7 @@ set CORE_SRC=%GEN_DHRY_DIR%\dhrystone.c
 echo Dhrystone target: %TARGET%
 echo Dhrystone march: %MARCH%
 echo Dhrystone opt level: %DHRYSTONE_OPT_LEVEL%
+echo Dhrystone timer Hz: %DHRYSTONE_TIMER_HZ%
 if defined DHRYSTONE_EXTRA_CFLAGS echo Dhrystone extra cflags: %DHRYSTONE_EXTRA_CFLAGS%
 if /I "%DHRYSTONE_STRIP_NOINLINE%"=="1" echo Dhrystone source mode: generated without no-inline pragma
 
@@ -238,7 +241,7 @@ if errorlevel 1 exit /b 1
     -I "%PROJECT_DIR%\sw\dhrystone_port" ^
     -I "%PROJECT_DIR%\build\external\riscv-tests\benchmarks\dhrystone" ^
     -I "%PROJECT_DIR%\build\external\riscv-tests\benchmarks\common" ^
-    -DYH_DHRYSTONE_TIMER_HZ=100000000L -DYH_DHRYSTONE_MIN_TICKS=1L -DYH_DHRYSTONE_RUNS=%DHRYSTONE_RUNS% ^
+    -DYH_DHRYSTONE_TIMER_HZ=%DHRYSTONE_TIMER_HZ% -DYH_DHRYSTONE_MIN_TICKS=1L -DYH_DHRYSTONE_RUNS=%DHRYSTONE_RUNS% ^
     -c "!MAIN_SRC!" ^
     -o "%MAIN_OBJ%"
 if errorlevel 1 exit /b 1
@@ -249,7 +252,7 @@ if errorlevel 1 exit /b 1
     -I "%PROJECT_DIR%\sw\dhrystone_port" ^
     -I "%PROJECT_DIR%\build\external\riscv-tests\benchmarks\dhrystone" ^
     -I "%PROJECT_DIR%\build\external\riscv-tests\benchmarks\common" ^
-    -DYH_DHRYSTONE_TIMER_HZ=100000000L -DYH_DHRYSTONE_MIN_TICKS=1L -DYH_DHRYSTONE_RUNS=%DHRYSTONE_RUNS% ^
+    -DYH_DHRYSTONE_TIMER_HZ=%DHRYSTONE_TIMER_HZ% -DYH_DHRYSTONE_MIN_TICKS=1L -DYH_DHRYSTONE_RUNS=%DHRYSTONE_RUNS% ^
     -c "!CORE_SRC!" ^
     -o "%CORE_OBJ%"
 if errorlevel 1 exit /b 1
